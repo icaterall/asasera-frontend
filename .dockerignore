@@ -1,0 +1,19 @@
+# The build stage copies what it needs by name; this keeps the rest out of the
+# context. The agent-tooling directories are the bulk of it.
+node_modules
+dist
+dist-ssr
+
+.git
+.github
+kubernetes
+.claude
+.codex
+.cursor
+
+*.md
+*.log
+*.local
+.DS_Store
+Dockerfile
+.dockerignore

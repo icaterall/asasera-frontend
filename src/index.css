@@ -1,0 +1,485 @@
+@import "tailwindcss";
+
+/* Class-based dark mode (toggled on <html>) instead of prefers-color-scheme only. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ------------------------------------------------------------------ *
+ * Design tokens
+ * ------------------------------------------------------------------ */
+@theme {
+  /*
+   * Brand — primary. #004ccc is the committed brand colour and is anchored
+   * exactly at 500; the rest of the ramp holds its hue (218°) and varies
+   * lightness. Because 500 is dark, it is a superb foreground on the light
+   * canvas and a poor one on the dark canvas — see --accent below, which is
+   * what UI text and hairlines actually use.
+   */
+  --color-brand-50: #f0f5ff;
+  --color-brand-100: #e0ecff;
+  --color-brand-200: #bdd5ff;
+  --color-brand-300: #8ab5ff;
+  --color-brand-400: #3d84ff;
+  --color-brand-500: #004ccc;
+  --color-brand-600: #0040ad;
+  --color-brand-700: #00348f;
+  --color-brand-800: #002b75;
+  --color-brand-900: #02245e;
+  --color-brand-950: #03173a;
+
+  /* Teal — secondary. #14bf96 anchored at 500, hue held at 166°. */
+  --color-teal-300: #7de8cf;
+  --color-teal-400: #3adfb8;
+  --color-teal-500: #14bf96;
+  --color-teal-600: #0c9777;
+  --color-teal-700: #08785e;
+
+  /* Neutrals — cool-tinted ink */
+  --color-ink-50: #f7f7fb;
+  --color-ink-100: #eeeef5;
+  --color-ink-200: #dedee9;
+  --color-ink-300: #c0c0d3;
+  --color-ink-400: #9494ae;
+  --color-ink-500: #6f6f8c;
+  --color-ink-600: #55556f;
+  --color-ink-700: #3f3f55;
+  --color-ink-800: #24243a;
+  --color-ink-850: #191929;
+  --color-ink-900: #10101d;
+  --color-ink-950: #070710;
+
+  /*
+   * Corner radius — a brand rule, not a scale.
+   *
+   * Every box, button, card, input and panel in this product is 5px. The whole
+   * Tailwind radius scale is collapsed onto that single value deliberately, so
+   * `rounded-sm` through `rounded-4xl` are all 5px and any future `rounded-*`
+   * anyone writes is correct by construction. Do not reintroduce a scale here,
+   * and do not reach for an arbitrary value like `rounded-[16px]`.
+   *
+   * `rounded-full` is untouched and is reserved for shapes that are genuinely
+   * circular — status dots, avatars, spinners, the ambient background blobs.
+   * It is not an escape hatch for pills.
+   */
+  --radius-xs: 5px;
+  --radius-sm: 5px;
+  --radius-md: 5px;
+  --radius-lg: 5px;
+  --radius-xl: 5px;
+  --radius-2xl: 5px;
+  --radius-3xl: 5px;
+  --radius-4xl: 5px;
+
+  /* Fluid type scale */
+  --text-display: clamp(2.6rem, 1.15rem + 5.6vw, 5.75rem);
+  --text-display--line-height: 1.02;
+  --text-display--letter-spacing: -0.035em;
+  --text-hero: clamp(2.1rem, 1.1rem + 3.6vw, 3.75rem);
+  --text-hero--line-height: 1.08;
+  --text-hero--letter-spacing: -0.03em;
+  --text-title: clamp(1.6rem, 1.1rem + 1.9vw, 2.5rem);
+  --text-title--line-height: 1.18;
+  --text-title--letter-spacing: -0.02em;
+  --text-lead: clamp(1.02rem, 0.94rem + 0.42vw, 1.28rem);
+  --text-lead--line-height: 1.65;
+
+  /* Motion */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+
+  --animate-drift: drift 26s ease-in-out infinite;
+  --animate-drift-slow: drift 38s ease-in-out infinite reverse;
+  --animate-float: float 7s ease-in-out infinite;
+  --animate-shimmer: shimmer 2.6s linear infinite;
+  --animate-marquee: marquee 42s linear infinite;
+  --animate-pulse-ring: pulse-ring 3.2s ease-out infinite;
+  --animate-drawer: drawer-in 0.45s var(--ease-out-expo) both;
+  --animate-fade-in: fade-in 0.3s ease-out both;
+  --animate-grow: grow-up 1.2s var(--ease-out-expo) both;
+
+  @keyframes drift {
+    0%,
+    100% {
+      transform: translate3d(0, 0, 0) scale(1);
+    }
+    33% {
+      transform: translate3d(6%, -8%, 0) scale(1.12);
+    }
+    66% {
+      transform: translate3d(-7%, 5%, 0) scale(0.94);
+    }
+  }
+  @keyframes float {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+  @keyframes shimmer {
+    to {
+      background-position: 200% center;
+    }
+  }
+  @keyframes marquee {
+    to {
+      transform: translateX(-50%);
+    }
+  }
+  @keyframes pulse-ring {
+    0% {
+      opacity: 0.55;
+      transform: scale(0.85);
+    }
+    70%,
+    100% {
+      opacity: 0;
+      transform: scale(1.7);
+    }
+  }
+  @keyframes drawer-in {
+    from {
+      opacity: 0;
+      transform: translateY(-14px) scale(0.97);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  @keyframes grow-up {
+    from {
+      transform: scaleY(0.04);
+      opacity: 0;
+    }
+    to {
+      transform: scaleY(1);
+      opacity: 1;
+    }
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ * Semantic surface tokens — flipped by the `.dark` class on <html>.
+ * `@theme inline` keeps utilities pointing at the variable, so
+ * `bg-surface` / `text-ink` re-resolve the moment the theme changes.
+ * ------------------------------------------------------------------ */
+@theme inline {
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-raised: var(--raised);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-faint: var(--faint);
+
+  /*
+   * Foreground-safe brand colours. A single ramp step cannot serve both
+   * themes: measured, #004ccc is 7.0:1 on the light canvas but only ~2.4:1 on
+   * the dark one. Anything that renders as text, an icon, a hairline or a
+   * focus ring uses these; solid fills that carry white text keep `brand-500`,
+   * where white measures 7.2:1.
+   */
+  --color-accent: var(--accent);
+  --color-accent-alt: var(--accent-alt);
+
+  --font-sans: var(--font-app);
+}
+
+:root {
+  color-scheme: light;
+
+  --canvas: #fbfbfe;
+  --surface: #ffffff;
+  --raised: #f5f5fb;
+  --line: color-mix(in oklab, #24243a 9%, transparent);
+  --line-strong: color-mix(in oklab, #24243a 16%, transparent);
+  --fg: #10101d;
+  --muted: #55556f;
+  --faint: #6b6b85;
+
+  /* Panels that do not overlay scrolling content skip backdrop-filter. */
+  --panel-bg: color-mix(in oklab, #ffffff 80%, transparent);
+
+  /*
+   * Gradient text sits on a near-white page in this theme, so it uses the
+   * deep end of the ramp. The dark theme swaps in the light end below.
+   */
+  --grad-from: var(--color-brand-500);
+  --grad-via: var(--color-teal-600);
+  --grad-to: var(--color-brand-600);
+
+  --accent: var(--color-brand-500);
+  /*
+   * teal-700, not -600: --accent-alt carries 10px delta labels, which need
+   * 4.5:1. teal-600 reaches only 3.56:1 on this canvas — enough for the
+   * display gradient (--grad-via, large text) but not for body-size text.
+   */
+  --accent-alt: var(--color-teal-700);
+
+  /* Ambient light behind the page — tuned per theme. */
+  --glow-a: color-mix(in oklab, #004ccc 26%, transparent);
+  --glow-b: color-mix(in oklab, #14bf96 24%, transparent);
+  --glow-c: color-mix(in oklab, #3d84ff 20%, transparent);
+
+  --font-latin: "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-arabic: "IBM Plex Sans Arabic", "Tajawal", ui-sans-serif, system-ui, sans-serif;
+  --font-app: var(--font-latin);
+}
+
+.dark {
+  color-scheme: dark;
+
+  --canvas: #070710;
+  --surface: color-mix(in oklab, #191929 78%, transparent);
+  --raised: #191929;
+  --line: color-mix(in oklab, #ffffff 10%, transparent);
+  --line-strong: color-mix(in oklab, #ffffff 18%, transparent);
+  --fg: #f7f7fb;
+  --muted: #a6a6c0;
+  --faint: #8b8ba6;
+
+  --panel-bg: color-mix(in oklab, #191929 74%, transparent);
+
+  --grad-from: var(--color-brand-300);
+  --grad-via: var(--color-teal-400);
+  --grad-to: var(--color-brand-400);
+
+  --accent: var(--color-brand-300);
+  --accent-alt: var(--color-teal-400);
+
+  --glow-a: color-mix(in oklab, #004ccc 68%, transparent);
+  --glow-b: color-mix(in oklab, #14bf96 34%, transparent);
+  --glow-c: color-mix(in oklab, #3d84ff 30%, transparent);
+}
+
+/* Arabic gets its own stack; `dir` lives on <html>, so this cascades. */
+[dir="rtl"] {
+  --font-app: var(--font-arabic);
+}
+
+@layer base {
+  * {
+    border-color: var(--line);
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--canvas);
+    color: var(--fg);
+    font-synthesis-weight: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: clip;
+  }
+
+  ::selection {
+    background: color-mix(in oklab, var(--accent) 30%, transparent);
+    color: var(--fg);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+    border-radius: var(--radius-md);
+  }
+
+  /* Slim, theme-aware scrollbar */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: color-mix(in oklab, var(--muted) 35%, transparent);
+    border: 3px solid transparent;
+    background-clip: content-box;
+    border-radius: var(--radius-md);
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: color-mix(in oklab, var(--muted) 60%, transparent);
+    background-clip: content-box;
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ * Unlayered overrides — these intentionally outrank Tailwind utilities.
+ * ------------------------------------------------------------------ */
+
+/*
+ * Script-aware font selection. `--font-app` above covers the page default,
+ * but a subtree explicitly marked with `lang` may be in the *other* script —
+ * the ع in the language switch on an English page, or the "Get started"
+ * sample inside the bidi demo. Those need the right stack regardless of the
+ * page direction, and a `font-family` (not a variable) because descendants
+ * inherit the resolved value, not the reference.
+ */
+[lang="ar"] {
+  font-family: var(--font-arabic);
+}
+
+[lang="en"] {
+  font-family: var(--font-latin);
+}
+
+/*
+ * Arabic script is cursive: letters join. Any tracking (including the
+ * negative tracking our display sizes apply) shears those joins apart,
+ * so it is neutralised wholesale in RTL.
+ */
+[dir="rtl"] * {
+  letter-spacing: normal;
+}
+
+/* Arabic ascenders and diacritics need more room to breathe. */
+[dir="rtl"] :is(h1, h2, h3, h4) {
+  line-height: 1.35;
+}
+
+[dir="rtl"] body {
+  font-feature-settings: "kern" 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ * Composite pieces that are awkward to express as utilities
+ * ------------------------------------------------------------------ */
+@layer components {
+  /*
+   * Frosted surface. `backdrop-filter` is genuinely expensive — every layer
+   * forces its own compositing pass — so `.glass` is reserved for the few
+   * elements that actually float over scrolling content: the header, the
+   * mobile drawer, the skip link, the toggles and the hero chips.
+   */
+  .glass {
+    background: color-mix(in oklab, var(--surface) 72%, transparent);
+    backdrop-filter: blur(16px) saturate(180%);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    border: 1px solid var(--line);
+  }
+
+  /*
+   * Everything else — cards, stat bands, the CTA slab — uses this instead.
+   * The page backdrop is already a soft gradient, so blurring it again buys
+   * nothing visually and costs a layer per card.
+   */
+  .panel {
+    background: var(--panel-bg);
+    border: 1px solid var(--line);
+  }
+
+  /* Text filled with the brand gradient. */
+  .text-gradient {
+    background-image: linear-gradient(
+      100deg,
+      var(--grad-from),
+      var(--grad-via) 45%,
+      var(--grad-to) 80%
+    );
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+  }
+
+  /* A 1px gradient hairline border, drawn with a mask so the fill stays free. */
+  .border-gradient {
+    position: relative;
+  }
+  .border-gradient::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(
+      140deg,
+      color-mix(in oklab, var(--accent) 60%, transparent),
+      transparent 40%,
+      transparent 60%,
+      color-mix(in oklab, var(--color-teal-400) 55%, transparent)
+    );
+    mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    mask-composite: exclude;
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    pointer-events: none;
+  }
+
+  /*
+   * Cursor spotlight. `--mx`/`--my` are written by the pointer handler in
+   * Spotlight.tsx; they default to the card centre so the effect degrades
+   * gracefully on touch and keyboard.
+   */
+  .spotlight {
+    position: relative;
+    isolation: isolate;
+  }
+  .spotlight::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: radial-gradient(
+      420px circle at var(--mx, 50%) var(--my, 50%),
+      color-mix(in oklab, var(--accent) 18%, transparent),
+      transparent 65%
+    );
+    opacity: 0;
+    transition: opacity 0.45s var(--ease-out-expo);
+    pointer-events: none;
+    z-index: -1;
+  }
+  .spotlight:hover::after,
+  .spotlight:focus-within::after {
+    opacity: 1;
+  }
+
+  /* Animated sheen that sweeps across primary buttons. */
+  .sheen {
+    background-image: linear-gradient(
+      110deg,
+      transparent 25%,
+      color-mix(in oklab, #fff 26%, transparent) 50%,
+      transparent 75%
+    );
+    background-size: 200% 100%;
+  }
+}
+
+/* Utility: pause marquee/parallax work while offscreen isn't worth a lib. */
+@utility content-auto {
+  content-visibility: auto;
+}

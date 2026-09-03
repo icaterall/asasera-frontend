@@ -1,0 +1,83 @@
+name: Build Docker image
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+      EKS_CLUSTER_NAME: pickpickgo-eks
+      IMAGE_TAG: ${{ github.sha }}
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Check i18n files are in sync
+        run: |
+          npm ci
+          # src/i18n/locales/ar.ts is typed as `typeof en`, so a missing or
+          # surplus translation key is a type error rather than a runtime
+          # fallback. `git status` cannot see that drift — this soon after a
+          # checkout the tree is clean whatever the locale files say.
+          npx tsc -b
+
+      - name: Validate production Kubernetes manifest
+        # Bare form on purpose: it enumerates kubernetes/ and fails on any
+        # manifest that is neither contract-covered nor reviewed-excluded.
+        # Naming files here would silently re-narrow coverage to that list.
+        run: npm run check:k8s
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Install and configure kubectl
+        run: |
+          curl -o kubectl https://amazon-eks.s3.us-west-2.amazonaws.com/1.18.9/2020-11-02/bin/linux/amd64/kubectl
+          chmod +x ./kubectl
+          sudo mv ./kubectl /usr/local/bin/kubectl
+          aws eks update-kubeconfig --region ${{ secrets.AWS_REGION }} --name ${{ env.EKS_CLUSTER_NAME }}
+
+      - name: Login to Docker Hub
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+      - name: Build, tag, and push image to Amazon ECR
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: asasera-new-frontend
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+
+      - name: Update Kubernetes deployment
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: asasera-new-frontend
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          kubectl apply -f kubernetes/frontend-deployment.yaml
+          EXPECTED_IMAGE=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          kubectl set image deployment/asasera-frontend-deployment asasera-frontend-container=$EXPECTED_IMAGE
+          kubectl rollout status deployment/asasera-frontend-deployment --timeout=180s
+          DEPLOYED_IMAGE=$(kubectl get deployment/asasera-frontend-deployment -o jsonpath='{.spec.template.spec.containers[?(@.name=="asasera-frontend-container")].image}')
+          if [ "$DEPLOYED_IMAGE" != "$EXPECTED_IMAGE" ]; then
+            echo "Frontend image mismatch: expected $EXPECTED_IMAGE, deployed $DEPLOYED_IMAGE"
+            exit 1
+          fi
