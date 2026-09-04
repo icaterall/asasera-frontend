@@ -6,6 +6,12 @@ ARG NGINX_VERSION=stable-alpine
 FROM node:${NODE_VERSION} AS build
 WORKDIR /app
 
+# The commit this image was built from, inlined into the bundle so the running
+# front end can say which code it is. A stale front end is otherwise
+# indistinguishable from a current one.
+ARG GIT_COMMIT=unknown
+ENV VITE_BUILD_COMMIT=$GIT_COMMIT
+
 # Dependencies on their own layer, so editing a component does not refetch the
 # whole tree. Scripts run here: esbuild fetches its platform binary that way.
 COPY package.json package-lock.json ./
@@ -13,6 +19,15 @@ RUN npm ci
 
 COPY tsconfig.json tsconfig.app.json tsconfig.node.json ./
 COPY vite.config.ts index.html ./
+
+# The production API origin, inlined by Vite at build time.
+#
+# Without this file the build still succeeds and VITE_API_URL is simply empty,
+# so every deployed request goes same-origin — the browser asks the *front end*
+# host for /api/v1/... and gets nginx's SPA fallback: an HTML page, HTTP 200,
+# and a JSON parse error in the console. It fails at runtime, in production
+# only, and looks like a backend problem. Copying it is what prevents that.
+COPY .env.production ./
 COPY public ./public
 COPY src ./src
 # Not shipped, but tsconfig.node.json typechecks it as part of `tsc -b`.
@@ -24,6 +39,9 @@ RUN npm run build
 
 
 FROM nginx:${NGINX_VERSION} AS runtime
+
+ARG GIT_COMMIT=unknown
+LABEL org.opencontainers.image.revision=$GIT_COMMIT
 
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /app/dist /usr/share/nginx/html

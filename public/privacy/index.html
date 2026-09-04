@@ -1,0 +1,494 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>سياسة الخصوصية — Privacy Policy | Asasera</title>
+<meta name="description" content="Asasera privacy policy — سياسة الخصوصية لمنصة أساسيرا. What we collect, why, and how to delete it.">
+<meta name="robots" content="index, follow">
+<style>
+  /*
+   * No external stylesheet, no CDN, no webfont. A reviewer who fetches this
+   * page from a network that blocks a font host, or with a tool that does not
+   * follow subresources, must still get a readable document. A system stack
+   * cannot fail to load.
+   */
+  :root {
+    --brand-blue: #0B5FD0;
+    --brand-teal: #00806B;
+    --ink: #10233D;
+    --ink-muted: #55657D;
+    --line: #E1E8F2;
+    --radius: 5px;
+    --radius-sm: 3px;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    padding: 0 20px 64px;
+    background: #fff;
+    color: var(--ink);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    /* Arabic needs more leading than Latin: ascenders and diacritics sit
+       outside the x-height band and collide at typical Latin line spacing. */
+    line-height: 1.9;
+    font-size: 17px;
+  }
+  .wrap { max-width: 720px; margin-inline: auto; }
+  header { padding-block: 28px 20px; border-block-end: 1px solid var(--line); }
+  h1 { font-size: 1.6rem; line-height: 1.4; margin: 0 0 8px; }
+  h2 { font-size: 1.25rem; line-height: 1.45; margin: 32px 0 8px; color: var(--ink); }
+  h3 { font-size: 1.05rem; margin: 20px 0 6px; }
+  p, li { color: var(--ink); }
+  .muted { color: var(--ink-muted); }
+  a { color: var(--brand-blue); }
+  ul, ol { padding-inline-start: 22px; }
+  li { margin-block: 6px; }
+  hr { border: 0; border-block-start: 1px solid var(--line); margin-block: 40px; }
+  code, .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.92em; }
+
+  .meta { font-size: 0.95rem; color: var(--ink-muted); margin: 0; }
+
+  /* Segmented language control. 5px outer, 3px on the segments. */
+  .langbar { display: flex; gap: 4px; margin-block: 16px 0; }
+  .langbar button {
+    font: inherit; font-size: 0.95rem; padding: 7px 14px; cursor: pointer;
+    border: 1px solid var(--line); background: #fff; color: var(--ink-muted);
+    border-radius: var(--radius-sm);
+    min-height: 38px;
+  }
+  .langbar button[aria-pressed="true"] { color: var(--brand-blue); border-color: var(--brand-blue); font-weight: 600; }
+  .langbar button:focus-visible { outline: 3px solid var(--brand-blue); outline-offset: 2px; }
+
+  .callout {
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    margin-block: 20px;
+  }
+  .callout.teal { border-color: var(--brand-teal); }
+  .callout h3 { margin-block-start: 0; color: var(--brand-teal); }
+
+  table { border-collapse: collapse; width: 100%; margin-block: 16px; font-size: 0.95rem; }
+  th, td { border: 1px solid var(--line); padding: 10px 12px; text-align: start; vertical-align: top; }
+  th { background: #F4F7FC; font-weight: 600; }
+
+  .placeholder { background: #FFF4DE; border-radius: var(--radius-sm); padding: 0 4px; }
+
+  /*
+   * THE IMPORTANT PART.
+   *
+   * Both language sections are visible by default, in the base stylesheet.
+   * The script below ADDS `.js-hide` on load to collapse one of them. With
+   * JavaScript disabled — a text-mode fetch, a crawler, curl, a reviewer with
+   * scripting off — nothing runs, nothing is hidden, and both languages
+   * render stacked with a rule and a heading between them.
+   *
+   * Hiding in CSS and revealing with JS would invert that and show a reviewer
+   * an empty page. That is the single most common way this page fails review.
+   */
+  .js-hide { display: none; }
+
+  .section-divider { margin-block: 48px; }
+  @media (max-width: 420px) {
+    body { font-size: 16px; padding-inline: 16px; }
+    h1 { font-size: 1.35rem; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>سياسة الخصوصية — Privacy Policy</h1>
+  <p class="meta">
+    <bdi>Asasera</bdi> · أساسيرا<br>
+    تاريخ السريان / Effective date: <bdi>2026-09-05</bdi><br>
+    آخر تحديث / Last updated: <bdi>2026-09-05</bdi>
+  </p>
+  <div class="langbar" role="group" aria-label="Language / اللغة">
+    <button type="button" id="btn-ar" aria-pressed="true" lang="ar">العربية</button>
+    <button type="button" id="btn-en" aria-pressed="false" lang="en">English</button>
+  </div>
+  <p class="meta" style="margin-block-start:12px">
+    يظهر النصان العربي والإنجليزي في هذه الصفحة. Both the Arabic and English
+    texts are on this page; they say the same things.
+  </p>
+</header>
+
+<!-- ══════════════════════ ARABIC ══════════════════════ -->
+<section id="ar" lang="ar" dir="rtl">
+
+<h2>1. من نحن ولمن تنطبق هذه السياسة</h2>
+<p>
+  <bdi>Asasera</bdi> (أساسيرا) أداة صفّية يستخدمها أساتذة الجامعات مع طلابهم داخل
+  المحاضرة. المتحكّم بالبيانات هو
+  <span class="placeholder">PLACEHOLDER_LEGAL_ENTITY</span>،
+  <span class="placeholder">PLACEHOLDER_ADDRESS</span>،
+  ويمكن مراسلتنا على
+  <bdi><a href="mailto:privacy@PLACEHOLDER_DOMAIN">privacy@PLACEHOLDER_DOMAIN</a></bdi>.
+</p>
+<p>
+  الخدمة مخصّصة للتعليم الجامعي ولمن أعمارهم <bdi>18</bdi> سنة فأكثر. نحن لا نجمع
+  عن قصد بيانات من أطفال دون <bdi>13</bdi> سنة. وإذا علمنا أننا فعلنا، نحذفها.
+</p>
+
+<h2>2. البيانات التي نجمعها</h2>
+
+<h3>أ) حساب المعلّم</h3>
+<ul>
+  <li>الاسم كما يكتبه — نخزّنه كما هو، بلا ترجمة ولا نقل حروف.</li>
+  <li>البريد الإلكتروني.</li>
+  <li>كلمة المرور: نخزّن <strong>بصمتها فقط</strong> بخوارزمية <bdi>argon2id</bdi>. لا نخزّن كلمة المرور نفسها ولا يمكننا استرجاعها.</li>
+  <li>المادة والمرحلة التعليمية التي يدرّسها، ولغة الواجهة، وطريقة تسجيل الدخول.</li>
+</ul>
+
+<h3>ب) تسجيل الدخول عبر <bdi>Google</bdi> أو <bdi>Facebook</bdi></h3>
+<p>
+  عند اختيارك تسجيل الدخول عبر <bdi>Google</bdi> أو <bdi>Facebook</bdi>، نستقبل من
+  المزوّد: المعرّف الثابت للمستخدم لديه، والاسم على ذلك الحساب، والبريد
+  الإلكتروني إن زوّدنا به المزوّد.
+</p>
+<div class="callout teal">
+  <h3>ما لا يحدث</h3>
+  <p style="margin:0">
+    لا نستقبل ولا نطلب كلمة مرور حسابك على <bdi>Facebook</bdi> أو <bdi>Google</bdi>،
+    ولا ننشر أي شيء على ذلك الحساب، ولا نقرأ قائمة أصدقائك.
+  </p>
+</div>
+
+<h3>ج) طالب ينضم إلى جلسة بلا حساب</h3>
+<ul>
+  <li>الاسم الذي يكتبه عند الانضمام.</li>
+  <li>معرّف عشوائي يُخزَّن على جهازه، ليرتبط عمله عبر جلسات المقرر نفسه.</li>
+  <li>لا بريد إلكتروني، ولا كلمة مرور، ولا رقم هاتف.</li>
+</ul>
+
+<h3>د) طالب يختار إنشاء حساب</h3>
+<p>الاسم والبريد الإلكتروني وبيانات الدخول، بالمعالجة نفسها الموصوفة أعلاه.</p>
+
+<h3>هـ) بيانات التعلّم</h3>
+<p>أي العناصر أُجيب عنها، وأي إجابة اختيرت، وهل كانت صحيحة.</p>
+
+<h3>و) بيانات التفاعل — نوضّحها صراحةً</h3>
+<p>
+  في أنشطة السحب والصور التفاعلية نسجّل: ترتيب الأفعال، واتجاه السحب، والتردد،
+  والتراجع، والزمن المستغرق في كل خطوة.
+</p>
+<p>
+  <strong>لماذا:</strong> لأن الإجابة الخاطئة وحدها لا تقول أي خطأ وقع. المسار
+  يقول. هذه البيانات تُستخدم لتحديد المفهوم الخاطئ المحدَّد وراء الإجابة، ثم
+  لتقديم علاج مناسب من المادة نفسها.
+</p>
+<div class="callout">
+  <h3>وما لا تُستخدم فيه</h3>
+  <ul style="margin-block-end:0">
+    <li>لا تُستخدم لترتيب الطلاب حسب السرعة.</li>
+    <li>لا تُستخدم في الدرجات أو التقييم الرسمي.</li>
+    <li>لا تُباع، ولا تُشارك مع معلنين.</li>
+  </ul>
+</div>
+
+<h3>ز) المواد التي يرفعها المعلّم</h3>
+<p>ملفات المقرر، والنصوص والصور المستخرجة منها.</p>
+
+<h3>ح) بيانات تقنية</h3>
+<p>
+  عنوان <bdi>IP</bdi>، ونوع المتصفّح والجهاز، وأختام الوقت. نحتفظ بها لأغراض
+  الأمان ومنع إساءة الاستخدام.
+</p>
+
+<h2>3. كيف نستخدم البيانات والأساس القانوني</h2>
+<table>
+  <thead><tr><th>الغرض</th><th>الأساس القانوني</th></tr></thead>
+  <tbody>
+    <tr><td>تشغيل الحساب وتقديم الجلسات الصفّية</td><td>تنفيذ العقد</td></tr>
+    <tr><td>توليد الأنشطة من مادة المقرر</td><td>تنفيذ العقد</td></tr>
+    <tr><td>تحليل بيانات التفاعل لتحديد الخطأ وتقديم العلاج</td><td>تنفيذ العقد</td></tr>
+    <tr><td>الأمان ومنع إساءة الاستخدام وسجلّات الدخول</td><td>مصلحة مشروعة</td></tr>
+    <tr><td>تحسين المنتج عبر أعداد مجمّعة لا تُعرِّف بأحد</td><td>مصلحة مشروعة</td></tr>
+    <tr><td>رسائل التحقّق من البريد وإعادة تعيين كلمة المرور</td><td>تنفيذ العقد</td></tr>
+    <tr><td>أي معالجة اختيارية نطلبها صراحةً</td><td>الموافقة — ويمكن سحبها</td></tr>
+  </tbody>
+</table>
+
+<h2>4. أطراف ثالثة تعالج البيانات نيابةً عنّا</h2>
+<p>
+  تُعالَج المواد المرفوعة والمحتوى المولَّد لدى مزوّدي نماذج ذكاء اصطناعي، بموجب
+  اتفاقيات <strong>تمنعهم من استخدام هذا المحتوى في تدريب نماذجهم</strong>.
+</p>
+<ul>
+  <li>الاستضافة السحابية: <bdi>Amazon Web Services (AWS)</bdi>.</li>
+  <li>مزوّدو نماذج الذكاء الاصطناعي.</li>
+  <li>خدمة إرسال البريد الإلكتروني.</li>
+  <li>خدمة تركيب الكلام.</li>
+</ul>
+<p>هؤلاء <strong>معالِجون</strong> يعملون بتعليماتنا، وليسوا جهات نبيع لها البيانات.</p>
+
+<h2>5. ما لا نفعله</h2>
+<div class="callout teal">
+  <ul style="margin:0">
+    <li>لا نبيع البيانات الشخصية.</li>
+    <li>لا نعرض إعلانات.</li>
+    <li>لا نستخدم بيانات الطلاب في تدريب نماذج الذكاء الاصطناعي.</li>
+    <li>لا نشارك نتائج الطالب مع أي جهة غير معلّمه.</li>
+    <li>الطالب لا يدفع أبدًا.</li>
+  </ul>
+</div>
+
+<h2>6. مدد الاحتفاظ</h2>
+<ul>
+  <li>بيانات الحساب: حتى يُطلب حذفها.</li>
+  <li>بيانات الجلسات والتعلّم: الفصل الدراسي الجاري زائد <bdi>12</bdi> شهرًا.</li>
+  <li>سجلّات الأمان: <bdi>90</bdi> يومًا.</li>
+  <li>يكتمل الحذف خلال <bdi>30</bdi> يومًا من طلب موثَّق.</li>
+</ul>
+
+<h2>7. حقوقك</h2>
+<p>لك الحق في: الاطّلاع، والتصحيح، والحذف، والاعتراض، ونقل بياناتك، وسحب الموافقة، وتقديم شكوى إلى جهة رقابية مختصّة.</p>
+<p>
+  لممارسة أي منها راسلنا على
+  <bdi><a href="mailto:privacy@PLACEHOLDER_DOMAIN">privacy@PLACEHOLDER_DOMAIN</a></bdi>،
+  أو اتبع خطوات <a href="/data-deletion">صفحة حذف البيانات</a>.
+</p>
+
+<h2>8. بيانات الطلاب ودور المعلّم</h2>
+<p>
+  قائمة الصف ونتائج الطلاب تخصّ مقرَّر المعلّم، وهو من يديرها. يستطيع الطالب أن
+  يطلب إزالة سجلّه من معلّمه مباشرةً، أو منّا عبر البريد أعلاه.
+</p>
+
+<h2>9. الأمان</h2>
+<p>
+  التشفير أثناء النقل عبر <bdi>HTTPS</bdi>، وتخزين كلمات المرور كبصمات
+  <bdi>argon2id</bdi>، وضوابط وصول داخلية. لا يوجد نظام آمن بالمطلق، ولا ندّعي
+  ذلك، ولا نحمل أي شهادة أمنية لم نحصل عليها.
+</p>
+
+<h2>10. النقل الدولي والتغييرات والتواصل</h2>
+<p>
+  قد تُعالَج البيانات على خوادم خارج بلدك لدى المعالِجين المذكورين أعلاه، بضمانات
+  تعاقدية مناسبة.
+</p>
+<p>
+  عند تغيير جوهري لهذه السياسة نحدّث تاريخ «آخر تحديث» ونُشعر أصحاب الحسابات
+  بالبريد. للتواصل:
+  <bdi><a href="mailto:privacy@PLACEHOLDER_DOMAIN">privacy@PLACEHOLDER_DOMAIN</a></bdi>،
+  <span class="placeholder">PLACEHOLDER_LEGAL_ENTITY</span>،
+  <span class="placeholder">PLACEHOLDER_ADDRESS</span>.
+</p>
+
+</section>
+
+<hr class="section-divider" id="divider">
+
+<!-- ══════════════════════ ENGLISH ══════════════════════ -->
+<section id="en" lang="en" dir="ltr">
+
+<h2>Privacy Policy (English)</h2>
+<p class="meta">
+  Effective date: 2026-09-05 · Last updated: 2026-09-05
+</p>
+
+<h2>1. Who we are, and who this applies to</h2>
+<p>
+  Asasera is a classroom tool used by university teachers with their students
+  during a lecture. The data controller is
+  <span class="placeholder">PLACEHOLDER_LEGAL_ENTITY</span>,
+  <span class="placeholder">PLACEHOLDER_ADDRESS</span>. Contact us at
+  <a href="mailto:privacy@PLACEHOLDER_DOMAIN">privacy@PLACEHOLDER_DOMAIN</a>.
+</p>
+<p>
+  The service is intended for university-level education and for users aged 18
+  and over. We do not knowingly collect data from children under 13. If we
+  learn that we have, we delete it.
+</p>
+
+<h2>2. Data we collect</h2>
+
+<h3>a) Teacher account</h3>
+<ul>
+  <li>The name as typed — stored as written, never translated or transliterated.</li>
+  <li>Email address.</li>
+  <li>Password: we store <strong>only an argon2id hash</strong>. We never store the password itself and cannot recover it.</li>
+  <li>The subject and education level taught, interface language, and sign-in method.</li>
+</ul>
+
+<h3>b) Signing in with Google or Facebook</h3>
+<p>
+  If you choose to sign in with Google or Facebook, we receive from that
+  provider: the provider's stable user ID, the name on that account, and the
+  email address if the provider supplies one.
+</p>
+<div class="callout teal">
+  <h3>What does not happen</h3>
+  <p style="margin:0">
+    We never receive or request the password of your Facebook or Google
+    account, we do not post anything to it, and we do not read your friends
+    list.
+  </p>
+</div>
+
+<h3>c) A student joining a session without an account</h3>
+<ul>
+  <li>The name they type when joining.</li>
+  <li>A random identifier stored on their device, so their work connects across sessions in the same course.</li>
+  <li>No email address, no password, no phone number.</li>
+</ul>
+
+<h3>d) A student who chooses to create an account</h3>
+<p>Name, email and credential, handled exactly as described above.</p>
+
+<h3>e) Learning data</h3>
+<p>Which items were answered, which answers were chosen, and whether they were correct.</p>
+
+<h3>f) Interaction data — stated plainly</h3>
+<p>
+  In drag and interactive-image activities we record the order of actions, the
+  direction of a drag, hesitation, undo, and the time taken on each step.
+</p>
+<p>
+  <strong>Why:</strong> a wrong answer alone does not say <em>which</em> mistake
+  was made. The path does. This data is used to identify the specific
+  misconception behind an answer and then to offer a fix drawn from the
+  student's own course material.
+</p>
+<div class="callout">
+  <h3>What it is not used for</h3>
+  <ul style="margin-bottom:0">
+    <li>It is not used to rank students by speed.</li>
+    <li>It is not used for grades or formal assessment.</li>
+    <li>It is not sold, and not shared with advertisers.</li>
+  </ul>
+</div>
+
+<h3>g) Material uploaded by teachers</h3>
+<p>Course files, and the text and images extracted from them.</p>
+
+<h3>h) Technical data</h3>
+<p>IP address, browser and device type, and timestamps, kept for security and abuse prevention.</p>
+
+<h2>3. How we use it, and the legal basis</h2>
+<table>
+  <thead><tr><th>Purpose</th><th>Legal basis</th></tr></thead>
+  <tbody>
+    <tr><td>Running your account and delivering classroom sessions</td><td>Performance of a contract</td></tr>
+    <tr><td>Generating activities from course material</td><td>Performance of a contract</td></tr>
+    <tr><td>Analysing interaction data to identify a misconception and offer a fix</td><td>Performance of a contract</td></tr>
+    <tr><td>Security, abuse prevention, and access logs</td><td>Legitimate interest</td></tr>
+    <tr><td>Improving the product using aggregate counts that identify nobody</td><td>Legitimate interest</td></tr>
+    <tr><td>Email verification and password-reset messages</td><td>Performance of a contract</td></tr>
+    <tr><td>Any optional processing we ask you about explicitly</td><td>Consent — withdrawable at any time</td></tr>
+  </tbody>
+</table>
+
+<h2>4. Third parties who process data on our behalf</h2>
+<p>
+  Uploaded course material and generated activity content are processed by
+  third-party AI model providers under agreements that
+  <strong>prohibit them from using that content to train their models</strong>.
+</p>
+<ul>
+  <li>Cloud hosting: Amazon Web Services (AWS).</li>
+  <li>AI model providers.</li>
+  <li>Email delivery.</li>
+  <li>Speech synthesis.</li>
+</ul>
+<p>These are <strong>processors</strong> acting on our instructions, not parties we sell data to.</p>
+
+<h2>5. What we do not do</h2>
+<div class="callout teal">
+  <ul style="margin:0">
+    <li>We do not sell personal data.</li>
+    <li>We do not show advertising.</li>
+    <li>We do not use student data to train AI models.</li>
+    <li>We do not share a student's results with anyone other than their own teacher.</li>
+    <li>Students never pay.</li>
+  </ul>
+</div>
+
+<h2>6. Retention</h2>
+<ul>
+  <li>Account data: until deletion is requested.</li>
+  <li>Session and learning data: the current academic term plus 12 months.</li>
+  <li>Security logs: 90 days.</li>
+  <li>Deletion is completed within 30 days of a verified request.</li>
+</ul>
+
+<h2>7. Your rights</h2>
+<p>
+  You have the right to access, correct, delete, object, receive your data in a
+  portable form, withdraw consent, and complain to a supervisory authority.
+</p>
+<p>
+  To exercise any of these, email
+  <a href="mailto:privacy@PLACEHOLDER_DOMAIN">privacy@PLACEHOLDER_DOMAIN</a>,
+  or follow the steps on the <a href="/data-deletion">data deletion page</a>.
+</p>
+
+<h2>8. Student data and the teacher's role</h2>
+<p>
+  A class roster and its students' results belong to the teacher's course, and
+  the teacher administers them. A student may ask their teacher to remove their
+  record directly, or ask us at the address above.
+</p>
+
+<h2>9. Security</h2>
+<p>
+  Encryption in transit over HTTPS, passwords stored as argon2id hashes, and
+  internal access controls. No system is perfectly secure, we do not claim
+  otherwise, and we do not hold any security certification we have not earned.
+</p>
+
+<h2>10. International transfers, changes, and contact</h2>
+<p>
+  Data may be processed on servers outside your country by the processors named
+  above, under appropriate contractual safeguards.
+</p>
+<p>
+  If we change this policy materially we will update the "last updated" date
+  and notify account holders by email. Contact:
+  <a href="mailto:privacy@PLACEHOLDER_DOMAIN">privacy@PLACEHOLDER_DOMAIN</a>,
+  <span class="placeholder">PLACEHOLDER_LEGAL_ENTITY</span>,
+  <span class="placeholder">PLACEHOLDER_ADDRESS</span>.
+</p>
+
+</section>
+
+</div>
+
+<script>
+  /*
+   * Progressive enhancement, in the only direction that is safe here.
+   *
+   * Everything above is already visible. This ADDS a class to collapse one
+   * language once scripting is confirmed to run. If it never runs, both
+   * sections stay on the page.
+   */
+  (function () {
+    var ar = document.getElementById('ar');
+    var en = document.getElementById('en');
+    var divider = document.getElementById('divider');
+    var btnAr = document.getElementById('btn-ar');
+    var btnEn = document.getElementById('btn-en');
+
+    function show(lang) {
+      var arabic = lang === 'ar';
+      ar.classList.toggle('js-hide', !arabic);
+      en.classList.toggle('js-hide', arabic);
+      divider.classList.add('js-hide');
+      btnAr.setAttribute('aria-pressed', String(arabic));
+      btnEn.setAttribute('aria-pressed', String(!arabic));
+      document.documentElement.lang = arabic ? 'ar' : 'en';
+      document.documentElement.dir = arabic ? 'rtl' : 'ltr';
+    }
+
+    btnAr.addEventListener('click', function () { show('ar'); });
+    btnEn.addEventListener('click', function () { show('en'); });
+    // Honour a direct link to #en or #ar.
+    show(location.hash === '#en' ? 'en' : 'ar');
+  })();
+</script>
+</body>
+</html>

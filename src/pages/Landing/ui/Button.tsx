@@ -13,14 +13,12 @@ export type ButtonSize = 'md' | 'lg'
  */
 const base =
   'inline-flex items-center justify-center gap-2 rounded-asas font-bold ' +
-  'transition-[background-color,border-color,color,box-shadow] duration-200 ' +
+  'transition-[background-color,border-color,color,box-shadow,filter] duration-200 ' +
   'motion-reduce:transition-none select-none text-center'
 
 const variants: Record<ButtonVariant, string> = {
-  /* White on --brand-blue: 5.90:1, clear of the 4.5:1 AA floor. */
-  primary:
-    'bg-asas-blue text-white hover:bg-asas-blue-deep ' +
-    'shadow-[0_1px_2px_rgb(16_35_61/0.08),0_6px_16px_-10px_rgb(11_95_208/0.55)]',
+  /* The shared brand gradient marks the page's primary action. */
+  primary: 'master-button text-white hover:brightness-95',
 
   /* White on --brand-teal: 4.88:1. Above AA, but the tightest pair on the page. */
   teal: 'bg-asas-teal text-white hover:bg-[#006E5C]',

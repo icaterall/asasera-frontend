@@ -1,0 +1,345 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>حذف بياناتك — Data Deletion Instructions | Asasera</title>
+<meta name="description" content="How to delete your Asasera data — خطوات حذف بياناتك من أساسيرا. Steps for teachers, students, guests, and Facebook or Google sign-in.">
+<meta name="robots" content="index, follow">
+<style>
+  :root {
+    --brand-blue: #0B5FD0;
+    --brand-teal: #00806B;
+    --ink: #10233D;
+    --ink-muted: #55657D;
+    --line: #E1E8F2;
+    --radius: 5px;
+    --radius-sm: 3px;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0; padding: 0 20px 64px; background: #fff; color: var(--ink);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    line-height: 1.9; font-size: 17px;
+  }
+  .wrap { max-width: 720px; margin-inline: auto; }
+  header { padding-block: 28px 20px; border-block-end: 1px solid var(--line); }
+  h1 { font-size: 1.6rem; line-height: 1.4; margin: 0 0 8px; }
+  h2 { font-size: 1.25rem; line-height: 1.45; margin: 32px 0 8px; }
+  h3 { font-size: 1.05rem; margin: 24px 0 6px; color: var(--brand-blue); }
+  .muted, .meta { color: var(--ink-muted); }
+  .meta { font-size: 0.95rem; margin: 0; }
+  a { color: var(--brand-blue); }
+  ul, ol { padding-inline-start: 22px; }
+  li { margin-block: 8px; }
+  hr { border: 0; border-block-start: 1px solid var(--line); margin-block: 40px; }
+
+  .langbar { display: flex; gap: 4px; margin-block: 16px 0; }
+  .langbar button {
+    font: inherit; font-size: 0.95rem; padding: 7px 14px; cursor: pointer;
+    border: 1px solid var(--line); background: #fff; color: var(--ink-muted);
+    border-radius: var(--radius-sm); min-height: 38px;
+  }
+  .langbar button[aria-pressed="true"] { color: var(--brand-blue); border-color: var(--brand-blue); font-weight: 600; }
+  .langbar button:focus-visible { outline: 3px solid var(--brand-blue); outline-offset: 2px; }
+
+  .case {
+    border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 16px 18px; margin-block: 20px;
+  }
+  .case h3 { margin-block-start: 0; }
+  .warn {
+    border: 1px solid var(--brand-teal); border-radius: var(--radius);
+    padding: 12px 16px; margin-block: 16px;
+  }
+  table { border-collapse: collapse; width: 100%; margin-block: 16px; font-size: 0.95rem; }
+  th, td { border: 1px solid var(--line); padding: 10px 12px; text-align: start; vertical-align: top; }
+  th { background: #F4F7FC; font-weight: 600; }
+  .placeholder { background: #FFF4DE; border-radius: var(--radius-sm); padding: 0 4px; }
+
+  /*
+   * Both languages visible by default. The script ADDS `.js-hide`; it never
+   * reveals. With scripting off, a reviewer or crawler sees both.
+   */
+  .js-hide { display: none; }
+  .section-divider { margin-block: 48px; }
+
+  @media (max-width: 420px) {
+    body { font-size: 16px; padding-inline: 16px; }
+    h1 { font-size: 1.35rem; }
+    table { font-size: 0.9rem; }
+    th, td { padding: 8px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>حذف بياناتك — Data Deletion Instructions</h1>
+  <p class="meta">
+    <bdi>Asasera</bdi> · أساسيرا<br>
+    آخر تحديث / Last updated: <bdi>2026-09-05</bdi>
+  </p>
+  <div class="langbar" role="group" aria-label="Language / اللغة">
+    <button type="button" id="btn-ar" aria-pressed="true" lang="ar">العربية</button>
+    <button type="button" id="btn-en" aria-pressed="false" lang="en">English</button>
+  </div>
+  <p class="meta" style="margin-block-start:12px">
+    النصان العربي والإنجليزي كلاهما في هذه الصفحة. Both the Arabic and English
+    instructions are on this page.
+  </p>
+</header>
+
+<!-- ══════════════════════ ARABIC ══════════════════════ -->
+<section id="ar" lang="ar" dir="rtl">
+
+<p>
+  اختر الحالة التي تنطبق عليك. جميع الطلبات تكتمل خلال <bdi>30</bdi> يومًا من
+  التحقّق، ونرسل تأكيدًا عند الاكتمال.
+</p>
+
+<div class="case">
+<h3>أ) معلّم أو طالب لديه حساب، ومسجَّل الدخول</h3>
+<ol>
+  <li>سجّل الدخول إلى حسابك.</li>
+  <li>افتح <strong>الإعدادات ← الحساب ← حذف الحساب</strong>.</li>
+  <li>أدخل كلمة مرورك الحالية لتأكيد أنك صاحب الحساب.</li>
+  <li>اضغط <strong>تأكيد الحذف</strong>.</li>
+</ol>
+<p>
+  عند التأكيد: يُعطَّل حسابك فورًا، ويُمحى بريدك واسمك، وتُلغى كل جلسات الدخول على
+  كل الأجهزة، وتُحذف طرق تسجيل الدخول المرتبطة (كلمة المرور و<bdi>Google</bdi>
+  و<bdi>Facebook</bdi>).
+</p>
+<p><strong>هذا الإجراء نهائي ولا يمكن التراجع عنه.</strong></p>
+</div>
+
+<div class="case">
+<h3>ب) سجّلت الدخول عبر <bdi>Facebook</bdi> أو <bdi>Google</bdi></h3>
+<p>هاتان خطوتان مختلفتان، وتحتاج إلى كلتيهما:</p>
+<ol>
+  <li>
+    <strong>إيقاف وصول التطبيق</strong> —
+    <bdi>Facebook</bdi>: افتح
+    <bdi>Settings &amp; Privacy</bdi> ← <bdi>Settings</bdi> ←
+    <bdi>Apps and Websites</bdi> ← <bdi>Asasera</bdi> ← <bdi>Remove</bdi>.<br>
+    <bdi>Google</bdi>: افتح
+    <bdi>myaccount.google.com</bdi> ← <bdi>Security</bdi> ←
+    <bdi>Your connections to third-party apps</bdi> ← <bdi>Asasera</bdi> ←
+    <bdi>Remove access</bdi>.
+    <div class="warn">
+      هذه الخطوة توقف وصولنا مستقبلًا إلى حسابك لدى المزوّد، لكنها
+      <strong>لا تحذف بنفسها</strong> البيانات الموجودة لدينا بالفعل.
+    </div>
+  </li>
+  <li>
+    <strong>حذف البيانات</strong> — استخدم خطوات الحالة (أ) داخل التطبيق، أو
+    راسلنا كما في الحالة (د).
+  </li>
+</ol>
+</div>
+
+<div class="case">
+<h3>ج) طالب انضم كضيف بلا حساب</h3>
+<p>لا يوجد حساب لتسجيل الدخول إليه، فأمامك طريقان:</p>
+<ol>
+  <li>اطلب من معلّمك إزالتك من قائمة المقرر — وهو الأسرع.</li>
+  <li>
+    أو راسلنا على
+    <bdi><a href="mailto:privacy@PLACEHOLDER_DOMAIN">privacy@PLACEHOLDER_DOMAIN</a></bdi>
+    وأرفق: اسم المقرر، والتاريخ التقريبي للجلسة، والاسم الذي كتبته عند الانضمام.
+  </li>
+</ol>
+</div>
+
+<div class="case">
+<h3>د) طلب بالبريد الإلكتروني — لأي حالة</h3>
+<ol>
+  <li>
+    أرسل إلى
+    <bdi><a href="mailto:privacy@PLACEHOLDER_DOMAIN">privacy@PLACEHOLDER_DOMAIN</a></bdi>
+  </li>
+  <li>اجعل عنوان الرسالة: <bdi>Data deletion request</bdi></li>
+  <li>
+    اذكر في الرسالة: طريقة تسجيل الدخول التي استخدمتها، واسم المقرر إن كنت
+    طالبًا، والاسم الذي ظهر لك في التطبيق.
+  </li>
+</ol>
+<div class="warn">
+  <strong>لماذا نتحقّق من هويتك:</strong> نطلب إثباتًا بسيطًا — الرد من البريد
+  المسجَّل على الحساب، أو تأكيدًا من معلّم المقرر — لأن قبول أي طلب بلا تحقّق
+  يعني أن بإمكان أي شخص حذف بيانات شخص آخر.
+</div>
+<p>نؤكّد الاستلام، ونكمل الحذف خلال <bdi>30</bdi> يومًا، ثم نرسل تأكيدًا.</p>
+</div>
+
+<h2>ما يُحذف وما يبقى</h2>
+<table>
+  <thead><tr><th>يُحذف</th><th>يبقى — ولماذا</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>الاسم والبريد الإلكتروني</td>
+      <td>أعداد مجمّعة لا تُعرِّف بأحد (مثل: عدد المشاركين في جلسة). لا يمكن ربطها بك بعد الحذف.</td>
+    </tr>
+    <tr>
+      <td>بصمة كلمة المرور وكل طرق تسجيل الدخول المرتبطة</td>
+      <td>سجلّ طلب الحذف نفسه: التاريخ والحالة فقط. نحتفظ به لنثبت أننا نفّذنا طلبك.</td>
+    </tr>
+    <tr>
+      <td>إجاباتك وبيانات تفاعلك وارتباطك بالمقرر</td>
+      <td>أي سجلّ يلزمنا قانونًا الاحتفاظ به. لا نحتفظ بسجلّات مالية عن الطلاب لأن الطالب لا يدفع.</td>
+    </tr>
+    <tr>
+      <td>جميع جلسات الدخول على كل الأجهزة</td>
+      <td>لا شيء غير ما سبق.</td>
+    </tr>
+  </tbody>
+</table>
+<p class="muted">
+  التفاصيل الكاملة عمّا نجمعه ولماذا في <a href="/privacy">سياسة الخصوصية</a>.
+</p>
+
+</section>
+
+<hr class="section-divider" id="divider">
+
+<!-- ══════════════════════ ENGLISH ══════════════════════ -->
+<section id="en" lang="en" dir="ltr">
+
+<h2>Data Deletion Instructions (English)</h2>
+<p class="meta">Last updated: 2026-09-05</p>
+
+<p>
+  Find the case that applies to you. Every request is completed within 30 days
+  of verification, and we send a confirmation when it is done.
+</p>
+
+<div class="case">
+<h3>A. Teacher or registered student, signed in</h3>
+<ol>
+  <li>Sign in to your account.</li>
+  <li>Go to <strong>Settings &rarr; Account &rarr; Delete account</strong>.</li>
+  <li>Enter your current password to confirm the account is yours.</li>
+  <li>Press <strong>Confirm deletion</strong>.</li>
+</ol>
+<p>
+  On confirmation: your account is disabled immediately, your email and name
+  are erased, every session on every device is revoked, and all linked sign-in
+  methods (password, Google, Facebook) are deleted.
+</p>
+<p><strong>This is irreversible.</strong></p>
+</div>
+
+<div class="case">
+<h3>B. Signed in with Facebook or Google</h3>
+<p>These are two different things and you need both:</p>
+<ol>
+  <li>
+    <strong>Remove the app's access</strong> —
+    Facebook: go to <strong>Settings &amp; Privacy &rarr; Settings &rarr; Apps
+    and Websites &rarr; Asasera &rarr; Remove</strong>.<br>
+    Google: go to <strong>myaccount.google.com &rarr; Security &rarr; Your
+    connections to third-party apps &rarr; Asasera &rarr; Remove access</strong>.
+    <div class="warn">
+      This stops our future access to your provider account, but it does
+      <strong>not by itself delete</strong> data we already hold.
+    </div>
+  </li>
+  <li>
+    <strong>Delete the data</strong> — use the in-app option in case A, or
+    email us as described in case D.
+  </li>
+</ol>
+</div>
+
+<div class="case">
+<h3>C. Student who joined as a guest, with no account</h3>
+<p>There is no account to sign in to, so you have two routes:</p>
+<ol>
+  <li>Ask your teacher to remove you from the course roster — this is fastest.</li>
+  <li>
+    Or email
+    <a href="mailto:privacy@PLACEHOLDER_DOMAIN">privacy@PLACEHOLDER_DOMAIN</a>
+    with: the course name, the approximate date of the session, and the name
+    you used when joining.
+  </li>
+</ol>
+</div>
+
+<div class="case">
+<h3>D. Email request — for any case</h3>
+<ol>
+  <li>Email <a href="mailto:privacy@PLACEHOLDER_DOMAIN">privacy@PLACEHOLDER_DOMAIN</a></li>
+  <li>Use the subject line: <strong>Data deletion request</strong></li>
+  <li>
+    Include: which sign-in method you used, the course name if you are a
+    student, and the name you were shown under in the app.
+  </li>
+</ol>
+<div class="warn">
+  <strong>Why we verify you:</strong> we ask for simple proof — a reply from
+  the address registered on the account, or confirmation from the course
+  teacher — because accepting a request without verification would let anyone
+  delete someone else's data.
+</div>
+<p>We acknowledge receipt, complete the deletion within 30 days, and confirm when it is done.</p>
+</div>
+
+<h2>What is deleted, and what is retained</h2>
+<table>
+  <thead><tr><th>Deleted</th><th>Retained — and why</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>Name and email address</td>
+      <td>Aggregate counts that identify nobody (for example, how many people joined a session). These cannot be linked back to you once you are deleted.</td>
+    </tr>
+    <tr>
+      <td>Password hash and every linked sign-in method</td>
+      <td>The deletion request record itself: date and status only. We keep it so we can prove your request was carried out.</td>
+    </tr>
+    <tr>
+      <td>Your answers, your interaction data, and your link to the course</td>
+      <td>Any record we are legally required to keep. We hold no financial records for students, because students never pay.</td>
+    </tr>
+    <tr>
+      <td>Every session on every device</td>
+      <td>Nothing beyond the above.</td>
+    </tr>
+  </tbody>
+</table>
+<p class="muted">
+  Full detail of what we collect and why is in the <a href="/privacy">Privacy Policy</a>.
+</p>
+
+</section>
+
+</div>
+
+<script>
+  (function () {
+    var ar = document.getElementById('ar');
+    var en = document.getElementById('en');
+    var divider = document.getElementById('divider');
+    var btnAr = document.getElementById('btn-ar');
+    var btnEn = document.getElementById('btn-en');
+
+    function show(lang) {
+      var arabic = lang === 'ar';
+      ar.classList.toggle('js-hide', !arabic);
+      en.classList.toggle('js-hide', arabic);
+      divider.classList.add('js-hide');
+      btnAr.setAttribute('aria-pressed', String(arabic));
+      btnEn.setAttribute('aria-pressed', String(!arabic));
+      document.documentElement.lang = arabic ? 'ar' : 'en';
+      document.documentElement.dir = arabic ? 'rtl' : 'ltr';
+    }
+
+    btnAr.addEventListener('click', function () { show('ar'); });
+    btnEn.addEventListener('click', function () { show('en'); });
+    show(location.hash === '#en' ? 'en' : 'ar');
+  })();
+</script>
+</body>
+</html>

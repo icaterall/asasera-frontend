@@ -432,6 +432,19 @@
     color: transparent;
   }
 
+  /* Shared fill for the primary ("master") action across both page systems. */
+  .master-button {
+    background: linear-gradient(
+      135deg,
+      rgb(0, 76, 204) 0%,
+      rgb(20, 191, 150) 100%
+    );
+    color: rgb(255, 255, 255);
+    box-shadow:
+      rgba(0, 76, 204, 0.25) 0 4px 12px,
+      rgba(255, 255, 255, 0.2) 0 1px 0 inset;
+  }
+
   /* A 1px gradient hairline border, drawn with a mask so the fill stays free. */
   .border-gradient {
     position: relative;

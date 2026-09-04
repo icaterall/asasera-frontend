@@ -211,18 +211,11 @@ export const landingAr = {
   'dept.body':
     'دليل مباشر على ما يستطيع طالبك فعله، في القاعة، بالعربية والإنجليزية، خلال خمس دقائق.',
   'dept.cta': 'تحدّث إلينا عن قسمك',
+  'dept.email': 'hello@asasera.com',
+  'dept.emailSubject': 'استفسار من قسم جامعي',
+  'dept.emailHint': 'نردّ خلال يوم عمل واحد.',
   'dept.imageAlt': 'أستاذ جامعي مع مجموعة من طلابه داخل القاعة',
 
-  'dept.form.title': 'تحدّث إلينا عن قسمك',
-  'dept.form.name': 'الاسم',
-  'dept.form.email': 'البريد الإلكتروني',
-  'dept.form.org': 'الجامعة أو القسم',
-  'dept.form.faculty': 'عدد أعضاء هيئة التدريس',
-  'dept.form.sent': 'وصلتنا رسالتك. سنردّ خلال يوم عمل.',
-  'dept.form.errName': 'اكتب اسمك.',
-  'dept.form.errEmail': 'اكتب بريدًا إلكترونيًا صحيحًا، مثل name@university.edu',
-  'dept.form.errOrg': 'اكتب اسم الجامعة أو القسم.',
-  'dept.form.errFaculty': 'اكتب عددًا أكبر من صفر.',
 
   /* 12 — Footer ----------------------------------------------------- */
   'footer.brandAlt': 'أساسيرا',

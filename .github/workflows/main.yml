@@ -81,7 +81,7 @@ jobs:
           IMAGE="${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}"
 
           echo "Building ASASERA frontend image..."
-          docker build -t "${IMAGE}" .
+          docker build --build-arg GIT_COMMIT="${IMAGE_TAG}" -t "${IMAGE}" .
 
           echo "Pushing ASASERA frontend image to ECR..."
           docker push "${IMAGE}"
@@ -169,3 +169,10 @@ jobs:
           fi
 
           echo "ASASERA frontend deployed successfully."
+
+      # Same reasoning as the backend: the previous deploy left /privacy
+      # answering 200 with the SPA shell, and every status-code check called
+      # that healthy. This compares the body against the shell itself and
+      # fails the job when they match.
+      - name: Post-deploy smoke test
+        run: npm run smoke -- https://asasera.com "${{ github.sha }}"

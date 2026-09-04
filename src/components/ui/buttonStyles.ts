@@ -10,9 +10,8 @@ const BASE =
 
 const VARIANTS: Record<ButtonVariant, string> = {
   primary:
-    'bg-linear-120 from-brand-500 via-brand-600 to-brand-700 text-white ' +
-    'shadow-[0_10px_36px_-10px_var(--color-brand-600)] ' +
-    'hover:-translate-y-0.5 hover:shadow-[0_18px_46px_-12px_var(--color-brand-500)] ' +
+    'master-button text-white ' +
+    'hover:-translate-y-0.5 hover:brightness-95 ' +
     'active:translate-y-0',
   secondary:
     'glass text-fg hover:border-line-strong hover:-translate-y-0.5 ' +

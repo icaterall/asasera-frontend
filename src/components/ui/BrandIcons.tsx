@@ -43,3 +43,54 @@ export function LinkedinIcon(props: BrandIconProps) {
     </Glyph>
   )
 }
+
+/**
+ * The official Facebook "f", as an inline path.
+ *
+ * Inline and not the Facebook JavaScript SDK — the SDK is a third-party script
+ * we do not control that sets cookies and reports the visit back to Meta on
+ * every page it loads, and we would be shipping all of that to draw a letter.
+ * The whole sign-in works as a plain link to our own backend, so the only
+ * thing actually needed from Meta's brand assets is this glyph.
+ *
+ * Inherits `currentColor` like the others, so the button sets it to white and
+ * the brand blue lives on the background where Meta's guidance puts it.
+ */
+export function FacebookIcon(props: BrandIconProps) {
+  return (
+    <Glyph {...props}>
+      <path d="M15.12 5.32H17V2.14A26.11 26.11 0 0 0 14.26 2C11.54 2 9.68 3.66 9.68 6.7v2.62H6.61v3.56h3.07V22h3.68v-9.12h3.06l.46-3.56h-3.52V7.05c0-1.05.28-1.73 1.76-1.73Z" />
+    </Glyph>
+  )
+}
+
+/**
+ * The Google "G".
+ *
+ * The one brand mark here that does NOT inherit currentColor: Google's terms
+ * require the four-colour G on a light surface, and recolouring it — including
+ * flattening it to one colour — is exactly what they prohibit. So the fills
+ * are literal, and the button around it is white rather than tinted.
+ */
+export function GoogleIcon(props: BrandIconProps) {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" {...props}>
+      <path
+        fill="#4285F4"
+        d="M23.52 12.27c0-.85-.08-1.67-.22-2.45H12v4.63h6.46a5.52 5.52 0 0 1-2.4 3.62v3h3.88c2.27-2.09 3.58-5.17 3.58-8.8Z"
+      />
+      <path
+        fill="#34A853"
+        d="M12 24c3.24 0 5.96-1.08 7.94-2.91l-3.88-3.01c-1.08.72-2.45 1.15-4.06 1.15-3.13 0-5.78-2.11-6.73-4.95H1.26v3.11A12 12 0 0 0 12 24Z"
+      />
+      <path
+        fill="#FBBC05"
+        d="M5.27 14.28a7.2 7.2 0 0 1 0-4.56V6.61H1.26a12 12 0 0 0 0 10.78l4.01-3.11Z"
+      />
+      <path
+        fill="#EA4335"
+        d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.44-3.44C17.95 1.19 15.24 0 12 0A12 12 0 0 0 1.26 6.61l4.01 3.11C6.22 6.88 8.87 4.75 12 4.75Z"
+      />
+    </svg>
+  )
+}

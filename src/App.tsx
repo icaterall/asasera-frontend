@@ -8,6 +8,8 @@ import Landing from '@/pages/Landing'
 // The landing page is the common entry point, so it stays in the main
 // chunk; everything else is split out.
 const About = lazy(() => import('@/pages/About'))
+const SignIn = lazy(() => import('@/pages/SignIn'))
+const AuthCallback = lazy(() => import('@/pages/AuthCallback'))
 const NotFound = lazy(() => import('@/pages/NotFound'))
 
 function RouteFallback() {
@@ -33,6 +35,19 @@ export default function App() {
             <Route index element={<Landing />} />
             <Route element={<Layout />}>
               <Route path="about" element={<About />} />
+              {/*
+                The nav has linked to /login since the landing page shipped;
+                until now it fell through to the 404. Both routes are inside
+                Layout so a half-finished sign-in still has the nav, the
+                language toggle and a way out.
+
+                /auth/callback is where the backend sends people at the end of
+                BOTH federated flows. It must stay a real SPA route: the
+                backend redirects a browser here, and a 404 at this path turns
+                a successful sign-in into an apparent failure.
+              */}
+              <Route path="login" element={<SignIn />} />
+              <Route path="auth/callback" element={<AuthCallback />} />
               <Route path="*" element={<NotFound />} />
             </Route>
           </Routes>

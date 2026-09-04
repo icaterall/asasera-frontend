@@ -177,6 +177,39 @@ const en = {
     },
   },
 
+  signIn: {
+    title: 'Sign in to Asasera',
+    lead: 'Continue with an account you already have.',
+    google: 'Continue with Google',
+    facebook: 'Continue with Facebook',
+    /*
+     * The three states the Facebook callback can send someone back in, plus
+     * the two that are not Facebook's fault. Each says what happened and what
+     * to do next -- an error the reader cannot act on is just an apology.
+     */
+    errors: {
+      cancelled: 'Sign-in was cancelled. Nothing has changed, and you can try again whenever you like.',
+      accountExists:
+        'An account already exists for that email address. Sign in with the method you used originally, then connect Facebook from your account settings.',
+      badState: 'We could not verify that sign-in, so we stopped it. Please start again from this page.',
+      expired: 'That sign-in took too long and expired. Please try again.',
+      unavailable: 'Facebook sign-in is unavailable right now. Please try another method.',
+      failed: 'Something went wrong signing you in. Please try again.',
+    },
+    notices: {
+      /*
+       * A prompt, never a blocker. A Facebook account created against a phone
+       * number has no address to give us, and the account works fine without
+       * one -- so this is phrased as an offer with a way past it.
+       */
+      needsEmail:
+        'You are signed in. Facebook did not share an email address, so add one when you have a moment — it is how we send you sign-in links and receipts.',
+      needsProfile: 'You are signed in. Tell us what you teach or study to finish setting up your account.',
+    },
+    signedIn: 'You are signed in.',
+    retry: 'Back to sign in',
+  },
+
   notFound: {
     code: '404',
     title: 'This page has no foundation',

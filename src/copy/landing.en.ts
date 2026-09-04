@@ -209,18 +209,11 @@ export const landingEn: LandingCopy = {
   'dept.body':
     'Direct evidence of what your students can actually do — in the room, in Arabic and English, inside five minutes.',
   'dept.cta': 'Talk to us about your department',
+  'dept.email': 'hello@asasera.com',
+  'dept.emailSubject': 'Enquiry from a university department',
+  'dept.emailHint': 'We reply within one working day.',
   'dept.imageAlt': 'A university teacher with a group of students in a lecture room',
 
-  'dept.form.title': 'Talk to us about your department',
-  'dept.form.name': 'Name',
-  'dept.form.email': 'Email',
-  'dept.form.org': 'University or department',
-  'dept.form.faculty': 'Number of faculty members',
-  'dept.form.sent': 'We have your message. We will reply within one working day.',
-  'dept.form.errName': 'Enter your name.',
-  'dept.form.errEmail': 'Enter a valid email, such as name@university.edu',
-  'dept.form.errOrg': 'Enter the university or department.',
-  'dept.form.errFaculty': 'Enter a number greater than zero.',
 
   /* 12 — Footer ----------------------------------------------------- */
   'footer.brandAlt': 'Asasera',

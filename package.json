@@ -8,7 +8,10 @@
     "build": "tsc -b && vite build",
     "check:k8s": "node scripts/check-k8s.ts",
     "lint": "oxlint",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "assert:build": "node scripts/assert-build.mjs",
+    "postbuild": "npm run assert:build",
+    "smoke": "node scripts/smoke.mjs"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.3",
