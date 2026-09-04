@@ -74,9 +74,9 @@ jobs:
         run: |
           kubectl apply -f kubernetes/frontend-deployment.yaml
           EXPECTED_IMAGE=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          kubectl set image deployment/asasera-frontend-deployment asasera-frontend-container=$EXPECTED_IMAGE
-          kubectl rollout status deployment/asasera-frontend-deployment --timeout=180s
-          DEPLOYED_IMAGE=$(kubectl get deployment/asasera-frontend-deployment -o jsonpath='{.spec.template.spec.containers[?(@.name=="asasera-frontend-container")].image}')
+          kubectl set image deployment/asasera-new-frontend-deployment asasera-new-frontend-container=$EXPECTED_IMAGE
+          kubectl rollout status deployment/asasera-new-frontend-deployment --timeout=180s
+          DEPLOYED_IMAGE=$(kubectl get deployment/asasera-new-frontend-deployment -o jsonpath='{.spec.template.spec.containers[?(@.name=="asasera-new-frontend-container")].image}')
           if [ "$DEPLOYED_IMAGE" != "$EXPECTED_IMAGE" ]; then
             echo "Frontend image mismatch: expected $EXPECTED_IMAGE, deployed $DEPLOYED_IMAGE"
             exit 1

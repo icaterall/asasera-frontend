@@ -1,0 +1,102 @@
+//
+// Google font - Poppins
+// Note: Font is loaded via preload link in index.html for better performance
+// This import is kept as fallback for older browsers
+//
+
+//
+// Premium Font : HKGrotesk
+//
+@font-face {
+    font-family: "font-primary";
+    src: url("/assets/fonts/neosans-bold.ttf") format('truetype');
+    font-weight: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "font-primary";
+    src: url("/assets/fonts/neosans-roman.ttf") format('truetype');
+    font-weight: 500;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "font-primary";
+    src: url("/assets/fonts/neosans-medium.ttf") format('truetype');
+    font-weight: bold;
+    font-display: swap;
+}
+
+
+// `font-display: swap` added 2026-05-21 to every Arabic alias.
+// Without it, the browser blocks text rendering while waiting for
+// the font (FOIT — flash of invisible text), which directly hurts
+// LCP. `swap` lets the browser paint immediately with a fallback,
+// then re-paint when the web font lands.
+
+//! alias for dinnext for compatibility with data from old site
+@font-face {
+    font-family: "dinnextltarabic-regular";
+    src: local('font-primary');
+    font-weight: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "dinnextltarabic-medium";
+    src: local('font-primary');
+    font-weight: 500;
+    font-display: swap;
+}
+
+
+@font-face {
+    font-family: "sst arabic roman";
+    src: local('font-primary');
+    font-weight: bold;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: sans-serif;
+    src: local('font-primary');
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "hkgrotesk";
+    src: url("./hkgrotesk-light.eot");
+    src: local('hkgrotesk light'), url("./hkgrotesk-light.woff") format("woff");
+    font-weight: 300;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "hkgrotesk";
+    src: url("./hkgrotesk-regular.eot");
+    src: local('hkgrotesk regular'), url("./hkgrotesk-regular.woff") format("woff");
+    font-weight: 400;
+    font-display: swap;
+}
+@font-face {
+    font-family: "hkgrotesk";
+    src: url("./hkgrotesk-medium.eot");
+    src: local('hkgrotesk medium'), url("./hkgrotesk-medium.woff") format("woff");
+    font-weight: 500;
+    font-display: swap;
+}
+@font-face {
+    font-family: "hkgrotesk";
+    src: url("./hkgrotesk-semibold.eot");
+    src: local('hkgrotesk semibold'), url("./hkgrotesk-semibold.woff") format("woff");
+    font-weight: 600;
+    font-display: swap;
+}
+@font-face {
+    font-family: "hkgrotesk";
+    src: url("./hkgrotesk-bold.woff");
+    src: local('hkgrotesk bold'), url("./hkgrotesk-bold.woff") format("woff");
+    font-weight: 700;
+    font-display: swap;
+}
