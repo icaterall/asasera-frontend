@@ -1,5 +1,16 @@
 @import "tailwindcss";
 
+/*
+ * Landing page tokens, fonts and utilities.
+ *
+ * Imported here rather than from the Landing component: `@theme` and
+ * `@utility` are Tailwind at-rules, and Tailwind only expands them inside the
+ * stylesheet that pulls in `tailwindcss` itself. Imported from a .tsx file the
+ * tokens still emit as plain custom properties, but every `bg-asas-*`,
+ * `text-asas-*` and `rounded-asas` utility silently fails to generate.
+ */
+@import "./styles/tokens.css";
+
 /* Class-based dark mode (toggled on <html>) instead of prefers-color-scheme only. */
 @custom-variant dark (&:where(.dark, .dark *));
 
@@ -232,8 +243,19 @@
   --glow-b: color-mix(in oklab, #14bf96 24%, transparent);
   --glow-c: color-mix(in oklab, #3d84ff 20%, transparent);
 
-  --font-latin: "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-arabic: "IBM Plex Sans Arabic", "Tajawal", ui-sans-serif, system-ui, sans-serif;
+  /*
+   * Both stacks lead with Neo Sans Arabic, the brand face, self-hosted from
+   * src/assets/fonts in src/styles/tokens.css. It covers Arabic and Latin in
+   * one design, so a single family serves both stacks.
+   *
+   * They used to name "Plus Jakarta Sans" and "Tajawal" as well. Neither was
+   * ever loaded — they arrived with a Google Fonts <link> that has since been
+   * removed — so every Arabic glyph outside the landing root fell through to
+   * a system font, silently, with no console error and no 404. A font stack
+   * naming a face nobody ships is the quietest bug in CSS.
+   */
+  --font-latin: "Neo Sans Arabic", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-arabic: "Neo Sans Arabic", ui-sans-serif, system-ui, sans-serif;
   --font-app: var(--font-latin);
 }
 

@@ -1,0 +1,307 @@
+/* ------------------------------------------------------------------ *
+ * Landing page tokens — the only file in the landing tree that holds a
+ * literal colour, radius, size or font name. Everything under
+ * src/pages/Landing reads these through the Tailwind aliases at the bottom.
+ *
+ * These live alongside (not inside) the starter system in src/index.css.
+ * That system is the demo identity; the landing is a replacement world, so
+ * it namespaces its aliases `asas-*` rather than overwriting tokens the
+ * About and 404 routes still read. One styling system (Tailwind), two token
+ * sets, no collisions. Both share the `.dark` class on <html>, so the theme
+ * control in the header switches every route at once.
+ * ------------------------------------------------------------------ */
+
+/* ------------------------------------------------------------------ *
+ * Neo Sans Arabic — the brand face, from src/assets/fonts, self-hosted
+ *
+ * One family for the whole page. Neo Sans Arabic carries the Arabic script
+ * *and* Latin, the ASCII digits, the currency symbols and the punctuation,
+ * so no second face is declared and no unicode-range split is needed: every
+ * glyph on this page comes from one design.
+ *
+ * WEIGHTS — this is the one thing to know before editing.
+ *
+ * The folder ships three cuts, and their filenames do not describe them.
+ * Read from each file's OS/2 table:
+ *
+ *     neosans-roman.ttf    usWeightClass 400   "Neo Sans Arabic"
+ *     neosans-medium.ttf   usWeightClass 500   "Neo Sans W23 Medium"
+ *     neosans-bold.ttf     usWeightClass 300   "Neo Sans W23 Light"   <-- LIGHT
+ *
+ * `neosans-bold.ttf` is a Light. There is no bold cut of Neo Sans Arabic in
+ * the repository at all. So 500 is the heaviest genuine weight available,
+ * and 600 and 700 are mapped to it deliberately rather than left to the font
+ * matcher. With `font-synthesis: none` below, nothing is faked: asking for
+ * bold gets a real Medium instead of a smeared Regular, which is what keeps
+ * Arabic cursive joins even.
+ *
+ * The consequence is real and visible: headings carry less weight contrast
+ * than the design assumes. Dropping a genuine Neo Sans Arabic Bold into
+ * src/assets/fonts and declaring it at 700 fixes it in one block.
+ * ------------------------------------------------------------------ */
+
+@font-face {
+  font-family: 'Neo Sans Arabic';
+  src: url('../assets/fonts/neosans/NeoSansArabic-300.woff2') format('woff2');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Neo Sans Arabic';
+  src: url('../assets/fonts/neosans/NeoSansArabic-400.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* The heaviest real cut, mapped across 500-700 — see the note above. */
+@font-face {
+  font-family: 'Neo Sans Arabic';
+  src: url('../assets/fonts/neosans/NeoSansArabic-500.woff2') format('woff2');
+  font-weight: 500 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ------------------------------------------------------------------ *
+ * Tokens
+ * ------------------------------------------------------------------ */
+:root {
+  /* Brand — from the logo wordmark. */
+  --asas-brand-blue: #0b5fd0;
+  --asas-brand-blue-deep: #073f8c;
+  --asas-brand-teal: #00806b;
+  --asas-brand-teal-soft: #0e9c82;
+
+  /* Text and surfaces. */
+  --asas-ink: #10233d;
+  --asas-ink-muted: #4d5d76;
+  --asas-surface: #ffffff;
+  --asas-surface-tint: #f4f7fc;
+  --asas-line: #e1e8f2;
+
+  /*
+   * Reserved for the in-class decision moment and nothing else. Spending it
+   * on a badge or a hover state would make the one moment that matters look
+   * ordinary.
+   */
+  --asas-warn: #e8a33d;
+
+  /*
+   * Two jobs, two tokens. `--asas-brand-*` are FILLS: a solid panel carrying
+   * white text, constant across themes because white-on-blue is 5.90:1
+   * whatever sits behind it. `--asas-accent-*` are INK: blue and teal used
+   * as text and icons, which must move with the theme — #0B5FD0 reads
+   * 5.90:1 on white and about 1.9:1 on the dark ground.
+   */
+  --asas-accent: #0b5fd0;
+  --asas-accent-teal: #00806b;
+
+  /*
+   * The ground for the one deliberately dark section and the footer.
+   * Deliberately NOT `--asas-ink`, which is a *text* colour: in dark mode
+   * that token becomes near-white, so a section painted with it would turn
+   * white and take its white text with it.
+   */
+  --asas-ink-surface: #10233d;
+
+  --asas-danger: #b3261e;
+
+  /* ---------------------------------------------------------------- *
+   * Type scale — the page uses these six sizes and nothing else.
+   *
+   * Arabic sits on a larger x-height than Latin and carries diacritics
+   * above and below the baseline, so the body leading floor here is 1.8
+   * rather than the 1.5 a Latin-only page would take.
+   * ---------------------------------------------------------------- */
+  --fs-hero: clamp(2.25rem, 5.5vw, 4rem);
+  --fs-h2: clamp(1.75rem, 3vw, 2.5rem);
+  --fs-h3: 1.25rem;
+  --fs-lead: clamp(1.05rem, 1.6vw, 1.25rem);
+  --fs-body: 1rem;
+  --fs-small: 0.875rem;
+}
+
+/* ------------------------------------------------------------------ *
+ * Dark rendition — re-points the semantic tokens only, so every section,
+ * card, form and illustration follows with no `dark:` utility in any
+ * component.
+ * ------------------------------------------------------------------ */
+.dark .asas-landing {
+  --asas-ink: #e9eff8;
+  --asas-ink-muted: #a3b4cc;
+  --asas-surface: #0c1726;
+  --asas-surface-tint: #121f33;
+  --asas-line: #223449;
+
+  --asas-accent: #7ab0f8;
+  --asas-accent-teal: #4fd1ae;
+
+  /* Still a step darker than the page, so the break stays a break. */
+  --asas-ink-surface: #060e1a;
+
+  --asas-danger: #ff9d94;
+}
+
+/* ------------------------------------------------------------------ *
+ * Tailwind aliases
+ *
+ * `@theme inline` so each utility compiles to `var(--asas-*)` rather than
+ * copying the literal. The tokens above stay the single definition.
+ * ------------------------------------------------------------------ */
+@theme inline {
+  --color-asas-blue: var(--asas-brand-blue);
+  --color-asas-blue-deep: var(--asas-brand-blue-deep);
+  --color-asas-teal: var(--asas-brand-teal);
+  --color-asas-teal-soft: var(--asas-brand-teal-soft);
+  --color-asas-ink: var(--asas-ink);
+  --color-asas-muted: var(--asas-ink-muted);
+  --color-asas-surface: var(--asas-surface);
+  --color-asas-tint: var(--asas-surface-tint);
+  --color-asas-line: var(--asas-line);
+  --color-asas-warn: var(--asas-warn);
+  --color-asas-accent: var(--asas-accent);
+  --color-asas-accent-teal: var(--asas-accent-teal);
+  --color-asas-inksurface: var(--asas-ink-surface);
+  --color-asas-danger: var(--asas-danger);
+
+  /*
+   * Namespaced `asas-*` because src/index.css declares its own --text-hero
+   * and --text-lead in a later @theme block. This file is imported first, so
+   * an unnamespaced token here would be silently overwritten by the starter's
+   * scale and the whole type hierarchy would quietly revert.
+   *
+   * Each size carries its own leading, so `text-asas-body` sets both.
+   */
+  --text-asas-hero: var(--fs-hero);
+  --text-asas-hero--line-height: 1.15;
+  --text-asas-h2: var(--fs-h2);
+  --text-asas-h2--line-height: 1.25;
+  --text-asas-h3: var(--fs-h3);
+  --text-asas-h3--line-height: 1.45;
+  --text-asas-lead: var(--fs-lead);
+  --text-asas-lead--line-height: 1.75;
+  --text-asas-body: var(--fs-body);
+  --text-asas-body--line-height: 1.8;
+  --text-asas-small: var(--fs-small);
+  --text-asas-small--line-height: 1.7;
+
+  --font-asas: 'Neo Sans Arabic', system-ui, sans-serif;
+}
+
+/* ------------------------------------------------------------------ *
+ * Corner radius
+ *
+ * 5px is the ceiling for every rectangle and 3px is what the small
+ * controls take. A genuine circle is the only exception, and it is a
+ * circle because the shape is round — never because a rectangle was given
+ * a huge radius.
+ * ------------------------------------------------------------------ */
+@utility rounded-asas {
+  border-radius: var(--radius);
+}
+
+@utility rounded-asas-sm {
+  border-radius: var(--radius-sm);
+}
+
+/* ------------------------------------------------------------------ *
+ * Landing root
+ * ------------------------------------------------------------------ */
+.asas-landing {
+  /*
+   * Scoped rather than on :root — `--radius-sm` already exists globally at
+   * 5px and drives `rounded-sm` on the About and 404 routes, so a :root
+   * override would silently retighten those pages too.
+   */
+  --radius: 5px;
+  --radius-sm: 3px;
+
+  background-color: var(--asas-surface);
+  color: var(--asas-ink);
+  font-family: 'Neo Sans Arabic', system-ui, sans-serif;
+
+  /* Four real weights ship, so nothing needs synthesising. */
+  font-synthesis: none;
+
+  font-size: var(--fs-body);
+  line-height: 1.8;
+  letter-spacing: normal;
+}
+
+/*
+ * Western numerals, defensively — and globally, not just on the landing.
+ *
+ * Arabic-script fonts commonly carry an `anum` feature that swaps ASCII
+ * 0-9 for the Eastern Arabic-Indic set when the text is tagged Arabic.
+ * That would undo
+ * every numeral on the page at render time while the source still read
+ * "8". Turning the feature off is the only way to guarantee that what the
+ * source says is what the reader sees.
+ *
+ * `tabular-nums` additionally puts digits on a fixed advance, so the step
+ * numbers and the pricing column do not shuffle horizontally.
+ */
+:root,
+.asas-landing,
+.asas-landing * {
+  font-feature-settings: 'anum' 0;
+  font-variant-numeric: lining-nums tabular-nums;
+}
+
+/* Arabic cursive joins must never be broken by tracking. */
+.asas-landing :where(h1, h2, h3) {
+  letter-spacing: normal;
+  text-wrap: balance;
+}
+
+/*
+ * Browser surfaces the page did not draw but still owns. Left alone, the
+ * selection and caret ship in the UA's blue, which belongs to no design
+ * system.
+ */
+.asas-landing ::selection {
+  background-color: color-mix(in srgb, var(--asas-accent) 18%, transparent);
+  color: var(--asas-ink);
+}
+
+.asas-landing {
+  caret-color: var(--asas-accent);
+}
+
+/* One visible focus style for the whole page. */
+.asas-landing :where(a, button, input, select, textarea, summary):focus-visible {
+  outline: 3px solid var(--asas-accent);
+  outline-offset: 3px;
+  border-radius: var(--radius-sm);
+}
+
+/* The single authored motion moment — the hero decision card. */
+@keyframes asas-attention {
+  0%,
+  100% {
+    box-shadow: 0 1px 2px rgb(16 35 61 / 0.06), 0 8px 24px -12px rgb(16 35 61 / 0.18);
+  }
+  50% {
+    box-shadow:
+      0 1px 2px rgb(16 35 61 / 0.06),
+      0 8px 24px -12px rgb(16 35 61 / 0.18),
+      0 0 0 6px color-mix(in srgb, var(--asas-warn) 16%, transparent);
+  }
+}
+
+.asas-attention {
+  animation: asas-attention 3.2s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .asas-attention {
+    animation: none;
+    box-shadow:
+      0 1px 2px rgb(16 35 61 / 0.06),
+      0 8px 24px -12px rgb(16 35 61 / 0.18),
+      0 0 0 3px color-mix(in srgb, var(--asas-warn) 30%, transparent);
+  }
+}

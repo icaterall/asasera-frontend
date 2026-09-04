@@ -3,7 +3,7 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom'
 
 import { Layout } from '@/components/layout/Layout'
 import { ThemeProvider } from '@/context/ThemeProvider'
-import Home from '@/pages/Home'
+import Landing from '@/pages/Landing'
 
 // The landing page is the common entry point, so it stays in the main
 // chunk; everything else is split out.
@@ -25,8 +25,13 @@ export default function App() {
       <BrowserRouter>
         <Suspense fallback={<RouteFallback />}>
           <Routes>
+            {/*
+              The landing page sits outside Layout: it ships its own nav and
+              footer, and in a single light rendition with no language or
+              theme toggle. Everything else keeps the shared shell.
+            */}
+            <Route index element={<Landing />} />
             <Route element={<Layout />}>
-              <Route index element={<Home />} />
               <Route path="about" element={<About />} />
               <Route path="*" element={<NotFound />} />
             </Route>

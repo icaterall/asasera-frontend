@@ -12,12 +12,12 @@
     />
     <meta name="theme-color" content="#fbfbfe" />
 
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
-      rel="stylesheet"
-    />
+    <!--
+      Fonts are self-hosted, not fetched from a CDN. The pair is declared in
+      src/styles/tokens.css: Noto Sans Arabic for Arabic, HK Grotesk for Latin
+      and numerals, split by unicode-range so a mixed line is two chosen faces
+      rather than one face plus whatever the OS supplies.
+    -->
 
     <!--
       Applies the stored theme and language before first paint, so the page

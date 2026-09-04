@@ -11,7 +11,7 @@ export type LanguageMeta = {
   /**
    * Locale used for Intl formatting. `ar-u-nu-latn` keeps Western digits,
    * which is what most modern Arabic interfaces in the region use. Swap it
-   * for plain `ar` if you want Eastern Arabic numerals (٠١٢٣).
+   * for plain `ar` if you want Eastern Arabic numerals instead.
    */
   intlLocale: string
 }
