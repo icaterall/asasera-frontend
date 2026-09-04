@@ -1,38 +1,47 @@
-name: Build Docker image
+name: Build and Deploy ASASERA Frontend
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
     env:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_REGION: ${{ secrets.AWS_REGION }}
+
       EKS_CLUSTER_NAME: pickpickgo-eks
+      ECR_REPOSITORY: asasera-new-frontend
       IMAGE_TAG: ${{ github.sha }}
 
     steps:
+      # ---------------------------------------------------------
+      # 1. Checkout
+      # ---------------------------------------------------------
       - name: Check out code
         uses: actions/checkout@v4
 
+      # ---------------------------------------------------------
+      # 2. Validate React / TypeScript
+      # ---------------------------------------------------------
       - name: Check i18n files are in sync
         run: |
           npm ci
-          # src/i18n/locales/ar.ts is typed as `typeof en`, so a missing or
-          # surplus translation key is a type error rather than a runtime
-          # fallback. `git status` cannot see that drift — this soon after a
-          # checkout the tree is clean whatever the locale files say.
           npx tsc -b
 
+      # ---------------------------------------------------------
+      # 3. Validate Kubernetes manifest
+      # ---------------------------------------------------------
       - name: Validate production Kubernetes manifest
-        # Bare form on purpose: it enumerates kubernetes/ and fails on any
-        # manifest that is neither contract-covered nor reviewed-excluded.
-        # Naming files here would silently re-narrow coverage to that list.
         run: npm run check:k8s
 
+      # ---------------------------------------------------------
+      # 4. AWS authentication
+      # ---------------------------------------------------------
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -40,44 +49,123 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
+      # ---------------------------------------------------------
+      # 5. Login to Amazon ECR
+      # ---------------------------------------------------------
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
+      # ---------------------------------------------------------
+      # 6. Configure kubectl
+      # ---------------------------------------------------------
       - name: Install and configure kubectl
         run: |
-          curl -o kubectl https://amazon-eks.s3.us-west-2.amazonaws.com/1.18.9/2020-11-02/bin/linux/amd64/kubectl
-          chmod +x ./kubectl
-          sudo mv ./kubectl /usr/local/bin/kubectl
-          aws eks update-kubeconfig --region ${{ secrets.AWS_REGION }} --name ${{ env.EKS_CLUSTER_NAME }}
+          aws eks update-kubeconfig \
+            --region "${AWS_REGION}" \
+            --name "${EKS_CLUSTER_NAME}"
 
-      - name: Login to Docker Hub
-        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+          kubectl version --client
+          kubectl config current-context
 
+      # ---------------------------------------------------------
+      # 7. Build + Push Docker image to ECR
+      # ---------------------------------------------------------
       - name: Build, tag, and push image to Amazon ECR
         id: build-image
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: asasera-new-frontend
-          IMAGE_TAG: ${{ github.sha }}
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          set -euo pipefail
 
-      - name: Update Kubernetes deployment
+          IMAGE="${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}"
+
+          echo "Building ASASERA frontend image..."
+          docker build -t "${IMAGE}" .
+
+          echo "Pushing ASASERA frontend image to ECR..."
+          docker push "${IMAGE}"
+
+          echo "image=${IMAGE}" >> "$GITHUB_OUTPUT"
+
+      # ---------------------------------------------------------
+      # 8. Deploy exact SHA image to Kubernetes
+      # ---------------------------------------------------------
+      - name: Deploy frontend to EKS
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: asasera-new-frontend
-          IMAGE_TAG: ${{ github.sha }}
         run: |
+          set -euo pipefail
+
+          EXPECTED_IMAGE="${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}"
+
+          echo "Deploying ASASERA frontend..."
+
+          # Replace only the frontend container image in the manifest
+          sed -i \
+            "s|image: .*asasera-new-frontend.*|image: ${EXPECTED_IMAGE}|" \
+            kubernetes/frontend-deployment.yaml
+
           kubectl apply -f kubernetes/frontend-deployment.yaml
-          EXPECTED_IMAGE=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          kubectl set image deployment/asasera-new-frontend-deployment asasera-new-frontend-container=$EXPECTED_IMAGE
-          kubectl rollout status deployment/asasera-new-frontend-deployment --timeout=180s
-          DEPLOYED_IMAGE=$(kubectl get deployment/asasera-new-frontend-deployment -o jsonpath='{.spec.template.spec.containers[?(@.name=="asasera-new-frontend-container")].image}')
-          if [ "$DEPLOYED_IMAGE" != "$EXPECTED_IMAGE" ]; then
-            echo "Frontend image mismatch: expected $EXPECTED_IMAGE, deployed $DEPLOYED_IMAGE"
+
+          if ! kubectl rollout status \
+            deployment/asasera-new-frontend-deployment \
+            --timeout=180s; then
+
+            echo "========================================="
+            echo "ASASERA FRONTEND DEPLOYMENT FAILED"
+            echo "========================================="
+
+            kubectl get deployment \
+              asasera-new-frontend-deployment \
+              -o wide || true
+
+            kubectl get pods \
+              -l app=asasera-new-frontend-app \
+              -o wide || true
+
+            kubectl describe deployment \
+              asasera-new-frontend-deployment || true
+
+            kubectl describe pods \
+              -l app=asasera-new-frontend-app || true
+
+            echo "========================================="
+            echo "CONTAINER LOGS"
+            echo "========================================="
+
+            for pod in $(kubectl get pods \
+              -l app=asasera-new-frontend-app \
+              -o jsonpath='{.items[*].metadata.name}'); do
+
+              echo "----- ${pod} -----"
+
+              kubectl logs \
+                "${pod}" \
+                -c asasera-new-frontend-container \
+                --tail=200 || true
+            done
+
+            echo "========================================="
+            echo "RECENT KUBERNETES EVENTS"
+            echo "========================================="
+
+            kubectl get events \
+              --sort-by='.lastTimestamp' || true
+
             exit 1
           fi
+
+          DEPLOYED_IMAGE=$(kubectl get deployment \
+            asasera-new-frontend-deployment \
+            -o jsonpath='{.spec.template.spec.containers[?(@.name=="asasera-new-frontend-container")].image}')
+
+          echo "Expected image: ${EXPECTED_IMAGE}"
+          echo "Deployed image: ${DEPLOYED_IMAGE}"
+
+          if [ "${DEPLOYED_IMAGE}" != "${EXPECTED_IMAGE}" ]; then
+            echo "Frontend image mismatch."
+            exit 1
+          fi
+
+          echo "ASASERA frontend deployed successfully."
