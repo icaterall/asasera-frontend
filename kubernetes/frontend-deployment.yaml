@@ -1,6 +1,6 @@
 # The rewrite, deployed alongside the site it will replace.
 #
-# Every name here is `asasera-new-frontend-*`, deliberately distinct from the
+# Every name here is `asasera-frontend-*`, deliberately distinct from the
 # live `asasera-frontend-*` resources that serve asasera.com today. They are
 # separate Deployments in the same namespace: applying this file cannot restart,
 # retarget or roll back the live site, and `kubectl set image` in the workflow
@@ -8,7 +8,7 @@
 #
 # Traffic reaches this via new.asasera.com on the shared ALB ingress. Going live
 # is then a one-line change to that ingress rule -- repoint the asasera.com host
-# at asasera-new-frontend-service -- with the old Deployment still running and
+# at asasera-frontend-service -- with the old Deployment still running and
 # one edit away from being the rollback.
 apiVersion: apps/v1
 kind: Deployment
@@ -27,7 +27,7 @@ spec:
         app: asasera-frontend-app
     spec:
       containers:
-      - name: asasera-new-frontend-container
+      - name: asasera-frontend-container
         image: 533267169159.dkr.ecr.us-east-2.amazonaws.com/asasera-new-frontend:latest
         resources:
           requests:

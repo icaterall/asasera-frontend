@@ -109,7 +109,7 @@ jobs:
           kubectl apply -f kubernetes/frontend-deployment.yaml
 
           if ! kubectl rollout status \
-            deployment/asasera-new-frontend-deployment \
+            deployment/asasera-frontend-deployment \
             --timeout=180s; then
 
             echo "========================================="
@@ -117,32 +117,32 @@ jobs:
             echo "========================================="
 
             kubectl get deployment \
-              asasera-new-frontend-deployment \
+              asasera-frontend-deployment \
               -o wide || true
 
             kubectl get pods \
-              -l app=asasera-new-frontend-app \
+              -l app=asasera-frontend-app \
               -o wide || true
 
             kubectl describe deployment \
-              asasera-new-frontend-deployment || true
+              asasera-frontend-deployment || true
 
             kubectl describe pods \
-              -l app=asasera-new-frontend-app || true
+              -l app=asasera-frontend-app || true
 
             echo "========================================="
             echo "CONTAINER LOGS"
             echo "========================================="
 
             for pod in $(kubectl get pods \
-              -l app=asasera-new-frontend-app \
+              -l app=asasera-frontend-app \
               -o jsonpath='{.items[*].metadata.name}'); do
 
               echo "----- ${pod} -----"
 
               kubectl logs \
                 "${pod}" \
-                -c asasera-new-frontend-container \
+                -c asasera-frontend-container \
                 --tail=200 || true
             done
 
@@ -157,8 +157,8 @@ jobs:
           fi
 
           DEPLOYED_IMAGE=$(kubectl get deployment \
-            asasera-new-frontend-deployment \
-            -o jsonpath='{.spec.template.spec.containers[?(@.name=="asasera-new-frontend-container")].image}')
+            asasera-frontend-deployment \
+            -o jsonpath='{.spec.template.spec.containers[?(@.name=="asasera-frontend-container")].image}')
 
           echo "Expected image: ${EXPECTED_IMAGE}"
           echo "Deployed image: ${DEPLOYED_IMAGE}"

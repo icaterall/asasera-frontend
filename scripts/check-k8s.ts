@@ -29,8 +29,8 @@ const nginxConfPath = path.join(root, 'nginx.conf')
 const workflowPath = path.join(root, '.github/workflows/main.yml')
 
 /** Names the workflow uses literally, in `set image`, `rollout status` and its jsonpath. */
-const DEPLOYMENT_NAME = 'asasera-new-frontend-deployment'
-const CONTAINER_NAME = 'asasera-new-frontend-container'
+const DEPLOYMENT_NAME = 'asasera-frontend-deployment'
+const CONTAINER_NAME = 'asasera-frontend-container'
 
 const failures: string[] = []
 
