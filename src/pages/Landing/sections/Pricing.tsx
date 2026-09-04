@@ -40,17 +40,17 @@ export function Pricing() {
             <li
               key={key}
               className={cn(
-                'relative flex flex-col overflow-hidden rounded-asas border bg-asas-surface p-6',
-                featured ? 'border-asas-accent/40' : 'border-asas-line',
+                'relative flex flex-col overflow-hidden rounded-md border bg-surface p-6',
+                featured ? 'border-accent/40' : 'border-line',
               )}
             >
               {featured ? (
-                <p className="mb-3 inline-flex self-start rounded-asas-sm bg-asas-accent/12 px-2.5 py-1 text-asas-small font-semibold text-asas-accent">
+                <p className="mb-3 inline-flex self-start rounded-sm bg-accent/12 px-2.5 py-1 text-sm font-semibold text-accent">
                   {t('pricing.featured')}
                 </p>
               ) : null}
 
-              <h3 className="mb-2 text-asas-h3 font-semibold text-asas-ink">
+              <h3 className="mb-2 text-xl font-semibold text-fg">
                 {t(`pricing.${key}.name` as LandingCopyKey)}
               </h3>
 
@@ -61,19 +61,19 @@ export function Pricing() {
                 end of the range.
               */}
               <p className="mb-5 flex flex-wrap items-baseline gap-x-2">
-                <Bdi dir="ltr" className="text-[1.5rem] font-bold text-asas-ink">
+                <Bdi dir="ltr" className="text-[1.5rem] font-bold text-fg">
                   {t(`pricing.${key}.price` as LandingCopyKey)}
                 </Bdi>
-                {period ? <span className="text-asas-small text-asas-muted">{period}</span> : null}
+                {period ? <span className="text-sm text-muted">{period}</span> : null}
               </p>
 
               <ul className="flex flex-col gap-2.5">
                 {features.map((feature) => (
                   <li
                     key={feature}
-                    className="flex items-start gap-2.5 text-[0.9375rem] text-asas-muted"
+                    className="flex items-start gap-2.5 text-[0.9375rem] text-muted"
                   >
-                    <span className="mt-1 shrink-0 text-asas-accent-teal">
+                    <span className="mt-1 shrink-0 text-accent-alt">
                       <IconCheck size={16} />
                     </span>
                     <span>{feature}</span>
@@ -89,7 +89,7 @@ export function Pricing() {
         The section's closing promise, and the answer to the question every
         department asks second. Solid teal, white text at 4.88:1.
       */}
-      <p className="mt-6 rounded-asas bg-asas-teal px-6 py-5 text-center font-bold text-white md:mt-8 md:text-asas-lead">
+      <p className="mt-6 rounded-md bg-teal-700 px-6 py-5 text-center font-bold text-white md:mt-8 md:text-lead">
         {t('pricing.band')}
       </p>
     </SectionShell>

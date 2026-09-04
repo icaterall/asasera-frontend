@@ -16,13 +16,13 @@ import { SectionShell } from '../ui/SectionShell'
 function DragIllustration() {
   return (
     <svg viewBox="0 0 320 132" className="h-auto w-full" role="presentation">
-      <rect x="18" y="20" width="88" height="40" rx="3" fill="var(--asas-surface-tint)" stroke="var(--asas-line)" />
-      <rect x="18" y="74" width="88" height="40" rx="3" fill="var(--asas-surface-tint)" stroke="var(--asas-line)" />
+      <rect x="18" y="20" width="88" height="40" rx="3" fill="var(--raised)" stroke="var(--line)" />
+      <rect x="18" y="74" width="88" height="40" rx="3" fill="var(--raised)" stroke="var(--line)" />
 
       <path
         d="M232 44 C196 40 168 58 150 74 C140 83 128 90 118 92"
         fill="none"
-        stroke="var(--asas-accent)"
+        stroke="var(--accent)"
         strokeWidth="2"
         strokeDasharray="4 4"
         strokeLinecap="round"
@@ -31,16 +31,16 @@ function DragIllustration() {
       <path
         d="M118 92 C132 88 140 70 132 52 C128 44 118 40 110 40"
         fill="none"
-        stroke="var(--asas-accent)"
+        stroke="var(--accent)"
         strokeWidth="2"
         strokeLinecap="round"
       />
 
       {/* Hesitation, marked where the path doubles back. */}
-      <circle cx="118" cy="92" r="5" fill="var(--asas-surface)" stroke="var(--asas-warn)" strokeWidth="2" />
+      <circle cx="118" cy="92" r="5" fill="var(--surface)" stroke="#E8A33D" strokeWidth="2" />
 
-      <rect x="232" y="26" width="70" height="36" rx="3" fill="var(--asas-surface)" stroke="var(--asas-accent)" strokeWidth="1.5" />
-      <path d="M248 44h38" stroke="var(--asas-accent)" strokeWidth="2" strokeLinecap="round" opacity="0.35" />
+      <rect x="232" y="26" width="70" height="36" rx="3" fill="var(--surface)" stroke="var(--accent)" strokeWidth="1.5" />
+      <path d="M248 44h38" stroke="var(--accent)" strokeWidth="2" strokeLinecap="round" opacity="0.35" />
     </svg>
   )
 }
@@ -49,15 +49,15 @@ function DragIllustration() {
 function ImageIllustration() {
   return (
     <svg viewBox="0 0 320 132" className="h-auto w-full" role="presentation">
-      <rect x="14" y="12" width="292" height="108" rx="3" fill="var(--asas-surface-tint)" stroke="var(--asas-line)" />
-      <ellipse cx="112" cy="66" rx="62" ry="42" fill="var(--asas-surface)" stroke="var(--asas-line)" />
-      <circle cx="100" cy="60" r="17" fill="var(--asas-surface)" stroke="var(--asas-accent-teal)" strokeWidth="2" />
+      <rect x="14" y="12" width="292" height="108" rx="3" fill="var(--raised)" stroke="var(--line)" />
+      <ellipse cx="112" cy="66" rx="62" ry="42" fill="var(--surface)" stroke="var(--line)" />
+      <circle cx="100" cy="60" r="17" fill="var(--surface)" stroke="var(--accent-alt)" strokeWidth="2" />
 
-      <path d="M117 60h52" stroke="var(--asas-accent-teal)" strokeWidth="1.5" strokeDasharray="3 3" />
-      <rect x="172" y="48" width="112" height="24" rx="2" fill="var(--asas-surface)" stroke="var(--asas-accent-teal)" strokeWidth="1.5" />
+      <path d="M117 60h52" stroke="var(--accent-alt)" strokeWidth="1.5" strokeDasharray="3 3" />
+      <rect x="172" y="48" width="112" height="24" rx="2" fill="var(--surface)" stroke="var(--accent-alt)" strokeWidth="1.5" />
 
-      <path d="M150 92h20" stroke="var(--asas-ink-muted)" strokeWidth="1.5" strokeDasharray="3 3" />
-      <rect x="172" y="82" width="112" height="22" rx="2" fill="var(--asas-surface)" stroke="var(--asas-line)" />
+      <path d="M150 92h20" stroke="var(--muted)" strokeWidth="1.5" strokeDasharray="3 3" />
+      <rect x="172" y="82" width="112" height="22" rx="2" fill="var(--surface)" stroke="var(--line)" />
     </svg>
   )
 }
@@ -80,24 +80,24 @@ export function Types() {
       <div className="grid gap-5 md:grid-cols-2">
         <Card raised className="overflow-hidden p-6 md:p-7">
           <DragIllustration />
-          <h3 className="mt-6 mb-2 text-asas-h3 font-semibold text-asas-ink">{t('types.drag.title')}</h3>
-          <p className="text-[0.9375rem] leading-[1.8] text-asas-muted">{t('types.drag.body')}</p>
+          <h3 className="mt-6 mb-2 text-xl font-semibold text-fg">{t('types.drag.title')}</h3>
+          <p className="text-[0.9375rem] leading-[1.8] text-muted">{t('types.drag.body')}</p>
         </Card>
 
         <Card raised className="overflow-hidden p-6 md:p-7">
           <ImageIllustration />
-          <h3 className="mt-6 mb-2 text-asas-h3 font-semibold text-asas-ink">{t('types.image.title')}</h3>
-          <p className="text-[0.9375rem] leading-[1.8] text-asas-muted">{t('types.image.body')}</p>
+          <h3 className="mt-6 mb-2 text-xl font-semibold text-fg">{t('types.image.title')}</h3>
+          <p className="text-[0.9375rem] leading-[1.8] text-muted">{t('types.image.body')}</p>
         </Card>
       </div>
 
-      <ul className="mt-12 grid gap-8 border-t border-asas-line pt-10 md:mt-16 md:grid-cols-3">
+      <ul className="mt-12 grid gap-8 border-t border-line pt-10 md:mt-16 md:grid-cols-3">
         {small.map((key) => (
           <li key={key}>
-            <h3 className="mb-1 text-[1.0625rem] font-semibold text-asas-ink">
+            <h3 className="mb-1 text-[1.0625rem] font-semibold text-fg">
               {t(`types.${key}.title` as 'types.mcq.title')}
             </h3>
-            <p className="text-[0.9375rem] text-asas-muted">
+            <p className="text-[0.9375rem] text-muted">
               {t(`types.${key}.body` as 'types.mcq.body')}
             </p>
           </li>

@@ -21,6 +21,8 @@ export function LanguageToggle({ className }: { className?: string }) {
       aria-label={t('common.language')}
       className={cn(
         'glass relative grid h-10 grid-cols-2 items-center rounded-md p-1',
+        // Last, so a surface that is dark in both themes (the footer) can
+        // restate the ground rather than inheriting a light panel.
         className,
       )}
     >

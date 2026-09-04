@@ -49,7 +49,7 @@ export const CodeInput = forwardRef<HTMLInputElement, CodeInputProps>(function C
 
   return (
     <div className={cn('w-full', className)}>
-      <label htmlFor={id} className="mb-2 block text-sm font-medium text-asas-ink">
+      <label htmlFor={id} className="mb-2 block text-sm font-medium text-fg">
         {label}
       </label>
 
@@ -70,21 +70,21 @@ export const CodeInput = forwardRef<HTMLInputElement, CodeInputProps>(function C
         aria-describedby={describedBy}
         onChange={(event) => onValueChange(normaliseCode(event.target.value))}
         className={cn(
-          'min-h-12 w-full rounded-asas-sm border bg-asas-surface px-4 py-3',
-          'text-center text-lg font-bold tracking-[0.35em] text-asas-ink',
-          'placeholder:tracking-normal placeholder:text-asas-muted/70',
-          error ? 'border-asas-danger' : 'border-asas-line',
+          'min-h-12 w-full rounded-sm border bg-surface px-4 py-3',
+          'text-center text-lg font-bold tracking-[0.35em] text-fg',
+          'placeholder:tracking-normal placeholder:text-muted/70',
+          error ? 'border-red-600' : 'border-line',
         )}
       />
 
       {hint ? (
-        <p id={hintId} className="mt-2 text-sm text-asas-muted">
+        <p id={hintId} className="mt-2 text-sm text-muted">
           {hint}
         </p>
       ) : null}
 
       {error ? (
-        <p id={errorId} role="alert" className="mt-2 text-sm font-medium text-asas-danger">
+        <p id={errorId} role="alert" className="mt-2 text-sm font-medium text-red-600">
           {error}
         </p>
       ) : null}

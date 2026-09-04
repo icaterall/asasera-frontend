@@ -30,23 +30,23 @@ export function ZeroPrep() {
             className={
               index === 0
                 ? 'md:pe-8'
-                : 'border-asas-line md:ps-8 md:pe-8 md:[border-inline-start-width:1px]'
+                : 'border-line md:ps-8 md:pe-8 md:[border-inline-start-width:1px]'
             }
           >
-            <span className="mb-4 block text-asas-accent-teal">
+            <span className="mb-4 block text-accent-alt">
               <Icon size={24} />
             </span>
-            <h3 className="mb-1.5 text-asas-h3 font-semibold text-asas-ink">
+            <h3 className="mb-1.5 text-xl font-semibold text-fg">
               {t(`zero.${n}.title` as LandingCopyKey)}
             </h3>
-            <p className="text-[0.9375rem] text-asas-muted">
+            <p className="text-[0.9375rem] text-muted">
               {t(`zero.${n}.body` as LandingCopyKey)}
             </p>
           </li>
         ))}
       </ul>
 
-      <p className="mt-12 max-w-[46ch] text-asas-h3 font-semibold text-asas-ink md:mt-16">
+      <p className="mt-12 max-w-[46ch] text-xl font-semibold text-fg md:mt-16">
         {t('zero.closing')}
       </p>
     </SectionShell>

@@ -20,10 +20,10 @@ function DecisionCard() {
   const { t } = useCopy()
 
   return (
-    <div className="asas-attention rounded-asas border border-asas-line bg-asas-surface p-6 md:p-8">
+    <div className="asas-attention rounded-md border border-line bg-surface p-6 md:p-8">
       <div className="mb-4 flex items-center gap-2.5">
-        <span className="size-2.5 shrink-0 rounded-full bg-asas-warn" />
-        <span className="text-asas-small font-medium text-asas-muted">{t('hero.decisionLabel')}</span>
+        <span className="size-2.5 shrink-0 rounded-full bg-amber-500" />
+        <span className="text-sm font-medium text-muted">{t('hero.decisionLabel')}</span>
       </div>
 
       {/*
@@ -31,15 +31,15 @@ function DecisionCard() {
         isolated: left bare, the digit and the word after it can resolve
         against each other and swap sides.
       */}
-      <p className="mb-6 text-[1.5rem] leading-snug font-bold text-asas-ink md:text-[1.875rem]">
+      <p className="mb-6 text-[1.5rem] leading-snug font-bold text-fg md:text-[1.875rem]">
         <Bdi dir="ltr">{t('hero.decisionCount')}</Bdi> {t('hero.decisionTitle')}
       </p>
 
       <div className="flex flex-wrap gap-3">
-        <span className="inline-flex min-h-12 items-center rounded-asas bg-asas-blue px-6 font-bold text-white">
+        <span className="inline-flex min-h-12 items-center rounded-md bg-brand-500 px-6 font-bold text-white">
           {t('hero.decisionFix')}
         </span>
-        <span className="inline-flex min-h-12 items-center rounded-asas border border-asas-line px-6 font-bold text-asas-ink">
+        <span className="inline-flex min-h-12 items-center rounded-md border border-line px-6 font-bold text-fg">
           {t('hero.decisionSkip')}
         </span>
       </div>
@@ -59,35 +59,35 @@ function SessionSummary() {
   const { t } = useCopy()
 
   return (
-    <div className="rounded-asas border border-asas-line bg-asas-surface p-6 md:p-7">
-      <p className="mb-3 text-asas-small font-medium text-asas-muted">{t('hero.summaryLabel')}</p>
+    <div className="rounded-md border border-line bg-surface p-6 md:p-7">
+      <p className="mb-3 text-sm font-medium text-muted">{t('hero.summaryLabel')}</p>
 
-      <p className="mb-4 flex flex-wrap items-baseline gap-x-3 gap-y-1 text-asas-lead font-bold text-asas-ink">
-        <span className="text-asas-accent-teal">
+      <p className="mb-4 flex flex-wrap items-baseline gap-x-3 gap-y-1 text-lead font-bold text-fg">
+        <span className="text-accent-alt">
           <Bdi dir="ltr">{t('hero.summaryMasteredCount')}</Bdi> {t('hero.summaryMastered')}
         </span>
-        <span aria-hidden="true" className="text-asas-line">
+        <span aria-hidden="true" className="text-line">
           •
         </span>
-        <span className="text-asas-accent">
+        <span className="text-accent">
           <Bdi dir="ltr">{t('hero.summaryRecoveredCount')}</Bdi> {t('hero.summaryRecovered')}
         </span>
-        <span aria-hidden="true" className="text-asas-line">
+        <span aria-hidden="true" className="text-line">
           •
         </span>
-        <span className="text-asas-ink">
+        <span className="text-fg">
           <Bdi dir="ltr">{t('hero.summaryNeedYouCount')}</Bdi> {t('hero.summaryNeedYou')}
         </span>
       </p>
 
-      <p className="text-[0.9375rem] leading-[1.8] text-asas-muted">
-        <span className="font-bold text-asas-ink">{t('hero.summaryReasonLabel')} </span>
+      <p className="text-[0.9375rem] leading-[1.8] text-muted">
+        <span className="font-bold text-fg">{t('hero.summaryReasonLabel')} </span>
         {t('hero.summaryReasonBefore')}{' '}
-        <Bdi dir="ltr" className="font-medium text-asas-ink">
+        <Bdi dir="ltr" className="font-medium text-fg">
           ({t('hero.summaryReasonTermOne')})
         </Bdi>{' '}
         {t('hero.summaryReasonMiddle')}{' '}
-        <Bdi dir="ltr" className="font-medium text-asas-ink">
+        <Bdi dir="ltr" className="font-medium text-fg">
           ({t('hero.summaryReasonTermTwo')})
         </Bdi>
       </p>
@@ -101,7 +101,7 @@ export function Hero() {
   return (
     <section
       id="top"
-      className="relative flex min-h-[88svh] items-center overflow-hidden bg-asas-surface py-16 md:py-24"
+      className="relative flex min-h-[88svh] items-center overflow-hidden bg-surface py-16 md:py-24"
     >
       {/*
         The supplied backdrop is off-brand purple, so it is desaturated and
@@ -134,9 +134,9 @@ export function Hero() {
 
       <div className="relative mx-auto grid w-full max-w-[1200px] items-center gap-12 px-5 md:px-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,30rem)] lg:gap-16">
         <div>
-          <h1 className="max-w-[16ch] text-asas-hero font-bold text-asas-ink">{t('hero.title')}</h1>
+          <h1 className="max-w-[16ch] text-hero font-bold text-fg">{t('hero.title')}</h1>
 
-          <p className="mt-6 max-w-[46ch] text-asas-lead text-asas-muted">{t('hero.subtitle')}</p>
+          <p className="mt-6 max-w-[46ch] text-lead text-muted">{t('hero.subtitle')}</p>
 
           <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
             <Button href="#join" variant="primary" size="lg">
@@ -148,7 +148,7 @@ export function Hero() {
             </Button>
           </div>
 
-          <p className="mt-6 text-asas-small text-asas-muted">{t('hero.trust')}</p>
+          <p className="mt-6 text-sm text-muted">{t('hero.trust')}</p>
         </div>
 
         {/* Real DOM rather than a screenshot, so it stays crisp at any size. */}

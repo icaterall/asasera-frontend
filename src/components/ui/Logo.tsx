@@ -1,47 +1,85 @@
-import { useId } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import logoLight from '@/assets/images/asas-logo-light.webp'
+import logoMark from '@/assets/images/asas-logo.svg'
 import { cn } from '@/lib/cn'
 
 /**
- * The mark is an "A" resting on a bar — the literal reading of *asas*
- * (أساس), "foundation".
+ * The real logo files from src/assets/images, not a drawn approximation.
+ *
+ * Two files ship and CSS picks one, rather than a component reading the theme
+ * in JavaScript: the correct mark is then painted on the first frame instead
+ * of flipping after hydration, and it is also correct inside the footer,
+ * which is dark in *both* themes and so cannot rely on the theme class at all.
+ *
+ *   asas-logo.svg        the primary mark — dark wordmark, for light grounds
+ *   asas-logo-light.webp the light mark   — for dark grounds
  */
 export function LogoMark({ className }: { className?: string }) {
-  const gradientId = useId()
-
   return (
-    <svg
-      viewBox="0 0 32 32"
-      className={cn('size-9 shrink-0', className)}
-      role="presentation"
-      aria-hidden="true"
-    >
-      <defs>
-        <linearGradient id={gradientId} x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="var(--color-brand-400)" />
-          <stop offset="55%" stopColor="var(--color-brand-600)" />
-          <stop offset="100%" stopColor="var(--color-teal-500)" />
-        </linearGradient>
-      </defs>
-      <rect width="32" height="32" rx="4.4" fill={`url(#${gradientId})`} />
-      <path
-        d="M16 6.4 26 25.6h-5.1L16 16.2l-4.9 9.4H6z"
-        fill="#fff"
-        fillOpacity="0.96"
+    <>
+      <img
+        src={logoMark}
+        alt=""
+        aria-hidden="true"
+        width={36}
+        height={36}
+        className={cn('size-9 shrink-0 object-contain object-left dark:hidden', className)}
       />
-      <rect x="11.5" y="19.3" width="9" height="2.5" rx="1.25" fill="#fff" fillOpacity="0.55" />
-    </svg>
+      <img
+        src={logoLight}
+        alt=""
+        aria-hidden="true"
+        width={36}
+        height={36}
+        className={cn('hidden size-9 shrink-0 object-contain object-left dark:block', className)}
+      />
+    </>
   )
 }
 
-export function Logo({ className }: { className?: string }) {
+/**
+ * The full lockup — the supplied artwork already contains the wordmark, so
+ * there is no separate text node beside it. Adding one would set the name
+ * twice in two different typefaces.
+ */
+export function Logo({ className, onDark = false }: { className?: string; onDark?: boolean }) {
   const { t } = useTranslation()
 
+  /*
+   * `onDark` is for surfaces that are dark regardless of theme — the footer.
+   * There the theme class is the wrong signal, because a light-theme page
+   * still has a black footer and still needs the light mark.
+   */
+  if (onDark) {
+    return (
+      <img
+        src={logoLight}
+        alt={t('brand.name')}
+        width={150}
+        height={40}
+        className={cn('h-10 w-auto object-contain', className)}
+      />
+    )
+  }
+
   return (
-    <span className={cn('inline-flex items-center gap-2.5', className)}>
-      <LogoMark />
-      <span className="text-xl font-extrabold tracking-tight">{t('brand.name')}</span>
+    <span className={cn('inline-flex items-center', className)}>
+      <img
+        src={logoMark}
+        alt={t('brand.name')}
+        width={150}
+        height={40}
+        className="h-9 w-auto object-contain dark:hidden"
+      />
+      <img
+        src={logoLight}
+        alt=""
+        aria-hidden="true"
+        width={150}
+        height={40}
+        className="hidden h-9 w-auto object-contain dark:block"
+      />
     </span>
   )
 }

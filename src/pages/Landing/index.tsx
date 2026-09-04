@@ -5,27 +5,26 @@ import { useCopy } from '@/copy/useCopy'
 
 import { Departments } from './sections/Departments'
 import { Editor } from './sections/Editor'
-import { Footer } from './sections/Footer'
 import { Gap } from './sections/Gap'
 import { Hero } from './sections/Hero'
 import { JoinStrip } from './sections/JoinStrip'
 import { Loop } from './sections/Loop'
-import { Nav } from './sections/Nav'
 import { Pricing } from './sections/Pricing'
 import { Types } from './sections/Types'
 import { ZeroPrep } from './sections/ZeroPrep'
 
 /**
- * Section order and background grouping.
+ * Section order.
  *
- * The tint does not simply alternate. Sections are paired by subject, so a
- * change of ground marks a change of topic rather than a change of row:
+ * The nav, the ambient gradient, the skip link and the footer are no longer
+ * here — `Layout` owns all four, and this page now sits inside it like every
+ * other route. That is the point of the change: there was one design on the
+ * sign-in page and a different one on the landing page, and a visitor moving
+ * between them crossed a visible seam.
  *
- *   hero + join        surface / tint   the opening and the way in
- *   loop + gap         surface          how a session runs, and why it differs
- *   types + editor     tint             what the product actually is
- *   zero + pricing     surface          what it costs, in effort and in money
- *   departments        tint             the buying conversation
+ * Backgrounds still alternate, but they alternate in the app's own tokens:
+ * `canvas` for most sections and `raised` where a group of related sections
+ * should read as one block.
  */
 function LandingContent() {
   const { t, lang } = useCopy()
@@ -44,44 +43,27 @@ function LandingContent() {
   }, [t, lang])
 
   return (
-    <div className="asas-landing">
-      {/*
-        First focusable thing on the page. Hidden until focused, then it lands
-        on an ink chip in the corner — a skip link that stays invisible when
-        focused is the version everyone ships and nobody can use.
-      */}
-      <a
-        href="#main"
-        className="sr-only focus:not-sr-only focus:absolute focus:z-[60] focus:m-3 focus:rounded-asas focus:bg-asas-inksurface focus:px-4 focus:py-3 focus:text-white"
-      >
-        {t('skipToContent')}
-      </a>
-
-      <Nav />
-
-      <main id="main">
-        <Hero />
-        <JoinStrip />
-        <Loop />
-        <Gap />
-        <Types />
-        <Editor />
-        <ZeroPrep />
-        <Pricing />
-        <Departments />
-      </main>
-
-      <Footer />
-    </div>
+    <>
+      <Hero />
+      <JoinStrip />
+      <Loop />
+      <Gap />
+      <Types />
+      <Editor />
+      <ZeroPrep />
+      <Pricing />
+      <Departments />
+    </>
   )
 }
 
 /**
  * The public landing page.
  *
- * Not wrapped in the app's shared `Layout`: that shell carries the starter's
- * navigation, footer and toggles, and this page owns its own header and
- * footer. It is routed as a sibling of the Layout branch in App.tsx.
+ * `LanguageProvider` stays because the landing copy lives in its own tables
+ * rather than the i18next bundles. It reads the active language *from*
+ * i18next, so the language control in the shared header drives this page too
+ * — one switch, one source of truth, two copy stores.
  */
 export default function Landing() {
   return (

@@ -1,12 +1,19 @@
 import type { ReactNode } from 'react'
 
+import { Container } from '@/components/ui/Container'
+import { Reveal } from '@/components/ui/Reveal'
 import { cn } from '@/lib/cn'
 
 type Tone = 'surface' | 'tint'
 
+/*
+ * Backgrounds are the app's own tokens now, so they follow the theme with the
+ * rest of the product instead of being a light-only island. `canvas` is the
+ * page ground; `raised` marks a group of sections as one block.
+ */
 const tones: Record<Tone, string> = {
-  surface: 'bg-asas-surface text-asas-ink',
-  tint: 'bg-asas-tint text-asas-ink',
+  surface: '',
+  tint: 'bg-raised',
 }
 
 type SectionShellProps = {
@@ -54,11 +61,12 @@ export function SectionShell({
         className,
       )}
     >
-      <div className="mx-auto w-full max-w-[1200px] px-5 md:px-8">
+      <Container>
+        <Reveal>
         {overline ? (
           <p
             className={cn(
-              'mb-3 text-[0.8125rem] font-semibold tracking-[0.12em] text-asas-accent-teal',
+              'mb-3 text-[0.8125rem] font-semibold tracking-[0.12em] text-accent-alt',
             )}
           >
             {overline}
@@ -69,7 +77,7 @@ export function SectionShell({
           <h2
             id={headingId}
             className={cn(
-              'max-w-[24ch] text-asas-h2 font-bold text-asas-ink',
+              'max-w-[24ch] text-title font-bold text-fg',
               lead ? 'mb-4' : 'mb-10 md:mb-14',
             )}
           >
@@ -78,17 +86,12 @@ export function SectionShell({
         ) : null}
 
         {lead ? (
-          <p
-            className={cn(
-              'mb-10 max-w-[58ch] text-asas-lead text-asas-muted md:mb-14',
-            )}
-          >
-            {lead}
-          </p>
+          <p className="mb-10 max-w-[58ch] text-lead text-muted md:mb-14">{lead}</p>
         ) : null}
+        </Reveal>
 
         {children}
-      </div>
+      </Container>
     </section>
   )
 }

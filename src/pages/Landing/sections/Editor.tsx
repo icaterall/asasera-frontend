@@ -24,22 +24,22 @@ function EditorPreview() {
   return (
     <div>
       <svg viewBox="0 0 420 210" className="h-auto w-full" role="presentation">
-        <rect x="1" y="1" width="418" height="208" rx="3" fill="var(--asas-surface-tint)" stroke="var(--asas-line)" />
-        <ellipse cx="200" cy="105" rx="132" ry="82" fill="var(--asas-surface)" stroke="var(--asas-line)" />
+        <rect x="1" y="1" width="418" height="208" rx="3" fill="var(--raised)" stroke="var(--line)" />
+        <ellipse cx="200" cy="105" rx="132" ry="82" fill="var(--surface)" stroke="var(--line)" />
 
-        <circle cx="176" cy="92" r="34" fill="none" stroke="var(--asas-accent)" strokeWidth="1.8" strokeDasharray="5 4" />
-        <rect x="150" y="46" width="70" height="22" rx="2" fill="var(--asas-surface)" stroke="var(--asas-accent)" strokeWidth="1.2" />
-        <text x="185" y="61" textAnchor="middle" fontSize="12" fill="var(--asas-ink)" fontFamily="inherit">
+        <circle cx="176" cy="92" r="34" fill="none" stroke="var(--accent)" strokeWidth="1.8" strokeDasharray="5 4" />
+        <rect x="150" y="46" width="70" height="22" rx="2" fill="var(--surface)" stroke="var(--accent)" strokeWidth="1.2" />
+        <text x="185" y="61" textAnchor="middle" fontSize="12" fill="var(--fg)" fontFamily="inherit">
           {t('editor.regionOne')}
         </text>
 
-        <path d="M68 105a132 82 0 0 1 264 0" fill="none" stroke="var(--asas-accent-teal)" strokeWidth="1.8" strokeDasharray="5 4" />
-        <rect x="286" y="124" width="72" height="22" rx="2" fill="var(--asas-surface)" stroke="var(--asas-accent-teal)" strokeWidth="1.2" />
-        <text x="322" y="139" textAnchor="middle" fontSize="12" fill="var(--asas-ink)" fontFamily="inherit">
+        <path d="M68 105a132 82 0 0 1 264 0" fill="none" stroke="var(--accent-alt)" strokeWidth="1.8" strokeDasharray="5 4" />
+        <rect x="286" y="124" width="72" height="22" rx="2" fill="var(--surface)" stroke="var(--accent-alt)" strokeWidth="1.2" />
+        <text x="322" y="139" textAnchor="middle" fontSize="12" fill="var(--fg)" fontFamily="inherit">
           {t('editor.regionTwo')}
         </text>
 
-        <circle cx="252" cy="140" r="24" fill="none" stroke="var(--asas-ink-muted)" strokeWidth="1.6" strokeDasharray="5 4" />
+        <circle cx="252" cy="140" r="24" fill="none" stroke="var(--muted)" strokeWidth="1.6" strokeDasharray="5 4" />
       </svg>
 
       {/* The three actions, as plain labelled icons rather than chips. */}
@@ -49,7 +49,7 @@ function EditorPreview() {
           { key: 'editor.actionRename', Icon: IconPencil },
           { key: 'editor.actionApprove', Icon: IconCheck },
         ].map(({ key, Icon }) => (
-          <li key={key} className="inline-flex items-center gap-1.5 text-asas-small font-medium text-asas-muted">
+          <li key={key} className="inline-flex items-center gap-1.5 text-sm font-medium text-muted">
             <Icon size={16} />
             {t(key as LandingCopyKey)}
           </li>
@@ -71,20 +71,20 @@ export function Editor() {
           <ol className="flex flex-col gap-7">
             {steps.map((n) => (
               <li key={n}>
-                <h3 className="mb-1 text-asas-h3 font-semibold text-asas-ink">
-                  <span className="text-asas-muted">
+                <h3 className="mb-1 text-xl font-semibold text-fg">
+                  <span className="text-muted">
                     <Bdi dir="ltr">{t(`editor.${n}.index` as LandingCopyKey)}</Bdi>{' '}
                   </span>
                   {t(`editor.${n}.title` as LandingCopyKey)}
                 </h3>
-                <p className="text-[0.9375rem] leading-[1.8] text-asas-muted">
+                <p className="text-[0.9375rem] leading-[1.8] text-muted">
                   {t(`editor.${n}.body` as LandingCopyKey)}
                 </p>
               </li>
             ))}
           </ol>
 
-          <p className="mt-8 border-t border-asas-line pt-6 text-asas-h3 font-semibold text-asas-accent-teal">
+          <p className="mt-8 border-t border-line pt-6 text-xl font-semibold text-accent-alt">
             {t('editor.closing')}
           </p>
         </div>

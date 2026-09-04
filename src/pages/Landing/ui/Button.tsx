@@ -12,7 +12,7 @@ export type ButtonSize = 'md' | 'lg'
  * up in a lecture hall holding a phone one-handed.
  */
 const base =
-  'inline-flex items-center justify-center gap-2 rounded-asas font-bold ' +
+  'inline-flex items-center justify-center gap-2 rounded-md font-bold ' +
   'transition-[background-color,border-color,color,box-shadow,filter] duration-200 ' +
   'motion-reduce:transition-none select-none text-center'
 
@@ -21,7 +21,7 @@ const variants: Record<ButtonVariant, string> = {
   primary: 'master-button text-white hover:brightness-95',
 
   /* White on --brand-teal: 4.88:1. Above AA, but the tightest pair on the page. */
-  teal: 'bg-asas-teal text-white hover:bg-[#006E5C]',
+  teal: 'bg-teal-700 text-white hover:bg-[#006E5C]',
 
   /*
    * A 1px line, not a tinted fill: the ghost button sits beside the primary in
@@ -29,10 +29,10 @@ const variants: Record<ButtonVariant, string> = {
    * disabled-looking control.
    */
   ghost:
-    'border border-asas-line bg-asas-surface text-asas-ink ' +
-    'hover:border-asas-blue hover:text-asas-accent',
+    'border border-line bg-surface text-fg ' +
+    'hover:border-accent hover:text-accent',
 
-  quiet: 'text-asas-ink hover:text-asas-accent font-medium',
+  quiet: 'text-fg hover:text-accent font-medium',
 }
 
 const sizes: Record<ButtonSize, string> = {

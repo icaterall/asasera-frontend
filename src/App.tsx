@@ -28,12 +28,17 @@ export default function App() {
         <Suspense fallback={<RouteFallback />}>
           <Routes>
             {/*
-              The landing page sits outside Layout: it ships its own nav and
-              footer, and in a single light rendition with no language or
-              theme toggle. Everything else keeps the shared shell.
+              Every route shares one shell.
+              
+              The landing page used to sit outside Layout with its own nav and
+              footer, which meant two navigations, two footers and two token
+              systems in one app — and a visitor moving from the landing page
+              to sign-in crossed a visible seam. It is inside now, so the
+              header, the ambient gradient and the footer are literally the
+              same components everywhere.
             */}
-            <Route index element={<Landing />} />
             <Route element={<Layout />}>
+              <Route index element={<Landing />} />
               <Route path="about" element={<About />} />
               {/*
                 The nav has linked to /login since the landing page shipped;

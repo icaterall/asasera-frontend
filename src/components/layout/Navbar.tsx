@@ -108,11 +108,20 @@ export function Navbar() {
             <LanguageToggle className="hidden sm:grid" />
             <ThemeToggle />
 
+            {/*
+              Sign in, not "get started".
+              
+              The old target was /#cta — an in-page anchor that scrolled to a
+              section rather than doing anything. The primary action in the
+              header should be the one a returning visitor came for, and it
+              should go somewhere: /login is a real route with a real page
+              behind it.
+            */}
             <Link
-              to="/#cta"
+              to="/login"
               className={buttonStyles({ size: 'sm', className: 'hidden lg:inline-flex' })}
             >
-              {t('nav.getStarted')}
+              {t('nav.signIn')}
               <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-0.5 rtl:-scale-x-100 rtl:group-hover:-translate-x-0.5" />
             </Link>
 
@@ -177,8 +186,8 @@ export function Navbar() {
 
           <div className="mt-6 flex items-center justify-between gap-3 border-t border-line pt-5">
             <LanguageToggle />
-            <Link to="/#cta" className={buttonStyles({ size: 'sm' })}>
-              {t('nav.getStarted')}
+            <Link to="/login" className={buttonStyles({ size: 'sm' })}>
+              {t('nav.signIn')}
             </Link>
           </div>
         </div>

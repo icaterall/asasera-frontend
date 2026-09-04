@@ -45,13 +45,13 @@ export function JoinStrip() {
   }
 
   return (
-    <section id="join" aria-labelledby="join-title" className="scroll-mt-20 border-y border-asas-line bg-asas-tint px-5 py-8 md:px-8 md:py-10">
+    <section id="join" aria-labelledby="join-title" className="scroll-mt-20 border-y border-line bg-raised px-5 py-8 md:px-8 md:py-10">
       <form
         onSubmit={onSubmit}
         noValidate
         className="mx-auto flex max-w-[1200px] flex-col gap-4 md:flex-row md:items-start md:gap-6"
       >
-        <p id="join-title" className="text-lg font-bold text-asas-ink md:mt-9 md:shrink-0">
+        <p id="join-title" className="text-lg font-bold text-fg md:mt-9 md:shrink-0">
           {t('join.prompt')}
         </p>
 

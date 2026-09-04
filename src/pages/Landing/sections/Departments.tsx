@@ -36,14 +36,14 @@ export function Departments() {
           {/* Gradient use 2 of 2: a short rule opening the buying section. */}
           <span
             aria-hidden="true"
-            className="mb-6 block h-[3px] w-16 rounded-asas-sm bg-gradient-to-l from-asas-blue to-asas-teal"
+            className="mb-6 block h-[3px] w-16 rounded-sm bg-gradient-to-l from-brand-500 to-teal-500"
           />
 
-          <h2 id="departments-title" className="text-asas-h2 font-bold text-asas-ink">
+          <h2 id="departments-title" className="text-title font-bold text-fg">
             {t('dept.title')}
           </h2>
 
-          <p className="mt-4 max-w-[52ch] text-asas-lead text-asas-muted">{t('dept.body')}</p>
+          <p className="mt-4 max-w-[52ch] text-lead text-muted">{t('dept.body')}</p>
 
           {/*
             `Button` renders an <a> when given href, so this stays a link to
@@ -54,7 +54,7 @@ export function Departments() {
             <Button href={mailto} variant="primary" size="lg">
               {t('dept.cta')}
             </Button>
-            <p className="mt-3 text-asas-small text-asas-muted">{t('dept.emailHint')}</p>
+            <p className="mt-3 text-sm text-muted">{t('dept.emailHint')}</p>
           </div>
         </div>
 
@@ -70,7 +70,7 @@ export function Departments() {
             loading="lazy"
             decoding="async"
             sizes="(min-width: 1024px) 34rem, 100vw"
-            className="aspect-[1210/999] w-full rounded-asas border border-asas-line object-cover"
+            className="aspect-[1210/999] w-full rounded-md border border-line object-cover"
           />
         </picture>
       </div>

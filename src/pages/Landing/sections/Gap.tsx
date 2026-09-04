@@ -22,13 +22,13 @@ export function Gap() {
 
   return (
     <SectionShell id="gap" tone="surface" title={t('gap.title')}>
-      <ul className="border-t border-asas-line">
+      <ul className="border-t border-line">
         {rows.map((n) => (
           <li
             key={n}
-            className="grid items-baseline gap-x-6 gap-y-2 border-b border-asas-line py-6 md:grid-cols-[1fr_auto_1fr] md:py-8"
+            className="grid items-baseline gap-x-6 gap-y-2 border-b border-line py-6 md:grid-cols-[1fr_auto_1fr] md:py-8"
           >
-            <p className="text-[1.0625rem] text-asas-muted line-through decoration-asas-muted/40 md:text-lg">
+            <p className="text-[1.0625rem] text-muted line-through decoration-muted/40 md:text-lg">
               {t(`gap.${n}.lack` as LandingCopyKey)}
             </p>
 
@@ -38,11 +38,11 @@ export function Gap() {
               points the wrong way the moment the page flips to LTR. The SVG
               points at the inline end in both directions.
             */}
-            <span aria-hidden="true" className="hidden text-asas-line md:block">
+            <span aria-hidden="true" className="hidden text-line md:block">
               <IconArrowEnd size={20} />
             </span>
 
-            <p className="text-[1.0625rem] font-medium text-asas-ink md:text-lg">
+            <p className="text-[1.0625rem] font-medium text-fg md:text-lg">
               {t(`gap.${n}.us` as LandingCopyKey)}
             </p>
           </li>

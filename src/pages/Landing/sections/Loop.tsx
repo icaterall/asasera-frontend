@@ -29,7 +29,7 @@ export function Loop() {
         */}
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute top-7 hidden h-px bg-asas-line lg:block"
+          className="pointer-events-none absolute top-7 hidden h-px bg-line lg:block"
           style={{ insetInlineStart: '2rem', insetInlineEnd: '2rem' }}
         />
 
@@ -42,35 +42,35 @@ export function Loop() {
             {index < steps.length - 1 ? (
               <span
                 aria-hidden="true"
-                className="absolute top-10 w-px bg-asas-line md:hidden"
+                className="absolute top-10 w-px bg-line md:hidden"
                 style={{ insetInlineStart: '1.4rem', bottom: '-2.5rem' }}
               />
             ) : null}
 
             <span
               aria-hidden="true"
-              className="absolute top-0 text-[3rem] leading-none font-bold text-asas-ink/15 md:relative md:mb-2 md:block"
+              className="absolute top-0 text-[3rem] leading-none font-bold text-fg/15 md:relative md:mb-2 md:block"
               style={{ insetInlineStart: 0 }}
             >
               <Bdi dir="ltr">{t(`loop.${n}.index` as LandingCopyKey)}</Bdi>
             </span>
 
-            <p className="mb-1 text-asas-small text-asas-muted">
+            <p className="mb-1 text-sm text-muted">
               <Bdi>{t(`loop.${n}.duration` as LandingCopyKey)}</Bdi>
             </p>
 
-            <h3 className="mb-1.5 text-[1.125rem] leading-snug font-semibold text-asas-ink">
+            <h3 className="mb-1.5 text-[1.125rem] leading-snug font-semibold text-fg">
               {t(`loop.${n}.actor` as LandingCopyKey)}
             </h3>
 
-            <p className="text-[0.9375rem] leading-[1.75] text-asas-muted">
+            <p className="text-[0.9375rem] leading-[1.75] text-muted">
               {t(`loop.${n}.body` as LandingCopyKey)}
             </p>
           </li>
         ))}
       </ol>
 
-      <p className="mt-14 max-w-[40ch] text-asas-h3 font-semibold text-asas-ink md:mt-20">
+      <p className="mt-14 max-w-[40ch] text-xl font-semibold text-fg md:mt-20">
         {t('loop.closing')}
       </p>
     </SectionShell>

@@ -21,7 +21,7 @@ export function Card({ children, className, raised = false, as: Tag = 'div' }: C
   return (
     <Tag
       className={cn(
-        'rounded-asas border border-asas-line bg-asas-surface',
+        'rounded-md border border-line bg-surface',
         raised && 'shadow-[0_1px_2px_rgb(16_35_61/0.04),0_10px_30px_-18px_rgb(16_35_61/0.28)]',
         className,
       )}
