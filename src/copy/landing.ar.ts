@@ -218,20 +218,6 @@ export const landingAr = {
 
 
   /* 12 — Footer ----------------------------------------------------- */
-  'footer.brandAlt': 'أساسيرا',
-  'footer.about': 'عن المنصة',
-  'footer.support': 'الدعم',
-  'footer.legal': 'قانوني',
-  'footer.about.story': 'من نحن',
-  'footer.about.method': 'المنهج',
-  'footer.about.contact': 'اتصل بنا',
-  'footer.support.help': 'مركز المساعدة',
-  'footer.support.start': 'دليل البدء',
-  'footer.support.status': 'حالة الخدمة',
-  'footer.legal.privacy': 'الخصوصية',
-  'footer.legal.terms': 'الشروط',
-  'footer.legal.data': 'بيانات الطلبة',
-  'footer.copyright': '© 2026 أساسيرا.',
 } as const
 
 export type LandingCopyKey = keyof typeof landingAr

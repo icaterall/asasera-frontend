@@ -65,7 +65,13 @@
    * Tailwind radius scale is collapsed onto that single value deliberately, so
    * `rounded-sm` through `rounded-4xl` are all 5px and any future `rounded-*`
    * anyone writes is correct by construction. Do not reintroduce a scale here,
-   * and do not reach for an arbitrary value like `rounded-[16px]`.
+   * and do not reach for an arbitrary bracket value.
+   *
+   * That last sentence used to name one as an example. Tailwind scans this
+   * file as plain source text, so writing the class out generated a real
+   * 16px rule into the shipped stylesheet — inert, applied to nothing, and
+   * still the only radius over 5px in the bundle. An example is not worth a
+   * rule that contradicts the paragraph explaining it.
    *
    * `rounded-full` is untouched and is reserved for shapes that are genuinely
    * circular — status dots, avatars, spinners, the ambient background blobs.

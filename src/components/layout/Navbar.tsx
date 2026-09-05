@@ -11,10 +11,15 @@ import { ThemeToggle } from '@/components/ui/ThemeToggle'
 import { useScrollProgress } from '@/hooks/useScrollProgress'
 import { cn } from '@/lib/cn'
 
+/*
+ * `/#features` and `/#platform` were anchors on a page that is no longer
+ * routed, so both scrolled nowhere. They are replaced by two ids the landing
+ * page actually has.
+ */
 const NAV_ITEMS = [
   { to: '/', labelKey: 'nav.home' },
-  { to: '/#features', labelKey: 'nav.features' },
-  { to: '/#platform', labelKey: 'nav.platform' },
+  { to: '/#how', labelKey: 'nav.how' },
+  { to: '/#pricing', labelKey: 'nav.pricing' },
   { to: '/about', labelKey: 'nav.about' },
 ] as const
 

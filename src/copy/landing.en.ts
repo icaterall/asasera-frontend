@@ -216,18 +216,4 @@ export const landingEn: LandingCopy = {
 
 
   /* 12 — Footer ----------------------------------------------------- */
-  'footer.brandAlt': 'Asasera',
-  'footer.about': 'About',
-  'footer.support': 'Support',
-  'footer.legal': 'Legal',
-  'footer.about.story': 'Who we are',
-  'footer.about.method': 'The method',
-  'footer.about.contact': 'Contact',
-  'footer.support.help': 'Help centre',
-  'footer.support.start': 'Getting started',
-  'footer.support.status': 'Service status',
-  'footer.legal.privacy': 'Privacy',
-  'footer.legal.terms': 'Terms',
-  'footer.legal.data': 'Student data',
-  'footer.copyright': '© 2026 Asasera.',
 }

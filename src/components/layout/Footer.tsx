@@ -2,7 +2,6 @@ import { Mail } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 
-import { GithubIcon, LinkedinIcon, XIcon } from '@/components/ui/BrandIcons'
 import { Container } from '@/components/ui/Container'
 import { LanguageToggle } from '@/components/ui/LanguageToggle'
 import { Logo } from '@/components/ui/Logo'
@@ -32,33 +31,48 @@ const CONTACT_EMAIL = 'support@asasera.com'
  * the bundles at compile time. Annotating this as `{ labelKey: string }[]`
  * widens them and silently gives that check away.
  */
+/*
+ * Every destination below is a page or an anchor that exists.
+ *
+ * What was here pointed at a product that is not this one and at pages that
+ * were never built: Documentation, Guides, Service status, Changelog, Blog and
+ * Careers all resolved to `/#platform` or `/about` — six labels promising six
+ * things, all landing somewhere else. `/#features` and `/#platform` were
+ * anchors on an unrouted page, so they scrolled nowhere at all. They are
+ * deleted, not re-pointed: a link that lies about where it goes is worse than
+ * an absent one, and a footer is where a reviewer checks whether a company is
+ * real.
+ *
+ * The anchors that remain (`/#how`, `/#pricing`, `/#departments`) are section
+ * ids that exist on the landing page today.
+ */
 const LINK_COLUMNS = [
   {
     heading: 'footer.product.heading',
     links: [
-      { labelKey: 'footer.product.features', to: '/#features' },
-      { labelKey: 'footer.product.platform', to: '/#platform' },
-      { labelKey: 'footer.product.pricing', to: '/#cta' },
-      { labelKey: 'footer.product.changelog', to: '/#cta' },
+      { labelKey: 'footer.product.how', to: '/#how' },
+      { labelKey: 'footer.product.pricing', to: '/#pricing' },
+      { labelKey: 'footer.product.departments', to: '/#departments' },
     ],
   },
   {
     heading: 'footer.company.heading',
     links: [
       { labelKey: 'footer.company.about', to: '/about' },
-      { labelKey: 'footer.company.careers', to: '/about' },
-      { labelKey: 'footer.company.blog', to: '/about' },
-      // Was a link to /about, which answered nobody. It is now the mailbox.
+      { labelKey: 'footer.company.signIn', to: '/login' },
       { labelKey: 'footer.company.contact', href: `mailto:${CONTACT_EMAIL}` },
     ],
   },
   {
-    heading: 'footer.resources.heading',
+    /*
+     * Static HTML served ahead of the SPA fallback by nginx, not React
+     * routes — hence plain <a>. Routing them through the router would render
+     * the app shell over a page Meta reviews with JavaScript disabled.
+     */
+    heading: 'footer.legal.heading',
     links: [
-      { labelKey: 'footer.resources.docs', to: '/#platform' },
-      { labelKey: 'footer.resources.guides', to: '/#platform' },
-      { labelKey: 'footer.resources.status', to: '/#platform' },
-      { labelKey: 'footer.resources.support', href: `mailto:${CONTACT_EMAIL}` },
+      { labelKey: 'footer.legal.privacy', href: '/privacy' },
+      { labelKey: 'footer.legal.dataDeletion', href: '/data-deletion' },
     ],
   },
 ] as const
@@ -66,11 +80,6 @@ const LINK_COLUMNS = [
 const FOOTER_LINK_CLASS =
   'text-[0.95rem] text-white/70 transition-colors duration-200 hover:text-white'
 
-const SOCIALS = [
-  { label: 'GitHub', href: 'https://github.com', Icon: GithubIcon },
-  { label: 'X', href: 'https://x.com', Icon: XIcon },
-  { label: 'LinkedIn', href: 'https://linkedin.com', Icon: LinkedinIcon },
-] as const
 
 export function Footer() {
   const { t } = useTranslation()
@@ -107,20 +116,6 @@ export function Footer() {
               {CONTACT_EMAIL}
             </a>
 
-            <div className="mt-7 flex items-center gap-2">
-              {SOCIALS.map(({ label, href, Icon }) => (
-                <a
-                  key={label}
-                  href={href}
-                  target="_blank"
-                  rel="noreferrer noopener"
-                  aria-label={label}
-                  className="grid size-10 place-items-center rounded-md border border-white/12 text-white/70 transition-all duration-300 hover:-translate-y-0.5 hover:border-accent hover:text-white"
-                >
-                  <Icon className="size-[17px]" />
-                </a>
-              ))}
-            </div>
           </div>
 
           {LINK_COLUMNS.map((column) => (
@@ -152,19 +147,12 @@ export function Footer() {
             © {new Date().getFullYear()} {t('brand.name')}. {t('footer.rights')}
           </p>
 
+          {/*
+            Privacy and Terms both linked to /about here — one of them now has
+            a real page and lives in the Legal column above, and the other has
+            no page at all, so neither is restated as a dead link.
+          */}
           <div className="flex items-center gap-6">
-            <Link to="/about" className="text-sm text-white/60 transition-colors hover:text-white">
-              {t('footer.privacy')}
-            </Link>
-            <Link to="/about" className="text-sm text-white/60 transition-colors hover:text-white">
-              {t('footer.terms')}
-            </Link>
-            {/*
-              The shared control is built for the page ground, where `glass`
-              is a light panel. On black that reads as a lit blob, so the
-              footer restates the ground and the inactive label. The active
-              segment keeps the brand gradient — it is legible on both.
-            */}
             <LanguageToggle className="!bg-white/8 !border-white/12 [&_button[aria-pressed='false']]:text-white/70" />
           </div>
         </div>

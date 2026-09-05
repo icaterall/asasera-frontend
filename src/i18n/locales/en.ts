@@ -2,11 +2,18 @@
  * English is the source of truth for the message shape.
  * `ar.ts` is typed as `typeof en`, so a missing or misspelled Arabic key
  * is a compile error rather than a runtime fallback.
+ *
+ * The `hero`, `stats`, `features` and `platform` namespaces are gone. They
+ * described a developer toolkit for bilingual interfaces, which is not what
+ * Asasera is, and every figure in them — uptime, latency, a region count, a
+ * customer rating — was invented for a product with no users. There is no
+ * honest smaller version of an invented figure, so they were deleted rather
+ * than softened, along with the unrouted page that rendered them.
  */
 const en = {
   brand: {
     name: 'Asasera',
-    tagline: 'Foundations for bilingual products',
+    tagline: 'A live tool for university lectures',
   },
 
   common: {
@@ -25,155 +32,212 @@ const en = {
 
   nav: {
     home: 'Home',
-    features: 'Features',
-    platform: 'Platform',
+    how: 'How it works',
+    pricing: 'Pricing',
     about: 'About',
     signIn: 'Sign in',
-    getStarted: 'Get started',
   },
 
-  hero: {
-    badge: 'Asasera 1.0 is in public beta',
-    titleLead: 'Build products that feel',
-    titleAccent: 'native everywhere',
-    subtitle:
-      'Asasera is the foundation layer for teams shipping bilingual interfaces. Arabic and English are first-class from the very first commit — layout, type and motion mirror themselves, so you never maintain two front ends.',
-    ctaPrimary: 'Start building',
-    ctaSecondary: 'See how it works',
-    trust: 'No credit card required · Free forever for open source',
-    marqueeLabel: 'Trusted by teams building across the region',
-  },
-
-  stats: {
-    uptime: { value: '99.98%', label: 'Uptime last 12 months' },
-    latency: { value: '12ms', label: 'Median edge response' },
-    regions: { value: '38', label: 'Regions worldwide' },
-    rating: { value: '4.9/5', label: 'Average customer rating' },
-  },
-
-  features: {
-    eyebrow: 'Why Asasera',
-    title: 'Everything a bilingual product needs, on day one',
-    subtitle:
-      'Most stacks treat right-to-left as a retrofit. Asasera treats it as the default case, which means less code, fewer regressions and interfaces that read naturally in both directions.',
-    items: {
-      bidi: {
-        title: 'Bidirectional by default',
-        body: 'Layout, iconography and scroll direction mirror automatically. One component tree serves both Arabic and English — no forked templates, no duplicated stylesheets.',
-      },
-      responsive: {
-        title: 'Responsive without caveats',
-        body: 'A fluid scale that holds from a 320px handset to an ultrawide desktop, with container queries where breakpoints fall short.',
-      },
-      a11y: {
-        title: 'Accessible by construction',
-        body: 'WCAG 2.2 AA as the baseline. Keyboard-complete, screen-reader annotated, and respectful of reduced-motion preferences.',
-      },
-      tokens: {
-        title: 'One set of design tokens',
-        body: 'Colour, type, spacing and motion live in a single source of truth that compiles to CSS, Swift and Kotlin.',
-      },
-      speed: {
-        title: 'Fast at the edge',
-        body: 'Rendered close to your users across 38 regions, with fonts subset per script so Arabic pages stay as light as Latin ones.',
-      },
-      types: {
-        title: 'Typed end to end',
-        body: 'Translation keys, theme tokens and route params are all typed. If a string is missing in one language, the build tells you.',
-      },
-    },
-  },
-
-  platform: {
-    eyebrow: 'How it works',
-    title: 'Three steps from empty repository to shipped product',
-    subtitle:
-      'Asasera meets your team where it already works — no rewrite, no proprietary runtime, no lock-in.',
-    steps: {
-      connect: {
-        number: '01',
-        title: 'Connect your repository',
-        body: 'Point Asasera at an existing codebase or start from a blank slate. The CLI reads your framework, package manager and CI setup, then configures itself around them.',
-      },
-      compose: {
-        number: '02',
-        title: 'Compose from primitives',
-        body: 'Assemble screens from tokenised, direction-aware primitives. Preview any surface in Arabic and English side by side before it reaches review.',
-      },
-      ship: {
-        number: '03',
-        title: 'Ship and measure',
-        body: 'Deploy globally in a single command, then watch per-locale performance, error rates and translation coverage from one dashboard.',
-      },
-    },
-  },
-
+  /*
+   * One call to action, not two. The page previously offered a primary and a
+   * secondary button that both pointed at /about — two ways to do the same
+   * nothing.
+   */
   cta: {
-    title: 'Ready to lay the foundation?',
+    title: 'Bring it to your course',
     subtitle:
-      'Spin up a fully bilingual, fully responsive front end in under five minutes. Bring your own design system or start with ours.',
-    primary: 'Get started free',
-    secondary: 'Talk to the team',
-    note: 'Open source projects and non-profits get Asasera Pro at no cost.',
+      'If you teach at a university and want to run Asasera in a real lecture, write to us. We are working with a small number of courses at a time.',
+    primary: 'Write to us',
   },
 
   footer: {
     blurb:
-      'The foundation layer for teams building bilingual, accessible products for the region and the world.',
+      'A live tool for university lectures, for courses taught in Arabic or English.',
     product: {
       heading: 'Product',
-      features: 'Features',
-      platform: 'Platform',
+      how: 'How it works',
       pricing: 'Pricing',
-      changelog: 'Changelog',
+      departments: 'For departments',
     },
     company: {
       heading: 'Company',
       about: 'About',
-      careers: 'Careers',
-      blog: 'Blog',
+      signIn: 'Sign in',
       contact: 'Contact',
     },
-    resources: {
-      heading: 'Resources',
-      docs: 'Documentation',
-      guides: 'Guides',
-      status: 'Status',
-      support: 'Support',
+    legal: {
+      heading: 'Legal',
+      privacy: 'Privacy policy',
+      dataDeletion: 'Delete your data',
     },
     rights: 'All rights reserved.',
-    privacy: 'Privacy',
-    terms: 'Terms',
   },
 
   about: {
-    eyebrow: 'About us',
-    title: 'We build the layer other teams keep rebuilding',
-    lead: 'Asasera began with a frustration every team in the region knows: shipping an Arabic interface that feels as considered as its English counterpart usually means building the whole thing twice.',
-    body: 'We started in 2021 as a two-person consultancy untangling right-to-left bugs for banks and airlines. The same six problems came up on every engagement, so we stopped patching them one client at a time and built the foundation instead. Today Asasera is used by product teams in eleven countries, and every feature we ship is tested in both directions before it merges.',
-    values: {
-      heading: 'What we hold to',
-      craft: {
-        title: 'Craft over volume',
-        body: 'We would rather ship six primitives that are genuinely right than sixty that are almost right.',
+    eyebrow: 'About Asasera',
+    title: 'The minutes after the wrong answer',
+
+    /* 1 — what Asasera is. */
+    lead: 'Asasera is a live tool for university lectures. A teacher opens a link and finds their own course already mapped, lesson by lesson, then presses start. Students join with a code and a first name and spend five to ten minutes on interactive items drawn from the teacher’s own lesson pages.',
+    body: 'Halfway through, the teacher gets one decision — eight students share the same error, fix it with them? — then a targeted fix, then verification on a new item. It ends with one sentence, not a dashboard. Two presses in total. The teacher wrote no questions and graded no papers.',
+
+    /* 2 — why it exists. */
+    why: {
+      heading: 'Why it exists',
+      first:
+        'Feedback in a lecture stops at right or wrong. A student picks the wrong option, the screen turns red, and the class moves on — the one moment when the error is still fresh and still fixable goes unused.',
+      second:
+        'The tools that fill that gap ask the teacher to build the material a second time. Every item is written from scratch, disconnected from the lesson pages the course actually runs on, and the preparation costs more than the insight gives back.',
+    },
+
+    /* 3 — what we believe. Three, and only three. */
+    beliefs: {
+      heading: 'What we believe',
+      recovery: {
+        title: 'Something happens after the wrong answer',
+        body: 'A wrong answer is where the work starts, not where it stops. We fix it from the student’s own material, in the room, and then verify with a new item — a correction nobody checks is only a hope.',
       },
-      parity: {
-        title: 'Parity, not translation',
-        body: 'An Arabic interface is not an English one with swapped strings. Rhythm, weight and spacing all change — and we account for that.',
+      method: {
+        title: 'The method of action reveals the thinking',
+        body: 'A drag path, its direction, a hesitation, an undo — these say what a multiple-choice click cannot. Two students can reach the same wrong answer for entirely different reasons, and only the route there tells them apart.',
       },
-      openness: {
-        title: 'Open by default',
-        body: 'Our token spec, direction primitives and audit tooling are open source, and they always will be.',
+      preparation: {
+        title: 'Zero preparation',
+        body: 'Every activity comes from the course material itself, mapped in advance. A teacher who has to write questions first will not do it in week nine.',
       },
     },
-    timeline: {
-      heading: 'How we got here',
-      items: {
-        founded: { year: '2021', title: 'Founded in Amman', body: 'Two engineers, one contract, and a very long list of RTL bugs.' },
-        opensource: { year: '2022', title: 'Tokens go open source', body: 'The direction-aware token spec is published and adopted by nine teams in its first quarter.' },
-        seed: { year: '2024', title: 'Seed round', body: 'Raised to build the hosted platform and grow the team to fourteen.' },
-        beta: { year: '2026', title: 'Asasera 1.0 beta', body: 'The full platform opens to the public with 38 edge regions.' },
-      },
+
+    /* 4 — where we are. Stated plainly, because it is early. */
+    status: {
+      heading: 'Where we are',
+      body: 'Asasera has not launched and has no users. It is being built and tested in real university lectures, starting with the founder’s own course, and what happens in those rooms decides what ships next. We would rather tell a department that plainly than describe a company we are not yet.',
+    },
+  },
+
+  /* ------------------------------------------------------------------ *
+   * Auth screens
+   *
+   * One table, both languages, no string in JSX. Field labels are separate
+   * from placeholders on purpose: the placeholder is an example, never the
+   * label, because it vanishes on focus and takes the accessible name with
+   * it if it is doing both jobs.
+   * ------------------------------------------------------------------ */
+  auth: {
+    common: {
+      emailLabel: 'Email address',
+      emailPlaceholder: 'you@university.edu',
+      passwordLabel: 'Password',
+      nameLabel: 'Full name',
+      namePlaceholder: 'As you want it shown',
+      showPassword: 'Show password',
+      hidePassword: 'Hide password',
+      /* {{count}} of {{min}} — Western digits in both languages. */
+      passwordCount: '{{count}} of {{min}} characters',
+      submitting: 'Working…',
+      or: 'or',
+      google: 'Continue with Google',
+      facebook: 'Continue with Facebook',
+      required: 'Required',
+      backToSignIn: 'Back to sign in',
+    },
+
+    errors: {
+      nameRequired: 'Enter your name.',
+      emailRequired: 'Enter your email address.',
+      emailInvalid: 'Enter a valid email address.',
+      passwordRequired: 'Enter a password.',
+      passwordShort: 'Use at least 12 characters.',
+      stageRequired: 'Choose a stage.',
+      categoryRequired: 'Choose a subject.',
+      generic: 'Something went wrong. Please try again.',
+      network: 'Could not reach the server. Check your connection and try again.',
+      loadFailed: 'Could not load the list. Reload the page to try again.',
+    },
+
+    login: {
+      title: 'Sign in',
+      lead: 'Continue with an account you already have.',
+      submit: 'Sign in',
+      forgot: 'Forgot your password?',
+      noAccount: 'No account yet?',
+      registerTeacher: 'Register as a teacher',
+      registerStudent: 'Register as a student',
+      failed: 'That email and password do not match.',
+    },
+
+    registerTeacher: {
+      title: 'Create a teacher account',
+      lead: 'Your course, your lesson pages, your class.',
+      categoryLabel: 'Subject',
+      categoryPlaceholder: 'Choose a subject',
+      stageLabel: 'Stage',
+      stagePlaceholder: 'Choose a stage',
+      /*
+       * Says why the list is short before anyone wonders. The gate is
+       * server-side; this only explains it.
+       */
+      stageHint: 'Asasera is open to university teaching only.',
+      submit: 'Create account',
+      switch: 'Registering as a student instead?',
+      switchLink: 'Student registration',
+    },
+
+    registerStudent: {
+      title: 'Create a student account',
+      lead: 'Join your class with a code once your account is ready.',
+      submit: 'Create account',
+      switch: 'Are you a teacher?',
+      switchLink: 'Teacher registration',
+    },
+
+    registered: {
+      title: 'Check your email',
+      body: 'If that address can receive mail, a link to finish setting up your account is on its way. The link works once and expires.',
+    },
+
+    forgot: {
+      title: 'Reset your password',
+      lead: 'Enter your email address and we will send you a link.',
+      submit: 'Send the link',
+      /* Deliberately does not say whether the address exists. */
+      sent: 'If that address has an account, a reset link is on its way.',
+      remembered: 'Remembered it?',
+    },
+
+    reset: {
+      title: 'Choose a new password',
+      lead: 'This signs you out everywhere else.',
+      submit: 'Save the new password',
+      done: 'Your password has been changed. Sign in with it.',
+      badToken: 'That link has expired or has already been used. Request a new one.',
+      requestAnother: 'Request a new link',
+    },
+
+    verify: {
+      title: 'Verifying your email',
+      working: 'One moment.',
+      done: 'Your email is verified. You can sign in now.',
+      failed: 'That link has expired or has already been used.',
+      missing: 'That link is incomplete.',
+    },
+
+    completeProfile: {
+      title: 'Two more things',
+      lead: 'Google did not tell us what you teach, and we will not guess.',
+      submit: 'Save and continue',
+    },
+
+    callback: {
+      working: 'Signing you in…',
+      cancelled: 'Sign-in was cancelled. Nothing has changed, and you can try again whenever you like.',
+      accountExists: 'This email is already registered. Sign in with your password, then connect Google from your account.',
+      failed: 'We could not complete that sign-in. Please try again.',
+    },
+
+    /* The one authenticated screen. A single line, and nothing else. */
+    home: {
+      signedIn: 'You are signed in.',
+      signOut: 'Sign out',
     },
   },
 
@@ -212,7 +276,7 @@ const en = {
 
   notFound: {
     code: '404',
-    title: 'This page has no foundation',
+    title: 'There is no page here',
     body: 'The link you followed may be broken, or the page may have been moved.',
   },
 } satisfies Record<string, unknown>

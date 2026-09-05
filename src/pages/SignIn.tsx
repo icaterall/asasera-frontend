@@ -7,6 +7,7 @@ import { Reveal } from '@/components/ui/Reveal'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 import { federatedSignInUrl } from '@/lib/api'
 import { cn } from '@/lib/cn'
+import { FACEBOOK_AUTH_ENABLED } from '@/lib/flags'
 
 /*
  * One recipe, both buttons.
@@ -106,6 +107,17 @@ export default function SignIn() {
                 {t('signIn.google')}
               </a>
 
+              {/*
+                Hidden while the Meta app is in review, and hidden by a build
+                flag rather than by deleting the markup: the backend route,
+                the provider CHECK value, the data-deletion callback and the
+                privacy-policy text all remain, because the review depends on
+                them and a reviewer follows that text to the callback. Vite
+                inlines the flag, so with it false this subtree is dropped
+                from the bundle entirely — not rendered invisibly, where a
+                devtools edit could restore it.
+              */}
+              {FACEBOOK_AUTH_ENABLED ? (
               <a
                 href={federatedSignInUrl('facebook')}
                 className={cn(
@@ -121,6 +133,7 @@ export default function SignIn() {
                 <FacebookIcon className="size-5 shrink-0" />
                 {t('signIn.facebook')}
               </a>
+              ) : null}
             </div>
           </Reveal>
         </div>

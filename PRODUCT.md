@@ -94,7 +94,10 @@ fills that carry white text keep `brand-500`, where white clears 7.2:1.
 brand rule, not a scale: the entire Tailwind radius scale is collapsed onto 5px
 in `src/index.css`, so `rounded-sm` through `rounded-4xl` all resolve to it and
 any future `rounded-*` is correct by construction. Do not reintroduce a scale,
-and do not use arbitrary values like `rounded-[16px]`.
+and do not use arbitrary bracket values. (This line used to name one as an
+example. Tailwind v4 scans the whole project for class names, markdown
+included, so writing it out generated a real 16px rule into the shipped
+stylesheet — the only radius over 5px in the bundle.)
 
 `rounded-full` remains available only for genuinely circular shapes — status
 dots, spinners, avatars, the ambient background blobs. It is not a way to make

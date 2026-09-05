@@ -1,13 +1,31 @@
-import { ArrowRight, Mail } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { Link } from 'react-router-dom'
 
 import { buttonStyles } from '@/components/ui/buttonStyles'
 import { Container } from '@/components/ui/Container'
 import { Reveal } from '@/components/ui/Reveal'
 
+/**
+ * The address a department writes to.
+ *
+ * Same mailbox as the footer's "contact", and deliberately not the
+ * `privacy@asasera.com` published on /privacy and /data-deletion — that one is
+ * the data-protection contact named in the policy and quoted to Meta, and
+ * merging them would put deletion requests in the sales queue.
+ */
+const CONTACT_EMAIL = 'support@asasera.com'
+
+/**
+ * One call to action.
+ *
+ * There were two buttons here, "Get started free" and "Talk to the team", and
+ * both pointed at /about — two routes to the same nothing, on a product with
+ * nothing to sign up for yet. There is one thing a reader can actually do
+ * today, so there is one button.
+ */
 export function CallToAction() {
   const { t } = useTranslation()
+
+  const mailto = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent('Asasera — my course')}`
 
   return (
     <section id="cta" className="scroll-mt-28 py-20 sm:py-28">
@@ -19,6 +37,7 @@ export function CallToAction() {
               aria-hidden="true"
               className="absolute inset-0 -z-10 bg-linear-140 from-brand-500/18 via-transparent to-teal-500/18"
             />
+            {/* A true circle, so `rounded-full` is the honest value here. */}
             <div
               aria-hidden="true"
               className="animate-drift absolute -bottom-40 start-1/2 -z-10 size-[34rem] -translate-x-1/2 rounded-full blur-[110px]"
@@ -34,29 +53,16 @@ export function CallToAction() {
               {t('cta.subtitle')}
             </p>
 
-            <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
-              <Link
-                to="/about"
-                className={buttonStyles({ size: 'lg', className: 'w-full sm:w-auto' })}
-              >
+            {/*
+              An <a>, not a router <Link>: react-router would treat a mailto:
+              as a route and push a history entry instead of opening a mail
+              client.
+            */}
+            <div className="mt-10 flex justify-center">
+              <a href={mailto} className={buttonStyles({ size: 'lg' })}>
                 {t('cta.primary')}
-                <ArrowRight className="size-[18px] transition-transform duration-300 group-hover:translate-x-1 rtl:-scale-x-100 rtl:group-hover:-translate-x-1" />
-              </Link>
-
-              <Link
-                to="/about"
-                className={buttonStyles({
-                  variant: 'secondary',
-                  size: 'lg',
-                  className: 'w-full sm:w-auto',
-                })}
-              >
-                <Mail className="size-[18px]" />
-                {t('cta.secondary')}
-              </Link>
+              </a>
             </div>
-
-            <p className="mt-8 text-sm text-faint">{t('cta.note')}</p>
           </div>
         </Reveal>
       </Container>
