@@ -1,121 +1,105 @@
-import { useState } from 'react'
+import { useEffect, useId, useLayoutEffect, useRef, useState, type KeyboardEvent } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useNavigate } from 'react-router-dom'
-
+import { Link, useLocation } from 'react-router-dom'
+import { UserRound } from 'lucide-react'
 import { Bdi } from '@/components/Bdi'
 import { useAuth } from '@/hooks/useAuth'
-import { cn } from '@/lib/cn'
+import { homePathFor } from '@/lib/afterAuth'
+import styles from './AccountControl.module.css'
 
-/**
- * The first character of a name, for the avatar.
- *
- * `Intl.Segmenter` rather than `name[0]`, because a string index returns a
- * UTF-16 code unit: an emoji or any astral character would be cut in half and
- * render as a replacement glyph. Arabic is inside the BMP so indexing would
- * happen to work for it, but "happens to work for the languages we tested" is
- * how that bug ships.
- *
- * No transformation beyond that — no uppercasing. Arabic has no case, and
- * `toUpperCase()` on an Arabic letter is a no-op that only makes the code read
- * as though Latin were the default.
- */
-function initial(name: string | null): string {
-  const trimmed = (name ?? '').trim()
-  /*
-   * A neutral mark, not a letter taken from the email address. An account can
-   * exist before it has a name — signup is progressive — and deriving "l" from
-   * layla@… would show the person a name they never gave us, and would leak a
-   * fragment of their address into the header.
-   */
-  if (!trimmed) return '•'
-  const segmenter = new Intl.Segmenter(undefined, { granularity: 'grapheme' })
-  return [...segmenter.segment(trimmed)][0]?.segment ?? trimmed[0]!
+function initial(name: string | null): string | null {
+  const trimmed = name?.trim()
+  if (!trimmed) return null
+  return [...new Intl.Segmenter(undefined, { granularity: 'grapheme' }).segment(trimmed)][0]?.segment ?? null
 }
 
-/**
- * Who is signed in, and the way out.
- *
- * Deliberately NOT a dropdown menu. A popover needs focus trapping, an
- * outside-click listener, Escape handling and `aria-expanded` wiring, and it
- * would hide the one action behind an extra press — on a header whose only
- * authenticated action is "sign out". Two adjacent controls are fewer moving
- * parts and reach the keyboard for free.
- *
- * The avatar is an identity marker, not a link. There is no profile page to
- * send anyone to and building one was explicitly out of scope, so making it
- * clickable would promise a destination that does not exist.
- */
-export function AccountControl({ compact = false }: { compact?: boolean }) {
-  const { t } = useTranslation()
+/** One keyboard-accessible account menu in every signed-in header. */
+export function AccountControl() {
   const { user, signOut } = useAuth()
-  const navigate = useNavigate()
+  const { i18n } = useTranslation()
+  const t = (ar: string, en: string) => i18n.language.startsWith('ar') ? ar : en
+  const location = useLocation()
+  const id = useId()
+  const root = useRef<HTMLDivElement>(null)
+  const trigger = useRef<HTMLButtonElement>(null)
+  const menu = useRef<HTMLDivElement>(null)
+  const focusLast = useRef(false)
+  const leavingRef = useRef(false)
+  const [open, setOpen] = useState(false)
   const [leaving, setLeaving] = useState(false)
+  const [height, setHeight] = useState(480)
+  const [locationKey, setLocationKey] = useState(location.key)
+  if (location.key !== locationKey) { setLocationKey(location.key); setOpen(false) }
+
+  useLayoutEffect(() => {
+    if (!open) return
+    const resize = () => setHeight(Math.max(120, window.innerHeight - (trigger.current?.getBoundingClientRect().bottom ?? 80) - 20))
+    resize()
+    const items = menu.current?.querySelectorAll<HTMLElement>('[role="menuitem"]')
+    items?.[focusLast.current ? items.length - 1 : 0]?.focus()
+    window.addEventListener('resize', resize)
+    return () => window.removeEventListener('resize', resize)
+  }, [open])
+
+  useEffect(() => {
+    if (!open) return
+    const outside = (event: PointerEvent) => {
+      if (event.target instanceof Node && !root.current?.contains(event.target)) setOpen(false)
+    }
+    document.addEventListener('pointerdown', outside)
+    return () => document.removeEventListener('pointerdown', outside)
+  }, [open])
 
   if (!user) return null
+  const letter = initial(user.name)
+  const teacher = user.role === 'teacher'
+  const links = [
+    { to: homePathFor(user), label: teacher ? t('مساحة العمل', 'Workspace') : t('تعلّمك', 'Your learning') },
+    ...(teacher ? [
+      { to: '/teacher/activities', label: t('أنشطتي', 'My activities') },
+      { to: '/teacher/assignments', label: t('الواجبات', 'Assignments') },
+      { to: '/teacher/reports', label: t('التقارير', 'Reports') },
+    ] : [{ to: '/join', label: t('انضمّ إلى حصّة', 'Join a class') }]),
+    { to: '/account', label: t('إعدادات الحساب', 'Account settings') },
+    { to: '/forgot', label: t('إعادة تعيين كلمة المرور', 'Reset password') },
+    { to: '/contact', label: t('تواصل مع الدعم', 'Contact support') },
+  ]
 
-  async function handleSignOut() {
-    if (leaving) return
-    setLeaving(true)
-    try {
-      /*
-       * Always leave, even if the call fails.
-       *
-       * `signOut` asks the server to revoke the refresh token, which is the
-       * part that matters — clearing client state alone leaves a live 30-day
-       * credential in the cookie. But if the request fails, staying signed in
-       * on screen is the worse outcome: the person pressed sign out, and the
-       * provider clears its in-memory token either way.
-       */
-      await signOut()
-    } finally {
-      navigate('/')
-    }
+  function keyboard(event: KeyboardEvent) {
+    const items = Array.from(menu.current?.querySelectorAll<HTMLElement>('[role="menuitem"]') ?? [])
+    const current = items.indexOf(document.activeElement as HTMLElement)
+    let next: number | undefined
+    if (event.key === 'ArrowDown') next = (current + 1) % items.length
+    if (event.key === 'ArrowUp') next = (current - 1 + items.length) % items.length
+    if (event.key === 'Home') next = 0
+    if (event.key === 'End') next = items.length - 1
+    if (next !== undefined) { event.preventDefault(); items[next]?.focus() }
+    if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); setOpen(false); trigger.current?.focus() }
+    if (event.key === 'Tab') setOpen(false)
   }
 
-  return (
-    <div className={cn('flex items-center gap-2', compact && 'w-full justify-between')}>
-      <div className="flex items-center gap-2">
-        {/*
-          A true circle, which is the one shape `rounded-full` is allowed on.
-          Hairline and a tint rather than a fill: the header's filled element
-          is the primary action, and an avatar competing with it would make
-          both quieter. `aria-hidden` because the name sits beside it — a
-          screen reader reading "أ" then "أشرف قحمان" is noise.
-        */}
-        <span
-          aria-hidden="true"
-          className="grid size-9 shrink-0 place-items-center rounded-full border border-line bg-raised text-sm font-bold text-fg"
-        >
-          {initial(user.name)}
-        </span>
-
-        {/*
-          <bdi> because a Latin name inside an RTL header, or an Arabic name
-          inside an LTR one, reorders against the controls around it without
-          isolation. Hidden below `lg` on the desktop bar where space is tight;
-          the mobile sheet passes `compact` and keeps it.
-        */}
-        <span
-          className={cn(
-            'max-w-[12ch] truncate text-sm font-semibold text-fg',
-            compact ? 'inline-block' : 'hidden xl:inline-block',
-          )}
-        >
-          <Bdi>{user.name ?? t('nav.unnamedAccount')}</Bdi>
-        </span>
+  return <div ref={root} className={`asas ${styles.root}`} onBlur={event => {
+    if (event.relatedTarget instanceof Node && !event.currentTarget.contains(event.relatedTarget)) setOpen(false)
+  }}>
+    <button ref={trigger} type="button" className={styles.avatar} aria-label={t('قائمة الحساب', 'Account menu')}
+      aria-haspopup="menu" aria-expanded={open} aria-controls={open ? id : undefined}
+      onClick={() => { focusLast.current = false; setOpen(value => !value) }}
+      onKeyDown={event => { if (event.key === 'ArrowDown' || event.key === 'ArrowUp') { event.preventDefault(); focusLast.current = event.key === 'ArrowUp'; setOpen(true) } }}>
+      {letter ? <span aria-hidden="true"><Bdi>{letter}</Bdi></span> : <UserRound size={22} aria-hidden="true" />}
+    </button>
+    {open && <div ref={menu} id={id} role="menu" aria-label={t('قائمة الحساب', 'Account menu')} className={styles.menu} style={{ maxHeight: height }} onKeyDown={keyboard}>
+      <div className={styles.identity} role="presentation">
+        <strong><Bdi>{user.name || t('حسابك', 'Your account')}</Bdi></strong>
+        {user.email && <Bdi className={styles.email}>{user.email}</Bdi>}
+        <span>{teacher ? t('معلّم', 'Teacher') : t('طالب', 'Student')}</span>
       </div>
-
-      <button
-        type="button"
-        onClick={handleSignOut}
-        disabled={leaving}
-        className={cn(
-          'rounded-sm px-3 py-2 text-sm font-semibold transition-colors duration-150',
-          'text-muted hover:text-fg disabled:cursor-not-allowed disabled:opacity-60',
-        )}
-      >
-        {leaving ? t('nav.signingOut') : t('nav.signOut')}
-      </button>
-    </div>
-  )
+      {links.map(link => <Link key={link.to} to={link.to} role="menuitem" tabIndex={-1} onClick={() => setOpen(false)}>{link.label}</Link>)}
+      <div role="separator" className={styles.separator} />
+      <button type="button" role="menuitem" tabIndex={-1} disabled={leaving} onClick={async () => {
+        if (leavingRef.current) return
+        leavingRef.current = true; setLeaving(true)
+        try { await signOut() } catch { /* AuthProvider clears local credentials even on network failure. */ }
+      }}>{leaving ? t('جارٍ تسجيل الخروج…', 'Signing out…') : t('تسجيل الخروج', 'Sign out')}</button>
+    </div>}
+  </div>
 }

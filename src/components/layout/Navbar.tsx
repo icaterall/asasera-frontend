@@ -23,6 +23,7 @@ const NAV_ITEMS = [
   { to: '/#how', labelKey: 'nav.how' },
   { to: '/#pricing', labelKey: 'nav.pricing' },
   { to: '/about', labelKey: 'nav.about' },
+  { to: '/contact', labelKey: 'footer.company.contact' },
 ] as const
 
 export function Navbar() {
@@ -63,7 +64,8 @@ export function Navbar() {
   return (
     <header
       className={cn(
-        'fixed inset-x-0 top-0 z-50 transition-all duration-500 ease-out-expo',
+        'inset-x-0 top-0 z-50 transition-all duration-500 ease-out-expo',
+        status === 'authenticated' ? 'sticky' : 'fixed',
         scrolled ? 'py-2' : 'py-4',
       )}
     >
@@ -220,7 +222,7 @@ export function Navbar() {
           <div className="mt-6 flex items-center justify-between gap-3 border-t border-line pt-5">
             <LanguageToggle />
             {status === 'authenticated' ? (
-              <AccountControl compact />
+              <Link to="/account" className="rounded-sm px-3 py-3 text-sm font-semibold">{t('teacher.header.profile')}</Link>
             ) : status === 'anonymous' ? (
               <div className="flex items-center gap-2">
                 <Link

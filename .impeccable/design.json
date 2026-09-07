@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-09-07T18:54:59.714Z",
+  "generatedAt": "2026-09-07T19:48:02.262Z",
   "title": "Design System: Asasera",
   "extensions": {
     "colorMeta": {
@@ -387,6 +387,11 @@
         "name": "drawer-separation",
         "value": "0 0 40px rgba(0,0,0,.25)",
         "purpose": "Temporary current-editor rails."
+      },
+      {
+        "name": "account-menu",
+        "value": "0 8px 24px #0003",
+        "purpose": "Temporary account menu over neutral pages; ordinary settings sections remain flat."
       }
     ],
     "motion": [
@@ -440,6 +445,14 @@
       },
       {
         "name": "student-single-column",
+        "value": "640px"
+      },
+      {
+        "name": "support-single-column",
+        "value": "700px"
+      },
+      {
+        "name": "account-compact-spacing",
         "value": "640px"
       }
     ]
@@ -532,6 +545,14 @@
       "description": "Student workspace live-class entry: white PIN and Join controls on purple, with explicit placeholders, white focus, and reduced-motion press behavior.",
       "html": "<section class=\"ds-student-live\" aria-labelledby=\"ds-student-live-title\"><div><h2 id=\"ds-student-live-title\">Join the class</h2><p>Your teacher will show a PIN when the class is ready.</p></div><div class=\"ds-student-pin-form\"><label for=\"ds-student-pin\">Game PIN</label><input id=\"ds-student-pin\" inputmode=\"numeric\" dir=\"ltr\" placeholder=\"123 456\" autocomplete=\"off\"><button type=\"button\">Join</button></div></section>",
       "css": ".ds-student-live{display:grid;grid-template-columns:minmax(0,1fr) 280px;align-items:center;gap:40px;background:var(--brand,#46178f);color:#fff;padding:36px;border-radius:8px;font-family:Montserrat,\"Neo Sans Arabic\",sans-serif}.ds-student-live h2{font-size:32px;font-weight:800;margin:12px 0}.ds-student-live p{line-height:1.7;margin:8px 0}.ds-student-pin-form{display:grid;gap:10px;min-width:0}.ds-student-pin-form label{font-weight:700;font-size:14px;margin-bottom:8px}.ds-student-pin-form input{width:100%;min-width:0;min-height:48px;padding:12px;border:1px solid var(--line,#ccc);border-radius:4px;font:inherit;background:#fff;color:#333;text-align:center;font-weight:800;font-size:24px;letter-spacing:.08em}.ds-student-pin-form input::placeholder{color:#6e6e6e;opacity:1}.ds-student-pin-form button{min-height:48px;padding:10px 24px;border:0;border-radius:4px;background:#fff;color:#333;box-shadow:var(--press,0 2px 4px rgba(0,0,0,.15),inset 0 -4px 0 rgba(0,0,0,.25));font:inherit;font-weight:700;cursor:pointer;transition:transform 100ms,filter 150ms,box-shadow 100ms}.ds-student-pin-form button:active{transform:translateY(4px);box-shadow:inset 0 -1px 0 rgba(0,0,0,.15)}.ds-student-pin-form :is(input,button):focus-visible{outline:3px solid #fff;outline-offset:2px}@media(hover:hover){.ds-student-pin-form button:hover{filter:brightness(.94)}}@media(max-width:640px){.ds-student-live{grid-template-columns:1fr;gap:20px;padding:24px}.ds-student-live h2{font-size:28px}}@media(prefers-reduced-motion:reduce){.ds-student-pin-form button{transition:none}.ds-student-pin-form button:active{transform:none}}"
+    },
+    {
+      "name": "Support Form",
+      "kind": "custom",
+      "refersTo": "field",
+      "description": "Independent support-form visual specimen with editable labeled fields, recipient, hover, focus, invalid and disabled styles. The specimen button does not submit; application validation and API/result handling live in ContactForm. Inherits light/dark tokens and direction from its host.",
+      "html": "<section class=\"ds-support\" aria-labelledby=\"ds-support-title\"><div class=\"ds-support-intro\"><h2 id=\"ds-support-title\">Let’s talk</h2><p>Have a question about your account, need help with an activity, or want to use Asasera with your team? Send us a message.</p></div><form class=\"ds-support-form\" aria-label=\"Contact form\"><div class=\"ds-support-pair\"><div class=\"ds-support-field\"><label for=\"ds-support-name\">Name</label><input id=\"ds-support-name\" name=\"name\" autocomplete=\"name\" dir=\"auto\" maxlength=\"120\" required></div><div class=\"ds-support-field\"><label for=\"ds-support-email\">Email address</label><input id=\"ds-support-email\" name=\"email\" type=\"email\" autocomplete=\"email\" dir=\"ltr\" maxlength=\"254\" required></div></div><div class=\"ds-support-field\"><label for=\"ds-support-company\">Organization (optional)</label><input id=\"ds-support-company\" name=\"company\" autocomplete=\"organization\" dir=\"auto\" maxlength=\"160\"></div><div class=\"ds-support-field\"><label for=\"ds-support-message\">How can we help?</label><textarea id=\"ds-support-message\" name=\"message\" rows=\"6\" maxlength=\"5000\" dir=\"auto\" aria-describedby=\"ds-support-hint\" required></textarea><p id=\"ds-support-hint\" class=\"ds-support-hint\">10–5,000 characters. Keep passwords and payment details out of your message.</p></div><div class=\"ds-support-actions\"><button type=\"button\">Send message</button><p>To the Asasera team at <a href=\"mailto:support@asasera.com\"><bdi>support@asasera.com</bdi></a></p></div></form></section>",
+      "css": ".ds-support{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:64px;max-width:1100px;padding:48px 24px;background:var(--raised,#f2f2f2);color:var(--ink,#333);font-family:Montserrat,\"Neo Sans Arabic\",sans-serif;text-align:start}.ds-support-intro h2{font-size:clamp(28px,3vw,40px);font-weight:800;line-height:1.2;margin:0 0 20px;text-wrap:balance}.ds-support-intro p{max-width:48ch;font-size:18px;line-height:1.7;color:var(--muted,#6e6e6e);margin:0}.ds-support-form{display:grid;gap:24px;min-width:0}.ds-support-pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}.ds-support-field{display:grid;gap:8px;min-width:0}.ds-support-field label{font-size:14px;font-weight:700}.ds-support-field input,.ds-support-field textarea{box-sizing:border-box;min-width:0;width:100%;min-height:48px;padding:12px;border:1px solid var(--line,#ccc);border-radius:var(--r-control,4px);background:var(--surface,#fff);color:var(--ink,#333);font:inherit;font-size:16px;caret-color:var(--ink,#333)}.ds-support-field textarea{resize:vertical}.ds-support-field :is(input,textarea):hover{border-color:var(--muted,#6e6e6e)}.ds-support-field [aria-invalid=true]{border-color:var(--danger-ink,#b8122f)}.ds-support-field :is(input,textarea):disabled{opacity:.6}.ds-support-hint{font-size:12px;margin:0;line-height:1.6;color:var(--muted,#6e6e6e)}.ds-support-actions{display:flex;align-items:center;flex-wrap:wrap;gap:16px}.ds-support-actions p{flex:1;min-width:180px;font-size:12px;color:var(--muted,#6e6e6e);line-height:1.6;margin:0}.ds-support-actions a{color:var(--ink,#333);text-decoration:underline;text-underline-offset:3px}.ds-support-actions button{min-height:48px;padding:0 24px;border:0;border-radius:var(--r-control,4px);background:var(--act,#1368ce);color:#fff;font:inherit;font-weight:700;box-shadow:var(--press,0 2px 4px rgba(0,0,0,.15),inset 0 -4px 0 rgba(0,0,0,.25));cursor:pointer;transition:transform var(--t-select,100ms) var(--ease,cubic-bezier(.2,0,0,1)),background-color var(--t-state,200ms) var(--ease,cubic-bezier(.2,0,0,1)),box-shadow var(--t-select,100ms) var(--ease,cubic-bezier(.2,0,0,1))}.ds-support-actions button:hover{background:var(--act-press,#105cb4)}.ds-support-actions button:active{transform:translateY(4px);box-shadow:0 0 0 rgba(0,0,0,.15),inset 0 0 0 rgba(0,0,0,.25)}.ds-support :is(a,input,textarea,button):focus-visible{outline:var(--focus-ring,3px) solid var(--focus-colour,#141821);outline-offset:var(--focus-offset,2px)}.ds-support ::selection{background:var(--brand,#46178f);color:#fff}@media(max-width:700px){.ds-support{grid-template-columns:1fr;gap:32px;padding:48px 20px}.ds-support-pair{grid-template-columns:1fr;gap:24px}}@media(prefers-reduced-motion:reduce){.ds-support-actions button{transition:none}.ds-support-actions button:active{transform:none}}"
     }
   ],
   "narrative": {
@@ -587,13 +608,7 @@
       "Do preserve the green shared-answer minimum and let classroom labels inherit the full tile size.",
       "Do keep feedback beneath the answer row and allow long Arabic wording to wrap.",
       "Do preserve visible keyboard focus, written state information, and reduced-motion feedback.",
-      "Do use the two established corner roles and the shared spacing rhythm.",
-      "Don't restore the historical blue/teal identity or five-pixel-only corner rule from the superseded guide.",
-      "Don't use an answer fill alone to communicate correct, incorrect, selected, or pending state.",
-      "Don't shrink the green classroom label to 20px when its tile is larger.",
-      "Don't use yellow as small foreground wording on a neutral surface.",
-      "Don't replace answer SVG shapes with emoji or font glyphs.",
-      "Don't promote unconsumed motion tokens, legacy glyph controls, or the Arabic weight-file limitation into rules for future surfaces."
+      "Do use the two established corner roles and the shared spacing rhythm."
     ],
     "donts": [
       "Don't restore the historical blue/teal identity or five-pixel-only corner rule from the superseded guide.",

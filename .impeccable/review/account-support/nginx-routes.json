@@ -1,0 +1,42 @@
+[
+  {
+    "route": "/",
+    "status": 200
+  },
+  {
+    "route": "/account",
+    "status": 200
+  },
+  {
+    "route": "/account/",
+    "status": 200
+  },
+  {
+    "route": "/contact",
+    "status": 200
+  },
+  {
+    "route": "/contact/",
+    "status": 200
+  },
+  {
+    "route": "/forgot",
+    "status": 200
+  },
+  {
+    "route": "/reset-password?token=synthetic",
+    "status": 200
+  },
+  {
+    "route": "/student",
+    "status": 200
+  },
+  {
+    "route": "/teacher/activities",
+    "status": 200
+  },
+  {
+    "route": "/does-not-exist",
+    "status": 404
+  }
+]

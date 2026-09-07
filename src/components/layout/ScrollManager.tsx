@@ -12,9 +12,12 @@ export function ScrollManager() {
     if (hash) {
       // Wait a frame so the target section exists before we measure it.
       const frame = requestAnimationFrame(() => {
-        document
-          .querySelector(hash)
-          ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        // Fragments are element IDs, not CSS selectors. Ignore malformed
+        // percent-encoding instead of throwing while navigating a shared URL.
+        try {
+          document.getElementById(decodeURIComponent(hash.slice(1)))
+            ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        } catch { /* An unknown fragment leaves the page usable. */ }
       })
       return () => cancelAnimationFrame(frame)
     }

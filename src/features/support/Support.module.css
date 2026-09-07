@@ -1,0 +1,27 @@
+.section { padding: 80px 24px; scroll-margin-top: 120px; background: var(--raised); color: var(--ink); }
+.content { max-width: 1100px; margin-inline: auto; display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); gap: 64px; }
+.intro h2, .intro h1 { font-size: clamp(28px, 3vw, 40px); font-weight: 800; line-height: 1.2; margin: 0 0 20px; text-wrap: balance; }
+.intro p { max-width: 48ch; font-size: 18px; line-height: 1.7; color: var(--muted); }
+.form { display: grid; gap: 24px; min-width: 0; }
+.pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.field { display: grid; gap: 8px; min-width: 0; }
+.field label { font-size: 14px; font-weight: 700; }
+.field input, .field textarea { min-width: 0; width: 100%; min-height: 48px; padding: 12px; border: 1px solid var(--line); border-radius: var(--r-control); background: var(--surface); color: var(--ink); font: inherit; font-size: 16px; caret-color: var(--ink); }
+.field textarea { resize: vertical; }
+.field :is(input,textarea):hover { border-color: var(--muted); }
+.field [aria-invalid='true'] { border-color: var(--danger-ink); }
+.field :is(input,textarea):disabled { opacity: .6; }
+.section :is(a,input,textarea,button):focus-visible { outline: var(--focus-ring) solid var(--focus-colour); outline-offset: var(--focus-offset); }
+.section ::selection { background: var(--brand); color: white; }
+.error { color: var(--danger-ink); font-size: 14px; line-height: 1.6; margin: 0; overflow-wrap: anywhere; }
+.hint { color: var(--muted); font-size: 12px; margin: 0; line-height: 1.6; }
+.honeypot { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+.actions { display: flex; align-items: center; flex-wrap: wrap; gap: 16px; }
+.actions p { flex: 1; min-width: 180px; font-size: 12px; color: var(--muted); line-height: 1.6; }
+.actions a { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
+.success { display: grid; justify-items: start; align-content: start; gap: 20px; padding: 24px; border: 1px solid var(--line); border-radius: var(--r-card); background: var(--surface); }
+.success h3 { font-size: 24px; font-weight: 700; }
+.success p { line-height: 1.7; overflow-wrap: anywhere; }
+.page { padding-top: 152px; min-height: 70vh; }
+.signedIn { padding-top: 48px; }
+@media(max-width: 700px) { .section { padding: 48px 20px; } .content { grid-template-columns: 1fr; gap: 32px; } .pair { grid-template-columns: 1fr; gap: 24px; } .page { padding-top: 128px; } .signedIn { padding-top: 32px; } }

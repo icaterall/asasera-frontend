@@ -487,12 +487,9 @@ export const auth = {
 
   me: () => api.get<{ user: PublicUser }>(`${API_PREFIX}/auth/me`),
 
-  /**
-   * Profile completion. Two fields, and the server accepts no others — its
-   * schema declares exactly these two and strips the rest, so sending more
-   * would not fail, it would simply have no effect.
-   */
+  /** Display name and optional education/workplace settings. Privileges stay server-owned. */
   updateProfile: (patch: {
+    name?: string
     category_id?: number
     education_stage_id?: number
     workplace_type_id?: number

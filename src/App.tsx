@@ -1,5 +1,5 @@
 import { Suspense, lazy } from 'react'
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 
 import { KeepQueryRedirect } from '@/components/KeepQueryRedirect'
 
@@ -27,6 +27,8 @@ const StudentHome = lazy(() => import('@/pages/student/StudentHome'))
  */
 const Gallery = import.meta.env.DEV ? lazy(() => import('@/design/gallery/Gallery')) : null
 
+const AccountPage = lazy(() => import('@/features/account/AccountPage'))
+const ContactPage = lazy(() => import('@/features/support/ContactPage'))
 const About = lazy(() => import('@/pages/About'))
 const ChooseRole = lazy(() => import('@/pages/auth/ChooseRole'))
 /*
@@ -76,8 +78,9 @@ function RouteFallback() {
 
 function HomeEntry() {
   const {status, user} = useAuth()
+  const {hash} = useLocation()
   if (status === 'loading') return <RouteFallback />
-  return user ? <Navigate to={homePathFor(user)} replace /> : <Landing />
+  return user && !hash ? <Navigate to={homePathFor(user)} replace /> : <Landing />
 }
 
 export default function App() {
@@ -117,6 +120,8 @@ export default function App() {
               <Route element={<Layout />}>
                 <Route index element={<HomeEntry />} />
                 <Route path="about" element={<About />} />
+                <Route path="account" element={<AccountPage />} />
+                <Route path="contact" element={<ContactPage />} />
 
                 {/*
                   THE ROLE IS THE ROUTE.

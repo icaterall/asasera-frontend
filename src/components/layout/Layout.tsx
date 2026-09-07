@@ -1,3 +1,4 @@
+import { useAuth } from '@/hooks/useAuth'
 import { Outlet } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 
@@ -9,11 +10,12 @@ import { ScrollManager } from './ScrollManager'
 
 export function Layout() {
   const { t } = useTranslation()
+  const { status } = useAuth()
 
   return (
     <>
       <ScrollManager />
-      <Aurora />
+      {status === 'anonymous' && <Aurora />}
 
       <a
         href="#main"

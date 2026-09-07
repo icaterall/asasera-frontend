@@ -60,7 +60,7 @@ const LINK_COLUMNS = [
     links: [
       { labelKey: 'footer.company.about', to: '/about' },
       { labelKey: 'footer.company.signIn', to: '/login' },
-      { labelKey: 'footer.company.contact', href: `mailto:${CONTACT_EMAIL}` },
+      { labelKey: 'footer.company.contact', to: '/contact' },
     ],
   },
   {

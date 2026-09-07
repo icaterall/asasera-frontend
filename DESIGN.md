@@ -136,6 +136,20 @@ components:
     textColor: "{colors.ink}"
     rounded: "{rounded.control}"
     padding: "10px 24px"
+  account-avatar:
+    backgroundColor: "{colors.raised}"
+    textColor: "{colors.ink}"
+    rounded: "50%"
+    size: "44px"
+  account-avatar-open:
+    backgroundColor: "{colors.brand}"
+    textColor: "{colors.surface}"
+  account-menu:
+    backgroundColor: "{colors.surface}"
+    textColor: "{colors.ink}"
+    rounded: "{rounded.card}"
+    padding: "8px"
+    width: "min(288px, calc(100vw - 32px))"
 ---
 
 # Design System: Asasera
@@ -161,6 +175,8 @@ Recorded from the current code on 7 September 2026. Primary evidence is [the v4 
 Reference work used the official brand guide and creator screenshots; current live reference access was blocked, so exact current Kahoot pixel parity is unverified. [The final correction verdict](.impeccable/review/verdict-pass-2.md) says ship for the six scored fixes and regression R1 only. It does not certify the whole surface. The refreshed [editor capture](.impeccable/review/editor-hotspot-1440.png) and [teacher capture](.impeccable/review/teacher-intervention.png) support the documented geometry and feedback treatment.
 
 The account/student extension retains that identity in red Teacher and blue Student choices and a neutral learner workspace with a purple PIN panel. Its [surface brief](.impeccable/surfaces/student-account.md) records the built `/student` route and account states. The separate [journey verdict](.impeccable/review/journeys/verdict-pass-1.md) says ship for four scored fixes and corrected focus regression R1 only; it does not certify the whole app, every auth screen, backend behavior, or current Kahoot pixel parity.
+
+The later [account/support extension](.impeccable/surfaces/account-support.md) adds a shared profile circle and dropdown, account settings, and a support form within this same world. The direct user request supersedes the earlier non-dropdown and mailto-only scope. Its [finish review](.impeccable/review/account-support/review.md) records **ship for the supplied account/support finish evidence only**. The nine captures and source review do not independently certify header integration outside AccountControl, backend/auth transport, or delivery into the real support inbox. PRODUCT.md's starter-era brand prose does not replace the user's Kahoot pin or this current design record.
 
 ## Colors
 
@@ -216,6 +232,8 @@ Current limitation: Neo Sans Arabic's heaviest declared file is a real 500 cut m
 
 The student workspace intentionally scopes its hierarchy: a `clamp(28px, 4vw, 40px)` page title, a 32px live-action heading reduced to 28px at the phone breakpoint, and a 22px activity-link heading. Each requests weight 800; the existing font loading remains as described above. The PIN requests 24px/800; labels and errors use 14px. The 32px/22px sizes were review advisories, not rejected designs or additions to the shared type scale.
 
+Account settings retain the student's fluid page-title range and use 24px section headings. Support uses a `clamp(28px, 3vw, 40px)` heading and an 18px introductory paragraph. The profile initial is 18px/700; the menu name is 16px, action labels are 14px/700, and identity metadata and form hints are 12px. The avatar and support-intro 18px notices were advisory in the scoped finish review; these are intentional local sizes, not a new shared scale step.
+
 ## Layout
 
 The current activity editor fills the viewport and separates toolbar, question rail, canvas, and properties. Its desktop columns are 180px, a flexible center, and 280px; the center is capped internally at 1080px. Rails scroll independently. Below 1025px both rails become drawers, each capped at the smaller of 320px and 86vw; the canvas keeps the full working width. At 700px the toolbar wraps and canvas padding becomes compact. Answer inputs switch to two columns from 720px.
@@ -227,6 +245,10 @@ The classroom uses a centered play area capped at 1600px, a two-column answer gr
 Delivery settings use three mode choices and a two-column settings group; both become single columns at 640px. Shared content uses the four-pixel spacing rhythm in the frontmatter. Source-specific dimensions remain local rather than becoming extra spacing tokens.
 
 The student workspace has a wrapping neutral header and a centered main region capped at 1000px with 48px/28px/32px top/inline/bottom padding. Its purple live panel pairs explanation with a 280px PIN form using a 40px gap. The neutral activity-link panel follows, then help and optional study-level access. At 640px the live panel and link form stack, main padding becomes 28px/16px, panel padding becomes 24px, and the footer stacks. These dimensions belong to this surface; they do not replace editor rails or classroom geometry.
+
+The account dropdown anchors to the circle's inline end, 8px below it. Its width is capped by the account-menu component token; an internal scroll region uses the measured space below the trigger, leaving 20px at the viewport edge with a 120px minimum. Identity text wraps anywhere and the menu contains overscroll. Signed-in public headers sit in sticky normal flow below the verification strip; the anonymous public header retains its fixed placement. This integration is recorded from implementation, outside the finish review's independent scope.
+
+Settings center within 800px, with 40px/24px/64px top/inline/bottom padding and a 560px name form. Sections use 32px vertical spacing and horizontal dividers. At 640px the page padding becomes 24px/20px/48px and sections use 28px. Support centers within 1100px, pairing an introduction and form in .8fr/1.2fr columns separated by 64px. Name and email share a row. At 700px both grids stack, the outer padding becomes 48px/20px, and the main gap becomes 32px. Standalone contact pages reserve 152px above content for the anonymous header, or 48px when signed in; phone values are 128px and 32px respectively. These offsets and widths remain surface-specific.
 
 **The Stable Geometry Rule.** Mirror interface chrome through logical start/end properties. Keep image regions and their coordinates in the same physical image frame; numeric PINs and coordinates retain left-to-right presentation.
 
@@ -242,6 +264,7 @@ Depth is functional and tactile. Shared cards use a border without ambient eleva
 - **Creator toolbar:** `0 2px 4px #0000001a` — toolbar separation from the canvas.
 - **Question panel:** `0 4px 0 #0002` — the classroom's white question surface.
 - **Drawer separation:** `0 0 40px rgba(0,0,0,.25)` — the current editor's temporary rails.
+- **Account menu:** `0 8px 24px #0003` — a temporary menu above the neutral page, with no corresponding elevation on ordinary settings sections.
 
 **The Pressed Key Rule.** Primary actions and shared answer tiles move down by 4px on press as their inset edge disappears; avoid an unrelated lift or bounce for that same state.
 
@@ -254,6 +277,8 @@ Controls use the small radius and containers use the card radius. Current questi
 **The Four Shapes Rule.** Draw the answer symbols as SVG geometry and keep their identities stable as they scale. They are answer markers, not general-purpose decorations.
 
 Circular timer rings, QR content, and the stage's low-contrast circle/rotated square are local functional or scenic forms. They do not introduce pill controls or a second corner scale.
+
+The account avatar is a deliberately circular identity control with a single border. The dropdown keeps the existing container corners and its rows keep the control corners. This local circle does not change the rectangular form language of actions and fields.
 
 ## Components
 
@@ -298,6 +323,20 @@ The student PIN input remains white with dark, centered, left-to-right digits in
 Student submits consume the shared press shadow, move down 4px when active, and retain a neutral one-pixel inset pressed edge. Hover slightly darkens them; reduced motion removes travel and transitions. Join stays white with dark wording, while Open activity uses Action Blue. The optional verification strip remains purple above the header, with resend/change-email panels and visible status text; on student phones its action targets have a 44px minimum height. No stored learning progress, grades, or activity history is claimed by this workspace.
 
 The sidecar preserves the ten existing independent HTML/CSS examples and adds the student PIN panel. They require no React or utility-CSS runtime and use inherited custom properties with literal fallbacks.
+
+### Account Menu and Settings
+
+The profile circle shows the saved name's first grapheme, isolated for bidirectional text, or a neutral SVG person when no name is available. Hover and open states use Classroom Purple with a white foreground. The menu begins with name, wrapping email, and role. Teacher destinations are Workspace, My activities, Assignments, and Reports; student destinations are Your learning and Join a class. Both continue with Account settings, Reset password, and Contact support, then a separator and Sign out. Rows have 44px minimum targets and 10px/12px vertical/inline padding. Sign out stays a neutral menu row and changes to a disabled pending label while leaving.
+
+Opening focuses the first item; Arrow Up from the trigger opens on the last. Up/Down wrap, Home/End jump, and Escape closes and returns focus to the circle. Tab, outside pointer interaction, focus leaving the control, and route changes dismiss the menu. Hover and focused rows use the raised surface. The account control and settings scope the shared 3px focus outline with a 2px offset to their own elements.
+
+Settings place editable display name first, with a hint, written validation, save action, and persistent saved status until the next edit. Email verification and role follow as details, then profile-completion access, password recovery, support, and the existing deliberate deletion flow. Account and support forms use neutral 48px fields and theme-aware danger borders with written errors; their local error treatment does not require the shared field's SVG alert mark. Settings links use the global accent and an underline. Password recovery continues the existing emailed-token screens; visual documentation is not a transport certificate.
+
+### Support Form
+
+The landing contact section and `/contact` share labeled Name, Email address, optional Organization, and a vertically resizable message field. The support recipient stays visible beside the primary blue action. Labels, hints, inline errors, pending text, and the success panel communicate state in words. Validation focuses the first invalid field. While sending, fields are disabled and the form reports busy; failure preserves the draft and offers retry or direct email. API success replaces the form with a neutral bordered confirmation and a Send another message action. The UI's success copy follows API acceptance; inbox delivery remains outside the visual review.
+
+Both surfaces inherit light and dark neutral tokens. Dark focus becomes white and invalid fields use the dark danger color; the profile's open purple and white state is unchanged. Logical alignment and wrapping support Arabic RTL; email inputs remain left-to-right while names and messages use automatic direction, and displayed identities use bidirectional isolation. The menu has no added entrance animation; support and settings actions inherit the shared button's motion and reduced-motion behavior. The sidecar extension retains all eleven prior examples and adds an independent support-form specimen for visual inspection; submission behavior remains in the application.
 
 ## Do's and Don'ts
 

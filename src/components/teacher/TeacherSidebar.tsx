@@ -92,7 +92,7 @@ export function TeacherSidebarNav({ onNavigate }: { onNavigate?: () => void }) {
         {t('teacher.nav.groupSupport')}
       </p>
 
-      <NavLink to="/complete-profile" className={linkClass} onClick={onNavigate}>
+      <NavLink to="/account" className={linkClass} onClick={onNavigate}>
         <AccountIcon />
         {t('teacher.nav.account')}
       </NavLink>

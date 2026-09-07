@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useAuth } from '@/hooks/useAuth'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 
 import { AuthCard, AuthNotice, FormError } from '@/components/form/AuthCard'
@@ -31,10 +32,12 @@ export default function Forgot() {
 
   const validators = useAuthValidators()
   const toMessage = useApiErrorMessage()
+  const { user } = useAuth()
+  const seeded = useRef(false)
   const [sent, setSent] = useState(false)
 
   const form = useAuthForm({
-    initial: { email: '' },
+    initial: { email: user?.email ?? '' },
     validators: { email: validators.email },
     normalizers: { email: normalizeEmail },
     onError: toMessage,
@@ -43,6 +46,13 @@ export default function Forgot() {
       setSent(true)
     },
   })
+
+  useEffect(() => {
+    if (!seeded.current && user?.email) {
+      seeded.current = true
+      if (!form.values.email) form.setValue('email', user.email)
+    }
+  }, [user, form])
 
   const backToSignIn = (
     <Link to="/login" className="auth-link">

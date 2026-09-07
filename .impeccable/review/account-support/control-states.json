@@ -1,0 +1,18 @@
+{
+  "darkSupportFocus": {
+    "width": "3px",
+    "style": "solid",
+    "color": "rgb(255, 255, 255)"
+  },
+  "mobileTeacherMenuBounds": {
+    "x": 86,
+    "y": 204.5,
+    "width": 288,
+    "height": 450.5
+  },
+  "viewport": {
+    "width": 390,
+    "height": 667
+  },
+  "keyboard": "ArrowUp, Home, Tab and Escape checked by the suite"
+}
