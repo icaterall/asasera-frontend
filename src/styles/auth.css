@@ -1,0 +1,1196 @@
+/* ------------------------------------------------------------------ *
+ * Auth screens — tokens and the three controls they are built from.
+ *
+ * WHY THIS FILE IS SEPARATE, and scoped to `.auth-scope`:
+ *
+ * The brief names five exact colours for these screens. They are NOT the
+ * app-wide palette in index.css — --brand-blue #0B5FD0 is a lighter, warmer
+ * blue than the committed brand #46178f, and --ink #10233D is bluer than the
+ * app's #10101d. Writing them into `:root` would silently restyle the landing
+ * page, the About route and the 404 as a side effect of building a login form.
+ * So they are scoped: `.auth-scope` is on the <section> each auth page
+ * renders, and nothing outside these five screens changes.
+ *
+ * RADIUS. The brief allows 5px maximum and asks for 3px on inputs. index.css
+ * already collapses the entire Tailwind radius scale onto 5px, so every
+ * `rounded-*` in this tree is correct by construction; --radius-input is the
+ * one value that scale cannot express, and it is applied by `.auth-input`
+ * below rather than by a utility, so no input can miss it. There are no pill
+ * buttons here and `rounded-full` appears only on the submit spinner, which
+ * is a circle.
+ * ------------------------------------------------------------------ */
+
+.auth-scope {
+  --brand-blue: #1368ce;
+  --brand-teal: #26890c;
+  --ink: #333333;
+  --ink-muted: #6e6e6e;
+  --line: #cccccc;
+
+  /* Derived, not new brand colours: a hover, a tint and a danger tone. */
+  --brand-blue-hover: #105cb4;
+  --brand-blue-tint: #f2f2f2;
+  --danger: #b3261e;
+
+  --auth-surface: #ffffff;
+  --auth-canvas: #f2f2f2;
+
+  --radius-input: 4px;
+
+  color: var(--ink);
+}
+
+/*
+ * Dark theme. The five brand values are held as closely as legibility allows:
+ * --brand-blue and --brand-teal are lightened only enough to clear 4.5:1 on a
+ * dark surface (at #0B5FD0, white text passes but the colour ITSELF as text
+ * on near-black measures 3.1:1, which fails). --ink and --ink-muted invert
+ * roles, because "ink" means the text colour, and text on a dark ground is
+ * light by definition. --line keeps its job — a hairline — at the luminance
+ * that job needs here.
+ *
+ * The app ships a theme toggle in the shared header, so these screens WILL be
+ * seen in dark mode; leaving the light-only palette would have produced
+ * #10233D text on a #070710 page.
+ */
+.dark .auth-scope {
+  --brand-blue: #6da6f5;
+  --brand-teal: #4cc4a8;
+  --ink: #eef2f8;
+  --ink-muted: #a3b0c4;
+  --line: #414141;
+
+  --brand-blue-hover: #8fbcf8;
+  --brand-blue-tint: #16233a;
+  --danger: #ff9d95;
+
+  --auth-surface: #222222;
+  --auth-canvas: #171717;
+}
+
+/* ---- The card ----------------------------------------------------- */
+
+/*
+ * The gap between the header and the panel.
+ *
+ * Three steps, and the last one keys on HEIGHT. Target on a 1440x900
+ * desktop is a panel top of roughly 200px: the header ends at 114px, so
+ * 88px of padding lands it there.
+ */
+.auth-section {
+  padding-block-start: 32px;
+}
+
+/*
+ * The gap that puts the panel just under the header.
+ *
+ * It was 176px, taken off the supplied registration screenshots, where the
+ * panel's top edge sits at 294px on a 1002px viewport. That is where the
+ * reference put it, and it read as an empty band on every screen once the
+ * header, the Back button and the panel were all on screen together: the
+ * shorter panels ended up stranded mid-viewport with their footer pushed off
+ * the fold. 48px lands the panel top at ~170px on a 1440x900 desktop, since
+ * the header ends at 122px.
+ *
+ * One value, every auth screen. Sign in carried this alone for one revision
+ * behind a `topSpace` prop; the prop is gone, because a spacing modifier that
+ * every caller passes is just the default with extra steps.
+ *
+ * Ordinary padding in normal flow — no negative margin, no translate, no
+ * absolute positioning. `flex-1` on the <main> above puts the leftover height
+ * below the panel rather than around it, which is what keeps the footer at
+ * the bottom without pushing the panel down.
+ */
+@media (min-width: 640px) {
+  .auth-section {
+    padding-block-start: 48px;
+  }
+}
+
+/* A short viewport — a laptop at 720px tall, a phone in landscape — gets
+   the mobile spacing back regardless of how wide it is. */
+@media (max-height: 780px) {
+  .auth-section {
+    padding-block-start: 40px;
+  }
+}
+
+.auth-card {
+  background: var(--auth-surface);
+  border: 1px solid var(--line);
+  border-radius: 5px;
+}
+
+/* ---- The two-column field grid ------------------------------------- */
+
+/*
+ * The multi-field screens only: teacher and student registration, and the
+ * profile step. Sign in, forgot and reset stay a single column — pairing two
+ * fields is only worth doing when there are enough of them to pair.
+ *
+ * Grid rather than flex because the PAIRING is the point. Name sits beside
+ * email because together they are one question — who you are — and subject
+ * beside stage because together they are another. Two rows of two read as two
+ * questions; four stacked rows read as four.
+ *
+ * Nothing here is direction-specific and there is no `rtl:` counterpart.
+ * Grid tracks are laid out along the inline axis, so in Arabic the first
+ * track is the right-hand one and each pair reads in the correct order on its
+ * own. This is why the layout is grid and not absolute positioning.
+ */
+.auth-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.25rem;
+}
+
+/*
+ * Two columns from 640px up, one below it.
+ *
+ * The pair is only worth having while each half can still hold a real value.
+ * Under 640px the halves are narrower than the text inside them, and two
+ * cramped columns read worse than four honest rows — so the grid collapses
+ * and the fields stack in the order they are written.
+ */
+@media (min-width: 640px) {
+  .auth-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/*
+ * A row that spans the whole form. `1 / -1` means first track to last in the
+ * writing mode's own order, so like the tracks themselves it needs no RTL
+ * counterpart.
+ *
+ * The password field carries this at EVERY width, deliberately. It holds the
+ * longest value on the form and a show/hide toggle sits on its inline-end
+ * edge, so at half width the toggle crowds the characters being typed —
+ * exactly where someone is least able to check what they wrote. The submit
+ * button and the form-level error carry it for the plainer reason that they
+ * belong to the whole form rather than to one column of it.
+ */
+.auth-grid > .auth-grid-wide {
+  grid-column: 1 / -1;
+}
+
+/* ---- Inputs and selects ------------------------------------------- */
+
+/*
+ * One recipe for every text input and every <select> on these screens, so the
+ * two cannot drift in height, radius or focus treatment.
+ *
+ * `min-height` rather than a fixed height: an Arabic label and an Arabic
+ * option are taller than their English counterparts and must grow the control
+ * rather than clip inside it. 44px is the pointer-target floor.
+ */
+.auth-input {
+  inline-size: 100%;
+  min-block-size: 44px;
+  padding-block: 0.625rem;
+  padding-inline: 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-input);
+  background: var(--auth-surface);
+  color: var(--ink);
+  font: inherit;
+  line-height: 1.5;
+  text-align: start;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.auth-input::placeholder {
+  color: var(--ink-muted);
+  opacity: 0.75;
+}
+
+.auth-input:hover:not(:disabled) {
+  border-color: color-mix(in oklab, var(--brand-blue) 40%, var(--line));
+}
+
+/*
+ * The focus ring is drawn with border + box-shadow rather than `outline`,
+ * because the global `:focus-visible` rule in index.css sets an outline with
+ * `border-radius: var(--radius-md)` — 5px — which would round the ring more
+ * than the 3px input inside it and show as a visible mismatch at the corners.
+ */
+.auth-input:focus-visible {
+  outline: none;
+  border-color: var(--brand-blue);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--brand-blue) 22%, transparent);
+}
+
+.auth-input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.auth-input[aria-invalid='true'] {
+  border-color: var(--danger);
+}
+
+.auth-input[aria-invalid='true']:focus-visible {
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--danger) 20%, transparent);
+}
+
+/*
+ * A <select> needs its own chevron once `appearance: none` removes the native
+ * one. It is drawn as an inline SVG background positioned on the INLINE-END
+ * edge, so it moves to the left in Arabic and the right in English without a
+ * direction-specific rule. `background-position` has no logical longhand, so
+ * the flip is done by the [dir] pair below — the one place in this file that
+ * needs it, and the reason the rest of the layout can stay logical.
+ */
+.auth-select {
+  appearance: none;
+  padding-inline-end: 2.25rem;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%2355657D' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6l4 4 4-4'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-size: 1rem;
+}
+
+[dir='ltr'] .auth-select {
+  background-position: right 0.75rem center;
+}
+
+[dir='rtl'] .auth-select {
+  background-position: left 0.75rem center;
+}
+
+.dark .auth-select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23A3B0C4' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6l4 4 4-4'/%3E%3C/svg%3E");
+}
+
+/*
+ * The email field is forced LTR inside an RTL page.
+ *
+ * An address is a Latin, left-to-right string. Typed into an RTL input the
+ * bidi algorithm leaves the caret and the punctuation in places that make the
+ * value look wrong while being correct — the @ and the dots drift, and people
+ * "fix" a value that was already right. `direction: ltr` with `text-align:
+ * start` inside it pins the run down without moving the field itself, which
+ * stays in the RTL flow like every other control.
+ */
+.auth-input--ltr {
+  direction: ltr;
+  text-align: start;
+}
+
+/* ---- Buttons ------------------------------------------------------- */
+
+.auth-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  inline-size: 100%;
+  min-block-size: 44px;
+  padding-block: 0.625rem;
+  padding-inline: 1rem;
+  border-radius: 5px;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 150ms ease, border-color 150ms ease;
+}
+
+.auth-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.auth-button--primary {
+  background: var(--brand-blue);
+  color: #ffffff;
+  border: 1px solid var(--brand-blue);
+}
+
+.dark .auth-button--primary {
+  /* The light-theme blue carries white text; the dark-theme blue is light
+     enough that white on it fails, so the label goes dark instead. */
+  color: #08131f;
+}
+
+.auth-button--primary:hover:not(:disabled) {
+  background: var(--brand-blue-hover);
+  border-color: var(--brand-blue-hover);
+}
+
+/*
+ * The provider button is deliberately quieter than the primary one. The full
+ * form is the main path on every one of these screens, so the federated
+ * option is an alternative, not a competing call to action.
+ */
+.auth-button--provider {
+  background: var(--auth-surface);
+  color: var(--ink);
+  border: 1px solid var(--line);
+}
+
+.auth-button--provider:hover:not(:disabled) {
+  border-color: color-mix(in oklab, var(--brand-blue) 45%, var(--line));
+  background: var(--brand-blue-tint);
+}
+
+/* ---- The divider --------------------------------------------------- */
+
+.auth-divider {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 0.75rem;
+  color: var(--ink-muted);
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: '';
+  block-size: 1px;
+  background: var(--line);
+}
+
+/* ---- Links ---------------------------------------------------------- */
+
+.auth-link {
+  color: var(--brand-blue);
+  font-weight: 600;
+  border-radius: 3px;
+  text-underline-offset: 3px;
+}
+
+.auth-link:hover {
+  text-decoration: underline;
+}
+
+/*
+ * Western numerals, enforced at the font layer as well as in the copy.
+ *
+ * The copy tables use 0-9 and nothing here formats through `Intl`, but Neo
+ * Sans Arabic ships an `anum` feature that substitutes Arabic-Indic glyphs at
+ * RENDER time — the string stays "12" while the screen shows ١٢. Turning the
+ * feature off is what makes the password counter read the same in both
+ * languages.
+ */
+.auth-scope {
+  font-feature-settings: 'anum' 0;
+  font-variant-numeric: lining-nums;
+}
+
+/* ------------------------------------------------------------------ *
+ * A signup choice: a generous target with a visible selected/hover
+ * state, used by the role and teaching-level steps.
+ *
+ * A hairline and a tint shift, not a filled card — the screen's one
+ * filled element stays the primary action, and two filled choices
+ * would compete with it and with each other. min-height keeps the
+ * target comfortable on a phone without a fixed height that an Arabic
+ * label would overflow.
+ * ------------------------------------------------------------------ */
+.auth-scope .auth-choice {
+  display: flex;
+  min-height: 64px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  transition: border-color 120ms ease, background-color 120ms ease;
+}
+
+.auth-scope .auth-choice:hover {
+  border-color: var(--brand-blue);
+  background: var(--raised);
+}
+
+.auth-scope .auth-choice:focus-visible {
+  outline: 2px solid var(--brand-blue);
+  outline-offset: 2px;
+}
+
+/* The chosen one, for steps that keep a selection on screen. */
+.auth-scope .auth-choice[aria-pressed='true'],
+.auth-scope .auth-choice[data-selected='true'] {
+  border-color: var(--brand-blue);
+  box-shadow: inset 0 0 0 1px var(--brand-blue);
+  background: var(--raised);
+}
+
+/* A provider button: same box as the primary action, quieter fill. */
+.auth-scope .auth-provider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--ink);
+  transition: border-color 120ms ease, background-color 120ms ease;
+}
+.auth-scope .auth-provider:hover:not(.is-unavailable) {
+  border-color: var(--brand-blue);
+  background: var(--raised);
+}
+.auth-scope .auth-provider:focus-visible {
+  outline: 2px solid var(--brand-blue);
+  outline-offset: 2px;
+}
+/* Not configured: inert, and visibly so. Never a link that fails. */
+.auth-scope .auth-provider.is-unavailable {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+
+/* ══════════════════════════════════════════════════════════════════════
+ * ACCENT PALETTE
+ *
+ * Every value below was measured, not picked — see the ratios in the
+ * comments. The rule that shapes the whole system: a saturated block
+ * carries an ILLUSTRATION, and text sits on a calm surface beside it.
+ * That is what lets the interface be strongly coloured without putting
+ * white-on-amber (2.15:1) or white-on-coral (3.91:1) anywhere.
+ * ══════════════════════════════════════════════════════════════════════ */
+.auth-scope,
+.asas-accents {
+  /*
+   * THESE ARE DRAWING COLOURS, NOT DECORATIVE MID-TONES.
+   *
+   * The first version of this palette used the bright display values —
+   * #E5484D coral, #F0A02A amber, #2B8FE8 sky, #0EA47A mint. They looked
+   * right named in a list and were wrong in place: an accent is only ever
+   * painted ON its own wash here, and measured there, amber came out at
+   * 1.97:1 and mint at 2.79:1. The illustrations were not subtle, they were
+   * faint, and the selected-tile border on amber missed the 3:1 that a
+   * non-text indicator has to clear.
+   *
+   * So each one is darkened along its own hue until it clears 4.5:1 against
+   * its wash — well past the 3:1 the drawings need, because the same value
+   * also draws the hover border, the selection ring, and the check badge,
+   * and a border wants the headroom. The colour identity survives: these are
+   * the same hues, deepened, not six new ones.
+   *
+   *                       on own wash · on --surface · white on it
+   */
+  --acc-coral: #d21e24;  /*    4.55           5.31          5.31   */
+  --acc-amber: #9f630b;  /*    4.51           4.93          4.93   */
+  --acc-sky:   #146dbc;  /*    4.68           5.33          5.33   */
+  --acc-mint:  #0a7a5b;  /*    4.67           5.32          5.32   */
+
+  /* Washes for tile grounds — ink measures 13:1+ on every one of these. */
+  --acc-coral-wash: #fce9ea;
+  --acc-amber-wash: #fdf4e5;
+  --acc-sky-wash:   #e6f2fc;
+  --acc-mint-wash:  #e2f4ef;
+  --acc-blue-wash:  #e0eaf9;
+  --acc-teal-wash:  #e3f7f2;
+}
+
+/*
+ * Dark theme washes.
+ *
+ * The light washes are near-white by design — they are the calm ground a
+ * saturated illustration sits on. Left unchanged on a #131A27 card they stop
+ * being a wash and become a lamp: a 95%-luminance rectangle punched into a
+ * dark panel, which is the one thing that would make these screens hurt to
+ * look at at night.
+ *
+ * So the wash inverts its construction rather than its value. In light it is
+ * the hue lifted almost to white; in dark it is the hue dropped almost to the
+ * card, mixed against --auth-surface so it belongs to the panel it sits in.
+ * The illustration keeps its full-strength hue in both, so the pairing — block
+ * plus picture — reads identically, and every label still sits on the calm
+ * surface beside it rather than on the colour.
+ */
+.dark .auth-scope,
+.dark .asas-accents {
+  /* Hues lifted just enough to hold their identity against a dark ground. */
+  --acc-coral: #ff7b7f;
+  --acc-amber: #f5b455;
+  --acc-sky:   #6bb3f2;
+  --acc-mint:  #45c79f;
+
+  --acc-coral-wash: color-mix(in oklab, #ff7b7f 16%, var(--auth-surface));
+  --acc-amber-wash: color-mix(in oklab, #f5b455 16%, var(--auth-surface));
+  --acc-sky-wash:   color-mix(in oklab, #6bb3f2 16%, var(--auth-surface));
+  --acc-mint-wash:  color-mix(in oklab, #45c79f 16%, var(--auth-surface));
+  --acc-blue-wash:  color-mix(in oklab, var(--brand-blue) 16%, var(--auth-surface));
+  --acc-teal-wash:  color-mix(in oklab, var(--brand-teal) 16%, var(--auth-surface));
+}
+
+/* ---------------------------------------------------------------------
+ * A choice tile: illustration block + calm text panel.
+ * --------------------------------------------------------------------- */
+.auth-scope .tile {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  text-align: start;
+  /* Real depth: offset and blur, never a zero-offset halo. */
+  box-shadow: 0 1px 2px rgb(16 35 61 / 0.04);
+  transition:
+    border-color 140ms cubic-bezier(0.2, 0, 0, 1),
+    box-shadow 140ms cubic-bezier(0.2, 0, 0, 1),
+    transform 140ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+.auth-scope .tile:hover {
+  border-color: var(--tile-hue, var(--brand-blue));
+  box-shadow: 0 2px 4px rgb(16 35 61 / 0.06), 0 12px 24px -14px rgb(16 35 61 / 0.3);
+  transform: translateY(-1px);
+}
+
+.auth-scope .tile:focus-visible {
+  outline: 2px solid var(--brand-blue);
+  outline-offset: 2px;
+}
+
+/* The colour block. Its wash is the tile's hue; the illustration is the
+   full-strength version of the same hue, so the pair always agrees. */
+.auth-scope .tile-art {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  align-self: stretch;
+  width: 84px;
+  background: var(--tile-wash, var(--acc-blue-wash));
+}
+
+.auth-scope .tile-body {
+  padding: 16px 16px 16px 0;
+  padding-inline: 0 16px;
+}
+
+/* ---------------------------------------------------------------------
+ * The stacked variant: picture above the label, laid out in a grid.
+ *
+ * WHY A SECOND SHAPE. The row tile pairs a picture with a sentence, and it
+ * is right where there are two options and each needs explaining. The
+ * education stages are neither: there are seven of them and each is a bare
+ * name with no description to give it. Rendered as rows they became seven
+ * near-identical bars, each one a small picture, a short label, and a long
+ * emptiness between them — the list read as unfinished rather than calm.
+ *
+ * Stacked and gridded, the same seven fit in two or three columns, the
+ * colour block becomes the largest thing in the tile instead of a stripe on
+ * its edge, and the whole set is visible at once rather than scrolled past.
+ * Scanning a grid of pictures is also simply faster than reading a column of
+ * labels, which is what this step actually asks someone to do.
+ * --------------------------------------------------------------------- */
+.auth-scope .tile-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+@media (min-width: 640px) {
+  .auth-scope .tile-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.auth-scope .tile--stacked {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0;
+  /* Equal heights come from the grid; this stops a one-line label from
+     shrinking its tile below a two-line neighbour's. */
+  height: 100%;
+}
+
+.auth-scope .tile--stacked .tile-art {
+  align-self: auto;
+  width: 100%;
+  /* Tall enough to be a colour BLOCK. Below about this it reads as a bar. */
+  min-height: 84px;
+  padding-block: 14px;
+}
+
+.auth-scope .tile--stacked .tile-body {
+  /* Logical padding only — this tree flips with the document direction. */
+  padding: 12px 14px 14px;
+  padding-inline: 14px;
+}
+
+/* Selected: border + inset ring + a check. Never colour alone. */
+.auth-scope .tile[aria-pressed='true'],
+.auth-scope .tile[data-selected='true'] {
+  border-color: var(--tile-hue, var(--brand-blue));
+  box-shadow: inset 0 0 0 2px var(--tile-hue, var(--brand-blue));
+}
+
+.auth-scope .tile-check {
+  position: absolute;
+  inset-block-start: 10px;
+  inset-inline-end: 10px;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px; /* a true circle */
+  background: var(--tile-hue, var(--brand-blue));
+  /*
+   * The card colour, not `#fff`. In light that IS white and measures 4.9–5.9
+   * on every accent; in dark the accents lift to pastels and white on them
+   * falls to about 2:1, while the dark card colour on those same pastels
+   * measures 7:1+. One value, correct in both, instead of a literal that is
+   * only correct in the theme it was written in.
+   */
+  color: var(--auth-surface);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-scope .tile,
+  .auth-scope .tile:hover {
+    transition: none;
+    transform: none;
+  }
+}
+
+/* ---------------------------------------------------------------------
+ * Browser surfaces — the parts we did not draw still carry the design.
+ * --------------------------------------------------------------------- */
+.auth-scope ::selection {
+  background: var(--acc-sky-wash);
+  color: var(--ink);
+}
+.auth-scope input,
+.auth-scope textarea {
+  caret-color: var(--brand-blue);
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+ * The workplace cards.
+ *
+ * A DIFFERENT CONSTRUCTION FROM `.tile`, ON PURPOSE. Everywhere else in
+ * this chain the rule is: a saturated block carries an illustration, and
+ * text sits on a calm surface beside it. That rule exists because it lets
+ * the interface be strongly coloured while every label still measures
+ * 13:1 against white.
+ *
+ * These four cards break it, because the brief asks for exactly the thing
+ * the rule avoids — a card that is entirely colour, label included, and
+ * not a white row with a coloured strip down one edge. So the safety has
+ * to come from somewhere else, and here it comes from measurement: every
+ * label sits directly on its own fill and every pair was computed rather
+ * than eyeballed.
+ *
+ *   card        fill      label   label on fill
+ *   school      #e12d33   white        4.54
+ *   higher      #46178f   white        7.23
+ *   business    #0d8577   white        4.53
+ *   other       #f0a02a   ink          7.34
+ *
+ * WHY "OTHER" HAS A DARK LABEL. White on #f0a02a is 2.15:1. There were two
+ * ways out: darken the amber until white worked, which lands on #a3660c and
+ * is a brown, or keep the amber and put ink on it, which measures 7.34. The
+ * second keeps the colour the brief actually asked for, and a set of four
+ * where one card is light and carries dark type is a normal thing for a
+ * palette to do — it is not an inconsistency, it is the amber behaving like
+ * an amber.
+ *
+ * ONE PALETTE IN BOTH THEMES. These are brand colours, not surface colours;
+ * Asasera blue is Asasera blue at night. What does change is the card's edge,
+ * which has to hold against a near-black page — see `--wp-edge` below.
+ * ══════════════════════════════════════════════════════════════════════ */
+.auth-scope {
+  /*
+   * Three hues come from the supplied screenshots; Higher education takes the
+   * exact Asasera primary instead of the reference blue, because that card
+   * names what the product is for and the brand belongs on it.
+   *
+   * Every label is white and sits directly on the fill, so every pair was
+   * measured rather than picked:
+   */
+  --wp-school:      #e21b3c;
+  --wp-school-on:   #ffffff;
+  --wp-higher:      #46178f;  /* white 7.23 — the Asasera primary */
+  --wp-higher-on:   #ffffff;
+  --wp-business:    #26890c;
+  --wp-business-on: #ffffff;
+  --wp-other:       #864cbf;  /* white 5.53 */
+  --wp-other-on:    #ffffff;
+
+  /* Account roles use the referenced red Teacher and blue Student. */
+  --role-student:   #1368ce;
+
+  --wp-edge: color-mix(in srgb, var(--card-fill) 82%, #000);
+}
+
+.dark .auth-scope {
+  --wp-edge: color-mix(in srgb, var(--card-fill) 62%, #fff);
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+ * The choice cards — role, and workplace.
+ *
+ * REBUILT AGAINST THE SUPPLIED SCREENSHOTS, which are the acceptance
+ * reference. What was here before drifted a long way from them, and the
+ * measurements say exactly how far:
+ *
+ *                          reference        what we had
+ *   panel width            472px            640px
+ *   card                   201 x 112        280 x 158
+ *   gap                    11px             14px
+ *   icon                   ~20px, corner    44px, its own block
+ *   label                  centred          bottom, start-aligned
+ *
+ * The composition is the part that reads as "the reference": a small mark
+ * tucked into the top corner, and the label centred in a wide, shallow
+ * block of flat colour. An icon given its own area and a label pushed to
+ * the bottom is a different card, however good the colours are.
+ * ══════════════════════════════════════════════════════════════════════ */
+.auth-scope .choice-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 11px;
+}
+
+/* One column only when two genuinely no longer fit — a narrow screen, or a
+   reader who has scaled the type up. `em` tracks their font size. */
+@media (max-width: 20em) {
+  .auth-scope .choice-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.auth-scope .choice-grid > li {
+  display: grid;
+}
+
+/*
+ * FOUR FLAT COLOURS, WHITE LABELS.
+ *
+ * Three come from the reference; Higher education takes the exact Asasera
+ * primary #004CCC instead of the reference blue, because that card names
+ * what the product is for and the brand belongs on it. Every pair was
+ * measured — the label sits directly on the fill, so nothing here can be
+ * eyeballed:
+ *
+ *   school  #D21E24  white 4.55     business  #237D0B  white 4.86
+ *   higher  #004CCC  white 7.23     other     #864CBF  white 5.53
+ */
+.auth-scope .choice-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  /* 201 x 112 in the reference; the width comes from the grid, so only the
+     height is stated. A long Arabic label grows it rather than clipping. */
+  min-height: 112px;
+  padding: 14px 12px;
+  border-radius: var(--radius-sm); /* the project's 5px, via the token */
+  background: var(--card-fill);
+  color: #ffffff;
+  text-align: center;
+  box-shadow:
+    0 1px 2px rgb(16 35 61 / 0.10),
+    0 10px 20px -14px color-mix(in srgb, var(--card-fill) 70%, transparent);
+  transition:
+    transform 140ms cubic-bezier(0.2, 0, 0, 1),
+    box-shadow 140ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+/*
+ * The mark, tucked into the top inline-start corner.
+ *
+ * `inset-inline-start`, so it moves to the right-hand corner in Arabic with
+ * the rest of the layout instead of staying pinned to a physical edge.
+ */
+.auth-scope .choice-card-mark {
+  position: absolute;
+  inset-block-start: 9px;
+  inset-inline-start: 10px;
+  display: block;
+  opacity: 0.92;
+}
+
+.auth-scope .choice-card-label {
+  font-size: 1.0625rem;
+  font-weight: 700;
+  /* Arabic needs the leading; "التعليم العالي" wraps inside a 201px card. */
+  line-height: 1.4;
+  /* The reference sets its labels with a soft dark shadow, which is what
+     keeps them crisp on the lighter fills. */
+  text-shadow: 0 1px 2px rgb(0 0 0 / 0.28);
+}
+
+.auth-scope .choice-card:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 2px 4px rgb(16 35 61 / 0.12),
+    0 16px 28px -16px color-mix(in srgb, var(--card-fill) 78%, transparent);
+}
+
+.auth-scope .choice-card:active {
+  transform: translateY(0) scale(0.985);
+  transition-duration: 90ms;
+}
+
+/*
+ * The focus ring sits in the gutter, not on the card. No single ring colour
+ * clears 3:1 on all four fills, and offsetting it means it is measured
+ * against the page instead, where one colour is correct on every card.
+ */
+.auth-scope .choice-card:focus-visible {
+  outline: 3px solid var(--brand-blue);
+  outline-offset: 3px;
+}
+
+/* Selected: a ring in the card's own label colour plus a mark. These cards
+   are already four colours, so "the coloured one" says nothing. */
+.auth-scope .choice-card[aria-pressed='true'] {
+  box-shadow:
+    inset 0 0 0 3px #ffffff,
+    0 2px 4px rgb(16 35 61 / 0.12),
+    0 16px 28px -16px color-mix(in srgb, var(--card-fill) 78%, transparent);
+}
+
+.auth-scope .choice-card-check {
+  position: absolute;
+  inset-block-start: 9px;
+  inset-inline-end: 10px;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 999px; /* a true circle */
+  background: #ffffff;
+  color: var(--card-fill);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-scope .choice-card,
+  .auth-scope .choice-card:hover,
+  .auth-scope .choice-card:active {
+    transition: none;
+    transform: none;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+ * The shared Back control on the auth screens.
+ *
+ * NOT SCOPED TO `.auth-scope`. That class sits on the <section> each auth
+ * page renders; this button lives in the layout header, above it. So the
+ * few values it needs are declared on the element itself rather than
+ * borrowed from a scope it is outside of.
+ *
+ * Measured, both themes:
+ *
+ *   light   fill #333333   white label 12.63:1   fill vs page 11.98:1
+ *   dark    fill #3A4152   white label 10.20:1   border vs page 3.70:1
+ *
+ * WHY DARK DOES NOT KEEP #333333. On the light canvas the charcoal is its
+ * own boundary — it reads 11.98:1 against the page, so the shape is
+ * unmistakable. On the dark canvas the same charcoal measures 1.52:1
+ * against #0A0F18: not a quiet button, an invisible one. Lifting the fill
+ * alone does not fix it either — even #4A5265 only reaches 2.45:1, and by
+ * then it has stopped being charcoal. So the fill stays dark and a 1px
+ * border carries the boundary at 3.70:1, which is what a non-text control
+ * edge has to clear. The border is declared in both themes and simply
+ * transparent in light, so the box is the same size either way.
+ * ══════════════════════════════════════════════════════════════════════ */
+.auth-back {
+  --back-fill: #333333;
+  --back-hover: #3f3f3f;
+  --back-press: #262626;
+  --back-bevel: #1c1c1c;
+  --back-edge: transparent;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+
+  /*
+   * A floor, not a fixed width. Arabic sets "رجوع", English "Back", and a
+   * fixed 106px would either clip one or pad the other into a different
+   * shape. Both happen to land at the minimum today; a longer translation
+   * grows the button instead of breaking it.
+   */
+  min-width: 106px;
+  min-height: 48px;
+  padding-inline: 18px;
+
+  border: 1px solid var(--back-edge);
+  border-radius: var(--radius-sm); /* the project's 5px, via the token */
+  background: var(--back-fill);
+  color: #ffffff;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  line-height: 1;
+
+  /*
+   * The raised edge. An inset bevel along the bottom, not an offset drop
+   * shadow — the box keeps its exact size, so nothing reflows when it is
+   * pressed and the bevel shrinks.
+   */
+  box-shadow:
+    inset 0 -3px 0 var(--back-bevel),
+    0 1px 2px rgb(16 35 61 / 0.16);
+
+  transition:
+    background-color 140ms cubic-bezier(0.2, 0, 0, 1),
+    box-shadow 140ms cubic-bezier(0.2, 0, 0, 1),
+    translate 100ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+.dark .auth-back {
+  --back-fill: #3a4152;
+  --back-hover: #454d61;
+  --back-press: #2f3543;
+  --back-bevel: #22273a;
+  --back-edge: #646d82;
+}
+
+/* Restrained: the fill lifts one step and the shadow deepens slightly.
+   No movement — the button rises only when it is actually pressed. */
+.auth-back:hover {
+  background: var(--back-hover);
+  box-shadow:
+    inset 0 -3px 0 var(--back-bevel),
+    0 2px 5px rgb(16 35 61 / 0.22);
+}
+
+/*
+ * Pressed: it goes down. The bevel collapses from 3px to 1px and the whole
+ * control translates by the 2px it lost, so the top edge stays put and only
+ * the depth changes — which is what being pushed actually looks like.
+ */
+.auth-back:active {
+  background: var(--back-press);
+  translate: 0 2px;
+  box-shadow:
+    inset 0 -1px 0 var(--back-bevel),
+    0 0 0 rgb(16 35 61 / 0);
+}
+
+/*
+ * Focus is the app-wide `:focus-visible` rule in index.css — a 2px
+ * `--accent` outline at 3px offset. It is deliberately NOT overridden here:
+ * the offset puts the ring in the page gutter rather than on the charcoal,
+ * so it is measured against the canvas (5.6:1 light, 7.7:1 dark) instead of
+ * against a fill it would nearly disappear on.
+ */
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-back,
+  .auth-back:hover,
+  .auth-back:active {
+    transition: none;
+    translate: none;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+ * The unverified-email banner.
+ *
+ * Asasera blue, white text, and it stays put while the page scrolls.
+ *
+ * WHY `sticky` AND NOT `fixed`. Fixed would take the strip out of flow and
+ * float it over the first 60-odd pixels of every page — covering the
+ * navigation on load, and needing a matching top offset on the body that
+ * would then be wrong the moment a panel opened and the strip grew. Sticky
+ * keeps it in the document: it occupies real space above the header, pushes
+ * the page down by exactly its own height whatever that height is, and
+ * pins itself once scrolling reaches it.
+ *
+ * z-index 60 sits above the header and below anything modal, so it never
+ * covers a dialog and a dialog never has to know it exists.
+ * ══════════════════════════════════════════════════════════════════════ */
+.verify-banner {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: 60;
+  background: #46178f; /* the brand primary, where white reads 7.23:1 */
+  color: #ffffff;
+}
+
+.verify-banner-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  /*
+   * The reference strip is about 34px tall and runs the full width of the
+   * window. Ours was 62px in a 1152px centred container, which read as a
+   * panel rather than a status bar. Padding down, container removed; the
+   * wrap below is still what gives a phone room instead of a breakpoint.
+   */
+  padding: 6px 16px;
+  width: 100%;
+  flex-wrap: wrap;
+}
+
+.verify-banner-text {
+  flex: 1 1 22rem;
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+
+/*
+ * The address, bold and isolated.
+ *
+ * The element is a <bdi>, which is what actually stops an ASCII address from
+ * reordering inside the Arabic sentence around it; this only makes it bold
+ * and keeps a long address from widening the bar past the viewport.
+ */
+.verify-banner-email {
+  font-weight: 700;
+  word-break: break-all;
+}
+
+.verify-banner-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* ---- the two action buttons ----------------------------------------
+ * Both sit ON the blue, so neither can be blue. The solid one is white
+ * with blue text (white on blue is the same 7.23 either way round); the
+ * quiet one is an outline, which is legible without competing with it.
+ * -------------------------------------------------------------------- */
+.verify-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 26px;
+  padding-inline: 10px;
+  border-radius: var(--radius-sm); /* the project's 5px */
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+  transition:
+    background-color 140ms cubic-bezier(0.2, 0, 0, 1),
+    color 140ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+.verify-btn-solid {
+  background: #ffffff;
+  color: #46178f;
+  border: 1px solid #ffffff;
+}
+.verify-btn-solid:hover {
+  background: #e8effc;
+  border-color: #e8effc;
+}
+
+.verify-btn-quiet {
+  background: transparent;
+  color: #ffffff;
+  /* 60% white on the blue clears 3:1 as a control edge. */
+  border: 1px solid rgb(255 255 255 / 0.6);
+}
+.verify-btn-quiet:hover {
+  background: rgb(255 255 255 / 0.14);
+  border-color: #ffffff;
+}
+
+.verify-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+/*
+ * Focus rings on a saturated ground.
+ *
+ * The app-wide rule paints `--accent`, which IS this blue — invisible here.
+ * So these two override it with white, and keep the offset so the ring sits
+ * clear of the button rather than on its edge.
+ */
+.verify-btn:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 2px;
+}
+
+/* ---- the panels the two actions open -------------------------------- */
+.verify-panel {
+  padding: 0 16px 14px;
+}
+
+.verify-panel-title {
+  margin: 0 0 4px;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.verify-panel-body,
+.verify-panel-note,
+.verify-panel-error {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  /* Tinted from the ground it sits on rather than greyed — a grey secondary
+     on a saturated background reads as dirty rather than as quieter. */
+  color: rgb(255 255 255 / 0.85);
+}
+
+.verify-panel-email {
+  margin: 8px 0 0;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  word-break: break-all;
+}
+
+.verify-panel-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-block-start: 12px;
+}
+
+.verify-panel-note {
+  margin-block-start: 10px;
+}
+
+.verify-panel-error {
+  margin-block-start: 8px;
+  color: #ffe0dd;
+  font-weight: 600;
+}
+
+.verify-panel-label {
+  display: block;
+  margin-block-start: 12px;
+  margin-block-end: 6px;
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.verify-panel-input {
+  width: 100%;
+  max-width: 22rem;
+  min-height: 40px;
+  padding-inline: 12px;
+  border-radius: var(--radius-input, 3px);
+  border: 1px solid rgb(255 255 255 / 0.55);
+  background: rgb(255 255 255 / 0.12);
+  color: #ffffff;
+}
+.verify-panel-input::placeholder {
+  color: rgb(255 255 255 / 0.6);
+}
+.verify-panel-input:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .verify-btn {
+    transition: none;
+  }
+}

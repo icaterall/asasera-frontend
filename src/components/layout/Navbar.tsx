@@ -3,11 +3,13 @@ import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useLocation } from 'react-router-dom'
 
+import { AccountControl } from '@/components/layout/AccountControl'
 import { buttonStyles } from '@/components/ui/buttonStyles'
 import { Container } from '@/components/ui/Container'
 import { LanguageToggle } from '@/components/ui/LanguageToggle'
 import { Logo } from '@/components/ui/Logo'
 import { ThemeToggle } from '@/components/ui/ThemeToggle'
+import { useAuth } from '@/hooks/useAuth'
 import { useScrollProgress } from '@/hooks/useScrollProgress'
 import { cn } from '@/lib/cn'
 
@@ -25,6 +27,7 @@ const NAV_ITEMS = [
 
 export function Navbar() {
   const { t } = useTranslation()
+  const { status } = useAuth()
   const location = useLocation()
   const { scrolled, progress } = useScrollProgress()
   const [menuOpen, setMenuOpen] = useState(false)
@@ -122,13 +125,38 @@ export function Navbar() {
               should go somewhere: /login is a real route with a real page
               behind it.
             */}
-            <Link
-              to="/login"
-              className={buttonStyles({ size: 'sm', className: 'hidden lg:inline-flex' })}
-            >
-              {t('nav.signIn')}
-              <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-0.5 rtl:-scale-x-100 rtl:group-hover:-translate-x-0.5" />
-            </Link>
+            {/*
+              Three states, not two. `loading` renders neither control: the
+              provider is mid silent-refresh, and flashing "Sign in" at someone
+              already signed in — then swapping it for their avatar a moment
+              later — is worse than a brief gap.
+            */}
+            {status === 'authenticated' ? (
+              <AccountControl />
+            ) : status === 'anonymous' ? (
+              <>
+                {/*
+                  Two entry points, not one. "Get started" is the primary action and
+                  the only filled control in the header; "Log in" sits beside it as a
+                  quiet link, because a returning person already knows what they came
+                  for and does not need to be sold.
+                */}
+                <Link
+                  to="/login"
+                  className="hidden rounded-sm px-3 py-2 text-sm font-semibold transition-colors lg:inline-flex"
+                  style={{ color: 'var(--ink-muted)' }}
+                >
+                  {t('nav.logIn')}
+                </Link>
+                <Link
+                  to="/signup"
+                  className={buttonStyles({ size: 'sm', className: 'hidden lg:inline-flex' })}
+                >
+                  {t('nav.getStarted')}
+                  <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-0.5 rtl:-scale-x-100 rtl:group-hover:-translate-x-0.5" />
+                </Link>
+              </>
+            ) : null}
 
             <button
               type="button"
@@ -191,9 +219,22 @@ export function Navbar() {
 
           <div className="mt-6 flex items-center justify-between gap-3 border-t border-line pt-5">
             <LanguageToggle />
-            <Link to="/login" className={buttonStyles({ size: 'sm' })}>
-              {t('nav.signIn')}
-            </Link>
+            {status === 'authenticated' ? (
+              <AccountControl compact />
+            ) : status === 'anonymous' ? (
+              <div className="flex items-center gap-2">
+                <Link
+                  to="/login"
+                  className="rounded-sm px-3 py-2 text-sm font-semibold"
+                  style={{ color: 'var(--ink-muted)' }}
+                >
+                  {t('nav.logIn')}
+                </Link>
+                <Link to="/signup" className={buttonStyles({ size: 'sm' })}>
+                  {t('nav.getStarted')}
+                </Link>
+              </div>
+            ) : null}
           </div>
         </div>
       </div>

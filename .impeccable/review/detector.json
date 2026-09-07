@@ -1,0 +1,112 @@
+[
+  {
+    "antipattern": "side-tab",
+    "name": "Side-tab accent border",
+    "description": "Thick colored border on one side of a card — the most recognizable tell of AI-generated UIs. Use a subtler accent or remove it entirely.",
+    "severity": "warning",
+    "category": "slop",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/design/Surface.module.css",
+    "line": 19,
+    "snippet": "border-inline-start: 4px solid",
+    "importedBy": [
+      "Surface.tsx"
+    ]
+  },
+  {
+    "antipattern": "overused-font",
+    "name": "Overused font",
+    "description": "Inter, Roboto, Fraunces, Geist, Plus Jakarta Sans, and Space Grotesk are used on so many sites they no longer feel distinctive. Each new wave of AI-generated UIs converges on the same handful of faces. Choose a face that gives your interface personality.",
+    "severity": "warning",
+    "category": "slop",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/design/tokens.css",
+    "line": 6,
+    "snippet": "font-family: \"Montserrat"
+  },
+  {
+    "antipattern": "bounce-easing",
+    "name": "Bounce or elastic easing",
+    "description": "Bounce and elastic easing feel dated and tacky. Real objects decelerate smoothly — use exponential easing (ease-out-quart/quint/expo) instead.",
+    "severity": "warning",
+    "category": "slop",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/design/tokens.css",
+    "line": 62,
+    "snippet": "cubic-bezier(0.22, 1.4, 0.36, 1)"
+  },
+  {
+    "antipattern": "side-tab",
+    "name": "Side-tab accent border",
+    "description": "Thick colored border on one side of a card — the most recognizable tell of AI-generated UIs. Use a subtler accent or remove it entirely.",
+    "severity": "warning",
+    "category": "slop",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/delivery/Delivery.module.css",
+    "line": 5,
+    "snippet": "border-inline-start:6px solid",
+    "importedBy": [
+      "Assignments.tsx",
+      "DeleteAccount.tsx",
+      "DeliverySetup.tsx",
+      "LearnPage.tsx"
+    ]
+  },
+  {
+    "antipattern": "side-tab",
+    "name": "Side-tab accent border",
+    "description": "Thick colored border on one side of a card — the most recognizable tell of AI-generated UIs. Use a subtler accent or remove it entirely.",
+    "severity": "warning",
+    "category": "slop",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/editor/Editor.module.css",
+    "line": 86,
+    "snippet": "border-inline-start: 3px solid",
+    "importedBy": [
+      "ActivityEditor.tsx",
+      "AdvancedCanvas.tsx",
+      "ImageUpload.tsx",
+      "McqCanvas.tsx"
+    ]
+  },
+  {
+    "antipattern": "side-tab",
+    "name": "Side-tab accent border",
+    "description": "Thick colored border on one side of a card — the most recognizable tell of AI-generated UIs. Use a subtler accent or remove it entirely.",
+    "severity": "warning",
+    "category": "slop",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/editor/GenerationPanel.module.css",
+    "line": 2,
+    "snippet": "border-inline-start:4px solid",
+    "importedBy": [
+      "GenerationPanel.tsx"
+    ]
+  },
+  {
+    "antipattern": "side-tab",
+    "name": "Side-tab accent border",
+    "description": "Thick colored border on one side of a card — the most recognizable tell of AI-generated UIs. Use a subtler accent or remove it entirely.",
+    "severity": "warning",
+    "category": "slop",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/session/Session.module.css",
+    "line": 15,
+    "snippet": "border-inline-start:6px solid",
+    "importedBy": [
+      "LearnPage.tsx",
+      "Countdown.tsx",
+      "QuestionInput.tsx",
+      "SessionPage.tsx"
+    ]
+  },
+  {
+    "antipattern": "overused-font",
+    "name": "Overused font",
+    "description": "Inter, Roboto, Fraunces, Geist, Plus Jakarta Sans, and Space Grotesk are used on so many sites they no longer feel distinctive. Each new wave of AI-generated UIs converges on the same handful of faces. Choose a face that gives your interface personality.",
+    "severity": "warning",
+    "category": "slop",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/session/Session.module.css",
+    "line": 1,
+    "snippet": "font-family:\"Montserrat",
+    "importedBy": [
+      "LearnPage.tsx",
+      "Countdown.tsx",
+      "QuestionInput.tsx",
+      "SessionPage.tsx"
+    ]
+  }
+]

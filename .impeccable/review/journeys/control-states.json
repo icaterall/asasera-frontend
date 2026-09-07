@@ -1,0 +1,15 @@
+{
+  "verificationFocus": "rgb(255, 255, 255)",
+  "focus": {
+    "color": "rgb(255, 255, 255)",
+    "width": "3px",
+    "offset": "2px",
+    "placeholder": "rgb(110, 110, 110)",
+    "opacity": "1"
+  },
+  "pressed": {
+    "transform": "matrix(1, 0, 0, 1, 0, 4)",
+    "shadow": "rgba(0, 0, 0, 0.15) 0px -1px 0px 0px inset"
+  },
+  "reduced": "none"
+}

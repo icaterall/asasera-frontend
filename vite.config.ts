@@ -13,6 +13,29 @@ export default defineConfig({
   },
   server: {
     /*
+     * KEEP TEST OUTPUT OUT OF THE WATCHER.
+     *
+     * Playwright writes traces, screenshots and its HTML report into the
+     * project while a test is running. Vite's watcher sees each new file and
+     * issues a full page reload — dozens of them inside a single test.
+     *
+     * That is not merely noisy. Every reload re-runs the app's silent refresh,
+     * the backend ROTATES the refresh token on each use and treats a second
+     * presentation of a rotated one as theft, so a burst of reloads revokes
+     * the token family and every later request answers 401. The symptom is a
+     * browser test that cannot stay signed in, and the cause is nowhere near
+     * the authentication code.
+     */
+    watch: {
+      ignored: [
+        '**/e2e/.artifacts/**',
+        '**/playwright-report/**',
+        '**/test-results/**',
+        '**/.playwright-artifacts-*/**',
+      ],
+    },
+
+    /*
      * Development calls the API on the same origin and Vite forwards it.
      *
      * This is not only convenience. Same-origin means the browser sends the
@@ -25,6 +48,11 @@ export default defineConfig({
      * front end against a deployed API.
      */
     proxy: {
+      '/socket.io': {
+        target: process.env.VITE_DEV_API_TARGET ?? 'http://localhost:4000',
+        changeOrigin: true,
+        ws: true,
+      },
       '/api': {
         target: process.env.VITE_DEV_API_TARGET ?? 'http://localhost:4000',
         changeOrigin: true,

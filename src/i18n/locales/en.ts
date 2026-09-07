@@ -1,3 +1,5 @@
+import { authEN } from '../../copy/auth.en.ts'
+
 /**
  * English is the source of truth for the message shape.
  * `ar.ts` is typed as `typeof en`, so a missing or misspelled Arabic key
@@ -28,6 +30,7 @@ const en = {
     language: 'Language',
     backHome: 'Back to home',
     new: 'New',
+    back: 'Back',
   },
 
   nav: {
@@ -36,6 +39,11 @@ const en = {
     pricing: 'Pricing',
     about: 'About',
     signIn: 'Sign in',
+    signOut: 'Sign out',
+    signingOut: 'Signing out…',
+    unnamedAccount: 'Your account',
+    logIn: 'Log in',
+    getStarted: 'Get started',
   },
 
   /*
@@ -114,132 +122,8 @@ const en = {
     },
   },
 
-  /* ------------------------------------------------------------------ *
-   * Auth screens
-   *
-   * One table, both languages, no string in JSX. Field labels are separate
-   * from placeholders on purpose: the placeholder is an example, never the
-   * label, because it vanishes on focus and takes the accessible name with
-   * it if it is doing both jobs.
-   * ------------------------------------------------------------------ */
-  auth: {
-    common: {
-      emailLabel: 'Email address',
-      emailPlaceholder: 'you@university.edu',
-      passwordLabel: 'Password',
-      nameLabel: 'Full name',
-      namePlaceholder: 'As you want it shown',
-      showPassword: 'Show password',
-      hidePassword: 'Hide password',
-      /* {{count}} of {{min}} — Western digits in both languages. */
-      passwordCount: '{{count}} of {{min}} characters',
-      submitting: 'Working…',
-      or: 'or',
-      google: 'Continue with Google',
-      facebook: 'Continue with Facebook',
-      required: 'Required',
-      backToSignIn: 'Back to sign in',
-    },
-
-    errors: {
-      nameRequired: 'Enter your name.',
-      emailRequired: 'Enter your email address.',
-      emailInvalid: 'Enter a valid email address.',
-      passwordRequired: 'Enter a password.',
-      passwordShort: 'Use at least 12 characters.',
-      stageRequired: 'Choose a stage.',
-      categoryRequired: 'Choose a subject.',
-      generic: 'Something went wrong. Please try again.',
-      network: 'Could not reach the server. Check your connection and try again.',
-      loadFailed: 'Could not load the list. Reload the page to try again.',
-    },
-
-    login: {
-      title: 'Sign in',
-      lead: 'Continue with an account you already have.',
-      submit: 'Sign in',
-      forgot: 'Forgot your password?',
-      noAccount: 'No account yet?',
-      registerTeacher: 'Register as a teacher',
-      registerStudent: 'Register as a student',
-      failed: 'That email and password do not match.',
-    },
-
-    registerTeacher: {
-      title: 'Create a teacher account',
-      lead: 'Your course, your lesson pages, your class.',
-      categoryLabel: 'Subject',
-      categoryPlaceholder: 'Choose a subject',
-      stageLabel: 'Stage',
-      stagePlaceholder: 'Choose a stage',
-      /*
-       * Says why the list is short before anyone wonders. The gate is
-       * server-side; this only explains it.
-       */
-      stageHint: 'Asasera is open to university teaching only.',
-      submit: 'Create account',
-      switch: 'Registering as a student instead?',
-      switchLink: 'Student registration',
-    },
-
-    registerStudent: {
-      title: 'Create a student account',
-      lead: 'Join your class with a code once your account is ready.',
-      submit: 'Create account',
-      switch: 'Are you a teacher?',
-      switchLink: 'Teacher registration',
-    },
-
-    registered: {
-      title: 'Check your email',
-      body: 'If that address can receive mail, a link to finish setting up your account is on its way. The link works once and expires.',
-    },
-
-    forgot: {
-      title: 'Reset your password',
-      lead: 'Enter your email address and we will send you a link.',
-      submit: 'Send the link',
-      /* Deliberately does not say whether the address exists. */
-      sent: 'If that address has an account, a reset link is on its way.',
-      remembered: 'Remembered it?',
-    },
-
-    reset: {
-      title: 'Choose a new password',
-      lead: 'This signs you out everywhere else.',
-      submit: 'Save the new password',
-      done: 'Your password has been changed. Sign in with it.',
-      badToken: 'That link has expired or has already been used. Request a new one.',
-      requestAnother: 'Request a new link',
-    },
-
-    verify: {
-      title: 'Verifying your email',
-      working: 'One moment.',
-      done: 'Your email is verified. You can sign in now.',
-      failed: 'That link has expired or has already been used.',
-      missing: 'That link is incomplete.',
-    },
-
-    completeProfile: {
-      title: 'Two more things',
-      lead: 'Google did not tell us what you teach, and we will not guess.',
-      submit: 'Save and continue',
-    },
-
-    callback: {
-      working: 'Signing you in…',
-      cancelled: 'Sign-in was cancelled. Nothing has changed, and you can try again whenever you like.',
-      accountExists: 'This email is already registered. Sign in with your password, then connect Google from your account.',
-      failed: 'We could not complete that sign-in. Please try again.',
-    },
-
-    /* The one authenticated screen. A single line, and nothing else. */
-    home: {
-      signedIn: 'You are signed in.',
-      signOut: 'Sign out',
-    },
-  },
+  /* Copy table lives in src/copy — see the project rule. */
+  auth: authEN,
 
   signIn: {
     title: 'Sign in to Asasera',
@@ -278,6 +162,578 @@ const en = {
     code: '404',
     title: 'There is no page here',
     body: 'The link you followed may be broken, or the page may have been moved.',
+  },
+  /* ------------------------------------------------------------------ *
+   * The signed-in teacher workspace.
+   *
+   * Every string a teacher reads inside the application lives here. Where a
+   * card leads to a written guide rather than a running tool, the copy says
+   * so — `guideChip` is rendered on those cards, and the wording never
+   * implies the tool exists yet.
+   * ------------------------------------------------------------------ */
+  /* The instructor journey: courses, material, lessons. */
+  teaching: {
+    nav: { courses: 'Courses', materials: 'Materials', lessons: 'Lessons' },
+    common: {
+      create: 'Create',
+      cancel: 'Cancel',
+      save: 'Save',
+      saving: 'Saving…',
+      saved: 'Saved',
+      saveFailed: 'Save failed',
+      retry: 'Try again',
+      loading: 'Loading…',
+      delete: 'Delete',
+      back: 'Back',
+      open: 'Open',
+      required: 'Required',
+      optional: 'Optional',
+      none: 'None',
+    },
+    courses: {
+      title: 'Courses',
+      lead: 'A course groups your material and lessons. Nothing else is required.',
+      empty: 'No courses yet',
+      emptyBody: 'A course is just a name to keep your material and lessons together. You can also create one while making your first lesson.',
+      newTitle: 'New course',
+      fieldTitle: 'Course name',
+      fieldLanguage: 'Language of the material',
+      fieldCategory: 'Subject',
+      fieldStage: 'Education stage',
+      fieldDescription: 'Short description',
+      languageAr: 'Arabic',
+      languageEn: 'English',
+      archive: 'Archive',
+      restore: 'Restore',
+      archived: 'Archived',
+      showArchived: 'Show archived',
+      counts: '{{lessons}} lessons · {{materials}} sources',
+      exists: 'You already have a course with that name.',
+    },
+    materials: {
+      title: 'Materials',
+      lead: 'Your own sources. A lesson is built from the pages you choose here.',
+      empty: 'No sources yet',
+      emptyBody: 'Add a PDF or paste text, and Asasera keeps the pages so a lesson can point back at them.',
+      addPdf: 'Upload a PDF',
+      addText: 'Paste text',
+      fieldTitle: 'What is this source?',
+      fieldText: 'Paste the text',
+      fieldFile: 'Choose a PDF',
+      fieldCourse: 'Course',
+      limits: 'PDF up to {{mb}} MB, or up to {{chars}} characters of text.',
+      pages: '{{count}} pages',
+      paragraphs: '{{count}} paragraphs',
+      statusReady: 'Ready',
+      statusFailed: 'Could not be read',
+      openSource: 'Open the original',
+      warningEmpty: 'No text on this page',
+      warningUnreadable: 'This page could not be read',
+      warningLowText: 'Very little text',
+      failedLead: 'Asasera could not read this file. The file is still here, and nothing was invented from it.',
+      failedEncrypted: 'The file is password-protected, so its text cannot be read.',
+      failedNotPdf: 'That file is not a PDF.',
+      failedNoPages: 'No pages were found in the file.',
+      failedCorrupt: 'The file is damaged, or its pages are stored in a form this reader cannot open.',
+      failedRecovery: 'Paste the text of the pages you need instead, and the lesson can carry on.',
+      notPdf: 'That file is not a PDF.',
+      tooLarge: 'That file is larger than the limit.',
+      delete: 'Delete',
+      deleteTitle: 'Delete this source?',
+      deleteBody: 'The source and its extracted pages are removed from your library. Files used only by this source are then permanently erased from storage.',
+      deleteShared: 'Files also used elsewhere are kept.',
+      deleteIrreversible: 'This cannot be undone.',
+      deleteConfirm: 'Delete source',
+      deleteBusy: 'Deleting…',
+      deleted: 'Removed from your library.',
+      deletedCleanupPending: 'Removed from your library. Stored files are being erased.',
+      deletedCleanupDone: 'Removed. Stored files have been permanently erased.',
+      deletedRetained: '{{count}} file kept, because other content still uses it.',
+      deletedRetained_other: '{{count}} files kept, because other content still uses them.',
+      deletedUnmanaged: '{{count}} older file could not be erased automatically and is still stored.',
+      deletedUnmanaged_other: '{{count}} older files could not be erased automatically and are still stored.',
+      cleanupPending: 'Erasing stored files…',
+      cleanupPendingBody: 'The content is already out of your library. The stored files are still being removed.',
+      cleanupFailed: 'Some stored files could not be erased.',
+      cleanupFailedBody: 'The content is out of your library, but {{count}} file is still stored. This is being retried.',
+      cleanupFailedBody_other: 'The content is out of your library, but {{count}} files are still stored. This is being retried.',
+      blockedTitle: 'This source is still in use',
+      blockedBody: 'An approved lesson was built from this source and still points at it. Deleting it would break the evidence behind questions students have already answered.',
+      blockedAction: 'See lessons',
+      blockedHint: 'Archive or delete the lesson version first, then delete this source.',
+    },
+    answer: {
+      shapeTriangle: 'Triangle',
+      shapeDiamond: 'Diamond',
+      shapeCircle: 'Circle',
+      shapeSquare: 'Square',
+      correct: 'Correct',
+      incorrect: 'Incorrect',
+    },
+    generation: {
+      title: 'Draft activities with AI',
+      lead: 'Asasera writes from the pages you selected, and cites them. You review everything before it becomes a lesson.',
+      objective: 'What should these activities check?',
+      count: 'How many activities',
+      maxCharge: 'This costs at most {{amount}}',
+      credit: 'You have {{amount}} of service credit',
+      generate: 'Generate activities',
+      generating: 'Writing activities…',
+      queued: 'Waiting to start',
+      running: 'Writing activities from your pages',
+      stateNote: 'You can close this page. The work continues, and it will be here when you come back.',
+      cancel: 'Cancel',
+      cancelled: 'Cancelled. Your credit was returned.',
+      failed: 'That did not produce anything usable. You were not charged.',
+      needsReview: 'We could not confirm whether this finished. Nothing was added, and your credit is still held while we check.',
+      ready: '{{count}} activity is ready for review',
+      ready_other: '{{count}} activities are ready for review',
+      rejected: '{{count}} suggestion was discarded because it did not match your source.',
+      rejected_other: '{{count}} suggestions were discarded because they did not match your source.',
+      apply: 'Add to this lesson',
+      applying: 'Adding…',
+      applied: 'Added. Edit anything you want before approving.',
+      editsKept: 'Your own edits were kept. The new activities were added after them.',
+      noCredit: 'Not enough service credit for this.',
+      claimGrant: 'Add your free credit',
+      verifyFirst: 'Verify your email to receive your free service credit.',
+      verifyAction: 'Verify email',
+      noPricing: 'AI drafting is not available in this environment yet. Manual authoring works as usual.',
+      manualNote: 'You can always write activities yourself instead.',
+      resume: 'You have a generation in progress',
+      resumeAction: 'Open it',
+      candidates: 'Review the suggestions',
+      candidatesLead: 'Nothing is added to your lesson until you choose. Adding does not approve the lesson.',
+      selectAll: 'Select all',
+      clearSelection: 'Clear',
+      addSelected: 'Add selected ({{count}})',
+      addNone: 'Select at least one',
+      alreadyAdded: 'Added',
+      remaining: '{{count}} suggestion is still available to add',
+      remaining_other: '{{count}} suggestions are still available to add',
+      addedSome: 'Added {{count}} to the lesson. Edit anything before approving.',
+      viewSource: 'Page {{page}}',
+      answerLabel: 'Answer',
+      explanationLabel: 'Why',
+      rateLimited: 'Too many generation requests just now. Wait a moment and try again.',
+      insufficient: 'That would cost more than your remaining service credit.',
+    },
+    lessons: {
+      title: 'Lessons',
+      lead: 'Everything you have prepared, draft or approved.',
+      empty: 'No lessons yet',
+      emptyBody: 'Start from a source you added, or write one by hand. Either way it is saved as you go.',
+      newLesson: 'Create lesson',
+      search: 'Search lessons',
+      allCourses: 'All courses',
+      statusDraft: 'Draft',
+      statusApproved: 'Approved',
+      statusArchived: 'Archived',
+      activities: '{{count}} activities',
+      noActivities: 'No activities yet',
+      continueEditing: 'Continue',
+      openLesson: 'Open',
+    },
+    create: {
+      title: 'Create a lesson',
+      lead: 'Two things are needed: a name, and where it belongs. Everything else can wait.',
+      fromMaterial: 'Start from your material',
+      fromMaterialBody: 'Pick a source you added and choose the pages this lesson covers.',
+      manual: 'Start from scratch',
+      manualBody: 'Write the lesson yourself. You can attach a source later.',
+      stepSource: 'Choose a source',
+      stepScope: 'Choose what this lesson covers',
+      stepDetails: 'Name the lesson',
+      fieldTitle: 'Lesson title',
+      fieldCourse: 'Course',
+      newCourse: 'New course',
+      newCourseName: 'Course name',
+      pickAll: 'Select all',
+      pickNone: 'Clear',
+      selected: '{{count}} selected',
+      selectAtLeastOne: 'Choose at least one page or paragraph.',
+      noMaterials: 'You have no sources yet.',
+      addMaterialFirst: 'Add a source',
+      submit: 'Create the lesson',
+      creating: 'Creating…',
+    },
+    editor: {
+      issueNoObjective: 'This lesson has no objective yet.',
+      kindMultipleChoice: 'Multiple choice',
+      kindTrueFalse: 'True or false',
+      kindExplanation: 'Explanation',
+      preview: 'Preview',
+      exitPreview: 'Back to editing',
+      previewNote: 'This is what a student sees. Nothing is recorded.',
+      approve: 'Approve version',
+      approving: 'Approving…',
+      approved: 'Version {{number}} approved',
+      cannotApprove: 'This lesson cannot be approved yet',
+      acknowledgeWarnings: 'Approve anyway',
+      issueNoActivities: 'Add at least one activity.',
+      issueEmptyPrompt: 'A question has no text.',
+      issueNoAnswer: 'A question has no correct answer.',
+      issueTooFewOptions: 'A question needs at least two answers.',
+      issueEmptyOption: 'An answer is empty.',
+      issueGeneric: 'Something needs a look before this can be approved.',
+      contentLanguage: 'Content language',
+      questionPlaceholder: 'Type your question',
+      explanationTitlePlaceholder: 'Give this explanation a heading',
+      explanationBodyPlaceholder: 'What should the class read or hear here?',
+      answerPlaceholder: 'Answer',
+      answerNumber: 'Answer {{number}}',
+      removeAnswer: 'Remove this answer',
+      addAnswer: 'Add an answer',
+      whyAnswer: 'Why this is the answer',
+      isCorrect: 'Correct answer',
+      backToLibrary: 'Lessons',
+      untitled: 'Untitled lesson',
+      addActivity: 'Add activity',
+      generateWithAi: 'Generate with AI',
+      activityNumber: 'Activity {{number}}',
+      duplicate: 'Duplicate',
+      tabProperties: 'Properties',
+      tabSource: 'Source',
+      noSourceForActivity: 'This activity does not cite a page yet.',
+      openSource: 'Open the original',
+      activityType: 'Activity type',
+      emptyTitle: 'No activities yet',
+      emptyBody: 'Add a question yourself, or let Asasera draft some from the pages you selected.',
+      openRail: 'Activities',
+      openContext: 'Details',
+      close: 'Close',
+      candidatesTitle: 'AI suggestions',
+      addedToLesson: 'Added {{count}} to the lesson',
+      editAdded: 'Edit it',
+      lessonSettings: 'Lesson settings',
+      objective: 'What should students be able to do?',
+      objectivePlaceholder: 'One sentence, in your own words.',
+      purpose: 'Purpose',
+      purposeIntroduce: 'Introduce',
+      purposePractice: 'Practice',
+      purposeReview: 'Review',
+      duration: 'Minutes',
+      source: 'Source',
+      noSource: 'This lesson has no source attached.',
+      activities: 'Activities',
+      addExplanation: 'Add explanation',
+      addMultipleChoice: 'Add multiple choice',
+      addTrueFalse: 'Add true / false',
+      activityPrompt: 'Question',
+      activityBody: 'Notes',
+      explanationPrompt: 'Heading',
+      explanationBody: 'What you want to say',
+      options: 'Options',
+      addOption: 'Add option',
+      correct: 'Correct',
+      markCorrect: 'Mark as the correct answer',
+      answerTrue: 'True',
+      answerFalse: 'False',
+      explanationField: 'Why this is the answer',
+      points: 'Points',
+      moveUp: 'Move up',
+      moveDown: 'Move down',
+      removeActivity: 'Remove this activity',
+      needsAnswer: 'This question has no correct answer yet.',
+      conflict: 'This lesson changed in another tab. Reload to see the current version.',
+      reload: 'Reload',
+      sourceFor: 'Source for this activity',
+      page: 'Page {{n}}',
+      paragraph: 'Paragraph {{n}}',
+    },
+  },
+  teacher: {
+    nav: {
+      groupWorkspace: 'Workspace',
+      groupSupport: 'Support',
+      home: 'Home',
+      guides: 'Guides',
+      account: 'Account',
+      about: 'About Asasera',
+      openMenu: 'Open navigation',
+      closeMenu: 'Close navigation',
+      label: 'Teacher navigation',
+    },
+    header: {
+      primary: 'Start with your material',
+      account: 'Your account',
+      accountMenu: 'Account menu',
+      profile: 'Account details',
+      signOut: 'Sign out',
+      workspace: 'Teacher workspace',
+    },
+    hero: {
+      title: 'Turn your material into a lesson',
+      body: 'Start with your material, prepare activities, and follow your students’ learning in one place.',
+      primary: 'Start with your material',
+      secondary: 'Read the guides',
+    },
+    guideChip: 'Guide',
+    start: {
+      title: 'Start here',
+      lead: 'The four stages of a lesson in Asasera, and what each one asks of you.',
+      material: {
+        title: 'Start with your material',
+        body: 'Bring the pages you already teach from and decide what a lesson should cover.',
+        action: 'How it works',
+      },
+      activity: {
+        title: 'Prepare an activity',
+        body: 'Turn the parts that matter into questions your students answer.',
+        action: 'How it works',
+      },
+      teach: {
+        title: 'Teach your class',
+        body: 'Run the lesson live in the room, or assign it for students to work through.',
+        action: 'How it works',
+      },
+      results: {
+        title: 'Understand the results',
+        body: 'See which ideas landed and which need a second pass before you move on.',
+        action: 'How it works',
+      },
+    },
+    tools: {
+      title: 'Teaching tools',
+      lead: 'What your account can do today.',
+      verify: {
+        title: 'Verify your email',
+        body: 'Confirm the address on your account.',
+        action: 'Verify',
+      },
+      accountReady: {
+        title: 'Account details',
+        body: 'Your name, subject, and teaching stage.',
+        action: 'Open',
+      },
+      subject: {
+        title: 'Your teaching subject',
+        body: 'Tell Asasera what you teach.',
+        action: 'Edit',
+      },
+      guides: {
+        title: 'Preparation guides',
+        body: 'Written guides for each stage.',
+        action: 'Read',
+      },
+      about: {
+        title: 'About Asasera',
+        body: 'What the product does and who builds it.',
+        action: 'Open',
+      },
+    },
+    steps: {
+      title: 'Your next steps',
+      lead: 'Based on your account, nothing invented.',
+      allDone: 'Your account is set up. Nothing needs your attention right now.',
+      verify: {
+        title: 'Verify your email address',
+        body: 'Use the banner at the top of the page to send a fresh link.',
+        action: 'Verify',
+      },
+      subject: {
+        title: 'Add the subject you teach',
+        body: 'Optional, and you can change it whenever you like.',
+        action: 'Add subject',
+      },
+      workplace: {
+        title: 'Tell us where you teach',
+        body: 'School, higher education, business, or something else.',
+        action: 'Choose',
+      },
+      subjectSet: {
+        title: 'Your teaching subject',
+        action: 'Change',
+      },
+      guide: {
+        title: 'Read how a lesson comes together',
+        body: 'Four short guides covering material, activities, teaching, and results.',
+        action: 'Read',
+      },
+      done: 'Done',
+    },
+    lessons: {
+      title: 'Your lessons',
+      viewAll: 'View all',
+      emptyTitle: 'Your lessons will live here',
+      emptyBody: 'Lesson building is not part of Asasera yet. When it arrives, everything you prepare appears in this section, ready to open, teach again, or hand to another class.',
+      emptyAction: 'Read the preparation guide',
+      notice: 'Nothing here is a placeholder for content you saved. This account has no lessons because the feature does not exist yet.',
+    },
+    resources: {
+      title: 'Guides for teachers',
+      lead: 'Written for Asasera, useful whether you teach a school class or a university group.',
+      prepare: {
+        title: 'Preparing a lesson from your material',
+        body: 'How to choose what a lesson should cover, and what to leave out.',
+        action: 'Read the guide',
+      },
+      review: {
+        title: 'Reviewing questions before you teach',
+        body: 'A short check that catches the questions that will not work in the room.',
+        action: 'Read the guide',
+      },
+      reuse: {
+        title: 'Reusing a lesson with another class',
+        body: 'What to change, and what to keep, when the same lesson meets a new group.',
+        action: 'Read the guide',
+      },
+    },
+    guidesPage: {
+      title: 'Guides',
+      lead: 'Everything written so far about preparing and teaching with Asasera.',
+      back: 'Back to home',
+    },
+    panel: {
+      close: 'Close',
+      label: 'Guide',
+      notYet: 'This describes how the workflow is designed. The tool itself is not built yet, so nothing on this page will create a lesson for you.',
+    },
+    /*
+     * The guides themselves.
+     *
+     * Six of them, and every card that offers a guide opens one of these —
+     * there is no card whose link leads to a "coming soon". The prose is about
+     * the teaching work, not about the product's roadmap, so it stays true
+     * whether or not the lesson builder ships next month.
+     */
+    guides: {
+      material: {
+        title: 'From your material to a lesson',
+        lead: 'A lesson is a selection, not a summary. This is how to make that selection from pages you already teach from.',
+        steps: [
+          {
+            title: 'Decide what one lesson owes the student',
+            body: 'Write the single thing a student should be able to do afterwards that they could not do before. One sentence, in your own words. If it takes two sentences, you have two lessons.',
+          },
+          {
+            title: 'Mark only what serves that sentence',
+            body: 'Go through your material and mark the passages a student must understand to reach it. Most of a chapter will not be marked, and that is the point — the rest is context you can give aloud.',
+          },
+          {
+            title: 'Separate the facts from the reasoning',
+            body: 'Facts can be checked with a quick question. Reasoning needs a worked example. Sorting them now decides which parts become activities and which stay in your explanation.',
+          },
+          {
+            title: 'Keep the source next to the claim',
+            body: 'Note the page or section each marked passage came from. When a student challenges an answer later, the source settles it in seconds, and you will not be reconstructing it from memory.',
+          },
+        ],
+        note: 'Asasera is being built so that this selection is what you hand it, rather than a blank page.',
+      },
+      activity: {
+        title: 'Preparing an activity',
+        lead: 'The questions a class answers are where you find out what they actually understood.',
+        steps: [
+          {
+            title: 'Ask about the idea, not the wording',
+            body: 'A question a student can answer by recognising a phrase from the slide tests their memory of your slide. Change the wording from the material and the question starts testing the idea.',
+          },
+          {
+            title: 'Make the wrong answers real',
+            body: 'Each wrong option should be a mistake somebody in the room would genuinely make. Filler options make a four-choice question a two-choice question, and the score stops meaning anything.',
+          },
+          {
+            title: 'Mix quick checks with one that takes thought',
+            body: 'Three or four fast questions keep a class moving. One that needs a moment tells you whether the reasoning landed. A set made only of fast questions measures reading speed.',
+          },
+          {
+            title: 'Read every question aloud once',
+            body: 'The ones that are ambiguous, double-barrelled, or accidentally give the answer away are obvious when spoken and invisible when scanned.',
+          },
+        ],
+        note: 'Nothing here depends on a generator. These are the checks worth running on any question set, whoever wrote it.',
+      },
+      teach: {
+        title: 'Teaching the lesson',
+        lead: 'The same prepared lesson works live in the room or as something students do on their own. They are not the same event.',
+        steps: [
+          {
+            title: 'Live, the pace is yours',
+            body: 'Stop after a question that split the room and talk about it while the split is still visible. The value of teaching live is the correction that happens in the next thirty seconds.',
+          },
+          {
+            title: 'Assigned, the instructions carry everything',
+            body: 'A student working alone cannot ask what you meant. Anything you would have clarified out loud has to be written into the lesson before you assign it.',
+          },
+          {
+            title: 'Decide what a wrong answer costs',
+            body: 'If the lesson is practice, let students retry and see the explanation. If it is a check, they answer once. Tell the class which one it is before they start.',
+          },
+          {
+            title: 'Keep the group small enough to see',
+            body: 'Whichever way you run it, you should be able to name the students who struggled. If you cannot, the group is too large for the lesson to change anything.',
+          },
+        ],
+        note: 'Asasera does not run sessions yet. This describes the workflow the product is being built around.',
+      },
+      results: {
+        title: 'Reading the results',
+        lead: 'Results are useful for one purpose: deciding what to do in the next lesson.',
+        steps: [
+          {
+            title: 'Look at questions before students',
+            body: 'A question most of the class got wrong is usually a problem with the teaching or the question, not with the class. Check the question first, and check it honestly.',
+          },
+          {
+            title: 'Find the shared wrong answer',
+            body: 'When many students choose the same wrong option, they share a misunderstanding, and it has a shape you can address directly. Scattered wrong answers mean something different: they usually mean guessing.',
+          },
+          {
+            title: 'Separate did not know from did not finish',
+            body: 'Unanswered questions at the end of a set are about time, not understanding. Treating them as gaps in knowledge sends you re-teaching something the class already had.',
+          },
+          {
+            title: 'Change one thing next time',
+            body: 'Pick the single clearest gap and address it in the next lesson. A list of twelve improvements gets none of them done.',
+          },
+        ],
+        note: 'Any chart you see on this dashboard is a drawing. Asasera holds no student results for your account, and will never show you a number it did not measure.',
+      },
+      review: {
+        title: 'Reviewing questions before you teach',
+        lead: 'A short pass that catches the questions which will not survive contact with a class.',
+        steps: [
+          {
+            title: 'Answer them yourself, cold',
+            body: 'Without looking at the material. Anything you hesitate on will stop a student completely, and anything you answer from memory of writing it needs someone else to check.',
+          },
+          {
+            title: 'Check the answer is actually correct',
+            body: 'Against the source, not against your recollection. A confidently wrong answer key is worse than no lesson, because the class will learn the wrong thing and trust it.',
+          },
+          {
+            title: 'Cut the question you are unsure about',
+            body: 'There is always one you kept because you had already written it. It is the one that will produce an argument in the room. Cut it.',
+          },
+        ],
+        note: 'Ten minutes here saves the lesson that falls apart in the middle.',
+      },
+      reuse: {
+        title: 'Reusing a lesson with another class',
+        lead: 'The second group is not the first group, and the lesson that worked is not automatically the lesson that will.',
+        steps: [
+          {
+            title: 'Keep the questions, change the examples',
+            body: 'What you are checking stays the same. The examples that made it land came from the first group\u2019s context, and often will not mean anything to the second.',
+          },
+          {
+            title: 'Re-read the results from last time first',
+            body: 'The question that half the previous class got wrong is the one to rewrite before it runs again, not after.',
+          },
+          {
+            title: 'Adjust the pace, not the content',
+            body: 'A group that moves faster needs the thinking question earlier, not extra material. A group that moves slower needs fewer questions, not easier ones.',
+          },
+        ],
+        note: 'Reuse is where preparation pays for itself, and it is the reason a lesson is worth writing down properly the first time.',
+      },
+    },
+    section: {
+      retry: 'Try again',
+      failed: 'Could not load this section.',
+      loading: 'Loading…',
+    },
   },
 } satisfies Record<string, unknown>
 

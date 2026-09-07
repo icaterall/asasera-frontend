@@ -1,0 +1,79 @@
+/*
+ * Cards, fields and dialogs — §5.
+ *
+ * 8px on cards, 4px on controls. Elevation is a hairline, not a soft grey
+ * blur: §5 lists «كل شيء بطاقات مستديرة متطابقة بالظل الرمادي الناعم نفسه»
+ * (everything as identical rounded cards with the same soft grey shadow)
+ * among the marks of a design with no decision behind it.
+ */
+
+.card {
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  background: var(--surface);
+  padding: var(--s-5);
+}
+
+/* A module strip: the colour is USEFUL, not decoration — it identifies the
+   subject or unit the card belongs to (§5's «رشيط الوحدات»). */
+.strip { border-inline-start: 4px solid var(--strip, var(--act)); }
+
+.field { display: flex; flex-direction: column; gap: var(--s-2); }
+
+.label { font-size: var(--f-small); font-weight: var(--w-medium); color: var(--ink); }
+
+.input {
+  min-height: var(--h-control);
+  padding: 0 var(--s-3);
+  border: 1px solid var(--line);
+  border-radius: var(--r-control);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  transition: border-color var(--t-state) var(--ease), background-color var(--t-state) var(--ease);
+}
+.input::placeholder { color: var(--muted); }
+.input:hover:not(:disabled) { border-color: var(--muted); }
+.input:focus-visible {
+  outline: var(--focus-ring) solid var(--focus-colour);
+  outline-offset: var(--focus-offset);
+  border-color: var(--act);
+}
+.input:disabled { background: var(--sunken); color: var(--muted); cursor: not-allowed; }
+
+/* Invalid carries a border AND a message. The border alone is colour-only. */
+.invalid { border-color: var(--danger-ink); }
+
+.hint { font-size: var(--f-small); color: var(--muted); }
+.error { display: flex; align-items: center; gap: var(--s-1); font-size: var(--f-small); color: var(--danger-ink); font-weight: var(--w-medium); }
+
+/* ---- dialog ---- */
+.backdrop {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: var(--s-4);
+  background: var(--overlay);
+  animation: fade var(--t-panel) var(--ease);
+}
+.dialog {
+  width: min(560px, 100%);
+  max-height: 85vh;
+  overflow: auto;
+  border-radius: var(--r-card);
+  background: var(--surface);
+  color: var(--ink);
+  padding: var(--s-5);
+  animation: rise var(--t-panel) var(--ease);
+}
+.dialogTitle { margin: 0 0 var(--s-3); font-size: var(--f-title); line-height: var(--lh-title); }
+.dialogActions { display: flex; gap: var(--s-2); justify-content: flex-end; margin-top: var(--s-5); }
+
+@keyframes fade { from { opacity: 0 } to { opacity: 1 } }
+@keyframes rise { from { opacity: 0; transform: translateY(8px) } to { opacity: 1; transform: none } }
+@media (prefers-reduced-motion: reduce) {
+  /* The dialog still appears; it just does not travel. */
+  .backdrop, .dialog { animation-duration: 1ms; }
+  .dialog { animation-name: fade; }
+}

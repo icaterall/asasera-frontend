@@ -1,0 +1,130 @@
+/*
+ * The four answer slots — §4 #3, §5, §8.
+ *
+ * Colour and shape are ONE component and cannot be used apart. There is no
+ * prop that gives you a red square: the slot index picks both, so a surface
+ * that renders slot 1 in the editor preview, on the projector and on the
+ * player's phone shows the same red triangle in all three.
+ *
+ * §5: «كل شيء بطاقات مستديرة متطابقة بالظل الرمادي الناعم نفسه» is listed
+ * among the explicit prohibitions, so these are NOT soft cards. They are
+ * controls: 4px radius, a hard bottom edge, and no blur beyond the press.
+ */
+
+.tile {
+  /* Slot colour, set per modifier below. The fallback is deliberately garish:
+     a missing slot should be obvious in review, not quietly grey. */
+  --tile-fill: var(--a1);
+  --tile-fg: var(--on-a1);
+
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  width: 100%;
+  min-height: var(--h-control);
+  padding: var(--s-3) var(--s-4);
+  border: 0;
+  border-radius: var(--r-control);
+  background: var(--tile-fill);
+  color: var(--tile-fg);
+  font: inherit;
+  font-weight: var(--w-bold);
+  text-align: start;
+  cursor: pointer;
+
+  /* THE line (§5). Bottom inset edge = a physical key. */
+  box-shadow: var(--press);
+
+  transition:
+    transform var(--t-select) var(--ease),
+    box-shadow var(--t-select) var(--ease),
+    opacity var(--t-state) var(--ease),
+    filter var(--t-state) var(--ease);
+}
+
+.tile:hover:not(:disabled) { box-shadow: 0 4px 8px #0003, inset 0 -4px 0 #0004; }
+
+/*
+ * Pressed: the key travels down by exactly the inset edge it loses, so the
+ * face lands where the edge was. Anything else reads as a wobble.
+ */
+.tile:active:not(:disabled) {
+  transform: translateY(4px);
+  box-shadow: 0 0 0 rgba(0,0,0,.15), inset 0 0 0 rgba(0,0,0,.25);
+}
+
+.tile:focus-visible {
+  outline: var(--focus-ring) solid var(--focus-colour);
+  outline-offset: var(--focus-offset);
+}
+
+.tile:disabled { cursor: not-allowed; opacity: .45; }
+
+/* Slots. The pairing is fixed here and nowhere else. */
+.s1 { --tile-fill: var(--a1); --tile-fg: var(--on-a1); }
+.s2 { --tile-fill: var(--a2); --tile-fg: var(--on-a2); }
+.s3 { --tile-fill: var(--a3); --tile-fg: var(--on-a3); }
+.s4 { --tile-fill: var(--a4); --tile-fg: var(--on-a4); }
+
+.glyph {
+  flex: 0 0 auto;
+  width: 1.5em;
+  height: 1.5em;
+  fill: currentColor;
+}
+
+.label {
+  flex: 1 1 auto;
+  min-width: 0;
+  /* Long Arabic wraps rather than clipping — §8's projector rule. */
+  overflow-wrap: anywhere;
+}
+
+/*
+ * --a4 carries white at 4.42, which is AA large but not AA body. The floor
+ * makes that constraint structural rather than a comment somebody has to
+ * remember: a body-size label on the square slot cannot be rendered small.
+ */
+.s4 .label { font-size: max(1.25rem, 1em); }
+
+/* ---- state, never by colour alone (§5) ---- */
+
+/*
+ * Correct and incorrect BOTH get a mark and a text label, because the four
+ * slots are already four colours: adding green-means-right on top of a palette
+ * where green is simply "slot 4" is unreadable even with normal vision.
+ */
+.correct { outline: 3px solid var(--evidence); outline-offset: 2px; }
+.incorrect { opacity: .4; filter: grayscale(.55); }
+
+.mark {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-1);
+  padding: 2px var(--s-2);
+  border-radius: var(--r-control);
+  background: var(--surface);
+  color: var(--ink);
+  font-size: var(--f-small);
+  font-weight: var(--w-bold);
+}
+
+/* Selected, before the server has said anything. Distinct from `.correct`:
+   this is "you touched it", not "you were right". */
+.selected { transform: translateY(2px); outline: 3px solid var(--ink); outline-offset: 2px; }
+
+.pending { opacity: .8; }
+
+/* Stage size for the projector — §4 #4, 40–72px. */
+.stage { min-height: auto; padding: var(--s-5) var(--s-6); font-size: var(--f-stage); line-height: var(--lh-stage); }
+.stage .glyph { width: 1em; height: 1em; }
+
+/* Shape-only, for the player's phone in classroom mode (§8). The label is
+   still in the accessible name — removing the text from the DOM as well would
+   leave a screen-reader user with four unnamed buttons. */
+.shapeOnly { justify-content: center; aspect-ratio: 1 / 1; min-height: 96px; }
+.shapeOnly .glyph { width: 44%; height: 44%; }
+
+.tile{flex-wrap:wrap;min-width:0;max-width:100%}.tile:has(.mark) .label{flex:1 1 0}.tile .mark{flex:0 1 auto;max-width:100%;font-size:var(--f-small);line-height:1.5;overflow-wrap:anywhere}.tile:has(.mark) .mark{flex-basis:100%;justify-content:center}.mark svg{flex-shrink:0}

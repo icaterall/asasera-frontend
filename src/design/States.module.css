@@ -1,0 +1,39 @@
+/*
+ * The shared empty / loading / success / failure states — §16 W02.
+ *
+ * One component so the four never diverge into four different vocabularies on
+ * four screens. Every one of them says what happened AND what to do next; a
+ * state that only reports is a dead end.
+ */
+.state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-7) var(--s-5);
+  text-align: center;
+  border-radius: var(--r-card);
+}
+.icon { font-size: 2rem; line-height: 1; }
+.title { margin: 0; font-size: var(--f-heading); font-weight: var(--w-bold); color: var(--ink); }
+.body { margin: 0; max-width: 46ch; color: var(--muted); line-height: var(--lh-body); }
+.actions { display: flex; gap: var(--s-2); flex-wrap: wrap; justify-content: center; margin-top: var(--s-2); }
+
+.empty { background: var(--raised); }
+.failure { background: var(--raised); border: 1px solid var(--a1); }
+.success { background: var(--raised); border: 1px solid var(--evidence); }
+
+/* ---- loading ---- */
+.skeletonWrap { display: flex; flex-direction: column; gap: var(--s-3); padding: var(--s-4); }
+.bar {
+  height: 14px;
+  border-radius: var(--r-control);
+  background: linear-gradient(90deg, var(--sunken) 25%, var(--raised) 37%, var(--sunken) 63%);
+  background-size: 400% 100%;
+  animation: shimmer 1.4s ease infinite;
+}
+@keyframes shimmer { from { background-position: 100% 0 } to { background-position: 0 0 } }
+@media (prefers-reduced-motion: reduce) {
+  /* No shimmer, but the bars stay: the layout still communicates "loading". */
+  .bar { animation: none; background: var(--sunken); }
+}

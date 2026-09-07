@@ -1,0 +1,607 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-07T18:54:59.714Z",
+  "title": "Design System: Asasera",
+  "extensions": {
+    "colorMeta": {
+      "brand": {
+        "role": "primary",
+        "displayName": "Classroom Purple",
+        "tonalRamp": [
+          "#19053c",
+          "#25076b",
+          "#341069",
+          "#46178f",
+          "#9768cf",
+          "#c4a2f2",
+          "#d8c2f1",
+          "#f5effc"
+        ]
+      },
+      "brand-dark": {
+        "role": "primary",
+        "displayName": "Deep Purple",
+        "tonalRamp": [
+          "#19053c",
+          "#25076b",
+          "#341069",
+          "#46178f",
+          "#9768cf",
+          "#c4a2f2",
+          "#d8c2f1",
+          "#f5effc"
+        ]
+      },
+      "act": {
+        "role": "secondary",
+        "displayName": "Action Blue",
+        "tonalRamp": [
+          "oklch(15% 0.1753 256.80)",
+          "oklch(27% 0.1753 256.80)",
+          "oklch(39% 0.1753 256.80)",
+          "oklch(51% 0.1753 256.80)",
+          "oklch(63% 0.1753 256.80)",
+          "oklch(75% 0.1753 256.80)",
+          "oklch(87% 0.1753 256.80)",
+          "oklch(95% 0.1753 256.80)"
+        ]
+      },
+      "act-press": {
+        "role": "secondary",
+        "displayName": "Pressed Action Blue",
+        "tonalRamp": [
+          "oklch(15% 0.1560 256.21)",
+          "oklch(27% 0.1560 256.21)",
+          "oklch(39% 0.1560 256.21)",
+          "oklch(51% 0.1560 256.21)",
+          "oklch(63% 0.1560 256.21)",
+          "oklch(75% 0.1560 256.21)",
+          "oklch(87% 0.1560 256.21)",
+          "oklch(95% 0.1560 256.21)"
+        ]
+      },
+      "a1": {
+        "role": "secondary",
+        "displayName": "Answer Red",
+        "tonalRamp": [
+          "oklch(15% 0.2241 21.07)",
+          "oklch(27% 0.2241 21.07)",
+          "oklch(39% 0.2241 21.07)",
+          "oklch(51% 0.2241 21.07)",
+          "oklch(63% 0.2241 21.07)",
+          "oklch(75% 0.2241 21.07)",
+          "oklch(87% 0.2241 21.07)",
+          "oklch(95% 0.2241 21.07)"
+        ]
+      },
+      "a2": {
+        "role": "secondary",
+        "displayName": "Answer Blue",
+        "tonalRamp": [
+          "oklch(15% 0.1753 256.80)",
+          "oklch(27% 0.1753 256.80)",
+          "oklch(39% 0.1753 256.80)",
+          "oklch(51% 0.1753 256.80)",
+          "oklch(63% 0.1753 256.80)",
+          "oklch(75% 0.1753 256.80)",
+          "oklch(87% 0.1753 256.80)",
+          "oklch(95% 0.1753 256.80)"
+        ]
+      },
+      "a3": {
+        "role": "secondary",
+        "displayName": "Answer Yellow",
+        "tonalRamp": [
+          "oklch(15% 0.1514 82.14)",
+          "oklch(27% 0.1514 82.14)",
+          "oklch(39% 0.1514 82.14)",
+          "oklch(51% 0.1514 82.14)",
+          "oklch(63% 0.1514 82.14)",
+          "oklch(75% 0.1514 82.14)",
+          "oklch(87% 0.1514 82.14)",
+          "oklch(95% 0.1514 82.14)"
+        ]
+      },
+      "a4": {
+        "role": "secondary",
+        "displayName": "Answer Green",
+        "tonalRamp": [
+          "oklch(15% 0.1751 140.69)",
+          "oklch(27% 0.1751 140.69)",
+          "oklch(39% 0.1751 140.69)",
+          "oklch(51% 0.1751 140.69)",
+          "oklch(63% 0.1751 140.69)",
+          "oklch(75% 0.1751 140.69)",
+          "oklch(87% 0.1751 140.69)",
+          "oklch(95% 0.1751 140.69)"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Working Ink",
+        "tonalRamp": [
+          "#171717",
+          "#222222",
+          "#333333",
+          "#414141",
+          "#6e6e6e",
+          "#b2b2b2",
+          "#ebebeb",
+          "#f2f2f2"
+        ]
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "Muted Ink",
+        "tonalRamp": [
+          "#171717",
+          "#222222",
+          "#333333",
+          "#414141",
+          "#6e6e6e",
+          "#b2b2b2",
+          "#ebebeb",
+          "#f2f2f2"
+        ]
+      },
+      "line": {
+        "role": "neutral",
+        "displayName": "Control Line",
+        "tonalRamp": [
+          "#171717",
+          "#222222",
+          "#333333",
+          "#414141",
+          "#6e6e6e",
+          "#b2b2b2",
+          "#ebebeb",
+          "#f2f2f2"
+        ]
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "White Surface",
+        "tonalRamp": [
+          "#171717",
+          "#222222",
+          "#333333",
+          "#414141",
+          "#6e6e6e",
+          "#b2b2b2",
+          "#ebebeb",
+          "#f2f2f2"
+        ]
+      },
+      "raised": {
+        "role": "neutral",
+        "displayName": "Creator Gray",
+        "tonalRamp": [
+          "#171717",
+          "#222222",
+          "#333333",
+          "#414141",
+          "#6e6e6e",
+          "#b2b2b2",
+          "#ebebeb",
+          "#f2f2f2"
+        ]
+      },
+      "answer-dark-ink": {
+        "role": "neutral",
+        "displayName": "Answer Dark Ink",
+        "tonalRamp": [
+          "oklch(15% 0.0190 266.07)",
+          "oklch(27% 0.0190 266.07)",
+          "oklch(39% 0.0190 266.07)",
+          "oklch(51% 0.0190 266.07)",
+          "oklch(63% 0.0190 266.07)",
+          "oklch(75% 0.0190 266.07)",
+          "oklch(87% 0.0190 266.07)",
+          "oklch(95% 0.0190 266.07)"
+        ]
+      },
+      "danger-ink": {
+        "role": "secondary",
+        "displayName": "Danger Ink",
+        "tonalRamp": [
+          "oklch(15% 0.1930 20.91)",
+          "oklch(27% 0.1930 20.91)",
+          "oklch(39% 0.1930 20.91)",
+          "oklch(51% 0.1930 20.91)",
+          "oklch(63% 0.1930 20.91)",
+          "oklch(75% 0.1930 20.91)",
+          "oklch(87% 0.1930 20.91)",
+          "oklch(95% 0.1930 20.91)"
+        ]
+      },
+      "dark-surface": {
+        "role": "neutral",
+        "displayName": "Dark Surface",
+        "tonalRamp": [
+          "#171717",
+          "#222222",
+          "#333333",
+          "#414141",
+          "#6e6e6e",
+          "#b2b2b2",
+          "#ebebeb",
+          "#f2f2f2"
+        ]
+      },
+      "dark-raised": {
+        "role": "neutral",
+        "displayName": "Dark Raised Surface",
+        "tonalRamp": [
+          "#171717",
+          "#222222",
+          "#333333",
+          "#414141",
+          "#6e6e6e",
+          "#b2b2b2",
+          "#ebebeb",
+          "#f2f2f2"
+        ]
+      },
+      "dark-sunken": {
+        "role": "neutral",
+        "displayName": "Dark Sunken Surface",
+        "tonalRamp": [
+          "#171717",
+          "#222222",
+          "#333333",
+          "#414141",
+          "#6e6e6e",
+          "#b2b2b2",
+          "#ebebeb",
+          "#f2f2f2"
+        ]
+      },
+      "dark-ink": {
+        "role": "neutral",
+        "displayName": "Dark Working Ink",
+        "tonalRamp": [
+          "#171717",
+          "#222222",
+          "#333333",
+          "#414141",
+          "#6e6e6e",
+          "#b2b2b2",
+          "#ebebeb",
+          "#f2f2f2"
+        ]
+      },
+      "dark-muted": {
+        "role": "neutral",
+        "displayName": "Dark Muted Ink",
+        "tonalRamp": [
+          "#171717",
+          "#222222",
+          "#333333",
+          "#414141",
+          "#6e6e6e",
+          "#b2b2b2",
+          "#ebebeb",
+          "#f2f2f2"
+        ]
+      },
+      "dark-line": {
+        "role": "neutral",
+        "displayName": "Dark Control Line",
+        "tonalRamp": [
+          "#171717",
+          "#222222",
+          "#333333",
+          "#414141",
+          "#6e6e6e",
+          "#b2b2b2",
+          "#ebebeb",
+          "#f2f2f2"
+        ]
+      },
+      "dark-danger-ink": {
+        "role": "secondary",
+        "displayName": "Dark Danger Ink",
+        "tonalRamp": [
+          "oklch(15% 0.1410 11.09)",
+          "oklch(27% 0.1410 11.09)",
+          "oklch(39% 0.1410 11.09)",
+          "oklch(51% 0.1410 11.09)",
+          "oklch(63% 0.1410 11.09)",
+          "oklch(75% 0.1410 11.09)",
+          "oklch(87% 0.1410 11.09)",
+          "oklch(95% 0.1410 11.09)"
+        ]
+      },
+      "dark-accent": {
+        "role": "secondary",
+        "displayName": "Dark Accent",
+        "tonalRamp": [
+          "#19053c",
+          "#25076b",
+          "#341069",
+          "#46178f",
+          "#9768cf",
+          "#c4a2f2",
+          "#d8c2f1",
+          "#f5effc"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Shared projector variant; live answers inherit their contextual size."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Fluid activity-list heading."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Dialog and question hierarchy."
+      },
+      "heading": {
+        "displayName": "Heading",
+        "purpose": "Section and shared-state titles."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Running content and shared fields."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Labels and separate answer feedback."
+      },
+      "caption": {
+        "displayName": "Caption",
+        "purpose": "Hints, counters, and property metadata."
+      }
+    },
+    "shadows": [
+      {
+        "name": "press",
+        "value": "0 2px 4px rgba(0,0,0,.15), inset 0 -4px 0 rgba(0,0,0,.25)",
+        "purpose": "Shared primary actions, answer tiles, and student submit controls."
+      },
+      {
+        "name": "answer-hover",
+        "value": "0 4px 8px #0003, inset 0 -4px 0 #0004",
+        "purpose": "Shared answer hover without a fill change."
+      },
+      {
+        "name": "stage-answer-edge",
+        "value": "inset 0 -4px 0 #0003",
+        "purpose": "Creator and live answer bottom edge."
+      },
+      {
+        "name": "creator-toolbar",
+        "value": "0 2px 4px #0000001a",
+        "purpose": "Toolbar separation from the workspace."
+      },
+      {
+        "name": "question-panel",
+        "value": "0 4px 0 #0002",
+        "purpose": "White classroom prompt panel."
+      },
+      {
+        "name": "drawer-separation",
+        "value": "0 0 40px rgba(0,0,0,.25)",
+        "purpose": "Temporary current-editor rails."
+      }
+    ],
+    "motion": [
+      {
+        "name": "t-select",
+        "value": "100ms",
+        "purpose": "Shared press and selection changes."
+      },
+      {
+        "name": "t-state",
+        "value": "200ms",
+        "purpose": "Shared background, border, and text-state changes."
+      },
+      {
+        "name": "t-panel",
+        "value": "300ms",
+        "purpose": "Shared dialog fade and entrance."
+      },
+      {
+        "name": "ease",
+        "value": "cubic-bezier(0.2, 0, 0, 1)",
+        "purpose": "Shared state-transition easing."
+      },
+      {
+        "name": "distribution-grow",
+        "value": "600ms ease-out",
+        "purpose": "Live session distribution bar appearance."
+      },
+      {
+        "name": "distribution-stagger",
+        "value": "80ms",
+        "purpose": "Step between live distribution bars in SessionPage."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "editor-drawers",
+        "value": "1024px"
+      },
+      {
+        "name": "editor-answer-columns",
+        "value": "720px"
+      },
+      {
+        "name": "compact-stage-and-toolbar",
+        "value": "700px"
+      },
+      {
+        "name": "delivery-single-column",
+        "value": "640px"
+      },
+      {
+        "name": "student-single-column",
+        "value": "640px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Primary Button from the shared Button component; disabled and focus treatments remain explicit.",
+      "html": "<button type=\"button\" class=\"ds-button-primary\">Publish</button>",
+      "css": ".ds-button-primary{display:inline-flex;align-items:center;justify-content:center;gap:var(--s-2,8px);min-height:var(--h-control,48px);padding:0 var(--s-5,24px);border:1px solid transparent;border-radius:var(--r-control,4px);font-family:Montserrat,\"Neo Sans Arabic\",sans-serif;font-size:16px;font-weight:700;line-height:1;cursor:pointer;transition:background-color var(--t-state,200ms) var(--ease,cubic-bezier(.2,0,0,1)),border-color var(--t-state,200ms) var(--ease,cubic-bezier(.2,0,0,1)),color var(--t-state,200ms) var(--ease,cubic-bezier(.2,0,0,1)),transform var(--t-select,100ms) var(--ease,cubic-bezier(.2,0,0,1)),box-shadow var(--t-select,100ms) var(--ease,cubic-bezier(.2,0,0,1));background:var(--act,#1368ce);color:var(--on-act,#fff);box-shadow:var(--press,0 2px 4px rgba(0,0,0,.15),inset 0 -4px 0 rgba(0,0,0,.25));}.ds-button-primary:hover:not(:disabled){background:var(--act-press,#105cb4);}.ds-button-primary:active:not(:disabled){transform:translateY(4px);box-shadow:0 0 0 rgba(0,0,0,.15),inset 0 0 0 rgba(0,0,0,.25);}.ds-button-primary:focus-visible{outline:var(--focus-ring,3px) solid var(--focus-colour,#141821);outline-offset:var(--focus-offset,2px);}.ds-button-primary:disabled{opacity:.5;cursor:not-allowed;}@media(prefers-reduced-motion:reduce){.ds-button-primary{transition:none;}}"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Secondary Button from the shared Button component; disabled and focus treatments remain explicit.",
+      "html": "<button type=\"button\" class=\"ds-button-secondary\">Preview</button>",
+      "css": ".ds-button-secondary{display:inline-flex;align-items:center;justify-content:center;gap:var(--s-2,8px);min-height:var(--h-control,48px);padding:0 var(--s-5,24px);border:1px solid transparent;border-radius:var(--r-control,4px);font-family:Montserrat,\"Neo Sans Arabic\",sans-serif;font-size:16px;font-weight:700;line-height:1;cursor:pointer;transition:background-color var(--t-state,200ms) var(--ease,cubic-bezier(.2,0,0,1)),border-color var(--t-state,200ms) var(--ease,cubic-bezier(.2,0,0,1)),color var(--t-state,200ms) var(--ease,cubic-bezier(.2,0,0,1)),transform var(--t-select,100ms) var(--ease,cubic-bezier(.2,0,0,1)),box-shadow var(--t-select,100ms) var(--ease,cubic-bezier(.2,0,0,1));background:var(--surface,#fff);color:var(--ink,#333);border-color:var(--line,#ccc);}.ds-button-secondary:hover:not(:disabled){background:var(--raised,#f2f2f2);border-color:var(--muted,#6e6e6e);}.ds-button-secondary:active:not(:disabled){background:var(--sunken,#f2f2f2);}.ds-button-secondary:focus-visible{outline:var(--focus-ring,3px) solid var(--focus-colour,#141821);outline-offset:var(--focus-offset,2px);}.ds-button-secondary:disabled{opacity:.5;cursor:not-allowed;}@media(prefers-reduced-motion:reduce){.ds-button-secondary{transition:none;}}"
+    },
+    {
+      "name": "Quiet Button",
+      "kind": "button",
+      "refersTo": "button-quiet",
+      "description": "Quiet Button from the shared Button component; disabled and focus treatments remain explicit.",
+      "html": "<button type=\"button\" class=\"ds-button-quiet\">Copy activity</button>",
+      "css": ".ds-button-quiet{display:inline-flex;align-items:center;justify-content:center;gap:var(--s-2,8px);min-height:var(--h-control,48px);padding:0 var(--s-5,24px);border:1px solid transparent;border-radius:var(--r-control,4px);font-family:Montserrat,\"Neo Sans Arabic\",sans-serif;font-size:16px;font-weight:700;line-height:1;cursor:pointer;transition:background-color var(--t-state,200ms) var(--ease,cubic-bezier(.2,0,0,1)),border-color var(--t-state,200ms) var(--ease,cubic-bezier(.2,0,0,1)),color var(--t-state,200ms) var(--ease,cubic-bezier(.2,0,0,1)),transform var(--t-select,100ms) var(--ease,cubic-bezier(.2,0,0,1)),box-shadow var(--t-select,100ms) var(--ease,cubic-bezier(.2,0,0,1));background:transparent;color:var(--ink,#333);}.ds-button-quiet:hover:not(:disabled){background:var(--raised,#f2f2f2);}.ds-button-quiet:focus-visible{outline:var(--focus-ring,3px) solid var(--focus-colour,#141821);outline-offset:var(--focus-offset,2px);}.ds-button-quiet:disabled{opacity:.5;cursor:not-allowed;}@media(prefers-reduced-motion:reduce){.ds-button-quiet{transition:none;}}"
+    },
+    {
+      "name": "Danger Button",
+      "kind": "button",
+      "refersTo": "button-danger",
+      "description": "Danger Button from the shared Button component; disabled and focus treatments remain explicit.",
+      "html": "<button type=\"button\" class=\"ds-button-danger\">Delete question</button>",
+      "css": ".ds-button-danger{display:inline-flex;align-items:center;justify-content:center;gap:var(--s-2,8px);min-height:var(--h-control,48px);padding:0 var(--s-5,24px);border:1px solid transparent;border-radius:var(--r-control,4px);font-family:Montserrat,\"Neo Sans Arabic\",sans-serif;font-size:16px;font-weight:700;line-height:1;cursor:pointer;transition:background-color var(--t-state,200ms) var(--ease,cubic-bezier(.2,0,0,1)),border-color var(--t-state,200ms) var(--ease,cubic-bezier(.2,0,0,1)),color var(--t-state,200ms) var(--ease,cubic-bezier(.2,0,0,1)),transform var(--t-select,100ms) var(--ease,cubic-bezier(.2,0,0,1)),box-shadow var(--t-select,100ms) var(--ease,cubic-bezier(.2,0,0,1));background:var(--surface,#fff);color:var(--danger-ink,#b8122f);border-color:var(--danger-ink,#b8122f);}.ds-button-danger:hover:not(:disabled){background:var(--a1,#e21b3c);color:var(--on-a1,#fff);}.ds-button-danger:focus-visible{outline:var(--focus-ring,3px) solid var(--focus-colour,#141821);outline-offset:var(--focus-offset,2px);}.ds-button-danger:disabled{opacity:.5;cursor:not-allowed;}@media(prefers-reduced-motion:reduce){.ds-button-danger{transition:none;}}"
+    },
+    {
+      "name": "Labeled Field",
+      "kind": "input",
+      "refersTo": "field",
+      "description": "Shared neutral input with visible label and associated hint.",
+      "html": "<div class=\"ds-field\"><label class=\"ds-field-label\" for=\"ds-field-pin\">Class PIN</label><input class=\"ds-field-input\" id=\"ds-field-pin\" dir=\"ltr\" inputmode=\"numeric\" placeholder=\"123456\" aria-describedby=\"ds-field-hint\"><span class=\"ds-field-hint\" id=\"ds-field-hint\">Enter the six-digit code.</span></div>",
+      "css": ".ds-field{display:flex;flex-direction:column;gap:var(--s-2,8px);font-family:Montserrat,\"Neo Sans Arabic\",sans-serif;font-size:16px;line-height:1.7;max-width:360px;}.ds-field-label{font-size:var(--f-small,14px);font-weight:700;color:var(--ink,#333);}.ds-field-input{min-height:var(--h-control,48px);padding:0 var(--s-3,12px);border:1px solid var(--line,#ccc);border-radius:var(--r-control,4px);background:var(--surface,#fff);color:var(--ink,#333);font:inherit;transition:border-color var(--t-state,200ms) var(--ease,cubic-bezier(.2,0,0,1)),background-color var(--t-state,200ms) var(--ease,cubic-bezier(.2,0,0,1));}.ds-field-input::placeholder,.ds-field-hint{color:var(--muted,#6e6e6e);}.ds-field-hint{font-size:var(--f-small,14px);}.ds-field-input:hover:not(:disabled){border-color:var(--muted,#6e6e6e);}.ds-field-input:focus-visible{outline:var(--focus-ring,3px) solid var(--focus-colour,#141821);outline-offset:var(--focus-offset,2px);border-color:var(--act,#1368ce);}.ds-field-input:disabled{background:var(--sunken,#f2f2f2);color:var(--muted,#6e6e6e);cursor:not-allowed;}.ds-field-input[aria-invalid=true]{border-color:var(--danger-ink,#b8122f);}@media(prefers-reduced-motion:reduce){.ds-field-input{transition:none;}}"
+    },
+    {
+      "name": "Neutral Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "Shared resting container with a border and no ambient shadow.",
+      "html": "<article class=\"ds-card\"><h2 class=\"ds-card-title\">Activity details</h2><p class=\"ds-card-body\">Choose an activity and review its questions before delivery.</p></article>",
+      "css": ".ds-card{border:1px solid var(--line,#ccc);border-radius:var(--r-card,8px);background:var(--surface,#fff);color:var(--ink,#333);padding:var(--s-5,24px);font-family:Montserrat,\"Neo Sans Arabic\",sans-serif;font-size:16px;line-height:1.7;max-width:440px;}.ds-card-title{font-size:var(--f-title,24px);font-weight:700;line-height:var(--lh-title,1.25);margin:0 0 var(--s-3,12px);}.ds-card-body{margin:0;}"
+    },
+    {
+      "name": "Question Navigation",
+      "kind": "nav",
+      "refersTo": "question-navigation",
+      "description": "Current creator previews with active perimeter, prompt, ordinal, and answer strip.",
+      "html": "<nav class=\"ds-question-nav\" aria-label=\"Activity questions\"><button class=\"ds-question-preview\" type=\"button\" aria-current=\"true\"><span class=\"ds-question-ordinal\" dir=\"ltr\">1</span><span class=\"ds-question-prompt\">Choose the first region</span></button><button class=\"ds-question-preview\" type=\"button\"><span class=\"ds-question-ordinal\" dir=\"ltr\">2</span><span class=\"ds-question-prompt\">Match each card</span></button></nav>",
+      "css": ".ds-question-nav{display:flex;flex-direction:column;gap:var(--s-2,8px);padding:var(--s-3,12px);background:var(--surface,#fff);width:180px;font-family:Montserrat,\"Neo Sans Arabic\",sans-serif;}.ds-question-preview{position:relative;display:flex;flex-direction:column;gap:var(--s-1,4px);width:100%;min-height:112px;padding:var(--s-2,8px);border:2px solid var(--line,#ccc);border-radius:var(--r-control,4px);background:var(--surface,#fff);color:var(--ink,#333);text-align:start;font:inherit;cursor:pointer;box-shadow:0 2px 2px #0001;transition:border-color var(--t-state,200ms) var(--ease,cubic-bezier(.2,0,0,1)),background-color var(--t-state,200ms) var(--ease,cubic-bezier(.2,0,0,1));}.ds-question-preview:hover{background:var(--raised,#f2f2f2);}.ds-question-preview:focus-visible{outline:var(--focus-ring,3px) solid var(--focus-colour,#141821);outline-offset:var(--focus-offset,2px);}.ds-question-preview[aria-current=true]{border:3px solid var(--act,#1368ce);background:#e5f2ff;}.ds-question-ordinal{font-size:14px;font-weight:700;color:var(--muted,#6e6e6e);font-variant-numeric:tabular-nums;}.ds-question-prompt{font-size:var(--f-small,14px);line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;text-align:center;padding:8px 0;min-height:40px;}.ds-question-preview::after{content:\"\";display:block;height:18px;background:linear-gradient(90deg,var(--a1,#e21b3c) 0 24%,transparent 24% 26%,var(--a2,#1368ce) 26% 49%,transparent 49% 51%,var(--a3,#d89e00) 51% 74%,transparent 74% 76%,var(--a4,#26890c) 76%);border-radius:2px;}@media(prefers-reduced-motion:reduce){.ds-question-preview{transition:none;}}"
+    },
+    {
+      "name": "Answer Feedback Badge",
+      "kind": "chip",
+      "refersTo": "feedback-badge",
+      "description": "Non-interactive correctness badge; the containing answer reserves a separate row.",
+      "html": "<span class=\"ds-feedback-badge\"><svg viewBox=\"0 0 24 24\" width=\"16\" height=\"16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" aria-hidden=\"true\"><path d=\"m20 6-11 11-5-5\"/></svg>Correct answer</span>",
+      "css": ".ds-feedback-badge{display:inline-flex;align-items:center;justify-content:center;gap:var(--s-1,4px);padding:2px var(--s-2,8px);border-radius:var(--r-control,4px);background:var(--surface,#fff);color:var(--ink,#333);font-family:Montserrat,\"Neo Sans Arabic\",sans-serif;font-size:var(--f-small,14px);font-weight:700;line-height:1.5;max-width:100%;overflow-wrap:anywhere;}.ds-feedback-badge svg{flex-shrink:0;}"
+    },
+    {
+      "name": "Four Answer Tiles",
+      "kind": "custom",
+      "refersTo": "answer-tile",
+      "description": "The fixed slot identities, including contained correctness feedback and the green label minimum.",
+      "html": "<div class=\"ds-answer-grid\"><button type=\"button\" class=\"ds-answer ds-answer-1 ds-answer-correct\" aria-label=\"First answer, correct answer\"><svg class=\"ds-answer-glyph\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M12 3 22 21H2Z\"/></svg><span class=\"ds-answer-label\">First answer</span><span class=\"ds-answer-mark\"><svg viewBox=\"0 0 24 24\" width=\"16\" height=\"16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" aria-hidden=\"true\"><path d=\"m20 6-11 11-5-5\"/></svg>Correct answer</span></button><button type=\"button\" class=\"ds-answer ds-answer-2\"><svg class=\"ds-answer-glyph\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M12 2 22 12 12 22 2 12Z\"/></svg><span class=\"ds-answer-label\">Second answer</span></button><button type=\"button\" class=\"ds-answer ds-answer-3\"><svg class=\"ds-answer-glyph\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"10\"/></svg><span class=\"ds-answer-label\">Third answer</span></button><button type=\"button\" class=\"ds-answer ds-answer-4\"><svg class=\"ds-answer-glyph\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><rect x=\"2.5\" y=\"2.5\" width=\"19\" height=\"19\" rx=\"1\"/></svg><span class=\"ds-answer-label\">Fourth answer</span></button></div>",
+      "css": ".ds-answer-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;max-width:880px;}.ds-answer{position:relative;display:flex;align-items:center;flex-wrap:wrap;gap:var(--s-3,12px);width:100%;min-width:0;max-width:100%;min-height:var(--h-control,48px);padding:var(--s-3,12px) var(--s-4,16px);border:0;border-radius:var(--r-control,4px);font-family:Montserrat,\"Neo Sans Arabic\",sans-serif;font-size:16px;font-weight:700;text-align:start;cursor:pointer;box-shadow:var(--press,0 2px 4px rgba(0,0,0,.15),inset 0 -4px 0 rgba(0,0,0,.25));transition:transform var(--t-select,100ms) var(--ease,cubic-bezier(.2,0,0,1)),box-shadow var(--t-select,100ms) var(--ease,cubic-bezier(.2,0,0,1)),opacity var(--t-state,200ms) var(--ease,cubic-bezier(.2,0,0,1));}.ds-answer-1{background:var(--a1,#e21b3c);color:var(--on-a1,#fff);}.ds-answer-2{background:var(--a2,#1368ce);color:var(--on-a2,#fff);}.ds-answer-3{background:var(--a3,#d89e00);color:var(--on-a3,#141821);}.ds-answer-4{background:var(--a4,#26890c);color:var(--on-a4,#fff);}.ds-answer:hover:not(:disabled){box-shadow:0 4px 8px #0003,inset 0 -4px 0 #0004;}.ds-answer:active:not(:disabled){transform:translateY(4px);box-shadow:0 0 0 rgba(0,0,0,.15),inset 0 0 0 rgba(0,0,0,.25);}.ds-answer:focus-visible{outline:var(--focus-ring,3px) solid var(--focus-colour,#141821);outline-offset:var(--focus-offset,2px);}.ds-answer:disabled{opacity:.45;cursor:not-allowed;}.ds-answer-glyph{flex:0 0 auto;width:1.5em;height:1.5em;fill:currentColor;}.ds-answer-label{flex:1 1 auto;min-width:0;overflow-wrap:anywhere;}.ds-answer-4 .ds-answer-label{font-size:max(1.25rem,1em);}.ds-answer-correct{outline:3px solid var(--evidence,#26890c);outline-offset:2px;}.ds-answer-correct .ds-answer-label{flex:1 1 0;}.ds-answer-mark{display:inline-flex;align-items:center;justify-content:center;flex:0 1 100%;gap:var(--s-1,4px);max-width:100%;padding:2px var(--s-2,8px);border-radius:var(--r-control,4px);background:var(--surface,#fff);color:var(--ink,#333);font-size:var(--f-small,14px);font-weight:700;line-height:1.5;overflow-wrap:anywhere;}.ds-answer-mark svg{flex-shrink:0;}@media(prefers-reduced-motion:reduce){.ds-answer{transition:none;}}"
+    },
+    {
+      "name": "Classroom Stage",
+      "kind": "custom",
+      "refersTo": "classroom-stage",
+      "description": "White prompt panel on classic purple with four fixed answer identities at classroom scale.",
+      "html": "<section class=\"ds-stage\" aria-label=\"Classroom question\"><h2 class=\"ds-stage-prompt\">Which answer is correct?</h2><div class=\"ds-stage-answers\"><button type=\"button\" class=\"ds-stage-answer ds-stage-answer-1\"><svg class=\"ds-stage-glyph\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M12 3 22 21H2Z\"/></svg><span class=\"ds-stage-label\">First answer</span></button><button type=\"button\" class=\"ds-stage-answer ds-stage-answer-2\"><svg class=\"ds-stage-glyph\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M12 2 22 12 12 22 2 12Z\"/></svg><span class=\"ds-stage-label\">Second answer</span></button><button type=\"button\" class=\"ds-stage-answer ds-stage-answer-3\"><svg class=\"ds-stage-glyph\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"10\"/></svg><span class=\"ds-stage-label\">Third answer</span></button><button type=\"button\" class=\"ds-stage-answer ds-stage-answer-4\"><svg class=\"ds-stage-glyph\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><rect x=\"2.5\" y=\"2.5\" width=\"19\" height=\"19\" rx=\"1\"/></svg><span class=\"ds-stage-label\">Fourth answer</span></button></div></section>",
+      "css": ".ds-stage{background:var(--brand,#46178f);color:#fff;padding:24px clamp(16px,3vw,48px) 32px;font-family:Montserrat,\"Neo Sans Arabic\",sans-serif;overflow-wrap:anywhere;}.ds-stage-prompt{background:#fff;color:#333;border-radius:4px;padding:20px 24px;font-size:clamp(40px,4vw,72px);line-height:1.4;font-weight:700;margin:12px auto 32px;text-align:center;max-width:100%;text-wrap:balance;box-shadow:0 4px 0 #0002;}.ds-stage-answers{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;}.ds-stage-answer{display:flex;align-items:center;gap:12px;min-width:0;min-height:120px;padding:12px 16px;border:0;border-radius:4px;font-family:Montserrat,\"Neo Sans Arabic\",sans-serif;font-size:clamp(24px,2.7vw,46px);font-weight:700;text-align:start;box-shadow:inset 0 -4px 0 #0003;cursor:pointer;transition:transform 100ms cubic-bezier(.2,0,0,1);}.ds-stage-answer-1{background:var(--a1,#e21b3c);color:var(--on-a1,#fff);}.ds-stage-answer-2{background:var(--a2,#1368ce);color:var(--on-a2,#fff);}.ds-stage-answer-3{background:var(--a3,#d89e00);color:var(--on-a3,#141821);}.ds-stage-answer-4{background:var(--a4,#26890c);color:var(--on-a4,#fff);}.ds-stage-answer:active{transform:translateY(4px);}.ds-stage-answer:focus-visible{outline:3px solid #fff;outline-offset:4px;}.ds-stage-glyph{width:1.5em;height:1.5em;fill:currentColor;flex:0 0 auto;}.ds-stage-label{flex:1 1 auto;min-width:0;overflow-wrap:anywhere;}.ds-stage-answer-4 .ds-stage-label{font-size:max(1.25rem,1em);}@media(max-width:700px){.ds-stage-prompt{padding:16px;font-size:32px;}.ds-stage-answers{gap:8px;}.ds-stage-answer{font-size:22px;min-height:96px;padding:16px;}}@media(prefers-reduced-motion:reduce){.ds-stage-answer{transition:none;}}"
+    },
+    {
+      "name": "Student PIN Panel",
+      "kind": "custom",
+      "refersTo": "student-live-panel",
+      "description": "Student workspace live-class entry: white PIN and Join controls on purple, with explicit placeholders, white focus, and reduced-motion press behavior.",
+      "html": "<section class=\"ds-student-live\" aria-labelledby=\"ds-student-live-title\"><div><h2 id=\"ds-student-live-title\">Join the class</h2><p>Your teacher will show a PIN when the class is ready.</p></div><div class=\"ds-student-pin-form\"><label for=\"ds-student-pin\">Game PIN</label><input id=\"ds-student-pin\" inputmode=\"numeric\" dir=\"ltr\" placeholder=\"123 456\" autocomplete=\"off\"><button type=\"button\">Join</button></div></section>",
+      "css": ".ds-student-live{display:grid;grid-template-columns:minmax(0,1fr) 280px;align-items:center;gap:40px;background:var(--brand,#46178f);color:#fff;padding:36px;border-radius:8px;font-family:Montserrat,\"Neo Sans Arabic\",sans-serif}.ds-student-live h2{font-size:32px;font-weight:800;margin:12px 0}.ds-student-live p{line-height:1.7;margin:8px 0}.ds-student-pin-form{display:grid;gap:10px;min-width:0}.ds-student-pin-form label{font-weight:700;font-size:14px;margin-bottom:8px}.ds-student-pin-form input{width:100%;min-width:0;min-height:48px;padding:12px;border:1px solid var(--line,#ccc);border-radius:4px;font:inherit;background:#fff;color:#333;text-align:center;font-weight:800;font-size:24px;letter-spacing:.08em}.ds-student-pin-form input::placeholder{color:#6e6e6e;opacity:1}.ds-student-pin-form button{min-height:48px;padding:10px 24px;border:0;border-radius:4px;background:#fff;color:#333;box-shadow:var(--press,0 2px 4px rgba(0,0,0,.15),inset 0 -4px 0 rgba(0,0,0,.25));font:inherit;font-weight:700;cursor:pointer;transition:transform 100ms,filter 150ms,box-shadow 100ms}.ds-student-pin-form button:active{transform:translateY(4px);box-shadow:inset 0 -1px 0 rgba(0,0,0,.15)}.ds-student-pin-form :is(input,button):focus-visible{outline:3px solid #fff;outline-offset:2px}@media(hover:hover){.ds-student-pin-form button:hover{filter:brightness(.94)}}@media(max-width:640px){.ds-student-live{grid-template-columns:1fr;gap:20px;padding:24px}.ds-student-live h2{font-size:28px}}@media(prefers-reduced-motion:reduce){.ds-student-pin-form button{transition:none}.ds-student-pin-form button:active{transform:none}}"
+    }
+  ],
+  "narrative": {
+    "northStar": "Familiar quiz authoring and a theatrical classroom",
+    "overview": "Asasera uses the user's Kahoot reference as its visual authority. Authoring is a compact working environment: white controls and rails, gray canvas, a centered question, and colored answer inputs. Classroom delivery expands that same vocabulary into a purple stage with large white question and PIN panels. The four answer colors remain recognizable across authoring, preview, classroom play, and homework.\n\nArabic leads the content and direction model; Latin uses Montserrat alongside the locally hosted Arabic face. Clear wording, shape, selection outlines, and a separate feedback row carry information alongside color. The interface supports the sequence of authoring, approval, delivery, play, and evidence without making each step a new visual identity.",
+    "keyCharacteristics": [
+      "Purple classroom ground and gray creator canvas.",
+      "Fixed red triangle, blue diamond, yellow circle, and green square answer identities.",
+      "Compact rectangular controls, softly rounded containers, and tactile answer presses.",
+      "Large classroom type, wrapping answer text, and feedback in its own row.",
+      "Mirrored interface chrome with stable image geometry and numeric identifiers."
+    ],
+    "rules": [
+      {
+        "name": "The Paired Identity Rule",
+        "body": "Keep each answer slot's color and shape together: red triangle, blue diamond, yellow circle, green square. Use text and a mark to report correctness.",
+        "section": "colors"
+      },
+      {
+        "name": "The Foreground Rule",
+        "body": "Use white on red and blue answers and dark ink on yellow answers. White on the shared green answer tile requires a bold label of at least 20px; preserve the inherited classroom size when it is larger.",
+        "section": "colors"
+      },
+      {
+        "name": "The Inherited Answer Size Rule",
+        "body": "An answer label inherits its tile's size. The green minimum may enlarge a small label, but it must never reduce a classroom label to the minimum.",
+        "section": "typography"
+      },
+      {
+        "name": "The Separate Feedback Rule",
+        "body": "Answer glyph and wording share the main row. Correctness text and trailing feedback wrap into a contained row beneath them at the small-label size.",
+        "section": "typography"
+      },
+      {
+        "name": "The Stable Geometry Rule",
+        "body": "Mirror interface chrome through logical start/end properties. Keep image regions and their coordinates in the same physical image frame; numeric PINs and coordinates retain left-to-right presentation.",
+        "section": "layout"
+      },
+      {
+        "name": "The Pressed Key Rule",
+        "body": "Primary actions and shared answer tiles move down by 4px on press as their inset edge disappears; avoid an unrelated lift or bounce for that same state.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Four Shapes Rule",
+        "body": "Draw the answer symbols as SVG geometry and keep their identities stable as they scale. They are answer markers, not general-purpose decorations.",
+        "section": "shapes"
+      }
+    ],
+    "dos": [
+      "Do keep answer color and shape paired across authoring, preview, classroom, and homework.",
+      "Do use the neutral creator canvas and purple classroom ground for their established contexts.",
+      "Do preserve the green shared-answer minimum and let classroom labels inherit the full tile size.",
+      "Do keep feedback beneath the answer row and allow long Arabic wording to wrap.",
+      "Do preserve visible keyboard focus, written state information, and reduced-motion feedback.",
+      "Do use the two established corner roles and the shared spacing rhythm.",
+      "Don't restore the historical blue/teal identity or five-pixel-only corner rule from the superseded guide.",
+      "Don't use an answer fill alone to communicate correct, incorrect, selected, or pending state.",
+      "Don't shrink the green classroom label to 20px when its tile is larger.",
+      "Don't use yellow as small foreground wording on a neutral surface.",
+      "Don't replace answer SVG shapes with emoji or font glyphs.",
+      "Don't promote unconsumed motion tokens, legacy glyph controls, or the Arabic weight-file limitation into rules for future surfaces."
+    ],
+    "donts": [
+      "Don't restore the historical blue/teal identity or five-pixel-only corner rule from the superseded guide.",
+      "Don't use an answer fill alone to communicate correct, incorrect, selected, or pending state.",
+      "Don't shrink the green classroom label to 20px when its tile is larger.",
+      "Don't use yellow as small foreground wording on a neutral surface.",
+      "Don't replace answer SVG shapes with emoji or font glyphs.",
+      "Don't promote unconsumed motion tokens, legacy glyph controls, or the Arabic weight-file limitation into rules for future surfaces."
+    ]
+  }
+}

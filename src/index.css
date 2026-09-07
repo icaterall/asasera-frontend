@@ -11,6 +11,23 @@
  */
 @import "./styles/tokens.css";
 
+/*
+ * Auth screens. Scoped to `.auth-scope`, so the five exact brand values the
+ * sign-in and registration screens are specified in do not leak into the
+ * landing page's palette. See the header of that file.
+ */
+@import "./styles/auth.css";
+@import "./styles/auth-backdrop.css";
+@import "./styles/teacher.css";
+@import "./styles/editor.css";
+
+/*
+ * The v4 token layer (app-plan.pdf §5). Imported LAST so it wins over the
+ * legacy sheets above where a name is shared — though it is scoped to `.asas`
+ * precisely so that sharing never happens. See the header of that file.
+ */
+@import "./design/tokens.css";
+
 /* Class-based dark mode (toggled on <html>) instead of prefers-color-scheme only. */
 @custom-variant dark (&:where(.dark, .dark *));
 
@@ -18,73 +35,43 @@
  * Design tokens
  * ------------------------------------------------------------------ */
 @theme {
-  /*
-   * Brand — primary. #004ccc is the committed brand colour and is anchored
-   * exactly at 500; the rest of the ramp holds its hue (218°) and varies
-   * lightness. Because 500 is dark, it is a superb foreground on the light
-   * canvas and a poor one on the dark canvas — see --accent below, which is
-   * what UI text and hairlines actually use.
-   */
-  --color-brand-50: #f0f5ff;
-  --color-brand-100: #e0ecff;
-  --color-brand-200: #bdd5ff;
-  --color-brand-300: #8ab5ff;
-  --color-brand-400: #3d84ff;
-  --color-brand-500: #004ccc;
-  --color-brand-600: #0040ad;
-  --color-brand-700: #00348f;
-  --color-brand-800: #002b75;
-  --color-brand-900: #02245e;
-  --color-brand-950: #03173a;
-
-  /* Teal — secondary. #14bf96 anchored at 500, hue held at 166°. */
-  --color-teal-300: #7de8cf;
-  --color-teal-400: #3adfb8;
-  --color-teal-500: #14bf96;
-  --color-teal-600: #0c9777;
-  --color-teal-700: #08785e;
-
-  /* Neutrals — cool-tinted ink */
-  --color-ink-50: #f7f7fb;
-  --color-ink-100: #eeeef5;
-  --color-ink-200: #dedee9;
-  --color-ink-300: #c0c0d3;
-  --color-ink-400: #9494ae;
-  --color-ink-500: #6f6f8c;
-  --color-ink-600: #55556f;
-  --color-ink-700: #3f3f55;
-  --color-ink-800: #24243a;
-  --color-ink-850: #191929;
-  --color-ink-900: #10101d;
-  --color-ink-950: #070710;
-
-  /*
-   * Corner radius — a brand rule, not a scale.
-   *
-   * Every box, button, card, input and panel in this product is 5px. The whole
-   * Tailwind radius scale is collapsed onto that single value deliberately, so
-   * `rounded-sm` through `rounded-4xl` are all 5px and any future `rounded-*`
-   * anyone writes is correct by construction. Do not reintroduce a scale here,
-   * and do not reach for an arbitrary bracket value.
-   *
-   * That last sentence used to name one as an example. Tailwind scans this
-   * file as plain source text, so writing the class out generated a real
-   * 16px rule into the shipped stylesheet — inert, applied to nothing, and
-   * still the only radius over 5px in the bundle. An example is not worth a
-   * rule that contradicts the paragraph explaining it.
-   *
-   * `rounded-full` is untouched and is reserved for shapes that are genuinely
-   * circular — status dots, avatars, spinners, the ambient background blobs.
-   * It is not an escape hatch for pills.
-   */
-  --radius-xs: 5px;
-  --radius-sm: 5px;
-  --radius-md: 5px;
-  --radius-lg: 5px;
-  --radius-xl: 5px;
-  --radius-2xl: 5px;
-  --radius-3xl: 5px;
-  --radius-4xl: 5px;
+  /* Kahoot classic palette — explicit owner direction, 2026-09-07. */
+  --color-brand-50: #f5effc;
+  --color-brand-100: #ece0fa;
+  --color-brand-200: #d8c2f1;
+  --color-brand-300: #c4a2f2;
+  --color-brand-400: #9768cf;
+  --color-brand-500: #46178f;
+  --color-brand-600: #3c137b;
+  --color-brand-700: #341069;
+  --color-brand-800: #2c0d59;
+  --color-brand-900: #25076b;
+  --color-brand-950: #19053c;
+  --color-teal-300: #b8e69f;
+  --color-teal-400: #9cdc78;
+  --color-teal-500: #26890c;
+  --color-teal-600: #21770a;
+  --color-teal-700: #1b6208;
+  --color-ink-50: #f2f2f2;
+  --color-ink-100: #ebebeb;
+  --color-ink-200: #cccccc;
+  --color-ink-300: #b2b2b2;
+  --color-ink-400: #999999;
+  --color-ink-500: #6e6e6e;
+  --color-ink-600: #555555;
+  --color-ink-700: #414141;
+  --color-ink-800: #333333;
+  --color-ink-850: #292929;
+  --color-ink-900: #222222;
+  --color-ink-950: #171717;
+  --radius-xs: 4px;
+  --radius-sm: 4px;
+  --radius-md: 4px;
+  --radius-lg: 8px;
+  --radius-xl: 8px;
+  --radius-2xl: 8px;
+  --radius-3xl: 8px;
+  --radius-4xl: 8px;
 
   /* Fluid type scale */
   --text-display: clamp(2.6rem, 1.15rem + 5.6vw, 5.75rem);
@@ -202,7 +189,7 @@
 
   /*
    * Foreground-safe brand colours. A single ramp step cannot serve both
-   * themes: measured, #004ccc is 7.0:1 on the light canvas but only ~2.4:1 on
+   * themes: measured, #46178f is 7.0:1 on the light canvas but only ~2.4:1 on
    * the dark one. Anything that renders as text, an icon, a hairline or a
    * focus ring uses these; solid fills that carry white text keep `brand-500`,
    * where white measures 7.2:1.
@@ -216,14 +203,14 @@
 :root {
   color-scheme: light;
 
-  --canvas: #fbfbfe;
+  --canvas: #f2f2f2;
   --surface: #ffffff;
-  --raised: #f5f5fb;
-  --line: color-mix(in oklab, #24243a 9%, transparent);
-  --line-strong: color-mix(in oklab, #24243a 16%, transparent);
-  --fg: #10101d;
-  --muted: #55556f;
-  --faint: #6b6b85;
+  --raised: #f2f2f2;
+  --line: color-mix(in oklab, #333333 9%, transparent);
+  --line-strong: color-mix(in oklab, #333333 16%, transparent);
+  --fg: #333333;
+  --muted: #6e6e6e;
+  --faint: #6e6e6e;
 
   /* Panels that do not overlay scrolling content skip backdrop-filter. */
   --panel-bg: color-mix(in oklab, #ffffff 80%, transparent);
@@ -245,9 +232,9 @@
   --accent-alt: var(--color-teal-700);
 
   /* Ambient light behind the page — tuned per theme. */
-  --glow-a: color-mix(in oklab, #004ccc 26%, transparent);
-  --glow-b: color-mix(in oklab, #14bf96 24%, transparent);
-  --glow-c: color-mix(in oklab, #3d84ff 20%, transparent);
+  --glow-a: color-mix(in oklab, #46178f 26%, transparent);
+  --glow-b: color-mix(in oklab, #26890c 24%, transparent);
+  --glow-c: color-mix(in oklab, #1368ce 20%, transparent);
 
   /*
    * Both stacks lead with Neo Sans Arabic, the brand face, self-hosted from
@@ -260,7 +247,7 @@
    * a system font, silently, with no console error and no 404. A font stack
    * naming a face nobody ships is the quietest bug in CSS.
    */
-  --font-latin: "Neo Sans Arabic", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-latin: "Montserrat", "Neo Sans Arabic", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-arabic: "Neo Sans Arabic", ui-sans-serif, system-ui, sans-serif;
   --font-app: var(--font-latin);
 }
@@ -268,16 +255,16 @@
 .dark {
   color-scheme: dark;
 
-  --canvas: #070710;
-  --surface: color-mix(in oklab, #191929 78%, transparent);
-  --raised: #191929;
+  --canvas: #171717;
+  --surface: color-mix(in oklab, #222222 78%, transparent);
+  --raised: #222222;
   --line: color-mix(in oklab, #ffffff 10%, transparent);
   --line-strong: color-mix(in oklab, #ffffff 18%, transparent);
-  --fg: #f7f7fb;
-  --muted: #a6a6c0;
-  --faint: #8b8ba6;
+  --fg: #f2f2f2;
+  --muted: #b2b2b2;
+  --faint: #b2b2b2;
 
-  --panel-bg: color-mix(in oklab, #191929 74%, transparent);
+  --panel-bg: color-mix(in oklab, #222222 74%, transparent);
 
   --grad-from: var(--color-brand-300);
   --grad-via: var(--color-teal-400);
@@ -286,9 +273,9 @@
   --accent: var(--color-brand-300);
   --accent-alt: var(--color-teal-400);
 
-  --glow-a: color-mix(in oklab, #004ccc 68%, transparent);
-  --glow-b: color-mix(in oklab, #14bf96 34%, transparent);
-  --glow-c: color-mix(in oklab, #3d84ff 30%, transparent);
+  --glow-a: color-mix(in oklab, #46178f 68%, transparent);
+  --glow-b: color-mix(in oklab, #26890c 34%, transparent);
+  --glow-c: color-mix(in oklab, #1368ce 30%, transparent);
 }
 
 /* Arabic gets its own stack; `dir` lives on <html>, so this cascades. */

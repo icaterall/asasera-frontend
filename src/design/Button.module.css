@@ -1,0 +1,83 @@
+/*
+ * The tactile control — §5.
+ *
+ * One radius does not fit everything (§5 prohibition 6): controls are 4px and
+ * cards are 8px, and the difference is the hierarchy signal. No arrow is ever
+ * appended to the label (prohibition 5) — if a button needs an arrow to say it
+ * goes somewhere, the label is wrong.
+ */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-2);
+  min-height: var(--h-control);
+  padding: 0 var(--s-5);
+  border: 1px solid transparent;
+  border-radius: var(--r-control);
+  font: inherit;
+  font-weight: var(--w-medium);
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    background-color var(--t-state) var(--ease),
+    border-color var(--t-state) var(--ease),
+    color var(--t-state) var(--ease),
+    transform var(--t-select) var(--ease),
+    box-shadow var(--t-select) var(--ease);
+}
+
+.btn:focus-visible {
+  outline: var(--focus-ring) solid var(--focus-colour);
+  outline-offset: var(--focus-offset);
+}
+
+.btn:disabled { cursor: not-allowed; opacity: .5; }
+
+/* ---- primary: the one strong action on a teacher screen ---- */
+.primary {
+  background: var(--act);
+  color: var(--on-act);
+  box-shadow: var(--press);
+}
+.primary:hover:not(:disabled) { background: var(--act-press); }
+.primary:active:not(:disabled) {
+  transform: translateY(4px);
+  box-shadow: 0 0 0 rgba(0,0,0,.15), inset 0 0 0 rgba(0,0,0,.25);
+}
+
+/* ---- secondary: hairline, no fill. §5 forbids the soft grey shadow ---- */
+.secondary {
+  background: var(--surface);
+  color: var(--ink);
+  border-color: var(--line);
+}
+.secondary:hover:not(:disabled) { background: var(--raised); border-color: var(--muted); }
+.secondary:active:not(:disabled) { background: var(--sunken); }
+
+/* ---- quiet: for the third and fourth action in a row ---- */
+.quiet { background: transparent; color: var(--ink); }
+.quiet:hover:not(:disabled) { background: var(--raised); }
+
+/* ---- danger: still hairline-first. A destructive action is confirmed by its
+       wording and its dialog, not by being the loudest thing on screen. ---- */
+.danger { background: var(--surface); color: var(--danger-ink); border-color: var(--danger-ink); }
+.danger:hover:not(:disabled) { background: var(--a1); color: var(--on-a1); }
+
+.full { width: 100%; }
+
+/* Loading: the label stays in place so the button does not resize and move
+   whatever is under the pointer. */
+.spinner {
+  width: 1em; height: 1em;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 999px;
+  animation: spin 700ms linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  /* Still moves — a spinner that does not spin says "frozen", which is the
+     opposite of what it is for. Slowed to a pulse-like rate instead. */
+  .spinner { animation-duration: 2.4s; }
+}

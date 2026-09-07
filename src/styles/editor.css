@@ -1,0 +1,199 @@
+/* ------------------------------------------------------------------ *
+ * The lesson editor workspace.
+ *
+ * A GRID, NOT A PAGE. The editor is one screen with four regions that each
+ * scroll independently. The composition it replaces was a single scrolling
+ * column that stacked candidate review, lesson settings and an activity form
+ * on top of each other — 2373px tall at 1440x900, with the question the
+ * teacher is actually working on somewhere in the middle of it.
+ *
+ * The rail and the context panel are fixed-width because their content is
+ * fixed in kind: thumbnails and a settings list do not benefit from more room.
+ * Every remaining pixel goes to the canvas, which is the only region whose
+ * content is the teacher's actual work.
+ * ------------------------------------------------------------------ */
+
+.ed-shell {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  block-size: 100dvh;
+  background: var(--canvas);
+  overflow: hidden;
+}
+
+.ed-body {
+  display: grid;
+  /* rail · canvas · context. `minmax(0, 1fr)` on the middle track is what stops
+     a long unbroken question from pushing the panels off screen. */
+  grid-template-columns: 184px minmax(0, 1fr) 288px;
+  gap: 16px;
+  padding: 16px;
+  min-block-size: 0;
+}
+
+.ed-region {
+  min-block-size: 0;
+  /* Grid children default to min-content width, which is what let a long
+     unbroken answer push the whole workspace wider than the phone. */
+  min-inline-size: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.ed-body > * {
+  min-inline-size: 0;
+}
+
+/*
+ * The canvas ground.
+ *
+ * Tinted, so the activity reads as teaching content sitting ON something
+ * rather than as another form panel. The tint is derived from the brand hue at
+ * low saturation, which keeps it related to the product without becoming a
+ * second accent. The rail and context panel stay neutral: colouring all three
+ * would just be a louder version of the same flat page.
+ */
+.ed-canvas {
+  background: color-mix(in oklab, var(--color-brand-500) 5%, var(--surface));
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/*
+ * The activity sits as a block, centred, at a readable measure.
+ *
+ * Without this the content pinned to the top and left a third of the canvas
+ * empty below the explanation — the panel was tall because the workspace is
+ * tall, not because the activity needed the room. Centring makes the empty
+ * space margin rather than void, and the max width stops a question stretching
+ * to 900px of line length on a wide screen.
+ */
+.ed-canvas > * {
+  inline-size: 100%;
+  max-inline-size: 780px;
+  margin-inline: auto;
+  min-inline-size: 0;
+}
+
+.ed-canvas {
+  justify-content: center;
+}
+
+/* A long activity scrolls from the top instead of being centred out of view. */
+.ed-canvas:has(> :nth-child(6)) {
+  justify-content: flex-start;
+}
+
+:root[data-theme='dark'] .ed-canvas,
+:root:not([data-theme='light']) .ed-canvas {
+  background: color-mix(in oklab, var(--color-brand-500) 14%, var(--surface));
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme='dark']) .ed-canvas {
+    background: color-mix(in oklab, var(--color-brand-500) 5%, var(--surface));
+  }
+}
+
+.ed-panel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+}
+
+/* The rail thumbnail. The active one is marked by a filled accent edge and a
+   ring, not by a colour swap: swapping the fill would fight the miniature
+   answer blocks inside it. */
+.ed-thumb {
+  inline-size: 100%;
+  text-align: start;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.ed-thumb:hover {
+  border-color: var(--line-strong);
+}
+
+.ed-thumb[aria-current='true'] {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px color-mix(in oklab, var(--accent) 35%, transparent);
+}
+
+.ed-thumb:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/*
+ * Below 1100px the context panel becomes a drawer and the canvas takes its
+ * width. Below 820px the rail follows. The regions do not shrink — a 184px
+ * rail beside a 200px canvas would be four columns pretending to work.
+ */
+@media (max-width: 1100px) {
+  .ed-body {
+    grid-template-columns: 184px minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 820px) {
+  .ed-body {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 12px;
+    gap: 12px;
+  }
+  .ed-canvas {
+    padding: 18px;
+  }
+}
+
+/* The drawer the rail and context panel collapse into. Enters in 240ms, which
+   is the panel-entry band; anything slower reads as waiting. */
+.ed-drawer {
+  position: fixed;
+  inset-block: 0;
+  inset-inline-start: 0;
+  inline-size: min(320px, 88vw);
+  background: var(--surface);
+  border-inline-end: 1px solid var(--line);
+  z-index: 60;
+  overflow-y: auto;
+  animation: ed-drawer-in 240ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ed-drawer[data-side='end'] {
+  inset-inline-start: auto;
+  inset-inline-end: 0;
+  border-inline-end: 0;
+  border-inline-start: 1px solid var(--line);
+}
+
+@keyframes ed-drawer-in {
+  from {
+    transform: translateX(calc(-1 * var(--ed-drawer-from, 100%)));
+    opacity: 0.6;
+  }
+}
+
+.ed-scrim {
+  position: fixed;
+  inset: 0;
+  background: color-mix(in oklab, var(--fg) 45%, transparent);
+  z-index: 55;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ed-drawer {
+    animation: none;
+  }
+}

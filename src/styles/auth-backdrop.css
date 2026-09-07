@@ -1,0 +1,194 @@
+/* ══════════════════════════════════════════════════════════════════════
+ * The geometric backdrop for the sign-in and signup screens.
+ *
+ * WHAT IT IS. Eight shapes — filled circles, outlined rings, rounded
+ * boxes and rotated squares — laid out asymmetrically around where the
+ * form sits, several of them running off the edge of the screen so the
+ * composition reads as a crop of something larger rather than a tidy
+ * arrangement that happens to fit.
+ *
+ * WHY IT IS QUIET. The workplace cards on this same screen are four
+ * fully saturated fills. They are the loudest thing in the product and
+ * they are meant to be, because they are the question. Anything behind
+ * them competing at that volume would turn the screen into noise, so
+ * these tints sit at 8-16% and the outlines at 20-32% — clearly visible,
+ * never a second focal point.
+ *
+ * WHY IT IS NOT INSIDE `.auth-scope`. That class lives on the <section>
+ * each auth page renders, which is inside the layout; this sits behind
+ * the whole viewport, outside it. So the four hues are declared here,
+ * on the backdrop's own root, rather than borrowed.
+ * ══════════════════════════════════════════════════════════════════════ */
+.auth-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: -10;
+  overflow: hidden;
+  pointer-events: none;
+
+  /*
+   * Source hues. These are the BRIGHT values — brand blue and teal, and
+   * the coral and amber the accents were derived from — not the deepened
+   * accent tokens the cards use. A tint is a hue diluted almost to the
+   * page, and diluting an already-darkened hue gives a grey.
+   */
+  /*
+   * One neutral, not four brand tints.
+   *
+   * The reference's shapes are a pale grey barely separated from the page —
+   * they give the composition a horizon without asking to be looked at. Four
+   * coloured tints behind four flat, saturated cards is two loud layers, and
+   * the screens read as busy. See the note in AuthBackdrop.tsx.
+   */
+  --sh-neutral: #10233d;
+
+  --sh-fill: 4%;
+  --sh-line: 8%;
+  --sh-stroke: 2px;
+}
+
+/*
+ * Dark theme. A 10% tint over #0A0F18 is not a quieter shape, it is no
+ * shape — the same dilution that reads as a soft wash on white disappears
+ * entirely on near-black. So the hues lift and the dilution roughly
+ * doubles, which lands the shapes at the same PERCEIVED weight rather
+ * than the same number.
+ */
+.dark .auth-backdrop {
+  /* On a near-black page the same dilution is no shape at all, so the neutral
+     inverts and the mix roughly doubles — the same perceived weight, not the
+     same number. */
+  --sh-neutral: #ffffff;
+
+  --sh-fill: 6%;
+  --sh-line: 11%;
+}
+
+.auth-backdrop > * {
+  position: absolute;
+  /*
+   * `translate` and `rotate` as independent properties, not `transform`.
+   *
+   * That is what lets a shape float and turn at once without writing a
+   * keyframe per shape that bakes in its own starting angle: the float
+   * animation owns `translate`, the turn animation owns `rotate`, and the
+   * browser composes them. With everything crammed into `transform` the
+   * second animation would simply overwrite the first.
+   */
+  will-change: translate, rotate;
+}
+
+/* ---- the shape families ------------------------------------------- */
+
+.sh-circle {
+  border-radius: 999px; /* a true circle */
+  background: color-mix(in srgb, var(--sh-hue) var(--sh-fill), transparent);
+}
+
+.sh-ring {
+  border-radius: 999px; /* a true circle */
+  border: var(--sh-stroke) solid color-mix(in srgb, var(--sh-hue) var(--sh-line), transparent);
+}
+
+/*
+ * THE ONE PLACE THIS TREE DEPARTS FROM THE 5px RADIUS RULE, deliberately
+ * and only here.
+ *
+ * That rule governs the interface — button, card, input, panel — and every
+ * one of those in this build is still 5px. These are decorative background
+ * shapes, and the brief asks for four distinguishable families including
+ * both "rounded boxes" and "rotated squares". At 5px a 14rem box IS a
+ * square, so the two families would collapse into one and the composition
+ * would lose half its vocabulary. 28px is a shape decision, not a new UI
+ * scale, and it is scoped to `.auth-backdrop` so nothing else can pick it
+ * up.
+ */
+.sh-box {
+  border-radius: 28px;
+  background: color-mix(in srgb, var(--sh-hue) var(--sh-fill), transparent);
+}
+
+.sh-box-line {
+  border-radius: 28px;
+  border: var(--sh-stroke) solid color-mix(in srgb, var(--sh-hue) var(--sh-line), transparent);
+}
+
+.sh-square {
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--sh-hue) var(--sh-fill), transparent);
+}
+
+/* ---- motion --------------------------------------------------------
+ * Long, unsynchronised, and only ever `translate` / `rotate` / `opacity`.
+ *
+ * Every cycle is 18-30s and every one starts at a NEGATIVE delay, which
+ * is the detail that matters: with delay 0 all eight shapes would begin
+ * at the same instant of their cycle and the whole composition would
+ * pulse together like one object breathing. Starting each part-way
+ * through its own cycle is what makes it read as drift.
+ *
+ * `alternate` rather than a loop back to the start, so nothing ever jumps.
+ * -------------------------------------------------------------------- */
+@keyframes sh-float-y {
+  from { translate: 0 0; }
+  to   { translate: 0 -22px; }
+}
+
+@keyframes sh-float-xy {
+  from { translate: 0 0; }
+  to   { translate: -16px 14px; }
+}
+
+@keyframes sh-drift-fade {
+  from { translate: 0 0;    opacity: 0.75; }
+  to   { translate: 12px -14px; opacity: 1; }
+}
+
+@keyframes sh-turn {
+  from { rotate: var(--sh-turn-from, 0deg); }
+  to   { rotate: var(--sh-turn-to, 8deg); }
+}
+
+.sh-float-y    { animation: sh-float-y   24s ease-in-out infinite alternate; }
+.sh-float-xy   { animation: sh-float-xy  30s ease-in-out infinite alternate; }
+.sh-drift-fade { animation: sh-drift-fade 26s ease-in-out infinite alternate; }
+.sh-turn       { animation: sh-turn      22s ease-in-out infinite alternate; }
+
+/*
+ * A shape that floats AND turns needs both animations on one element, and
+ * the shorthand above would let the second replace the first. Naming both
+ * is the only way to keep them.
+ */
+.sh-float-turn {
+  animation:
+    sh-float-y 28s ease-in-out infinite alternate,
+    sh-turn    20s ease-in-out infinite alternate;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /*
+   * Static, not paused. The composition still has to look composed with
+   * nothing moving, so each shape keeps the angle it was authored at —
+   * which is `--sh-turn-from`, the start of its own cycle.
+   */
+  .auth-backdrop > * {
+    animation: none !important;
+    translate: none !important;
+    rotate: var(--sh-turn-from, 0deg) !important;
+    opacity: 1 !important;
+    will-change: auto;
+  }
+}
+
+/* ---- how many shapes ------------------------------------------------
+ * Four of the eight are dropped below 640px. Not for performance — eight
+ * composited layers cost nothing — but because a phone viewport is a
+ * quarter of the area, and a composition tuned for a desktop crop becomes
+ * a crowd at that size. The four that stay are the large cropped ones,
+ * which is what makes it still read as a crop.
+ * -------------------------------------------------------------------- */
+@media (max-width: 639px) {
+  .auth-backdrop .sh-desktop-only {
+    display: none;
+  }
+}

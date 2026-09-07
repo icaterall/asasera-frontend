@@ -37,3 +37,22 @@
  * No component change is needed.
  */
 export const FACEBOOK_AUTH_ENABLED = import.meta.env.VITE_ENABLE_FACEBOOK_AUTH === 'true'
+
+/**
+ * Apple sign-in.
+ *
+ * NOT CONFIGURED. There is no Apple Services ID, key, team id or callback in
+ * this project, so the provider cannot complete a sign-in and must never look
+ * as though it could.
+ *
+ * The flag governs whether the (disabled, "Coming soon") control is rendered
+ * at all. It defaults to OFF, which is what production ships: an unavailable
+ * provider is hidden from the signup and login choices entirely rather than
+ * shown greyed out to every visitor. Set VITE_ENABLE_APPLE_AUTH=true in a
+ * development preview to see the placement while the integration is built.
+ *
+ * When the real credentials arrive this flag is NOT the switch that turns the
+ * provider on — the backend route is. See the activation checklist in the
+ * report: the button stays inert until a verified `/auth/apple` exists.
+ */
+export const APPLE_AUTH_ENABLED = import.meta.env.VITE_ENABLE_APPLE_AUTH === 'true'

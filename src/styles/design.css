@@ -1,0 +1,194 @@
+/* ══════════════════════════════════════════════════════════════════════
+ * Asasera design system — the implementation of docs/DESIGN.md.
+ *
+ * Read that document for the reasoning. This file only carries the values,
+ * and every number in it is measured: `python3 scripts/font-audit.py` for the
+ * faces, `python3 scripts/contrast.py` for the colour roles.
+ * ══════════════════════════════════════════════════════════════════════ */
+
+/* ---------------------------------------------------------------------
+ * FACES
+ *
+ * One family name, two designs, split by unicode-range so a mixed line is
+ * two chosen faces rather than one face plus whatever the OS supplies.
+ *
+ * Neo Sans Arabic is NOT here. It covers 97 of 256 codepoints in the Arabic
+ * block and its heaviest cut reports usWeightClass 300 — there is no bold.
+ * Section 3 of DESIGN.md removes shadows, which leaves weight as one of only
+ * three hierarchy tools, so a face without a bold cannot carry this system.
+ * The wordmark keeps Neo Sans, but the wordmark ships as artwork.
+ * --------------------------------------------------------------------- */
+
+/* Latin, digits, punctuation, currency — HK Grotesk. */
+@font-face {
+  font-family: 'Asasera Sans';
+  src: url('../assets/fonts/hkgrotesk-regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-024F, U+2000-206F, U+20A0-20CF, U+2190-21FF, U+2200-22FF;
+}
+@font-face {
+  font-family: 'Asasera Sans';
+  src: url('../assets/fonts/hkgrotesk-medium.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-024F, U+2000-206F, U+20A0-20CF, U+2190-21FF, U+2200-22FF;
+}
+@font-face {
+  font-family: 'Asasera Sans';
+  src: url('../assets/fonts/hkgrotesk-semibold.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-024F, U+2000-206F, U+20A0-20CF, U+2190-21FF, U+2200-22FF;
+}
+@font-face {
+  font-family: 'Asasera Sans';
+  src: url('../assets/fonts/hkgrotesk-bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-024F, U+2000-206F, U+20A0-20CF, U+2190-21FF, U+2200-22FF;
+}
+
+/*
+ * Arabic — Noto Sans Arabic. 255/256 of the Arabic block and a genuine 700.
+ * The range covers Arabic, Arabic Supplement, and both Presentation Forms
+ * blocks, so a string that arrives pre-shaped still resolves to this face.
+ * 600 maps to the 700 file: there is no semibold cut, and mapping it here
+ * means `font-weight: 600` gets a real bold rather than a synthesised one.
+ */
+@font-face {
+  font-family: 'Asasera Sans';
+  src: url('../assets/fonts/noto/NotoSansArabic-Regular.woff2') format('woff2');
+  font-weight: 400 500;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0600-06FF, U+0750-077F, U+08A0-08FF, U+FB50-FDFF, U+FE70-FEFF;
+}
+@font-face {
+  font-family: 'Asasera Sans';
+  src: url('../assets/fonts/noto/NotoSansArabic-Bold.woff2') format('woff2');
+  font-weight: 600 700;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0600-06FF, U+0750-077F, U+08A0-08FF, U+FB50-FDFF, U+FE70-FEFF;
+}
+
+/* ---------------------------------------------------------------------
+ * TOKENS
+ * --------------------------------------------------------------------- */
+:root {
+  /* Type — major third, ratio 1.25, anchored at 16px. */
+  --ds-hero: clamp(1.9375rem, 6vw, 2.4375rem);   /* 31 → 39 */
+  --ds-title: clamp(1.5625rem, 4vw, 1.9375rem);  /* 25 → 31 */
+  --ds-heading: 1.25rem;                          /* 20 */
+  --ds-lead: 1.125rem;                            /* 18 */
+  --ds-body: 1rem;                                /* 16 — never smaller on an
+                                                     input: below 16px iOS
+                                                     Safari zooms on focus */
+  --ds-small: 0.875rem;                           /* 14 */
+  --ds-caption: 0.75rem;                          /* 12 */
+
+  /*
+   * One line height per step, not one per script. Arabic body must not drop
+   * below 1.7 and nothing may be overridden per direction, so body is 1.75
+   * for both. See DESIGN.md §1.
+   */
+  --ds-lh-tight: 1.15;
+  --ds-lh-title: 1.2;
+  --ds-lh-heading: 1.35;
+  --ds-lh-body: 1.75;
+  --ds-lh-small: 1.6;
+
+  /* Space — 4px base, awkward middle steps removed. */
+  --ds-1: 0.25rem;  /* 4  */
+  --ds-2: 0.5rem;   /* 8  */
+  --ds-3: 0.75rem;  /* 12 */
+  --ds-4: 1rem;     /* 16 */
+  --ds-5: 1.25rem;  /* 20 */
+  --ds-6: 1.5rem;   /* 24 */
+  --ds-8: 2rem;     /* 32 */
+  --ds-12: 3rem;    /* 48 */
+  --ds-16: 4rem;    /* 64 */
+  --ds-24: 6rem;    /* 96 */
+
+  /* Colour roles. Ratios in the comments are the WORST of the three
+     surfaces (#FFFFFF, --canvas, --raised) — run scripts/contrast.py. */
+  --ds-ink: #10233d;          /* 14.72 */
+  --ds-ink-muted: #55657d;    /*  5.52 */
+  --ds-blue: #0b5fd0;         /*  5.50 */
+  --ds-blue-hover: #0a4faf;   /*  7.12 — darker on hover, never lighter */
+  --ds-blue-active: #08428f;  /*  8.96 */
+  --ds-teal: #00806b;         /*  4.55 — also the success role */
+  --ds-error: #c4362b;        /*  5.01 — brick, not fire-engine: #D14343
+                                        measured 4.26 on --raised and misses
+                                        the body floor */
+  --ds-warn: #e8a33d;         /*  2.01 — NEVER text. Border, dot or fill
+                                        behind ink, nothing else. */
+  --ds-disabled-fg: #7b8595;  /*  3.48 — deliberately below AA; a disabled
+                                        control must read as inert, and WCAG
+                                        exempts them for exactly that reason */
+  --ds-line: #e1e8f2;
+  --ds-canvas: #fbfbfe;
+  --ds-surface: #ffffff;
+  --ds-raised: #f5f7fb;
+
+  /* Motion — nothing above 200ms, one decelerating curve. */
+  --ds-fast: 120ms;
+  --ds-base: 200ms;
+  --ds-ease: cubic-bezier(0.2, 0, 0, 1);
+
+  --ds-radius: 5px;
+  --ds-radius-input: 3px;
+}
+
+/* ---------------------------------------------------------------------
+ * FOCUS — one rule, every surface.
+ *
+ * The offset is load-bearing. --ds-blue measured against itself is 1.00:1, so
+ * a ring drawn tight on the primary button (which is blue) is invisible. The
+ * 2px offset puts the page surface between control and ring, so the ring is
+ * always seen at 5.71:1 against --canvas whatever colour the control is.
+ * --------------------------------------------------------------------- */
+.ds :focus-visible,
+.ds:focus-visible {
+  outline: 2px solid var(--ds-blue);
+  outline-offset: 2px;
+  border-radius: var(--ds-radius-input);
+}
+
+/* ---------------------------------------------------------------------
+ * ROOT
+ *
+ * `.ds` scopes the type and colour tokens to the screens that opt in, so the
+ * landing page keeps its own composition. The FACE is global — one product
+ * cannot have two Arabic typefaces — and is applied in index.css.
+ * --------------------------------------------------------------------- */
+.ds {
+  color: var(--ds-ink);
+  font-size: var(--ds-body);
+  line-height: var(--ds-lh-body);
+  /* Western digits in both languages: stop any face substituting
+     Arabic-Indic forms under lang="ar". */
+  font-feature-settings: 'anum' 0;
+  font-variant-numeric: lining-nums tabular-nums;
+}
+
+/* A synthesised Arabic bold is a smeared regular and it breaks the cursive
+   join. Better a real weight or none. */
+.ds,
+.ds * {
+  font-synthesis: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ds *,
+  .ds *::before,
+  .ds *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

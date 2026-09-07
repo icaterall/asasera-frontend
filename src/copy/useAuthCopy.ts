@@ -1,16 +1,18 @@
-import { useCallback, useMemo } from 'react'
+import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { authAr, type AuthCopyKey } from './auth.ar'
-import { authEn } from './auth.en'
+import { authAR } from './auth.ar'
+import { authEN, type AuthCopy } from './auth.en'
 
-const TABLES = { ar: authAr, en: authEn } as const
+const TABLES = { ar: authAR, en: authEN } as const
 
-export type AuthCopy = {
+export type UseAuthCopy = {
   lang: 'ar' | 'en'
   dir: 'rtl' | 'ltr'
-  /** Reads a key from the active table, interpolating `{name}` placeholders. */
-  t: (key: AuthCopyKey, vars?: Record<string, string | number>) => string
+  /** The whole table for the active language. Read it as `c.login.title`. */
+  c: AuthCopy
+  /** Fills `{{name}}` placeholders. */
+  fmt: (template: string, vars: Record<string, string | number>) => string
 }
 
 /**
@@ -23,30 +25,31 @@ export type AuthCopy = {
  * the header toggle ran, and the visible symptom is a page whose direction no
  * longer matches its text.
  *
- * Interpolation is a plain string replace, not `Intl`. The only interpolated
- * number on these screens is the password counter, and `Intl.NumberFormat`
- * under an `ar` locale renders Arabic-Indic digits — which is exactly the
- * numeral rule this product does not follow. A template substitution keeps
- * ASCII digits in both languages without a locale override to remember.
+ * The table is returned whole rather than behind a `t('some.key')` lookup, so
+ * a mistyped path is a TYPE error at build time instead of `undefined` on
+ * screen at sign-in time. `auth.ar.ts` is typed against `AuthCopy`, so the
+ * two languages cannot drift apart either.
+ *
+ * `fmt` is a plain string replace, not `Intl`. The only interpolated number
+ * on these screens is the password counter, and `Intl.NumberFormat` under an
+ * `ar` locale renders Arabic-Indic digits — exactly the numeral rule this
+ * product does not follow. A template substitution keeps ASCII digits in both
+ * languages with no locale override to remember.
  */
-export function useAuthCopy(): AuthCopy {
+export function useAuthCopy(): UseAuthCopy {
   const { i18n } = useTranslation()
-
   const lang: 'ar' | 'en' = i18n.resolvedLanguage === 'en' ? 'en' : 'ar'
 
-  const t = useCallback(
-    (key: AuthCopyKey, vars?: Record<string, string | number>) => {
-      const value = TABLES[lang][key]
-      if (!vars) return value
-      return value.replace(/\{(\w+)\}/g, (whole, name: string) =>
-        name in vars ? String(vars[name]) : whole,
-      )
-    },
-    [lang],
-  )
-
   return useMemo(
-    () => ({ lang, dir: lang === 'ar' ? 'rtl' : 'ltr', t }),
-    [lang, t],
+    () => ({
+      lang,
+      dir: lang === 'ar' ? ('rtl' as const) : ('ltr' as const),
+      c: TABLES[lang],
+      fmt: (template: string, vars: Record<string, string | number>) =>
+        template.replace(/\{\{(\w+)\}\}/g, (whole, name: string) =>
+          name in vars ? String(vars[name]) : whole,
+        ),
+    }),
+    [lang],
   )
 }

@@ -2,6 +2,7 @@ import { Outlet } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 
 import { Aurora } from '@/components/ui/Aurora'
+import { VerifyEmailBanner } from './VerifyEmailBanner'
 import { Footer } from './Footer'
 import { Navbar } from './Navbar'
 import { ScrollManager } from './ScrollManager'
@@ -20,6 +21,13 @@ export function Layout() {
       >
         {t('common.skipToContent')}
       </a>
+
+      {/*
+        Above the header, in the flow. It renders nothing at all unless the
+        signed-in account is a teacher whose address is still unproven, so
+        every other visitor sees the shell exactly as before.
+      */}
+      <VerifyEmailBanner />
 
       <Navbar />
 

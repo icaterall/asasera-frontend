@@ -1,0 +1,415 @@
+/* ------------------------------------------------------------------ *
+ * The signed-in teacher workspace.
+ *
+ * WHY A STYLESHEET AND NOT ONLY UTILITIES. Three things here cannot be
+ * expressed as classes on an element: the sticky-offset arithmetic that keeps
+ * the banner, the header and the sidebar from overlapping; the accent palette,
+ * which is a set of values the cards select between; and the reduced-motion
+ * rules. Everything else in this tree is a Tailwind utility.
+ *
+ * RADIUS. Not written anywhere in this file. index.css collapses the whole
+ * Tailwind radius scale onto the project's 5px, so `rounded-sm` on a card is
+ * correct by construction and a literal `border-radius` here could only
+ * contradict it. `rounded-full` still appears in the tree, on avatars and
+ * status dots, which are the circles it is reserved for.
+ * ------------------------------------------------------------------ */
+
+.teacher-scope {
+  /*
+   * The supporting palette.
+   *
+   * Chosen so that neighbouring cards in a row never share a hue, and each
+   * carries white text at 4.5:1 or better on its own surface. Measured against
+   * white: coral 4.55, amber-ink pairing is dark-on-light by design, sky 4.59,
+   * green 4.65, violet 6.24, brand 7.23. Amber is the exception and is the
+   * reason `--tc-amber-ink` exists: white on #d89e00 is 1.9:1, nowhere near
+   * readable, so amber cards take ink text instead of inverting the rule.
+   */
+  --tc-brand: #46178f;
+  --tc-teal: #26890c;
+  --tc-coral: #e21b3c;
+  --tc-amber: #d89e00;
+  --tc-amber-ink: #333333;
+  --tc-sky: #1368ce;
+  --tc-violet: #46178f;
+
+  /*
+   * Sticky arithmetic. The verification banner is NOT a fixed height — it
+   * wraps to two and three lines on a phone, and hardcoding 38px is what makes
+   * a header sit on top of it. The layout measures the rendered banner and
+   * writes the result into `--tc-banner`, which every sticky offset below is
+   * derived from. Zero is the honest default: a verified teacher has no banner.
+   */
+  --tc-banner: 0px;
+  --tc-header: 68px;
+  --tc-rail: 232px;
+}
+
+/* The shell fills the viewport and scrolls in one place, so the sidebar can be
+   sticky without the page growing a second scrollbar. */
+.teacher-shell {
+  min-height: 100dvh;
+  background: var(--canvas);
+}
+
+.teacher-rail {
+  position: sticky;
+  inset-block-start: var(--tc-banner);
+  block-size: calc(100dvh - var(--tc-banner));
+  inline-size: var(--tc-rail);
+  flex: 0 0 var(--tc-rail);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/*
+ * The banner's wrapper is what sticks, not the banner.
+ *
+ * VerifyEmailBanner sets `position: sticky` on itself, and inside this
+ * one-element wrapper that does nothing: a sticky element sticks within its
+ * own containing block, and this wrapper is exactly as tall as the banner, so
+ * it left the top of the viewport the moment the page scrolled — while the
+ * header, offset by the banner's height, stayed put and showed a 38px strip of
+ * the page sliding underneath it. Making the wrapper sticky is what the
+ * measurement in TeacherLayout assumes.
+ */
+.teacher-banner {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: 60;
+}
+
+.teacher-header {
+  position: sticky;
+  /* Under the banner, never over it. */
+  inset-block-start: var(--tc-banner);
+  z-index: 40;
+  min-block-size: var(--tc-header);
+}
+
+/*
+ * A navigation item.
+ *
+ * The active state is a substantial filled block, not a tinted left border:
+ * at a glance across a 232px rail, a 3px edge is not a state, it is a
+ * rendering artifact.
+ */
+.teacher-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--muted);
+  transition:
+    background-color 140ms ease,
+    color 140ms ease;
+}
+
+.teacher-nav-item:hover {
+  background: color-mix(in oklab, var(--tc-brand) 8%, transparent);
+  color: var(--fg);
+}
+
+.teacher-nav-item[aria-current='page'] {
+  background: var(--tc-brand);
+  color: #ffffff;
+}
+
+.teacher-nav-item:focus-visible,
+.teacher-card:focus-visible,
+.teacher-tool:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/*
+ * The illustrated cards.
+ *
+ * `--tc-fill` is set per card by the component. The thumbnail is a real block
+ * of that colour occupying the top of the card, which is where the reference's
+ * energy comes from — a white card with a small coloured icon is the thing
+ * this design is explicitly not.
+ */
+.teacher-card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  text-align: start;
+  transition:
+    transform 160ms var(--ease-out-quart),
+    box-shadow 160ms ease,
+    border-color 160ms ease;
+}
+
+.teacher-card:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in oklab, var(--fg) 18%, transparent);
+  box-shadow: 0 10px 24px -14px color-mix(in oklab, #10101d 55%, transparent);
+}
+
+.teacher-card:active {
+  transform: translateY(0);
+}
+
+.teacher-card-thumb {
+  position: relative;
+  block-size: 132px;
+  background: var(--tc-fill);
+  padding: 12px 14px;
+}
+
+/* The compact tool cards: fully coloured, no thumbnail. */
+.teacher-tool {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 16px;
+  background: var(--tc-fill);
+  color: var(--tc-on-fill, #ffffff);
+  text-align: start;
+  transition:
+    transform 160ms var(--ease-out-quart),
+    filter 160ms ease;
+}
+
+.teacher-tool:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.06);
+}
+
+.teacher-tool:active {
+  transform: translateY(0);
+}
+
+/*
+ * MOTION IS OPTIONAL, ALWAYS.
+ *
+ * Every transform above is feedback on a press or a hover, so removing it
+ * costs nothing but the polish. Nothing here moves on its own, which is the
+ * other half of the rule: a dashboard is a reading surface, and something
+ * drifting in the corner of it is a distraction the reader cannot turn off.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .teacher-card,
+  .teacher-tool,
+  .teacher-nav-item {
+    transition: none;
+  }
+
+  .teacher-card:hover,
+  .teacher-tool:hover {
+    transform: none;
+  }
+}
+
+/* The guide panel's backdrop and sheet. */
+.teacher-panel-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  background: color-mix(in oklab, #070710 62%, transparent);
+}
+
+.teacher-panel {
+  position: fixed;
+  inset-block: 0;
+  inset-inline-end: 0;
+  z-index: 81;
+  inline-size: min(560px, 100vw);
+  background: var(--surface);
+  border-inline-start: 1px solid var(--line);
+  overflow-y: auto;
+  animation: teacher-panel-in 220ms var(--ease-out-quart) both;
+}
+
+@keyframes teacher-panel-in {
+  from {
+    opacity: 0;
+    /* Logical, so it slides in from the trailing edge in both directions. */
+    translate: var(--tc-panel-from, 24px) 0;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+:root:dir(rtl) .teacher-panel {
+  --tc-panel-from: -24px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .teacher-panel {
+    animation: none;
+  }
+}
+
+/* The mobile navigation drawer, which is the sidebar in a different place. */
+.teacher-drawer {
+  position: fixed;
+  inset-block: 0;
+  inset-inline-start: 0;
+  z-index: 81;
+  inline-size: min(288px, 86vw);
+  background: var(--surface);
+  border-inline-end: 1px solid var(--line);
+  overflow-y: auto;
+  animation: teacher-drawer-in 200ms var(--ease-out-quart) both;
+}
+
+@keyframes teacher-drawer-in {
+  from {
+    opacity: 0;
+    translate: var(--tc-drawer-from, -20px) 0;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+:root:dir(rtl) .teacher-drawer {
+  --tc-drawer-from: 20px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .teacher-drawer {
+    animation: none;
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ * Tactile controls and the answer presentation system.
+ *
+ * ONE PLACE, NOT PER PAGE. The pressable treatment is a single declaration
+ * reused through button variants. Repeating a box-shadow on every screen is
+ * how an interface drifts: the fifth page gets a slightly different edge and
+ * nobody notices until they sit side by side.
+ * ------------------------------------------------------------------ */
+
+.teacher-scope {
+  /*
+   * The pressable edge.
+   *
+   * A darker inset band at the base of a filled control, which reads as a
+   * physical face rather than a rectangle. Kept at 3px and 22% rather than the
+   * reference's 4px/25%: our radius is 5px, not 8px, so a thicker band eats
+   * proportionally more of a shorter control and starts to look like a
+   * disabled state instead of a raised one.
+   */
+  /*
+   * An opaque ground for anything floating over a scrim.
+   *
+   * `--surface` is deliberately translucent in dark (78%), which is right for a
+   * panel sitting on the page and wrong for a modal: the dark scrim bleeds
+   * through and the dialog reads as muddy grey rather than as a surface above
+   * the page. Dialogs use this instead.
+   */
+  --tc-surface-solid: #ffffff;
+
+  --tc-press-inset: inset 0 -3px 0 rgb(0 0 0 / 22%);
+  --tc-press-lift: 0 1px 2px rgb(0 0 0 / 14%);
+
+  /*
+   * Answer presentation slots.
+   *
+   * Colour AND shape, always together. Colour alone fails for a colour-blind
+   * student and fails again on a projector that shifts hue; the shape is what
+   * makes the pairing survive both. Neither replaces the answer text — see
+   * AnswerTile, where the text is the label and these are decoration.
+   *
+   * These are PRESENTATION slots, deliberately numbered rather than named
+   * after answers. The answer's identity is its id; which colour it wears is a
+   * property of the position it happens to be rendered in, and scoring never
+   * looks at it.
+   */
+  --tc-slot-1: #e21b3c; /* coral, triangle */
+  --tc-slot-2: #1368ce; /* blue, diamond  */
+  --tc-slot-3: #d89e00; /* amber, circle  */
+  --tc-slot-4: #26890c; /* green, square  */
+
+  --tc-slot-1-ink: #ffffff;
+  --tc-slot-2-ink: #ffffff;
+  /* Amber is the exception: white on #d89e00 is 1.9:1. Ink text instead of
+     inverting the rule for one slot. */
+  --tc-slot-3-ink: #333333;
+  --tc-slot-4-ink: #ffffff;
+}
+
+/* Dark theme lifts the fills so they stay separated from a dark canvas while
+   keeping the same hue identity. The amber ink pairing is unchanged: it was
+   chosen for the fill, not for the surrounding theme. */
+:root[data-theme='dark'] .teacher-scope,
+:root:not([data-theme='light']) .teacher-scope {
+  --tc-surface-solid: #1c1c2b;
+  --tc-slot-1: #e21b3c;
+  --tc-slot-2: #1368ce;
+  --tc-slot-3: #d89e00;
+  --tc-slot-4: #26890c;
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme='dark']) .teacher-scope {
+    --tc-surface-solid: #ffffff;
+    --tc-slot-1: #e21b3c;
+    --tc-slot-2: #1368ce;
+    --tc-slot-3: #d89e00;
+    --tc-slot-4: #26890c;
+  }
+}
+
+/*
+ * The pressable button face.
+ *
+ * Applied by a variant, never by a page. `translateY` on press is 1px and the
+ * shadow shrinks to match, so the control appears to sink into its own edge
+ * rather than moving the layout around it — nothing reflows, because the box
+ * size never changes.
+ */
+.tc-tactile {
+  box-shadow: var(--tc-press-lift), var(--tc-press-inset);
+  transition:
+    background-color 0.2s ease,
+    box-shadow 0.15s ease,
+    transform 0.12s ease;
+}
+
+.tc-tactile:hover:not(:disabled) {
+  filter: brightness(1.06);
+}
+
+.tc-tactile:active:not(:disabled) {
+  transform: translateY(1px);
+  box-shadow: inset 0 -1px 0 rgb(0 0 0 / 22%);
+}
+
+/* The edge is decoration; it must never be the thing that makes a control look
+   unavailable. Disabled drops it entirely and uses opacity, which is the
+   signal people already read. */
+.tc-tactile:disabled {
+  box-shadow: none;
+  opacity: 0.55;
+  filter: none;
+}
+
+.tc-tactile:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tc-tactile {
+    transition: none;
+  }
+  .tc-tactile:active:not(:disabled) {
+    transform: none;
+  }
+}
+
+/* Current owner direction: the Kahoot classic workspace palette. */
+.teacher-scope{--canvas:#f2f2f2;--surface:#fff;--raised:#f2f2f2;--fg:#333;--muted:#6e6e6e;--faint:#6e6e6e;--line:#ccc;--line-strong:#aaa;--panel-bg:#fff;--accent:#1368ce;--accent-alt:#46178f;--radius-xs:4px;--radius-sm:4px;--radius-md:4px;--radius-lg:8px;--radius-xl:8px;font-family:"Montserrat",var(--font-arabic),sans-serif}
+.dark .teacher-scope{--canvas:#171717;--surface:#222;--raised:#333;--fg:#f2f2f2;--muted:#b2b2b2;--faint:#b2b2b2;--line:#414141;--line-strong:#888;--panel-bg:#222;--accent:#8ab5ff;--accent-alt:#d6b8ff}

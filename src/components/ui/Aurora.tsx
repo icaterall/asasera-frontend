@@ -3,9 +3,21 @@
  * to keep text contrast up. Fixed and pointer-transparent, so it never
  * interferes with the layout.
  */
-export function Aurora() {
+export function Aurora({ dim = false }: { dim?: boolean } = {}) {
+  /*
+   * `dim` quiets the three colour fields without removing them.
+   *
+   * The auth screens are flat near-white in the reference, and at full
+   * strength the tinted corners read as a second background competing with
+   * the geometric shapes in front of them. The landing page, where this was
+   * designed, is unaffected — it never passes the prop.
+   */
   return (
-    <div aria-hidden="true" className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
+    <div
+      aria-hidden="true"
+      className="pointer-events-none fixed inset-0 -z-10 overflow-hidden"
+      style={dim ? { opacity: 0.3 } : undefined}
+    >
       <div className="absolute inset-0 bg-canvas" />
 
       <div

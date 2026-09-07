@@ -1,0 +1,64 @@
+import {useRef,useState} from 'react'
+import {useTranslation} from 'react-i18next'
+import {ArrowUp,ArrowDown,Plus,Trash2} from 'lucide-react'
+import {Button} from '@/design'
+import type {QuestionRecord,ErrorPairRecord,QuestionKindWire} from '@/lib/api'
+import {parsePayload,type OrderPayload,type MatchPayload,type HotspotPayload,type ImageZone} from '@/shared/questions'
+import {errorPairSlots} from '@/shared/error-pairs'
+import {ImageUpload,useImage} from './ImageUpload'
+import styles from './Editor.module.css'
+const key=(prefix:string)=>`${prefix}_${crypto.randomUUID().replace(/-/g,'').slice(0,12)}`
+export function defaultPayload(kind:QuestionKindWire,imageKey=''){
+  if(kind==='mcq')return {options:['a','b','c','d'].map(k=>({key:`opt_${k}`,text:''})),correct:'opt_a'}
+  if(kind==='tf')return {correct:true}
+  if(kind==='order')return {items:[{key:'item_a',text:''},{key:'item_b',text:''}],correct:['item_a','item_b']}
+  if(kind==='match')return {cards:[{key:'card_a',text:''},{key:'card_b',text:''}],targets:[{key:'target_a',text:''},{key:'target_b',text:''}],map:{card_a:'target_a',card_b:'target_b'}}
+  return {mode:'click_zone',imageKey,zones:[{key:'zone_a',x:.08,y:.1,w:.35,h:.35},{key:'zone_b',x:.57,y:.1,w:.35,h:.35}],correct:['zone_a']}
+}
+function OrderEditor({p,onChange}:{p:OrderPayload;onChange:(p:OrderPayload)=>void}){
+  const {i18n}=useTranslation(),ar=i18n.language.startsWith('ar')
+  const move=(index:number,step:number)=>{const correct=[...p.correct];[correct[index],correct[index+step]]=[correct[index+step]!,correct[index]!];onChange({...p,correct})}
+  return <section className={styles.advanced}><h2>{ar?'الترتيب الصحيح':'Correct order'}</h2><p>{ar?'اكتب العناصر بترتيبها الصحيح. يخلطها النظام عند العرض.':'Write the items in their correct order. They will be shuffled during play.'}</p>
+    {p.correct.map((id,index)=><div className={styles.editRow} key={id}><strong>{index+1}</strong><input aria-label={`${ar?'العنصر':'Item'} ${index+1}`} value={p.items.find(i=>i.key===id)!.text} onChange={e=>onChange({...p,items:p.items.map(i=>i.key===id?{...i,text:e.target.value}:i)})}/>
+      <Button aria-label={ar?'حرّك للأعلى':'Move up'} disabled={index===0} onClick={()=>move(index,-1)}><ArrowUp size={18}/></Button><Button aria-label={ar?'حرّك للأسفل':'Move down'} disabled={index===p.correct.length-1} onClick={()=>move(index,1)}><ArrowDown size={18}/></Button>
+      <Button variant="quiet" aria-label={ar?'احذف العنصر':'Delete item'} disabled={p.items.length<=2} onClick={()=>onChange({...p,items:p.items.filter(i=>i.key!==id),correct:p.correct.filter(k=>k!==id)})}><Trash2 size={18}/></Button></div>)}
+    <Button disabled={p.items.length>=8} onClick={()=>{const id=key('item');onChange({items:[...p.items,{key:id,text:''}],correct:[...p.correct,id]})}}><Plus size={18}/>{ar?'أضف عنصرًا':'Add item'}</Button>
+  </section>
+}
+function MatchEditor({p,onChange}:{p:MatchPayload;onChange:(p:MatchPayload)=>void}){
+  const {i18n}=useTranslation(),ar=i18n.language.startsWith('ar')
+  return <section className={styles.advanced}><h2>{ar?'البطاقات وأهدافها الصحيحة':'Cards and their correct targets'}</h2><p>{ar?'يمكن أن يستقبل الهدف أكثر من بطاقة.':'A target can receive more than one card.'}</p>
+    <div className={styles.matchEditor}><div><h3>{ar?'الأهداف':'Targets'}</h3>{p.targets.map((t,index)=><div className={styles.editRow} key={t.key}><input aria-label={`${ar?'الهدف':'Target'} ${index+1}`} value={t.text} onChange={e=>onChange({...p,targets:p.targets.map(x=>x.key===t.key?{...x,text:e.target.value}:x)})}/><Button variant="quiet" aria-label={ar?'احذف الهدف':'Delete target'} disabled={p.targets.length<=2} onClick={()=>{const targets=p.targets.filter(x=>x.key!==t.key);onChange({...p,targets,map:Object.fromEntries(Object.entries(p.map).map(([c,id])=>[c,id===t.key?targets[0]!.key:id]))})}}><Trash2 size={18}/></Button></div>)}
+    <Button disabled={p.targets.length>=8} onClick={()=>onChange({...p,targets:[...p.targets,{key:key('target'),text:''}]})}>{ar?'أضف هدفًا':'Add target'}</Button></div>
+    <div><h3>{ar?'البطاقات':'Cards'}</h3>{p.cards.map((c,index)=><div className={styles.cardEditor} key={c.key}><input aria-label={`${ar?'البطاقة':'Card'} ${index+1}`} value={c.text} onChange={e=>onChange({...p,cards:p.cards.map(x=>x.key===c.key?{...x,text:e.target.value}:x)})}/><select aria-label={`${ar?'هدف البطاقة':'Target for card'} ${index+1}`} value={p.map[c.key]} onChange={e=>onChange({...p,map:{...p.map,[c.key]:e.target.value}})}>{p.targets.map((t,i)=><option key={t.key} value={t.key}>{t.text||`${ar?'الهدف':'Target'} ${i+1}`}</option>)}</select><Button variant="quiet" aria-label={ar?'احذف البطاقة':'Delete card'} disabled={p.cards.length<=2} onClick={()=>onChange({...p,cards:p.cards.filter(x=>x.key!==c.key),map:Object.fromEntries(Object.entries(p.map).filter(([id])=>id!==c.key))})}><Trash2 size={18}/></Button></div>)}
+    <Button disabled={p.cards.length>=8} onClick={()=>{const id=key('card');onChange({...p,cards:[...p.cards,{key:id,text:''}],map:{...p.map,[id]:p.targets[0]!.key}})}}>{ar?'أضف بطاقة':'Add card'}</Button></div></div>
+  </section>
+}
+function HotspotEditor({p,onChange,onConfirm}:{p:HotspotPayload;onChange:(p:HotspotPayload)=>void;onConfirm:()=>void}){
+  const {i18n}=useTranslation(),ar=i18n.language.startsWith('ar'),url=useImage(p.imageKey)
+  const [active,setActive]=useState(p.zones[0]!.key),[draw,setDraw]=useState(false),[confirmed,setConfirmed]=useState(false)
+  const origin=useRef<{x:number;y:number}|null>(null),z=p.zones.find(z=>z.key===active)??p.zones[0]!
+  const change=(next:HotspotPayload)=>{setConfirmed(false);onChange(next)}
+  function updateZone(patch:Partial<ImageZone>){const next={...z,...patch};next.w=Math.max(.01,Math.min(next.w,1-next.x));next.h=Math.max(.01,Math.min(next.h,1-next.y));change({...p,zones:p.zones.map(x=>x.key===z.key?next:x)})}
+  function point(e:React.PointerEvent<HTMLDivElement>){const r=e.currentTarget.getBoundingClientRect();return {x:Math.min(.99,Math.max(0,(e.clientX-r.left)/r.width)),y:Math.min(.99,Math.max(0,(e.clientY-r.top)/r.height))}}
+  return <section className={styles.advanced}><h2>{ar?'مناطق الصورة':'Image zones'}</h2><ImageUpload imageKey={p.imageKey} showPreview={false} onImage={imageKey=>change({...p,imageKey})}/>
+    <label>{ar?'طريقة الإجابة':'Answer mode'}<select value={p.mode} onChange={e=>change(e.target.value==='click_zone'?{mode:'click_zone',imageKey:p.imageKey,zones:p.zones,correct:[p.zones[0]!.key]}:{mode:'card_to_zone',imageKey:p.imageKey,zones:p.zones,cards:[{key:'card_a',text:''}],map:{card_a:p.zones[0]!.key}})}><option value="click_zone">{ar?'النقر على المناطق':'Select zones'}</option><option value="card_to_zone">{ar?'بطاقات إلى مناطق':'Cards to zones'}</option></select></label>
+    <div className={styles.zoneTools}><label>{ar?'المنطقة المحددة':'Selected zone'}<select value={z.key} onChange={e=>setActive(e.target.value)}>{p.zones.map((z,i)=><option value={z.key} key={z.key}>{i+1}</option>)}</select></label><Button aria-pressed={draw} onClick={()=>setDraw(v=>!v)}>{ar?'ارسم حدود المنطقة':'Draw zone bounds'}</Button><Button disabled={p.zones.length>=12} onClick={()=>{const id=key('zone');change({...p,zones:[...p.zones,{key:id,x:.2,y:.2,w:.2,h:.2}]});setActive(id)}}>{ar?'أضف منطقة':'Add zone'}</Button><Button disabled={p.zones.length<=1} onClick={()=>{const zones=p.zones.filter(x=>x.key!==z.key);setActive(zones[0]!.key);change(p.mode==='click_zone'?{...p,zones,correct:p.correct.filter(k=>k!==z.key).length?p.correct.filter(k=>k!==z.key):[zones[0]!.key]}:{...p,zones,map:Object.fromEntries(Object.entries(p.map).map(([c,k])=>[c,k===z.key?zones[0]!.key:k]))})}}>{ar?'احذف المنطقة':'Delete zone'}</Button></div>
+    {draw&&<p role="status">{ar?'اسحب من زاوية إلى الزاوية المقابلة. يمكنك إدخال النسب بالأسفل أيضًا.':'Drag from one corner to the opposite corner. You can also enter percentages below.'}</p>}
+    {url&&<div className={styles.zoneEditor} dir="ltr" style={{touchAction:draw?'none':'auto'}} onPointerDown={e=>{if(!draw)return;origin.current=point(e);e.currentTarget.setPointerCapture(e.pointerId)}} onPointerUp={e=>{if(!draw||!origin.current)return;const end=point(e),start=origin.current;origin.current=null;updateZone({x:Math.min(start.x,end.x),y:Math.min(start.y,end.y),w:Math.max(.02,Math.abs(end.x-start.x)),h:Math.max(.02,Math.abs(end.y-start.y))});setDraw(false)}}><img src={url} alt={ar?'الصورة ومناطق الإجابة':'Image and answer zones'}/><svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">{p.zones.map((zone,i)=><g key={zone.key}><rect x={zone.x*100} y={zone.y*100} width={zone.w*100} height={zone.h*100} className={zone.key===z.key?styles.activeZone:undefined}/><text x={(zone.x+.015)*100} y={(zone.y+.06)*100}>{i+1}</text></g>)}</svg></div>}
+    <div className={styles.zoneNumbers}>{(['x','y','w','h']as const).map(axis=><label key={axis}>{({x:ar?'أفقي %':'Horizontal %',y:ar?'رأسي %':'Vertical %',w:ar?'عرض %':'Width %',h:ar?'ارتفاع %':'Height %'})[axis]}<input type="number" min={axis==='x'||axis==='y'?0:1} max={axis==='x'||axis==='y'?99:100} step="1" value={Math.round(z[axis]*100)} onChange={e=>updateZone({[axis]:Math.min(axis==='x'||axis==='y'?.99:1,Math.max(axis==='x'||axis==='y'?0:.01,Number(e.target.value)/100))})}/></label>)}</div>
+    {p.mode==='click_zone'?<fieldset><legend>{ar?'المناطق الصحيحة':'Correct zones'}</legend>{p.zones.map((z,i)=><label key={z.key} className={styles.checkZone}><input type="checkbox" checked={p.correct.includes(z.key)} onChange={e=>{const correct=e.target.checked?[...p.correct,z.key]:p.correct.filter(k=>k!==z.key);if(correct.length)change({...p,correct})}}/>{i+1}</label>)}</fieldset>:<div>{p.cards.map((c,i)=><div className={styles.editRow} key={c.key}><input aria-label={`${ar?'البطاقة':'Card'} ${i+1}`} value={c.text} onChange={e=>change({...p,cards:p.cards.map(x=>x.key===c.key?{...x,text:e.target.value}:x)})}/><select aria-label={`${ar?'منطقة البطاقة':'Zone for card'} ${i+1}`} value={p.map[c.key]} onChange={e=>change({...p,map:{...p.map,[c.key]:e.target.value}})}>{p.zones.map((z,i)=><option key={z.key} value={z.key}>{i+1}</option>)}</select><Button disabled={p.cards.length<=1} onClick={()=>change({...p,cards:p.cards.filter(x=>x.key!==c.key),map:Object.fromEntries(Object.entries(p.map).filter(([k])=>k!==c.key))})}><Trash2 size={18}/></Button></div>)}<Button disabled={p.cards.length>=12} onClick={()=>{const id=key('card');change({...p,cards:[...p.cards,{key:id,text:''}],map:{...p.map,[id]:z.key}})}}>{ar?'أضف بطاقة':'Add card'}</Button></div>}
+    <Button variant="primary" onClick={()=>{onConfirm();setConfirmed(true)}}>{confirmed?(ar?'أُرسل تأكيد المناطق للحفظ':'Zone confirmation sent for saving'):(ar?'راجعت حدود المناطق وأؤكدها':'I have reviewed and confirm these bounds')}</Button>
+  </section>
+}
+export function AdvancedCanvas({question,pairs,onPatch,onPair}:{question:QuestionRecord;pairs:ErrorPairRecord[];onPatch:(patch:Record<string,unknown>)=>void;onPair:(element:string,target:string|null,reason:string)=>void}){
+  const {i18n}=useTranslation(),ar=i18n.language.startsWith('ar'),parsed=parsePayload(question.kind,question.payload),[slot,setSlot]=useState('')
+  if(!parsed.success)return <p role="alert">{ar?'تعذّر قراءة السؤال':'Could not read this question'}</p>
+  const p=parsed.data,slots=errorPairSlots(question.kind,p),chosen=slots.find(s=>`${s.elementKey}:${s.wrongTargetKey}`===slot)??slots[0]
+  return <>
+    {'items'in p&&<OrderEditor p={p} onChange={payload=>onPatch({payload})}/>}
+    {'targets'in p&&<MatchEditor p={p} onChange={payload=>onPatch({payload})}/>}
+    {'zones'in p&&<HotspotEditor p={p} onChange={payload=>onPatch({payload,mediaKey:payload.imageKey})} onConfirm={()=>onPatch({confirmZones:true})}/>}
+    {chosen&&<details className={styles.advanced}><summary>{ar?'سبب متوقع لخطأ محدد (اختياري)':'A possible reason for a specific mistake (optional)'}</summary><p>{ar?'سجّل تفسيرًا يساعد المعلّم على المراجعة، دون الجزم بسبب خطأ الطالب.':'Record a possibility to support teacher review, without claiming to diagnose a learner.'}</p><select aria-label={ar?'الخطأ المتوقع':'Possible mistake'} value={`${chosen.elementKey}:${chosen.wrongTargetKey}`} onChange={e=>setSlot(e.target.value)}>{slots.map(s=><option key={`${s.elementKey}:${s.wrongTargetKey}`} value={`${s.elementKey}:${s.wrongTargetKey}`}>{s.label}</option>)}</select><textarea aria-label={ar?'سبب الخطأ المتوقع':'Possible reason'} value={pairs.find(x=>x.elementKey===chosen.elementKey&&x.wrongTargetKey===chosen.wrongTargetKey)?.reason??''} onChange={e=>onPair(chosen.elementKey,chosen.wrongTargetKey,e.target.value)}/></details>}
+  </>
+}

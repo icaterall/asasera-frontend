@@ -1,0 +1,27 @@
+name: Checks
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    name: Typecheck, lint, build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '24', cache: npm }
+      - run: npm ci --ignore-scripts
+
+      # src/shared/ is generated from asasera-backend/packages/shared/src.
+      # The backend is not checked out here, so this verifies the generated
+      # banners are intact — a hand-edit to a mirrored contract file would
+      # otherwise be reverted by the next sync with nobody noticing.
+      # See asasera-backend/docs/implementation/decisions-v4.md D-V4-001.
+      - run: npm run check:shared
+
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm run build

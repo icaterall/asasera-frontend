@@ -1,0 +1,58 @@
+[
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/pages/student/StudentHome.module.css",
+    "line": 8,
+    "snippet": "font-size: 13px is off the DESIGN.md type ramp",
+    "ignoreValue": "13px",
+    "importedBy": [
+      "StudentHome.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/pages/student/StudentHome.module.css",
+    "line": 9,
+    "snippet": "font-size: 32px is off the DESIGN.md type ramp",
+    "ignoreValue": "32px",
+    "importedBy": [
+      "StudentHome.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/pages/student/StudentHome.module.css",
+    "line": 15,
+    "snippet": "Undocumented color #0c478d is outside DESIGN.md colors",
+    "ignoreValue": "#0c478d",
+    "importedBy": [
+      "StudentHome.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/pages/student/StudentHome.module.css",
+    "line": 19,
+    "snippet": "font-size: 22px is off the DESIGN.md type ramp",
+    "ignoreValue": "22px",
+    "importedBy": [
+      "StudentHome.tsx"
+    ]
+  }
+]

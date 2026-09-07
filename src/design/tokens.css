@@ -1,0 +1,112 @@
+/* Visual reference: Kahoot brand guide and creator screenshots. User direction,
+ * 7 September 2026, supersedes the earlier PDF palette. See D-V4-019.
+ * Montserrat for Latin, existing Neo Sans Arabic for Arabic coverage. */
+.asas {
+  color-scheme: light;
+  font-family: "Montserrat", var(--font-arabic), sans-serif;
+  --brand: #46178f;
+  --brand-dark: #25076b;
+
+  
+  --act:          #1368ce;
+  --act-press:    #105cb4;
+  --evidence:     #26890c;
+
+  
+  --a1: #e21b3c;    /* triangle */
+  --a2: #1368ce;    /* diamond  */
+  --a3: #d89e00;    /* circle   */
+  --a4: #26890c;    /* square   */
+
+  
+  --ink: #333333;    --muted: #6e6e6e;
+  --line:#cccccc;    --surface:#ffffff;
+
+  
+  --r-control: 4px;
+  --r-card:       8px;
+  --h-control: 48px;
+
+  
+  --press: 0 2px 4px rgba(0,0,0,.15), inset 0 -4px 0 rgba(0,0,0,.25);
+
+  
+  --t-state: 200ms;
+  --t-select: 100ms;
+  --t-panel: 300ms;
+
+  /* ══════════════════════════════════════════════════════════════════
+   * DERIVED. Not in §5, required to use §5 without guessing.
+   * ══════════════════════════════════════════════════════════════════ */
+
+  /* Foregrounds, each the measured winner for its ground. */
+  --on-act:      #ffffff;   
+  --on-evidence: #ffffff;   
+  --on-a1:       #ffffff;   
+  --on-a2:       #ffffff;   
+  --on-a3:       #141821;   
+  --on-a4:       #ffffff;   
+
+  /* Surfaces the plan implies but does not name. */
+  --raised:  #f2f2f2;
+  --sunken:  #f2f2f2;
+  --overlay: rgba(20, 24, 33, .55);
+
+  /* Motion the plan states in §7 and does not tokenise in §5. */
+  --t-reveal-pause: 400ms;   /* lock → reveal, nothing moves */
+  --t-bar-grow:     600ms;   /* distribution columns */
+  --t-bar-stagger:   80ms;   /* per column */
+  --t-podium:      1200ms;   /* spring rise */
+  --ease: cubic-bezier(0.2, 0, 0, 1);
+  /* Springy, for the podium only. Everything else uses --ease. */
+  --ease-rise: cubic-bezier(0.22, 1.4, 0.36, 1);
+
+  /* Focus. A ring that is only a colour is invisible to a colour-blind user
+     and to anyone on a projector at the back of a room; this is a solid
+     outline with an offset so it reads on any fill, including --act itself. */
+  --focus-ring: 3px;
+  --focus-offset: 2px;
+  --focus-colour: #141821;
+
+  /* ---- type ---- Arabic-first: the ramp is set on the Arabic face, and the
+     Latin face is chosen to sit on it, not the other way round. */
+  --f-stage: clamp(2.5rem, 5.2vw, 4.5rem);  /* 40 → 72px — §4 #4, projector */
+  --f-hero:    clamp(1.75rem, 3.2vw, 2.5rem);
+  --f-title:   1.5rem;
+  --f-heading: 1.25rem;
+  --f-body:    1rem;     /* never smaller for content */
+  --f-small:   0.875rem;
+  --f-micro:   0.75rem;  /* labels and counters only, never prose */
+
+  --lh-stage: 1.1;
+  --lh-title: 1.25;
+  --lh-body:  1.7;       /* Arabic needs more leading than Latin at the same size */
+
+  --w-regular: 400;
+  --w-medium:  700;
+  --w-bold:    700;
+
+  /* ---- space — a 4px base, matching --r-control ---- */
+  --s-1: 4px;  --s-2: 8px;  --s-3: 12px; --s-4: 16px;
+  --s-5: 24px; --s-6: 32px; --s-7: 48px; --s-8: 64px;
+}
+
+/* Dark teacher workspace; answer colors keep the same slot identity. */
+.dark .asas,.asas.dark {
+ color-scheme:dark;
+ --ink:#f2f2f2;--muted:#b2b2b2;--line:#414141;--surface:#222222;
+ --raised:#333333;--sunken:#171717;--overlay:rgba(0,0,0,.66);--focus-colour:#fff;
+}
+@media (prefers-reduced-motion: reduce) {
+  .asas {
+    --t-state: 1ms;
+    --t-select: 1ms;
+    --t-panel: 1ms;
+    --t-bar-grow: 1ms;
+    --t-bar-stagger: 0ms;
+    --t-podium: 1ms;
+    --ease-rise: linear;
+  }
+}
+
+.asas{--danger-ink:#b8122f}.dark .asas,.asas.dark{--danger-ink:#ff8b9d}
