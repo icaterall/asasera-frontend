@@ -1,5 +1,5 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react'
-import { LoadingMark } from './LoadingIndicator'
+import { ButtonSpinner } from './ButtonSpinner'
 
 import styles from './Button.module.css'
 
@@ -20,15 +20,15 @@ export function Button({
   return (
     <button
       type="button"
+      {...rest}
       className={[styles.btn, styles[variant], full ? styles.full : '', className ?? '']
         .filter(Boolean).join(' ')}
       /* A loading button is not clickable, and says why rather than just
          looking dim: `aria-busy` is what a screen reader announces. */
       disabled={disabled || loading}
-      aria-busy={loading || undefined}
-      {...rest}
+      aria-busy={loading || rest['aria-busy']}
     >
-      {loading ? <LoadingMark size="small" /> : icon}
+      {loading ? <ButtonSpinner /> : icon}
       {children}
     </button>
   )

@@ -1,0 +1,16 @@
+.spinner {
+  display: inline-block;
+  inline-size: 24px;
+  block-size: 24px;
+  flex: 0 0 24px;
+  vertical-align: middle;
+  color: inherit;
+  transform-origin: center;
+  animation: spin 800ms linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner { animation: none; }
+}

@@ -1,3 +1,4 @@
+import { pendingLoginReturn } from '@/lib/loginReturn'
 import { GoogleIcon } from '@/components/ui/BrandIcons'
 import { useAuthCopy } from '@/copy/useAuthCopy'
 import { federatedSignInUrl } from '@/lib/api'
@@ -15,11 +16,11 @@ import { federatedSignInUrl } from '@/lib/api'
  * code we do not control and tracking we do not want to the one page where
  * someone is about to type a credential.
  */
-export function GoogleButton() {
+export function GoogleButton({returnTo}: {returnTo?:string} = {}) {
   const { c } = useAuthCopy()
 
   return (
-    <a href={federatedSignInUrl('google')} className="auth-button auth-button--provider">
+    <a onClick={() => {if (returnTo) pendingLoginReturn.remember(returnTo)}} href={federatedSignInUrl('google')} className="auth-button auth-button--provider">
       <GoogleIcon className="size-5 shrink-0" />
       {c.common.google}
     </a>

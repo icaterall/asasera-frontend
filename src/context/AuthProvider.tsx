@@ -100,7 +100,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(null)
       setStatus('anonymous')
       queryClient.clear()
-      navigate('/login', { replace: true, state: loginStateFor(location) })
+      navigate(/^\/admin(\/|$)/.test(location.pathname) ? location.pathname+location.search : '/login', { replace: true, state: loginStateFor(location) })
     })
     return () => setSessionLostHandler(null)
   }, [navigate, queryClient, location])
@@ -131,8 +131,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
      */
     await auth.logout().catch(() => {})
     forgetSession()
-    navigate('/login', { replace: true })
-  }, [navigate, forgetSession])
+    navigate(user?.role === 'admin' || /^\/admin(\/|$)/.test(location.pathname) ? '/admin' : '/login', { replace: true })
+  }, [navigate, forgetSession, user?.role, location.pathname])
 
   const applyUser = useCallback((next: PublicUser) => {
     setUser(next)

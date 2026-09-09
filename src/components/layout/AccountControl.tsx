@@ -58,14 +58,14 @@ export function AccountControl() {
   const student = user.role === 'student'
   const roleLabel = accountRoleLabel(user.role, i18n.language)
   const links = [
-    ...((teacher || student) ? [{ to: homePathFor(user), label: t('لوحة التحكم', 'Dashboard'), icon:House }] : []),
+    ...((teacher || student || user.role === 'admin') ? [{ to: homePathFor(user), label: t('لوحة التحكم', 'Dashboard'), icon:House }] : []),
     ...(teacher ? [
       { to: '/teacher/activities', label: t('أنشطتي', 'My activities'), icon:BookOpen },
       { to: '/teacher/assignments', label: t('الواجبات', 'Assignments'), icon:ClipboardList },
       { to: '/teacher/reports', label: t('التقارير', 'Reports'), icon:ChartNoAxesCombined },
     ] : student ? [{ to: '/join', label: t('انضمّ إلى حصّة', 'Join a class'), icon:LogIn }] : []),
     { to: '/account', label: t('إعدادات الحساب', 'Account settings'), icon:Settings2 },
-    { to: '/forgot', label: t('إعادة تعيين كلمة المرور', 'Reset password'), icon:KeyRound },
+    ...(user.role === 'admin' ? [] : [{ to: '/forgot', label: t('إعادة تعيين كلمة المرور', 'Reset password'), icon:KeyRound }]),
     { to: '/contact', label: t('تواصل مع الدعم', 'Contact support'), icon:LifeBuoy },
   ]
 

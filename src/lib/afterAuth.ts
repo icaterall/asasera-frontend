@@ -20,7 +20,8 @@ import type { PublicUser } from '@/lib/api'
 export function homePathFor(user: Pick<PublicUser, 'role'>): string {
   if (user.role === 'teacher') return '/teacher/dashboard'
   if (user.role === 'student') return '/student'
-  // Admin/support have no dedicated workspace in this application yet.
+  if (user.role === 'admin') return '/admin/users'
+  // Support has no dedicated workspace yet.
   return '/account'
 }
 
@@ -62,6 +63,7 @@ export function loginDestinationFor(user: Pick<PublicUser, 'role'>, requested: u
   const pathname = decodeURIComponent(new URL(path, 'https://asasera.invalid').pathname)
   if (/^\/teacher(\/|$)/i.test(pathname) && user.role !== 'teacher') return homePathFor(user)
   if (/^\/student(\/|$)/i.test(pathname) && user.role !== 'student') return homePathFor(user)
+  if (/^\/admin(\/|$)/i.test(pathname) && user.role !== 'admin') return homePathFor(user)
   return path
 }
 

@@ -58,17 +58,17 @@ function Settings({ user, title }: { user: PublicUser; title: string }) {
         <div><dt>{t('البريد الإلكتروني', 'Email address')}</dt><dd><Bdi>{user.email}</Bdi><span>{user.emailVerified ? t('تم التحقق', 'Verified') : t('بانتظار التحقق — استخدم الشريط أعلى الصفحة.', 'Awaiting verification — use the banner above.')}</span></dd></div>
         <div><dt>{t('نوع الحساب', 'Account type')}</dt><dd>{accountRoleLabel(user.role, i18n.language)}</dd></div>
       </dl>
-      <Link className={styles.link} to={user.role === 'student' ? '/student/profile' : '/complete-profile'}>{user.role === 'teacher' ? t('تعديل المادة وجهة العمل', 'Edit subject and workplace') : t('تعديل المرحلة والصف', 'Edit learning stage and grade')}</Link>
+      {(user.role==='teacher'||user.role==='student') && <Link className={styles.link} to={user.role === 'student' ? '/student/profile' : '/complete-profile'}>{user.role === 'teacher' ? t('تعديل المادة وجهة العمل', 'Edit subject and workplace') : t('تعديل المرحلة والصف', 'Edit learning stage and grade')}</Link>}
     </section>
     <section className={styles.section} aria-labelledby="security-heading">
       <h2 id="security-heading">{t('كلمة المرور والأمان', 'Password and security')}</h2>
-      <p>{t('اطلب رابطًا عبر البريد لاختيار كلمة مرور جديدة. إعادة التعيين تنهي جلسات تسجيل الدخول الحالية.', 'Request an email link to choose a new password. Resetting your password ends your current sign-in sessions.')}</p>
-      <Link className={styles.link} to="/forgot">{t('إعادة تعيين كلمة المرور', 'Reset password')}</Link>
+      {user.role === 'admin' ? <p>{t('يستخدم حساب الإدارة تسجيل الدخول عبر Google فقط.', 'This administrator account signs in with Google only.')}</p> : <><p>{t('اطلب رابطًا عبر البريد لاختيار كلمة مرور جديدة. إعادة التعيين تنهي جلسات تسجيل الدخول الحالية.', 'Request an email link to choose a new password. Resetting your password ends your current sign-in sessions.')}</p>
+      <Link className={styles.link} to="/forgot">{t('إعادة تعيين كلمة المرور', 'Reset password')}</Link></>}
     </section>
     <section className={`${styles.section} ${styles.help}`} aria-labelledby="help-heading">
       <h2 id="help-heading">{t('هل تحتاج مساعدة؟', 'Need help?')}</h2>
       <Link className={styles.link} to="/contact">{t('تواصل مع الدعم', 'Contact support')}</Link>
     </section>
-    <DeleteAccount />
+    {user.role !== 'admin' && <DeleteAccount />}
   </section>
 }

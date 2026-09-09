@@ -66,5 +66,5 @@
 
 .full { width: 100%; }
 
-/* Keep the brand mark legible while a disabled button is working. */
+/* Loading disables interaction without fading the spinner or its label. */
 .btn[aria-busy="true"] { opacity: 1; cursor: progress; }

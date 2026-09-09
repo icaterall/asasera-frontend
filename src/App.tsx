@@ -15,6 +15,9 @@ import { ThemeProvider } from '@/context/ThemeProvider'
 import Landing from '@/pages/Landing'
 import { useAuth } from '@/hooks/useAuth'
 import { homePathFor } from '@/lib/afterAuth'
+const AdminLayout = lazy(() => import('@/features/admin/AdminLayout'))
+const AdminUsers = lazy(() => import('@/features/admin/AdminUsers'))
+const AdminUserDetail = lazy(() => import('@/features/admin/AdminUserDetail'))
 const StudentLayout = lazy(() => import('@/features/student/StudentLayout'))
 const StudentHome = lazy(() => import('@/features/student/StudentPages').then(m => ({ default: m.StudentHome })))
 const StudentActivities = lazy(() => import('@/features/student/StudentPages').then(m => ({ default: m.StudentActivities })))
@@ -108,6 +111,11 @@ export default function App() {
           <SignupProvider>
           <Suspense fallback={<RouteFallback />}>
             <Routes>
+              <Route path="admin" element={<AdminLayout/>}>
+                <Route index element={<Navigate to="/admin/users" replace/>}/>
+                <Route path="users" element={<AdminUsers/>}/>
+                <Route path="users/:id" element={<AdminUserDetail/>}/>
+              </Route>
               <Route path="student" element={<StudentLayout />}>
                 <Route index element={<StudentHome />} />
                 <Route path="activities" element={<StudentActivities />} />

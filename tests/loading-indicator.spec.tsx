@@ -8,6 +8,7 @@ import { LoadingIndicator, LoadingMark } from '../src/design/LoadingIndicator'
 import { LoadingState } from '../src/design/States'
 import { loadingVariantForPath, type LoadingVariant } from '../src/design/loadingVariant'
 import { Button } from '../src/design/Button'
+import { SubmitButton } from '../src/components/form/SubmitButton'
 
 const language = createInstance()
 beforeAll(async () => { await language.init({ lng: 'en', resources: { en: { translation: {} }, ar: { translation: {} } } }) })
@@ -50,15 +51,36 @@ it.each([
 
 it('prevents duplicate actions while loading, then restores the same labelled control', async () => {
   const onClick = vi.fn(), user = userEvent.setup()
-  const { rerender } = render(<Button loading onClick={onClick}>Save activity</Button>)
+  const { rerender } = render(<Button loading disabled={false} aria-busy={false} onClick={onClick}>Save activity</Button>)
   const button = screen.getByRole('button', { name: 'Save activity' })
   expect(button.getAttribute('aria-busy')).toBe('true')
+  expect(button.hasAttribute('disabled')).toBe(true)
+  expect(button.querySelector('img')).toBeNull()
+  expect(button.querySelector('[data-button-spinner]')).not.toBeNull()
   await user.click(button)
   expect(onClick).not.toHaveBeenCalled()
   rerender(<Button onClick={onClick}>Save activity</Button>)
   await user.click(button)
   expect(onClick).toHaveBeenCalledOnce()
   expect(button.hasAttribute('aria-busy')).toBe(false)
+  expect(button.querySelector('[data-button-spinner]')).toBeNull()
+})
+
+it('disables authentication form submission with a clear logo-free spinner, then allows retry', async () => {
+  const submit = vi.fn((event: React.FormEvent) => event.preventDefault()), user = userEvent.setup()
+  const form = (submitting: boolean) => <I18nextProvider i18n={language}><form onSubmit={submit}>
+    <SubmitButton label="Sign in" busyLabel="Signing in…" submitting={submitting}/>
+  </form></I18nextProvider>
+  const { rerender } = render(form(true))
+  const button = screen.getByRole('button', { name: 'Signing in…' })
+  expect(button.getAttribute('aria-busy')).toBe('true')
+  expect(button.querySelector('img')).toBeNull()
+  expect(button.querySelector('[data-button-spinner]')).not.toBeNull()
+  await user.click(button)
+  expect(submit).not.toHaveBeenCalled()
+  rerender(form(false))
+  await user.click(screen.getByRole('button', { name: 'Sign in' }))
+  expect(submit).toHaveBeenCalledOnce()
 })
 
 it('pauses offscreen and in hidden tabs, and disconnects when loading ends', () => {

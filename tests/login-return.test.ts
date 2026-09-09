@@ -43,9 +43,10 @@ it('falls back to the right dashboard for a page belonging to the other role', (
 })
 it('does not send admin/support accounts into a teacher/student redirect loop', () => {
   for (const role of ['admin', 'support'] as const) {
-    assert.equal(homePathFor({ role }), '/account')
-    assert.equal(loginDestinationFor({ role }, '/student'), '/account')
-    assert.equal(loginDestinationFor({ role }, '/teacher/dashboard'), '/account')
+    const home = role === 'admin' ? '/admin/users' : '/account'
+    assert.equal(homePathFor({ role }), home)
+    assert.equal(loginDestinationFor({ role }, '/student'), home)
+    assert.equal(loginDestinationFor({ role }, '/teacher/dashboard'), home)
   }
 })
 it('rejects external redirects, executable URLs, malformed and oversized paths', () => {

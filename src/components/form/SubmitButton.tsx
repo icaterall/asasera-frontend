@@ -1,5 +1,5 @@
 import { useAuthCopy } from '@/copy/useAuthCopy'
-import { LoadingMark } from '@/design/LoadingIndicator'
+import { ButtonSpinner } from '@/design/ButtonSpinner'
 
 /**
  * The primary action, and the only place a form is submitted from.
@@ -36,7 +36,7 @@ export function SubmitButton({
       aria-busy={submitting}
       className="auth-button auth-button--primary"
     >
-      {submitting ? <LoadingMark size="small" /> : null}
+      {submitting ? <ButtonSpinner /> : null}
       <span>{submitting ? (busyLabel ?? c.common.submitting) : label}</span>
     </button>
   )
