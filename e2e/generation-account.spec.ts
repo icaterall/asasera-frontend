@@ -1,3 +1,4 @@
+import {selectOption} from './select-option'
 import {test,expect} from '@playwright/test'
 import {readFileSync} from 'node:fs'
 import {localTeacher} from './local-fixture'
@@ -8,15 +9,15 @@ test('existing live-provider results open citations and image proposals without 
  let submissions=0;page.on('request',r=>{if(r.method()==='POST'&&r.url().endsWith('/activity-generation/jobs'))submissions++})
  await page.setViewportSize({width:1440,height:900});await page.goto(`/teacher/activities/${fixture.activityId}`)
  await page.getByRole('button',{name:'Generate',exact:true}).click();await expect(page.getByRole('dialog',{name:'Prepare with AI',exact:true})).toBeVisible()
- await page.getByRole('combobox',{name:'Previous jobs',exact:true}).selectOption('306')
+ await selectOption(page.getByRole('combobox',{name:'Previous jobs',exact:true}),'306')
  await expect(page.getByRole('button',{name:'Open source 1'}).first()).toBeVisible();await page.getByRole('button',{name:'Open source 1'}).first().click()
  await expect(page.getByRole('heading',{name:'Source 1',exact:true})).toBeVisible();await expect(page.locator('section[class*=sourceText] p')).not.toBeEmpty()
  await page.locator('section[class*=sourceText]').evaluate(el=>el.scrollIntoView({block:'center'}))
  await page.screenshot({path:'../screenshots/v4/generation-source-1440.png',fullPage:true})
- await page.getByRole('combobox',{name:'Previous jobs',exact:true}).selectOption('307');await expect(page.getByAltText('Proposed image regions')).toBeVisible()
+ await selectOption(page.getByRole('combobox',{name:'Previous jobs',exact:true}),'307');await expect(page.getByAltText('Proposed image regions')).toBeVisible()
  await page.setViewportSize({width:390,height:844});await expect(page.locator('dialog')).toHaveJSProperty('scrollWidth',await page.locator('dialog').evaluate(el=>el.clientWidth))
  await page.screenshot({path:'../screenshots/v4/generation-zones-390.png',fullPage:true})
- await page.getByRole('combobox',{name:'Previous jobs',exact:true}).selectOption('308');await expect(page.getByRole('status')).toContainText('Reserved credit was released')
+ await selectOption(page.getByRole('combobox',{name:'Previous jobs',exact:true}),'308');await expect(page.getByRole('status')).toContainText('Reserved credit was released')
  expect(submissions).toBe(0)
 })
 test('account deletion requires password confirmation, revokes access and clears shared-device state',async({page})=>{

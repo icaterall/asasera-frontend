@@ -1,4 +1,5 @@
 import { createContext } from 'react'
+import type { LearningProfile } from '@/shared/student'
 
 export type SignupRole = 'teacher' | 'student'
 
@@ -17,6 +18,7 @@ export type SignupDraft = {
   /** A row id from education_stages, or null for "Choose later". */
   stageId: number | null
   /** True once the person has actively answered the stage step either way. */
+  learningProfile: LearningProfile
   stageAnswered: boolean
   email: string
 }
@@ -26,6 +28,7 @@ export type SignupContextValue = {
   begin: (role: SignupRole) => void
   setWorkplace: (workplaceId: number) => void
   setStage: (stageId: number | null) => void
+  setLearningProfile: (profile: LearningProfile) => void
   setEmail: (email: string) => void
   clear: () => void
 }

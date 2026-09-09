@@ -5,7 +5,7 @@
  *
  * The brief names five exact colours for these screens. They are NOT the
  * app-wide palette in index.css — --brand-blue #0B5FD0 is a lighter, warmer
- * blue than the committed brand #46178f, and --ink #10233D is bluer than the
+ * blue than the committed brand #004ccc, and --ink #10233D is bluer than the
  * app's #10101d. Writing them into `:root` would silently restyle the landing
  * page, the About route and the 404 as a side effect of building a login form.
  * So they are scoped: `.auth-scope` is on the <section> each auth page
@@ -174,11 +174,10 @@
   grid-column: 1 / -1;
 }
 
-/* ---- Inputs and selects ------------------------------------------- */
+/* ---- Text inputs -------------------------------------------------- */
 
 /*
- * One recipe for every text input and every <select> on these screens, so the
- * two cannot drift in height, radius or focus treatment.
+ * Shared text-input recipe. Dropdowns use design/Dropdown.module.css.
  *
  * `min-height` rather than a fixed height: an Arabic label and an Arabic
  * option are taller than their English counterparts and must grow the control
@@ -231,34 +230,6 @@
 
 .auth-input[aria-invalid='true']:focus-visible {
   box-shadow: 0 0 0 3px color-mix(in oklab, var(--danger) 20%, transparent);
-}
-
-/*
- * A <select> needs its own chevron once `appearance: none` removes the native
- * one. It is drawn as an inline SVG background positioned on the INLINE-END
- * edge, so it moves to the left in Arabic and the right in English without a
- * direction-specific rule. `background-position` has no logical longhand, so
- * the flip is done by the [dir] pair below — the one place in this file that
- * needs it, and the reason the rest of the layout can stay logical.
- */
-.auth-select {
-  appearance: none;
-  padding-inline-end: 2.25rem;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%2355657D' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6l4 4 4-4'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-size: 1rem;
-}
-
-[dir='ltr'] .auth-select {
-  background-position: right 0.75rem center;
-}
-
-[dir='rtl'] .auth-select {
-  background-position: left 0.75rem center;
-}
-
-.dark .auth-select {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23A3B0C4' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6l4 4 4-4'/%3E%3C/svg%3E");
 }
 
 /*
@@ -687,7 +658,7 @@
  *
  *   card        fill      label   label on fill
  *   school      #e12d33   white        4.54
- *   higher      #46178f   white        7.23
+ *   higher      #004ccc   white        7.23
  *   business    #0d8577   white        4.53
  *   other       #f0a02a   ink          7.34
  *
@@ -714,7 +685,7 @@
    */
   --wp-school:      #e21b3c;
   --wp-school-on:   #ffffff;
-  --wp-higher:      #46178f;  /* white 7.23 — the Asasera primary */
+  --wp-higher:      var(--color-brand-500);  /* white 7.23 — the Asasera primary */
   --wp-higher-on:   #ffffff;
   --wp-business:    #26890c;
   --wp-business-on: #ffffff;
@@ -1014,7 +985,7 @@
   position: sticky;
   inset-block-start: 0;
   z-index: 60;
-  background: #46178f; /* the brand primary, where white reads 7.23:1 */
+  background: var(--color-brand-500); /* the brand primary, where white reads 7.23:1 */
   color: #ffffff;
 }
 
@@ -1081,7 +1052,7 @@
 
 .verify-btn-solid {
   background: #ffffff;
-  color: #46178f;
+  color: var(--color-brand-500);
   border: 1px solid #ffffff;
 }
 .verify-btn-solid:hover {

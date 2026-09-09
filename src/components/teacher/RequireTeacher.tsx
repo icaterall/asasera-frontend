@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Navigate, useLocation } from 'react-router-dom'
 
 import { useAuth } from '@/hooks/useAuth'
+import { homePathFor } from '@/lib/afterAuth'
 
 /**
  * The teacher route rule, in one place.
@@ -39,7 +40,7 @@ export function RequireTeacher({ children }: { children: ReactNode }) {
   }
 
   /* A student who reaches this URL is not shown a teacher workspace. */
-  if (user.role !== 'teacher') return <Navigate to="/student" replace />
+  if (user.role !== 'teacher') return <Navigate to={homePathFor(user)} replace />
 
   return <>{children}</>
 }

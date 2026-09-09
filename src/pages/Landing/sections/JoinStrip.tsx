@@ -1,78 +1,29 @@
+import { ArrowRight } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
-
+import { useNavigate } from 'react-router-dom'
 import { useCopy } from '@/copy/useCopy'
+import { CODE_LENGTH, normaliseCode } from '../ui/codeFormat'
+import { experienceAr, experienceEn } from '../experience.copy'
+import styles from '../Landing.module.css'
 
-import { Button } from '../ui/Button'
-import { CodeInput } from '../ui/CodeInput'
-import { CODE_LENGTH } from '../ui/codeFormat'
-
-/**
- * The join strip.
- *
- * Placed directly under the hero and given the tinted ground so a student who
- * arrives mid-class — the one visitor on this page under time pressure —
- * finds it without reading anything above it. One row, not a card grid: this
- * is a single task, and surrounding it with sibling cards would make it one
- * option among several.
- *
- * Validation is client-side and deliberately quiet until submit. Validating
- * per keystroke would mark the field invalid after the first character, which
- * is hostile to someone copying six characters off a projector.
- */
 export function JoinStrip() {
-  const { t } = useCopy()
+  const { lang } = useCopy()
+  const copy = lang === 'ar' ? experienceAr : experienceEn
+  const navigate = useNavigate()
   const [code, setCode] = useState('')
-  const [error, setError] = useState<string | undefined>()
-
+  const [error, setError] = useState<'empty' | 'short' | null>(null)
   function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-
-    if (code.length === 0) {
-      setError(t('join.errorEmpty'))
-      return
-    }
-    if (code.length < CODE_LENGTH) {
-      setError(t('join.errorShort'))
-      return
-    }
-
-    setError(undefined)
-    /*
-     * No session backend on this page yet: hand the code to the join route
-     * and let the app own what happens next.
-     */
-    window.location.assign(`/join/${code}`)
+    if (code.length < CODE_LENGTH) { setError(code.length ? 'short' : 'empty'); return }
+    navigate(`/join/${code}`)
   }
-
-  return (
-    <section id="join" aria-labelledby="join-title" className="scroll-mt-20 border-y border-line bg-raised px-5 py-8 md:px-8 md:py-10">
-      <form
-        onSubmit={onSubmit}
-        noValidate
-        className="mx-auto flex max-w-[1200px] flex-col gap-4 md:flex-row md:items-start md:gap-6"
-      >
-        <p id="join-title" className="text-lg font-bold text-fg md:mt-9 md:shrink-0">
-          {t('join.prompt')}
-        </p>
-
-        <div className="w-full md:max-w-[19rem]">
-          <CodeInput
-            id="join-code"
-            value={code}
-            onValueChange={(next) => {
-              setCode(next)
-              if (error) setError(undefined)
-            }}
-            label={t('join.inputLabel')}
-            hint={t('join.inputHint')}
-            error={error}
-          />
-        </div>
-
-        <Button type="submit" variant="teal" size="lg" className="w-full md:mt-8 md:w-auto">
-          {t('join.submit')}
-        </Button>
-      </form>
-    </section>
-  )
+  return <section id="join" className={styles.join} aria-labelledby="join-title"><div className={`${styles.container} ${styles.joinInner}`}>
+    <div><h2 id="join-title">{copy.joinTitle}</h2><p>{copy.joinBody}</p></div>
+    <form onSubmit={onSubmit} noValidate className={styles.joinForm}>
+      <label className="sr-only" htmlFor="join-code">{copy.joinPlaceholder}</label>
+      <input id="join-code" name="joinCode" dir="ltr" value={code} onChange={event => { setCode(normaliseCode(event.target.value)); setError(null) }} maxLength={CODE_LENGTH} autoComplete="one-time-code" autoCapitalize="characters" spellCheck={false} placeholder={copy.joinPlaceholder} aria-invalid={error ? true : undefined} aria-describedby={error ? 'join-error' : undefined} />
+      <button type="submit" className={`${styles.action} ${styles.blueAction}`}>{copy.join}<ArrowRight size={18} className={styles.forward} /></button>
+      {error && <p id="join-error" role="alert">{error === 'empty' ? copy.joinEmpty : copy.joinShort}</p>}
+    </form>
+  </div></section>
 }

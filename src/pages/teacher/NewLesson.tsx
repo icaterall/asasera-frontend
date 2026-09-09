@@ -1,3 +1,4 @@
+import { Select } from '@/design'
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
@@ -250,11 +251,11 @@ export default function NewLesson() {
           </Field>
 
           <Field label={t('teaching.create.fieldCourse')} htmlFor="lesson-course">
-            <select
+            <Select
               id="lesson-course"
               className={inputClass}
               value={courseId}
-              onChange={(event) => setCourseId(event.target.value)}
+              onValueChange={(event) => setCourseId(event)}
             >
               {courses.map((course) => (
                 <option key={course.id} value={course.id}>
@@ -262,7 +263,7 @@ export default function NewLesson() {
                 </option>
               ))}
               <option value="">{t('teaching.create.newCourse')}</option>
-            </select>
+            </Select>
           </Field>
 
           {/* Only when they chose to make one. A teacher with courses never

@@ -43,7 +43,7 @@ const en = {
     signingOut: 'Signing out…',
     unnamedAccount: 'Your account',
     logIn: 'Log in',
-    getStarted: 'Get started',
+    getStarted: 'Register',
   },
 
   /*

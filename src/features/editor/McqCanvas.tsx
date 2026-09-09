@@ -1,6 +1,7 @@
+import {useId,useState} from 'react'
 import {useTranslation} from 'react-i18next'
 import {ImageUpload,useImage} from './ImageUpload'
-import type { AnswerSlot } from '@/design'
+import {Button,type AnswerSlot} from '@/design'
 import styles from './Editor.module.css'
 
 /**
@@ -47,8 +48,16 @@ export function McqCanvas({
   options, correct, reasons, onOptionText, onOptionImage, onCorrect, onReason, flagged,
 }: McqCanvasProps) {
   const {i18n}=useTranslation(),ar=i18n.language.startsWith('ar')
+  const [imageTools,setImageTools]=useState(()=>options.some(option=>!!option.image))
+  const optionsId=useId()
   return (
-    <div className={styles.options}>
+    <>
+    <div className={styles.optionMediaTools}>
+      <Button variant="quiet" aria-expanded={imageTools} aria-controls={optionsId} onClick={()=>setImageTools(value=>!value)}>
+        {imageTools?(ar?'إخفاء أدوات الصور':'Hide picture controls'):(ar?'إضافة صور للإجابات (اختياري)':'Add answer pictures (optional)')}
+      </Button>
+    </div>
+    <div id={optionsId} className={styles.options}>
       {options.map((option, index) => {
         const slot = ((index % 4) + 1) as AnswerSlot
         const token = SLOT_TOKENS[slot]
@@ -73,7 +82,7 @@ export function McqCanvas({
               />
             </div>
 
-            <details className={styles.optionImageControls}><summary>{ar?'صورة الخيار':'Answer image'}</summary><ImageUpload imageKey={option.image??null} showPreview={false} onImage={image=>onOptionImage(option.key,image)} onRemove={()=>onOptionImage(option.key,undefined)}/></details>
+            {imageTools&&<div className={styles.optionImageControls}><ImageUpload imageKey={option.image??null} showPreview={false} onImage={image=>onOptionImage(option.key,image)} onRemove={()=>onOptionImage(option.key,undefined)}/></div>}
             <label className={`${styles.correctPick} ${isCorrect ? styles.isCorrect : ''}`}>
               <input
                 type="radio"
@@ -108,6 +117,7 @@ export function McqCanvas({
         )
       })}
     </div>
+    </>
   )
 }
 

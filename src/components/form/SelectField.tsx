@@ -2,11 +2,11 @@ import { useId } from 'react'
 
 import { useAuthCopy } from '@/copy/useAuthCopy'
 import type { ReferenceOption } from '@/lib/api'
+import {Select} from '@/design'
 
 type SelectFieldProps = {
   label: string
   placeholder: string
-  /** A standing explanation of the list, distinct from a transient status. */
   hint?: string
   value: string
   error?: string
@@ -17,25 +17,11 @@ type SelectFieldProps = {
   loading: boolean
   failed: boolean
   onRetry: () => void
-  onChange: (event: React.ChangeEvent<HTMLSelectElement>) => void
+  onValueChange: (value: string) => void
   onBlur: () => void
 }
 
-/**
- * A <select> whose options come from the API, never from a constant.
- *
- * The stage list in particular MUST be fetched: `education_stages` holds every
- * band from kindergarten up, and only `age_band = 'university'` is open for
- * registration. Hardcoding the options would put that filter in code the user
- * can edit — open devtools, add an <option> with a school stage id, submit.
- * The endpoint applies the same predicate the server enforces on write, so the
- * form and the gate cannot drift, and a crafted value earns a 422 rather than
- * an account.
- *
- * Names come bilingual from the API (`name_ar` / `name_en`) and the active
- * language picks one, so switching language relabels the options without a
- * refetch.
- */
+/** API-backed choices retain their IDs and switch labels with the active language. */
 export function SelectField({
   label,
   placeholder,
@@ -49,7 +35,7 @@ export function SelectField({
   loading,
   failed,
   onRetry,
-  onChange,
+  onValueChange,
   onBlur,
 }: SelectFieldProps) {
   const { c, lang } = useAuthCopy()
@@ -66,11 +52,11 @@ export function SelectField({
         {label}
       </label>
 
-      <select
+      <Select
         id={id}
         name={name}
         value={value}
-        onChange={onChange}
+        onValueChange={onValueChange}
         onBlur={onBlur}
         autoComplete={autoComplete}
         // Disabled while the list is in flight, so nobody can submit an empty
@@ -82,17 +68,16 @@ export function SelectField({
             .filter(Boolean)
             .join(' ') || undefined
         }
-        className="auth-input auth-select"
       >
         {/* An empty value, so "nothing chosen" is a state the validator can
             see rather than a first option silently counting as an answer. */}
         <option value="">{placeholder}</option>
         {options.map((option) => (
-          <option key={option.id} value={String(option.id)}>
+          <option key={option.id} value={String(option.id)} data-search-text={`${option.name_ar} ${option.name_en}`}>
             {lang === 'ar' ? option.name_ar : option.name_en}
           </option>
         ))}
-      </select>
+      </Select>
 
       {hint ? (
         <p id={hintId} className="text-xs leading-relaxed" style={{ color: 'var(--ink-muted)' }}>

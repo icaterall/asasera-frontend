@@ -1,0 +1,13 @@
+# Activity worlds documentation — 8 September 2026
+
+Merged the implemented extension into `DESIGN.md` and `.impeccable/design.json`, preserving the existing landing/photo, account and historical guidance. The activity-world additions explicitly supersede earlier activity-stage colors, flat theme variants and the old unconsumed-podium observation only where the new implementation applies.
+
+Recorded the 12-world catalog plus Classic, legacy aliases, scene and thumbnail fallbacks, native 1672 × 941 generated artwork and derivative provenance, light/dark picker treatments, responsive gallery, native-radio selection, explicit apply/cancel, focus restoration, failed-save retry, saved-draft/republish semantics, and editor/live/delivery/discovery continuity. Motion documentation distinguishes stage CSS visibility suppression from the separate preference-gated live podium effect; no physical-device frame-rate claim is made.
+
+The frontmatter adds three activity control variants using existing palette/corner tokens. The version-2 sidecar preserves all 17 prior specimens and adds motion-control and apply/retry specimens, scoped motion/breakpoint metadata and matching narrative. Neutral focus and errors use the existing `--focus-colour` and `--danger-ink`; world-specific palette data remains authoritative in the catalog.
+
+Checks passed: shipped `design-parser.mjs` parsing; eight canonical headings in order; supported frontmatter and component fields; all token references; sidecar structure and metadata/ramp checks; 19 unique specimens; exact narrative/rule/guardrail mapping; retained landing-photo text and specimen; scoped specimen focus/disabled states; and `git diff --check`. No context or detector rerun, source implementation edit, new build/test run or deployment was performed by this documentation pass.
+
+Evidence: read `PRODUCT.md`, current design files, the surface brief, all five activity-world source files, sampled editor/session/delivery/shelf integrations, asset manifest, finish review, verdict and verification. Visually inspected dark failed-save/focused-apply, Arabic phone picker, jungle projector question and island editor captures. The supplied verification reports five feature, four editor and one advanced-editor checks plus a passing build. The final verdict remains **ship for the two scored picker contrast fixes only**; this handoff does not broaden that review to the whole app.
+
+Not canonized: arbitrary per-scene colors or local podium silhouettes as global tokens; real-time 3D/native-1440p claims; inherited Arabic weight-file limitations or unconsumed tokens as future design rules.

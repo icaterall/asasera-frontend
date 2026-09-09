@@ -63,14 +63,16 @@ export const authEN = {
 
   chooseRole: {
     title: 'Create your account',
-    lead: 'Choose how you will use Asasera.',
+    lead: 'First, choose your account type.',
     teacher: {
       title: 'Teacher',
-      body: 'Prepare lessons and support your students.',
+      body: 'Create activities, host games and follow your students’ progress.',
+      action: 'Continue as a teacher',
     },
     student: {
       title: 'Student',
-      body: 'Join live classes and complete teacher assignments.',
+      body: 'Join your class, complete activities and practice with games.',
+      action: 'Continue as a student',
     },
     haveAccount: 'Already have an account?',
   },

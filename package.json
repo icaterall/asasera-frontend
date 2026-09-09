@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "typecheck": "tsc -b --noEmit",
+    "test:login-return": "node --test tests/login-return.test.ts",
     "check:k8s": "node scripts/check-k8s.ts",
     "lint": "oxlint",
     "preview": "vite preview",
@@ -15,9 +16,12 @@
     "smoke": "node scripts/smoke.mjs",
     "check:shared": "node scripts/check-shared.mjs",
     "e2e": "playwright test",
-    "e2e:ui": "playwright test --ui"
+    "e2e:ui": "playwright test --ui",
+    "test:student-learning": "node --test tests/student-learning.test.ts",
+    "test:dropdowns": "vitest run tests/dropdowns.spec.tsx"
   },
   "dependencies": {
+    "@base-ui/react": "^1.8.0",
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/sortable": "^10.0.0",
     "@fontsource/montserrat": "5.3.0",
@@ -36,21 +40,27 @@
     "socket.io-client": "^4.8.3",
     "tailwind-merge": "^3.6.0",
     "tailwindcss": "^4.3.3",
+    "three": "^0.185.1",
     "zod": "^4.5.4",
     "zustand": "^5.0.15"
   },
   "devDependencies": {
     "@playwright/test": "^1.63.0",
+    "@testing-library/react": "^16.3.3",
+    "@testing-library/user-event": "^14.6.7",
     "@types/canvas-confetti": "^1.9.0",
     "@types/howler": "^2.2.13",
     "@types/node": "^24.13.3",
     "@types/qrcode": "1.5.6",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",
+    "@types/three": "^0.185.4",
     "@vitejs/plugin-react": "^6.1.0",
+    "jsdom": "^29.1.1",
     "oxlint": "^1.79.0",
     "typescript": "~6.0.2",
     "vite": "^8.2.2",
+    "vitest": "^5.0.0",
     "yaml": "^2.9.0"
   }
 }

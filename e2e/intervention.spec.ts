@@ -1,3 +1,4 @@
+import {selectOption} from './select-option'
 import {localTeacher} from './local-fixture'
 import {test,expect} from '@playwright/test'
 test('a private teacher decision inserts an approved verification question and records provenance',async({browser,page})=>{
@@ -17,9 +18,9 @@ test('a private teacher decision inserts an approved verification question and r
   const group=await(await page.request.post('/api/v1/discovery/classes',{headers,data:{name:'الصف التجريبي الثابت'}})).json()
   await page.goto(`/teacher/live/new?activityId=${source.activity.id}&request=${crypto.randomUUID()}`)
   await expect(page.getByRole('button',{name:'ابدأ الحصة',exact:true})).toBeVisible()
-  await page.getByLabel('الصف',{exact:true}).selectOption(String(group.class.id))
+  await selectOption(page.getByLabel('الصف',{exact:true}),String(group.class.id))
   const pin=await page.locator('strong[dir=ltr]').innerText()
-  const contexts=await Promise.all(Array.from({length:3},()=>browser.newContext({baseURL:'http://127.0.0.1:5199',viewport:{width:390,height:844}})))
+  const contexts=await Promise.all(Array.from({length:3},()=>browser.newContext({baseURL:new URL(page.url()).origin,viewport:{width:390,height:844}})))
   try{
     let leaked=false
     const players=await Promise.all(contexts.map(c=>c.newPage()))

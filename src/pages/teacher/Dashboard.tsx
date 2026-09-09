@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import {Disc3} from 'lucide-react'
 
 import {
   ActivityArt,
@@ -61,7 +62,7 @@ const loadCategories = (signal?: AbortSignal) => reference.categories(signal)
  * its condition stops being true.
  */
 export default function TeacherDashboard() {
-  const { t } = useTranslation()
+  const { t,i18n } = useTranslation()
   const { user } = useAuth()
   const guide = useGuidePanel()
 
@@ -92,7 +93,7 @@ export default function TeacherDashboard() {
       <section
         className="relative overflow-hidden rounded-sm px-6 py-6 sm:px-8"
         style={{
-          background: '#46178f',
+          background: 'var(--color-brand-500)',
         }}
       >
         <div className="relative z-10 flex flex-col items-start gap-5 lg:flex-row lg:items-center">
@@ -177,6 +178,7 @@ export default function TeacherDashboard() {
       <section>
         <SectionHeader title={t('teacher.tools.title')} lead={t('teacher.tools.lead')} />
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <TeacherToolCard tone="sky" icon={<Disc3 className="size-6"/>} title={i18n.language.startsWith('ar')?'العجلة العشوائية':'Random wheel'} body={i18n.language.startsWith('ar')?'اختر اسمًا أو موضوعًا أو سؤالًا من قائمتك، مع إمكانية منع التكرار.':'Spin to choose a name, topic or question from your list, with optional no-repeat picks.'} action={i18n.language.startsWith('ar')?'افتح العجلة':'Open wheel'} to="/teacher/wheel"/>
           {/*
             The first tile answers whichever question the account currently
             has. An unverified teacher needs the verify action; a verified one

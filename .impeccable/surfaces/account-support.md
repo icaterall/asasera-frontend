@@ -10,6 +10,8 @@ FORM: Pinned continuation of the existing system; no new-world roll, concept sel
 
 ## Implemented surface
 
+- Profile frame update, 8 September 2026: the owner replaced the role caption beneath the avatar with a 3px circular gradient frame. Teacher uses green `--a4` to red `--a1`; student uses Asasera blue `--brand` to green `--a4`, both at 135 degrees. The 48px control keeps a surface-colored inner separator, and the gradient remains visible when the menu is open or hovered. Other roles keep a neutral frame. Role text remains in the menu, the accessible button name and its native tooltip. The new frames have build/static verification only; the earlier captures do not certify this update.
+
 - One shared AccountControl: role-specific workspace links; Account settings; Reset password; Contact support; Sign out. Arrow keys, Home/End, Escape, outside click, route-change dismissal and focus return are implemented. Menu scrolls within the available viewport height.
 - `/account`: display-name updates saved through the authenticated backend; email verification status and role; subject/workplace or study-level edit route; emailed password reset; support; existing deliberate account-deletion dialog.
 - `/forgot`: current account email prefills without overwriting typing. Existing actual reset-token flow remains responsible for changing the password and revoking refresh sessions.

@@ -1,3 +1,4 @@
+import {selectOption} from './select-option'
 import {test,expect,type Page} from '@playwright/test'
 import {readFileSync,mkdirSync,appendFileSync,writeFileSync} from 'node:fs'
 import {execFileSync} from 'node:child_process'
@@ -207,14 +208,14 @@ test('student profile changes persist and verification resend gives its server c
  await expect(page.getByText(/A message was just sent\. Try again in/)).toBeVisible()
  await page.getByRole('link',{name:'Your study level',exact:true}).click()
  const stages=(await(await page.request.get('/api/v1/education-stages')).json()).stages
- await page.getByLabel('Stage',{exact:true}).selectOption(String(stages.at(-1).id))
+ await selectOption(page.getByLabel('Stage',{exact:true}),String(stages.at(-1).id))
  await page.getByRole('button',{name:'Save and continue',exact:true}).click()
  await expect(page).toHaveURL(/\/student$/)
  const me=await(await page.request.get('/api/v1/auth/me',{headers:{authorization:`Bearer ${session.accessToken}`}})).json()
  expect(me.user.educationStageId).toBe(stages.at(-1).id)
  await page.reload()
  await page.getByRole('link',{name:'Your study level',exact:true}).click()
- await expect(page.getByLabel('Stage',{exact:true})).toHaveValue(String(stages.at(-1).id))
+ await expect(page.getByLabel('Stage',{exact:true})).toHaveAttribute('data-select-value',String(stages.at(-1).id))
 })
 
 test('duplicate signup offers sign-in without creating a second account',async({page})=>{

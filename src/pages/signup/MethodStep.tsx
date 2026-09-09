@@ -172,7 +172,7 @@ export default function MethodStep() {
           href={federatedSignInUrl('google', {
             role: signupRole,
             workplaceId: signupRole === 'teacher' ? draft?.workplaceId : null,
-            stageId: signupRole === 'student' && draft?.stageAnswered ? draft.stageId : null,
+            learningProfile: signupRole === 'student' ? draft?.learningProfile : null,
           })}
           className="auth-provider"
         >

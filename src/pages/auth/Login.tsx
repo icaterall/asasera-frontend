@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useLocation, useSearchParams } from 'react-router-dom'
 
 import { AuthCard, FormError } from '@/components/form/AuthCard'
 import { AuthDivider } from '@/components/form/AuthDivider'
@@ -13,7 +13,7 @@ import { useApiErrorMessage } from '@/hooks/useApiErrorMessage'
 import { useAuth } from '@/hooks/useAuth'
 import { useAuthForm } from '@/hooks/useAuthForm'
 import { useAuthValidators, normalizeEmail } from '@/hooks/useAuthValidators'
-import { homePathFor, safeReturnPath } from '@/lib/afterAuth'
+import { useLoginRedirect } from '@/hooks/useLoginRedirect'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 
 /**
@@ -30,7 +30,7 @@ export default function Login() {
   useDocumentTitle(c.login.title)
 
   const [params] = useSearchParams()
-  const navigate = useNavigate()
+  const redirectAfterLogin = useLoginRedirect()
   const location = useLocation()
 
   /*
@@ -43,12 +43,6 @@ export default function Login() {
   const handedOver = (location.state as { email?: unknown } | null)?.email
   const prefilledEmail = typeof handedOver === 'string' ? handedOver : ''
 
-  /*
-   * Where a protected route sent them, if one did. Validated rather than
-   * trusted — see safeReturnPath. Null means "no authorized destination", and
-   * the role's own home takes over.
-   */
-  const returnTo = safeReturnPath((location.state as { from?: unknown } | null)?.from)
   const { signIn, status, user } = useAuth()
   const validators = useAuthValidators()
   const toMessage = useApiErrorMessage()
@@ -73,13 +67,13 @@ export default function Login() {
 
   /*
    * Already signed in — the boot refresh found a live session. Sending them
-   * onward rather than showing a sign-in form they do not need, and to the
-   * profile step first if the account still owes us those two fields.
+   * to the requested page or their dashboard instead of showing a form
+   * they do not need.
    */
   useEffect(() => {
     if (status !== 'authenticated' || !user) return
-    navigate(returnTo ?? homePathFor(user), { replace: true })
-  }, [status, user, returnTo, navigate])
+    redirectAfterLogin(user)
+  }, [status, user, redirectAfterLogin])
 
   const form = useAuthForm({
     initial: { email: prefilledEmail, password: '' },
@@ -90,7 +84,7 @@ export default function Login() {
       /* The user this sign-in just returned, not the one in context — context
          has not been updated yet at this point in the callback. */
       const signedIn = await signIn(values.email, values.password)
-      navigate(returnTo ?? homePathFor(signedIn), { replace: true })
+      redirectAfterLogin(signedIn)
     },
   })
 
@@ -102,12 +96,8 @@ export default function Login() {
       footer={
         <>
           {c.login.noAccount}{' '}
-          <Link to="/signup/student" className="auth-link">
-            {c.login.registerStudent}
-          </Link>
-          {' · '}
-          <Link to="/signup/teacher" className="auth-link">
-            {c.login.registerTeacher}
+          <Link to="/register" className="auth-link">
+            {c.chooseRole.title}
           </Link>
         </>
       }

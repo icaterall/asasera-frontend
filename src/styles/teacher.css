@@ -25,13 +25,13 @@
    * reason `--tc-amber-ink` exists: white on #d89e00 is 1.9:1, nowhere near
    * readable, so amber cards take ink text instead of inverting the rule.
    */
-  --tc-brand: #46178f;
+  --tc-brand: var(--color-brand-500);
   --tc-teal: #26890c;
   --tc-coral: #e21b3c;
   --tc-amber: #d89e00;
   --tc-amber-ink: #333333;
   --tc-sky: #1368ce;
-  --tc-violet: #46178f;
+  --tc-violet: var(--color-brand-500);
 
   /*
    * Sticky arithmetic. The verification banner is NOT a fixed height — it
@@ -411,5 +411,5 @@
 }
 
 /* Current owner direction: the Kahoot classic workspace palette. */
-.teacher-scope{--canvas:#f2f2f2;--surface:#fff;--raised:#f2f2f2;--fg:#333;--muted:#6e6e6e;--faint:#6e6e6e;--line:#ccc;--line-strong:#aaa;--panel-bg:#fff;--accent:#1368ce;--accent-alt:#46178f;--radius-xs:4px;--radius-sm:4px;--radius-md:4px;--radius-lg:8px;--radius-xl:8px;font-family:"Montserrat",var(--font-arabic),sans-serif}
+.teacher-scope{--canvas:#f2f2f2;--surface:#fff;--raised:#f2f2f2;--fg:#333;--muted:#6e6e6e;--faint:#6e6e6e;--line:#ccc;--line-strong:#aaa;--panel-bg:#fff;--accent:#1368ce;--accent-alt:var(--color-brand-500);--radius-xs:4px;--radius-sm:4px;--radius-md:4px;--radius-lg:8px;--radius-xl:8px;font-family:"Montserrat",var(--font-arabic),sans-serif}
 .dark .teacher-scope{--canvas:#171717;--surface:#222;--raised:#333;--fg:#f2f2f2;--muted:#b2b2b2;--faint:#b2b2b2;--line:#414141;--line-strong:#888;--panel-bg:#222;--accent:#8ab5ff;--accent-alt:#d6b8ff}

@@ -1,3 +1,4 @@
+import { generalLearning, type LearningProfile } from '@/shared/student'
 import { useCallback, useMemo, useState, type ReactNode } from 'react'
 
 import { SignupContext, type SignupDraft, type SignupRole } from './signup-context'
@@ -32,7 +33,7 @@ export function SignupProvider({ children }: { children: ReactNode }) {
          back to the role step and forward again does not wipe a stage. */
       current?.role === role
         ? current
-        : { role, workplaceId: null, stageId: null, stageAnswered: false, email: '' },
+        : { role, workplaceId: null, stageId: null, stageAnswered: false, learningProfile: generalLearning, email: '' },
     )
   }, [])
 
@@ -44,6 +45,10 @@ export function SignupProvider({ children }: { children: ReactNode }) {
     setDraft((current) => (current ? { ...current, stageId, stageAnswered: true } : current))
   }, [])
 
+  const setLearningProfile = useCallback((learningProfile: LearningProfile) => {
+    setDraft(current => current ? { ...current, learningProfile, stageId: null, stageAnswered: true } : current)
+  }, [])
+
   const setEmail = useCallback((email: string) => {
     setDraft((current) => (current ? { ...current, email } : current))
   }, [])
@@ -51,8 +56,8 @@ export function SignupProvider({ children }: { children: ReactNode }) {
   const clear = useCallback(() => setDraft(null), [])
 
   const value = useMemo(
-    () => ({ draft, begin, setWorkplace, setStage, setEmail, clear }),
-    [draft, begin, setWorkplace, setStage, setEmail, clear],
+    () => ({ draft, begin, setWorkplace, setStage, setLearningProfile, setEmail, clear }),
+    [draft, begin, setWorkplace, setStage, setLearningProfile, setEmail, clear],
   )
 
   return <SignupContext.Provider value={value}>{children}</SignupContext.Provider>

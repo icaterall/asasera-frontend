@@ -1,6 +1,8 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { useCallback, useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
+import { isAuthenticationPath, loginStateFor } from '@/lib/afterAuth'
+import { pendingLoginReturn } from '@/lib/loginReturn'
 
 import { AuthContext, type AuthStatus } from './auth-context'
 import {
@@ -25,11 +27,18 @@ import {
  */
 export function AuthProvider({ children }: { children: ReactNode }) {
   const navigate = useNavigate()
+  const location = useLocation()
   const queryClient = useQueryClient()
   const [user, setUser] = useState<PublicUser | null>(null)
   const [status, setStatus] = useState<AuthStatus>('loading')
 
   const accessToken = useSyncExternalStore(subscribeToAccessToken, getAccessToken, () => null)
+
+  // Leaving login/recovery/signup abandons the old request. Google navigates
+  // outside this app, so its callback can still recover the tab's destination.
+  useEffect(() => {
+    if (!isAuthenticationPath(location.pathname)) pendingLoginReturn.clear()
+  }, [location.pathname, location.search, location.hash])
 
   /**
    * Silent refresh on boot.
@@ -91,12 +100,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(null)
       setStatus('anonymous')
       queryClient.clear()
-      navigate('/login', { replace: true })
+      navigate('/login', { replace: true, state: loginStateFor(location) })
     })
     return () => setSessionLostHandler(null)
-  }, [navigate, queryClient])
+  }, [navigate, queryClient, location])
 
   const forgetSession = useCallback(() => {
+    pendingLoginReturn.clear()
     setAccessToken(null)
     setUser(null)
     setStatus('anonymous')

@@ -1,10 +1,11 @@
-/* Visual reference: Kahoot brand guide and creator screenshots. User direction,
+/* Primary color: Asasera #004ccc (owner direction, 2026-09-08).
+ * Visual reference: Kahoot brand guide and creator screenshots. User direction,
  * 7 September 2026, supersedes the earlier PDF palette. See D-V4-019.
  * Montserrat for Latin, existing Neo Sans Arabic for Arabic coverage. */
 .asas {
   color-scheme: light;
   font-family: "Montserrat", var(--font-arabic), sans-serif;
-  --brand: #46178f;
+  --brand: var(--color-brand-500);
   --brand-dark: #25076b;
 
   

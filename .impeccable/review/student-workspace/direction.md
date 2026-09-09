@@ -1,0 +1,8 @@
+# Student workspace extension
+MODE: Operate. Code-led continuation of Asasera's existing brand and game worlds.
+USER CONTRACT: A real sidebar dashboard suited to kindergarten, school or university, using stage and optional grade selected at registration and editable later; general learning is available. No birth date.
+FIRST VIEWPORT: A 232px navigation rail, compact account header, personalized learning heading, a wide illustrated practice invitation beside a class PIN form; saved work begins immediately below. Kindergarten has larger type and controls, a garden and simple language. School uses a sky adventure. University uses a calm space image and concise task language. General uses neutral learning language.
+SIGNATURE INTERACTION: Choose a stage and optional grade, save once, and see the dashboard environment and practice question difficulty update together. Grade selection clears when switching stage. Practice opens the existing playable 3D games, preserving their keyboard and reduced-motion alternatives.
+CONTENT: Real owned saved assignments and answer progress, explicit empty states. No invented achievements, attendance, class membership or scores. Practice is clearly separate from teacher reports.
+QUALITY BAR: Existing DESIGN.md, brand #004ccc, 4px controls/8px surfaces; keyboard-visible controls, responsive sidebar navigation, RTL logical spacing, actual errors and retry, no fake destinations. Question answers remain text/shapes.
+VERIFICATION LIMIT: Browser security policy rejected localhost access; do not bypass with headless browsers or alternate routes. Build, unit and API tests are available; visual approval requires a permitted capture.

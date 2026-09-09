@@ -1,10 +1,10 @@
-import {Menu,Settings,TriangleAlert,Check} from 'lucide-react'
+import {Menu,Settings,TriangleAlert,Check,Palette} from 'lucide-react'
 import {useTranslation} from 'react-i18next'
 import {useEditorText} from './useEditorText'
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 
-import { Button, EmptyState, FailureState, LoadingState } from '@/design'
+import { Button, EmptyState, FailureState, LoadingState, Select } from '@/design'
 import {
   activities,
   type ActivityRecord,
@@ -20,6 +20,9 @@ import type {QuestionKindWire} from '@/lib/api'
 import styles from './Editor.module.css'
 import { McqCanvas, TfCanvas, type McqOption } from './McqCanvas'
 import { useAutosave } from './useAutosave'
+import { ThemePicker } from '../activity-themes/ThemePicker'
+import { ActivityStage, ThemeThumbnail } from '../activity-themes/ActivityStage'
+import { getActivityTheme } from '../activity-themes/catalog'
 
 /**
  * The four-region editor — plan §12 (p20), W03.
@@ -104,6 +107,7 @@ export default function ActivityEditor() {
   const [activeId, setActiveId] = useState<number | null>(null)
   const [problems, setProblems] = useState<PublicationProblem[]>([])
   const [generationOpen,setGenerationOpen]=useState(false)
+  const [themesOpen,setThemesOpen]=useState(false)
   const [publishing, setPublishing] = useState(false)
   /*
    * Editor actions that failed.
@@ -344,6 +348,13 @@ export default function ActivityEditor() {
 
   return (
     <div className={`asas ${styles.shell}`}>
+      {themesOpen&&<ThemePicker value={data.activity.theme} published={!!data.activity.currentVersionId} onClose={()=>setThemesOpen(false)} onApply={async(theme)=>{
+        await questionSave.flushNow();await titleSave.flushNow()
+        const latest=await activities.load(activityId)
+        const result=await activities.update(activityId,{theme,expectedRevision:latest.activity.revision})
+        baseTitle.current=result.activity.title
+        changeData(current=>current&&({...current,activity:result.activity}))
+      }}/>}
       {generationOpen&&<GenerationPanel activity={data.activity} question={active} onClose={()=>setGenerationOpen(false)} onApplied={reload}/>}
       {/* ---- 1. top bar ---- */}
       <header className={styles.top}>
@@ -366,6 +377,7 @@ export default function ActivityEditor() {
         <Button variant="quiet" className={styles.drawerToggle} onClick={() => setPropsOpen((v) => !v)}
           aria-expanded={propsOpen} aria-label={t("الخصائص")}><Settings size={22} aria-hidden="true"/></Button>
 
+        <Button variant="secondary" disabled={actionBusy||publishing} onClick={()=>setThemesOpen(true)}><Palette size={18} aria-hidden="true"/>{ar?'المظاهر':'Themes'}</Button>
         <Button variant="secondary" onClick={() => void run(t("تعذّر حفظ التعديلات"),async()=>navigate('/teacher/dashboard'))}>{t("خروج")}</Button>
         {data.activity.currentVersionId && <Button variant="secondary" onClick={() => navigate(`/teacher/activities/${activityId}/play`)}>{t("شغّل الحصة")}</Button>}
         <Button variant="primary" loading={publishing} onClick={() => void publish()}>
@@ -405,7 +417,7 @@ export default function ActivityEditor() {
       </nav>
 
       {/* ---- 3. canvas ---- */}
-      <main inert={actionBusy} className={styles.canvas}>
+      <ActivityStage as="main" theme={data.activity.theme} variant="editor" inert={actionBusy} className={styles.canvas}>
         <div className={styles.canvasInner}>
           {actionError && (
             <div className={styles.problems} role="alert">
@@ -452,6 +464,7 @@ export default function ActivityEditor() {
               {['order','match','hotspot'].includes(active.kind)&&<AdvancedCanvas key={active.id} question={active} pairs={data.errorPairs.filter(p=>p.questionId===active.id)} onPatch={patchActive} onPair={setReasonPair}/>}
               {active.kind === 'mcq' && (
                 <McqCanvas
+                  key={active.id}
                   options={(payload.options ?? []) as McqOption[]}
                   correct={String(payload.correct ?? '')}
                   reasons={reasons}
@@ -479,19 +492,19 @@ export default function ActivityEditor() {
             </>
           )}
         </div>
-      </main>
+      </ActivityStage>
 
       {/* ---- 4. properties ---- */}
       <aside inert={actionBusy} className={styles.props} data-editor-drawer={propsOpen?"open":"closed"} aria-label={t("خصائص السؤال")}>
         <Button className={styles.drawerToggle} onClick={()=>setPropsOpen(false)}>{t("أغلق الخصائص")}</Button>
         <div className={styles.propGroup}>
           <label htmlFor="question-kind" className={styles.propLabel}>{t("نوع السؤال")}</label>
-          <select id="question-kind"
+          <Select id="question-kind"
             className={styles.select}
             value={active?.kind ?? 'mcq'}
             disabled={!active}
-            onChange={(event) => {
-              const kind = event.target.value as QuestionKindWire
+            onValueChange={(event) => {
+              const kind = event as QuestionKindWire
               if(kind==='hotspot'&&!active?.mediaKey){setChooseHotspot(true);return}
               setChooseHotspot(false);patchActive({ kind, payload:defaultPayload(kind,active?.mediaKey??'') })
             }}
@@ -501,7 +514,7 @@ export default function ActivityEditor() {
             <option value="order">{t("ترتيب العناصر")}</option>
             <option value="match">{t("مطابقة البطاقات")}</option>
             <option value="hotspot">{t("مناطق الصورة")}</option>
-          </select>
+          </Select>
           {chooseHotspot&&<><p>{t("أضف الصورة أولًا لرسم مناطق الإجابة.")}</p><ImageUpload imageKey={null} onImage={mediaKey=>{patchActive({kind:'hotspot',mediaKey,payload:defaultPayload('hotspot',mediaKey)});setChooseHotspot(false)}}/></>}
           <span className={styles.propHint}>
             {t("الافتراضي اختيار من متعدد. لا تحتاج فتح هذه اللوحة لتأليف نشاط ونشره.")}
@@ -544,7 +557,8 @@ export default function ActivityEditor() {
         </div>
 
         <div className={styles.propGroup}>
-          <label>{t("مظهر الحصة")}<select className={styles.select} value={data.activity.theme} onChange={e=>{const theme=e.target.value;void run(t("تعذّر حفظ المظهر"),async()=>{const result=await activities.update(activityId,{theme});changeData(current=>current&&({...current,activity:result.activity}))})}}><option value="classic">{t("كلاسيكي")}</option><option value="forest">{t("الغابة")}</option><option value="cosmic">{t("الفضاء")}</option><option value="coral">{t("مرجاني")}</option></select></label>
+          <span className={styles.propLabel}>{t("مظهر الحصة")}</span>
+          <button type="button" className={styles.themeTrigger} onClick={()=>{setPropsOpen(false);setThemesOpen(true)}}><ThemeThumbnail key={data.activity.theme} theme={data.activity.theme}/><span>{ar?getActivityTheme(data.activity.theme).ar:getActivityTheme(data.activity.theme).en}<Palette size={18} aria-hidden="true"/></span></button>
         </div>
         <div className={styles.propsFooter}>
           {data.activity.currentVersionId&&<Button onClick={()=>void run(t("تعذّر الحفظ"),async()=>navigate(`/teacher/verification?question=${active?.id??0}`))}>{t("اربط سؤال تحقق")}</Button>}

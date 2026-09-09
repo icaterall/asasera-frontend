@@ -221,4 +221,11 @@
 @media(max-width:700px){.canvasInner{gap:16px}.imageUpload{min-height:130px}.optionTile{min-height:72px}.top .titleInput{max-width:none}}
 :global(.dark) .thumbActive{background:#183452}
 
-.optionImage{max-height:96px;max-width:35%;object-fit:contain;border-radius:4px}.optionImageControls{font-size:14px;margin-block:8px}.optionImageControls summary{cursor:pointer;color:var(--act);padding:6px 0;min-height:32px}.optionImageControls[open]{padding-bottom:8px}
+.optionImage{max-height:96px;max-width:35%;object-fit:contain;border-radius:4px}.optionImageControls{font-size:14px;margin-block:8px}.optionMediaTools{display:flex;justify-content:flex-end;margin-block:8px}.optionMediaTools button{white-space:normal;text-align:start}
+
+/* Theme art stays quiet during authoring; the gallery previews the live world. */
+.canvas[data-activity-theme] { color:var(--ink); }
+.themeTrigger { width:100%; padding:0; border:1px solid var(--line); border-radius:4px; overflow:hidden; cursor:pointer; color:var(--ink); background:var(--surface); text-align:start; }
+.themeTrigger>span:last-child { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:12px; font:inherit; font-weight:700; }
+.themeTrigger:focus-visible { outline:3px solid var(--act); outline-offset:3px; }
+:global(.dark) .canvas[data-activity-theme]:not([data-activity-theme=classic]) .canvasInner { padding:16px; border-radius:4px; background:var(--sunken); }

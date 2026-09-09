@@ -3,7 +3,7 @@ import {useQuery,useMutation,useQueryClient} from '@tanstack/react-query'
 import {useSearchParams} from 'react-router-dom'
 import {useTranslation} from 'react-i18next'
 import {api} from '@/lib/api'
-import {Button,LoadingState} from '@/design'
+import {Button,LoadingState, Select } from '@/design'
 import styles from '@/features/shelf/Workspace.module.css'
 interface Item{activityId:number;title:string;versionId:number;questions:{id:number;prompt:string;slots:{elementKey:string;wrongTargetKey:string|null;label:string}[]}[]}
 export default function VerificationLinks(){
@@ -18,9 +18,9 @@ export default function VerificationLinks(){
   const save=useMutation({mutationFn:()=>{if(!selected||!destination)throw Error(ar?'اختر الخطأ وسؤال التحقق':'Choose a mistake and verification question');return api.post('/api/v1/discovery/verification/links',{sourceQuestionId:source,elementKey:selected.elementKey,wrongTargetKey:selected.wrongTargetKey,versionId:destination.versionId,questionId:target})},onSuccess:()=>cache.invalidateQueries({queryKey:['verification-links']})})
   return <main className={`asas ${styles.workspace}`}><header className={styles.heading}><div><h1>{ar?'أسئلة التحقق':'Verification questions'}</h1><p>{ar?'اربط خطأ متوقعًا بسؤال معتمد. يظهر الاقتراح على جهازك عندما يتكرر هذا الخطأ في الحصة.':'Link a possible mistake to an approved question. Your private controls can suggest it when that mistake recurs in class.'}</p></div></header>
     {data.isPending?<LoadingState/>:data.error?<p role="alert">{data.error.message}</p>:<div className={styles.linkForm}>
-      <label>{ar?'السؤال الأصلي المعتمد':'Approved source question'}<select value={source} onChange={e=>{setSource(Number(e.target.value));setSlot('');save.reset()}}><option value={0}>{ar?'اختر سؤالًا':'Choose a question'}</option>{questions.map(q=><option value={q.id} key={`${q.versionId}:${q.id}`}>{q.title} · {q.prompt}</option>)}</select></label>
-      <label>{ar?'الخطأ المتوقع':'Possible mistake'}<select value={slot} onChange={e=>{setSlot(e.target.value);save.reset()}}><option value="">{ar?'اختر إجابة أو موضعًا خاطئًا':'Choose a wrong answer or placement'}</option>{q?.slots.map(s=><option key={JSON.stringify([s.elementKey,s.wrongTargetKey])} value={JSON.stringify([s.elementKey,s.wrongTargetKey])}>{s.label}</option>)}</select></label>
-      <label>{ar?'سؤال التحقق المعتمد':'Approved verification question'}<select value={target} onChange={e=>{setTarget(Number(e.target.value));save.reset()}}><option value={0}>{ar?'اختر سؤالًا آخر':'Choose another question'}</option>{questions.filter(q=>q.id!==source).map(q=><option key={`${q.versionId}:${q.id}`} value={q.id}>{q.title} · {q.prompt}</option>)}</select></label>
+      <label>{ar?'السؤال الأصلي المعتمد':'Approved source question'}<Select value={source} onValueChange={e=>{setSource(Number(e));setSlot('');save.reset()}}><option value={0}>{ar?'اختر سؤالًا':'Choose a question'}</option>{questions.map(q=><option value={q.id} key={`${q.versionId}:${q.id}`}>{q.title} · {q.prompt}</option>)}</Select></label>
+      <label>{ar?'الخطأ المتوقع':'Possible mistake'}<Select value={slot} onValueChange={e=>{setSlot(e);save.reset()}}><option value="">{ar?'اختر إجابة أو موضعًا خاطئًا':'Choose a wrong answer or placement'}</option>{q?.slots.map(s=><option key={JSON.stringify([s.elementKey,s.wrongTargetKey])} value={JSON.stringify([s.elementKey,s.wrongTargetKey])}>{s.label}</option>)}</Select></label>
+      <label>{ar?'سؤال التحقق المعتمد':'Approved verification question'}<Select value={target} onValueChange={e=>{setTarget(Number(e));save.reset()}}><option value={0}>{ar?'اختر سؤالًا آخر':'Choose another question'}</option>{questions.filter(q=>q.id!==source).map(q=><option key={`${q.versionId}:${q.id}`} value={q.id}>{q.title} · {q.prompt}</option>)}</Select></label>
       <Button variant="primary" disabled={!selected||!target||save.isPending} onClick={()=>save.mutate()}>{ar?'احفظ الربط':'Save link'}</Button>
       {save.isSuccess&&<p role="status">{ar?'حُفظ الربط للحصص الجديدة.':'Link saved for new classes.'}</p>}{save.error&&<p role="alert">{save.error.message}</p>}
       {!questions.length&&<p>{ar?'انشر سؤالين أولًا لربط أحدهما بالآخر.':'Approve two questions first to link one to the other.'}</p>}

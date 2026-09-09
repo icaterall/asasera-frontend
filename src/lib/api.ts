@@ -1,3 +1,4 @@
+import type { LearningProfile } from '@/shared/student'
 /**
  * The one place the front end talks to the API.
  *
@@ -178,6 +179,10 @@ async function send(path: string, options: RequestOptions): Promise<Response> {
 let refreshInFlight: Promise<SessionResponse | null> | null = null
 
 async function doRefresh(): Promise<SessionResponse | null> {
+  // Startup waits on this request. A stalled API must not hold the entire
+  // app on Loading forever; keep the deadline through reading the body too.
+  const controller = new AbortController()
+  const deadline = setTimeout(() => controller.abort(), 8000)
   try {
     const response = await send(`${API_PREFIX}/auth/refresh`, {
       method: 'POST',
@@ -186,6 +191,7 @@ async function doRefresh(): Promise<SessionResponse | null> {
       // re-enter this function. That is the loop guard, and it is structural
       // rather than a counter someone could forget to reset.
       anonymous: true,
+      signal: controller.signal,
     })
     if (!response.ok) return null
     const payload = (await response.json()) as SessionResponse
@@ -194,6 +200,8 @@ async function doRefresh(): Promise<SessionResponse | null> {
   } catch {
     // Offline, DNS, a refused preflight. Not a valid session either way.
     return null
+  } finally {
+    clearTimeout(deadline)
   }
 }
 
@@ -446,7 +454,7 @@ export const auth = {
       { anonymous: true },
     ),
 
-  registerStudent: (input: { name?: string; email: string; password: string; education_stage_id?:number }) =>
+  registerStudent: (input: { name?: string; email: string; password: string; education_stage_id?:number; learning_profile?:LearningProfile }) =>
     api.post<RegisterResponse>(`${API_PREFIX}/auth/register/student`, input, {
       anonymous: true,
     }),
@@ -588,6 +596,7 @@ export function federatedSignInUrl(
     workplaceId?: number | null
     /** A student's answer. */
     stageId?: number | null
+    learningProfile?: LearningProfile | null
   },
 ): string {
   const path = provider === 'google' ? `${API_PREFIX}/auth/google` : '/auth/facebook'
@@ -595,6 +604,10 @@ export function federatedSignInUrl(
   if (intent?.role) params.set('role', intent.role)
   if (intent?.workplaceId != null) params.set('workplace_id', String(intent.workplaceId))
   if (intent?.stageId != null) params.set('stage_id', String(intent.stageId))
+  if (intent?.learningProfile) {
+    params.set('study_stage', intent.learningProfile.stage)
+    if (intent.learningProfile.grade) params.set('study_grade', intent.learningProfile.grade)
+  }
   const query = params.toString()
   return `${BASE}${path}${query ? `?${query}` : ''}`
 }

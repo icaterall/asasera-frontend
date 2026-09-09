@@ -1,0 +1,801 @@
+[
+  {
+    "antipattern": "overused-font",
+    "name": "Overused font",
+    "description": "Inter, Roboto, Fraunces, Geist, Plus Jakarta Sans, and Space Grotesk are used on so many sites they no longer feel distinctive. Each new wave of AI-generated UIs converges on the same handful of faces. Choose a face that gives your interface personality.",
+    "severity": "warning",
+    "category": "slop",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/games/Games.module.css",
+    "line": 1,
+    "snippet": "font-family:Montserrat",
+    "importedBy": [
+      "GameArena.tsx",
+      "GameModePicker.tsx",
+      "GamesPage.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/games/Games.module.css",
+    "line": 1,
+    "snippet": "Undocumented color #a9c3e0 is outside DESIGN.md colors",
+    "ignoreValue": "#a9c3e0",
+    "importedBy": [
+      "GameArena.tsx",
+      "GameModePicker.tsx",
+      "GamesPage.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/games/Games.module.css",
+    "line": 1,
+    "snippet": "Undocumented color #102840 is outside DESIGN.md colors",
+    "ignoreValue": "#102840",
+    "importedBy": [
+      "GameArena.tsx",
+      "GameModePicker.tsx",
+      "GamesPage.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/games/Games.module.css",
+    "line": 1,
+    "snippet": "Undocumented color #a9d9f122 is outside DESIGN.md colors",
+    "ignoreValue": "#a9d9f122",
+    "importedBy": [
+      "GameArena.tsx",
+      "GameModePicker.tsx",
+      "GamesPage.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/games/Games.module.css",
+    "line": 1,
+    "snippet": "Undocumented color #44906333 is outside DESIGN.md colors",
+    "ignoreValue": "#44906333",
+    "importedBy": [
+      "GameArena.tsx",
+      "GameModePicker.tsx",
+      "GamesPage.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/games/Games.module.css",
+    "line": 1,
+    "snippet": "Undocumented color #071b3794 is outside DESIGN.md colors",
+    "ignoreValue": "#071b3794",
+    "importedBy": [
+      "GameArena.tsx",
+      "GameModePicker.tsx",
+      "GamesPage.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/games/Games.module.css",
+    "line": 1,
+    "snippet": "Undocumented color #071b37dc is outside DESIGN.md colors",
+    "ignoreValue": "#071b37dc",
+    "importedBy": [
+      "GameArena.tsx",
+      "GameModePicker.tsx",
+      "GamesPage.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/games/Games.module.css",
+    "line": 1,
+    "snippet": "Undocumented color #ffdf74 is outside DESIGN.md colors",
+    "ignoreValue": "#ffdf74",
+    "importedBy": [
+      "GameArena.tsx",
+      "GameModePicker.tsx",
+      "GamesPage.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/games/Games.module.css",
+    "line": 1,
+    "snippet": "Undocumented color #12304e is outside DESIGN.md colors",
+    "ignoreValue": "#12304e",
+    "importedBy": [
+      "GameArena.tsx",
+      "GameModePicker.tsx",
+      "GamesPage.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/games/Games.module.css",
+    "line": 1,
+    "snippet": "Undocumented color #5d4f26 is outside DESIGN.md colors",
+    "ignoreValue": "#5d4f26",
+    "importedBy": [
+      "GameArena.tsx",
+      "GameModePicker.tsx",
+      "GamesPage.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/games/Games.module.css",
+    "line": 1,
+    "snippet": "Undocumented color #102840c9 is outside DESIGN.md colors",
+    "ignoreValue": "#102840c9",
+    "importedBy": [
+      "GameArena.tsx",
+      "GameModePicker.tsx",
+      "GamesPage.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/games/Games.module.css",
+    "line": 1,
+    "snippet": "Undocumented color #48647d is outside DESIGN.md colors",
+    "ignoreValue": "#48647d",
+    "importedBy": [
+      "GameArena.tsx",
+      "GameModePicker.tsx",
+      "GamesPage.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/games/Games.module.css",
+    "line": 1,
+    "snippet": "Undocumented color #d6e7fa is outside DESIGN.md colors",
+    "ignoreValue": "#d6e7fa",
+    "importedBy": [
+      "GameArena.tsx",
+      "GameModePicker.tsx",
+      "GamesPage.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-radius",
+    "name": "Radius outside DESIGN.md",
+    "description": "A border-radius value is outside the DESIGN.md rounded scale. Use a documented radius token or update the design system if the new shape is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/games/Games.module.css",
+    "line": 1,
+    "snippet": "border-radius: 5px is outside the DESIGN.md rounded scale",
+    "ignoreValue": "5px",
+    "importedBy": [
+      "GameArena.tsx",
+      "GameModePicker.tsx",
+      "GamesPage.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-radius",
+    "name": "Radius outside DESIGN.md",
+    "description": "A border-radius value is outside the DESIGN.md rounded scale. Use a documented radius token or update the design system if the new shape is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/games/Games.module.css",
+    "line": 1,
+    "snippet": "border-radius: 3px is outside the DESIGN.md rounded scale",
+    "ignoreValue": "3px",
+    "importedBy": [
+      "GameArena.tsx",
+      "GameModePicker.tsx",
+      "GamesPage.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/games/Games.module.css",
+    "line": 1,
+    "snippet": "font-size: clamp(24px,3vw,38px) has fluid endpoint 38px off the DESIGN.md type ramp",
+    "ignoreValue": "38px",
+    "importedBy": [
+      "GameArena.tsx",
+      "GameModePicker.tsx",
+      "GamesPage.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/games/Games.module.css",
+    "line": 1,
+    "snippet": "font-size: 13px is off the DESIGN.md type ramp",
+    "ignoreValue": "13px",
+    "importedBy": [
+      "GameArena.tsx",
+      "GameModePicker.tsx",
+      "GamesPage.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/games/Games.module.css",
+    "line": 1,
+    "snippet": "font-size: 25px is off the DESIGN.md type ramp",
+    "ignoreValue": "25px",
+    "importedBy": [
+      "GameArena.tsx",
+      "GameModePicker.tsx",
+      "GamesPage.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/games/Games.module.css",
+    "line": 1,
+    "snippet": "font-size: 26px is off the DESIGN.md type ramp",
+    "ignoreValue": "26px",
+    "importedBy": [
+      "GameArena.tsx",
+      "GameModePicker.tsx",
+      "GamesPage.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/games/Games.module.css",
+    "line": 1,
+    "snippet": "font-size: 100px is off the DESIGN.md type ramp",
+    "ignoreValue": "100px",
+    "importedBy": [
+      "GameArena.tsx",
+      "GameModePicker.tsx",
+      "GamesPage.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/games/Games.module.css",
+    "line": 1,
+    "snippet": "font-size: 22px is off the DESIGN.md type ramp",
+    "ignoreValue": "22px",
+    "importedBy": [
+      "GameArena.tsx",
+      "GameModePicker.tsx",
+      "GamesPage.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/games/Games.module.css",
+    "line": 1,
+    "snippet": "font-size: 17px is off the DESIGN.md type ramp",
+    "ignoreValue": "17px",
+    "importedBy": [
+      "GameArena.tsx",
+      "GameModePicker.tsx",
+      "GamesPage.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/games/Games.module.css",
+    "line": 1,
+    "snippet": "font-size: 10px is off the DESIGN.md type ramp",
+    "ignoreValue": "10px",
+    "importedBy": [
+      "GameArena.tsx",
+      "GameModePicker.tsx",
+      "GamesPage.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/games/Games.module.css",
+    "line": 1,
+    "snippet": "font-size: 19px is off the DESIGN.md type ramp",
+    "ignoreValue": "19px",
+    "importedBy": [
+      "GameArena.tsx",
+      "GameModePicker.tsx",
+      "GamesPage.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/games/Games.module.css",
+    "line": 1,
+    "snippet": "font-size: 18px is off the DESIGN.md type ramp",
+    "ignoreValue": "18px",
+    "importedBy": [
+      "GameArena.tsx",
+      "GameModePicker.tsx",
+      "GamesPage.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/games/Games.module.css",
+    "line": 1,
+    "snippet": "font-size: 11px is off the DESIGN.md type ramp",
+    "ignoreValue": "11px",
+    "importedBy": [
+      "GameArena.tsx",
+      "GameModePicker.tsx",
+      "GamesPage.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/games/Games.module.css",
+    "line": 2,
+    "snippet": "Undocumented color #ddd is outside DESIGN.md colors",
+    "ignoreValue": "#ddd",
+    "importedBy": [
+      "GameArena.tsx",
+      "GameModePicker.tsx",
+      "GamesPage.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/games/Games.module.css",
+    "line": 3,
+    "snippet": "Undocumented color #86be75 is outside DESIGN.md colors",
+    "ignoreValue": "#86be75",
+    "importedBy": [
+      "GameArena.tsx",
+      "GameModePicker.tsx",
+      "GamesPage.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/games/Games.module.css",
+    "line": 3,
+    "snippet": "Undocumented color #183452 is outside DESIGN.md colors",
+    "ignoreValue": "#183452",
+    "importedBy": [
+      "GameArena.tsx",
+      "GameModePicker.tsx",
+      "GamesPage.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/games/Games.module.css",
+    "line": 3,
+    "snippet": "Undocumented color #1d5637 is outside DESIGN.md colors",
+    "ignoreValue": "#1d5637",
+    "importedBy": [
+      "GameArena.tsx",
+      "GameModePicker.tsx",
+      "GamesPage.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/games/Games.module.css",
+    "line": 3,
+    "snippet": "Undocumented color #bd2042 is outside DESIGN.md colors",
+    "ignoreValue": "#bd2042",
+    "importedBy": [
+      "GameArena.tsx",
+      "GameModePicker.tsx",
+      "GamesPage.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/games/Games.module.css",
+    "line": 3,
+    "snippet": "Undocumented color #64a1c0aa is outside DESIGN.md colors",
+    "ignoreValue": "#64a1c0aa",
+    "importedBy": [
+      "GameArena.tsx",
+      "GameModePicker.tsx",
+      "GamesPage.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/games/Games.module.css",
+    "line": 3,
+    "snippet": "Undocumented color #14bf96 is outside DESIGN.md colors",
+    "ignoreValue": "#14bf96",
+    "importedBy": [
+      "GameArena.tsx",
+      "GameModePicker.tsx",
+      "GamesPage.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/games/Games.module.css",
+    "line": 3,
+    "snippet": "Undocumented color #103954 is outside DESIGN.md colors",
+    "ignoreValue": "#103954",
+    "importedBy": [
+      "GameArena.tsx",
+      "GameModePicker.tsx",
+      "GamesPage.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/games/Games.module.css",
+    "line": 3,
+    "snippet": "Undocumented color #21543b is outside DESIGN.md colors",
+    "ignoreValue": "#21543b",
+    "importedBy": [
+      "GameArena.tsx",
+      "GameModePicker.tsx",
+      "GamesPage.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/games/Games.module.css",
+    "line": 3,
+    "snippet": "Undocumented color #84653c is outside DESIGN.md colors",
+    "ignoreValue": "#84653c",
+    "importedBy": [
+      "GameArena.tsx",
+      "GameModePicker.tsx",
+      "GamesPage.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/games/Games.module.css",
+    "line": 3,
+    "snippet": "Undocumented color #cff7ff is outside DESIGN.md colors",
+    "ignoreValue": "#cff7ff",
+    "importedBy": [
+      "GameArena.tsx",
+      "GameModePicker.tsx",
+      "GamesPage.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/games/Games.module.css",
+    "line": 3,
+    "snippet": "font-size: 23px is off the DESIGN.md type ramp",
+    "ignoreValue": "23px",
+    "importedBy": [
+      "GameArena.tsx",
+      "GameModePicker.tsx",
+      "GamesPage.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/games/Games.module.css",
+    "line": 4,
+    "snippet": "Undocumented color #12304e is outside DESIGN.md colors",
+    "ignoreValue": "#12304e",
+    "importedBy": [
+      "GameArena.tsx",
+      "GameModePicker.tsx",
+      "GamesPage.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/games/Games.module.css",
+    "line": 4,
+    "snippet": "Undocumented color #263d53 is outside DESIGN.md colors",
+    "ignoreValue": "#263d53",
+    "importedBy": [
+      "GameArena.tsx",
+      "GameModePicker.tsx",
+      "GamesPage.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/games/Games.module.css",
+    "line": 4,
+    "snippet": "Undocumented color #9e7400 is outside DESIGN.md colors",
+    "ignoreValue": "#9e7400",
+    "importedBy": [
+      "GameArena.tsx",
+      "GameModePicker.tsx",
+      "GamesPage.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-radius",
+    "name": "Radius outside DESIGN.md",
+    "description": "A border-radius value is outside the DESIGN.md rounded scale. Use a documented radius token or update the design system if the new shape is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/games/Games.module.css",
+    "line": 4,
+    "snippet": "border-radius: 5px is outside the DESIGN.md rounded scale",
+    "ignoreValue": "5px",
+    "importedBy": [
+      "GameArena.tsx",
+      "GameModePicker.tsx",
+      "GamesPage.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/games/Games.module.css",
+    "line": 4,
+    "snippet": "font-size: clamp(36px,5vw,64px) has fluid endpoints 36px and 64px off the DESIGN.md type ramp",
+    "ignoreValue": "36px",
+    "importedBy": [
+      "GameArena.tsx",
+      "GameModePicker.tsx",
+      "GamesPage.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/games/Games.module.css",
+    "line": 4,
+    "snippet": "font-size: 18px is off the DESIGN.md type ramp",
+    "ignoreValue": "18px",
+    "importedBy": [
+      "GameArena.tsx",
+      "GameModePicker.tsx",
+      "GamesPage.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/games/Games.module.css",
+    "line": 4,
+    "snippet": "font-size: 32px is off the DESIGN.md type ramp",
+    "ignoreValue": "32px",
+    "importedBy": [
+      "GameArena.tsx",
+      "GameModePicker.tsx",
+      "GamesPage.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/games/Games.module.css",
+    "line": 6,
+    "snippet": "font-size: 10px is off the DESIGN.md type ramp",
+    "ignoreValue": "10px",
+    "importedBy": [
+      "GameArena.tsx",
+      "GameModePicker.tsx",
+      "GamesPage.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/games/Games.module.css",
+    "line": 6,
+    "snippet": "font-size: 23px is off the DESIGN.md type ramp",
+    "ignoreValue": "23px",
+    "importedBy": [
+      "GameArena.tsx",
+      "GameModePicker.tsx",
+      "GamesPage.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/games/Games.module.css",
+    "line": 6,
+    "snippet": "font-size: 17px is off the DESIGN.md type ramp",
+    "ignoreValue": "17px",
+    "importedBy": [
+      "GameArena.tsx",
+      "GameModePicker.tsx",
+      "GamesPage.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/games/Games.module.css",
+    "line": 6,
+    "snippet": "font-size: 42px is off the DESIGN.md type ramp",
+    "ignoreValue": "42px",
+    "importedBy": [
+      "GameArena.tsx",
+      "GameModePicker.tsx",
+      "GamesPage.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/games/Games.module.css",
+    "line": 6,
+    "snippet": "font-size: 26px is off the DESIGN.md type ramp",
+    "ignoreValue": "26px",
+    "importedBy": [
+      "GameArena.tsx",
+      "GameModePicker.tsx",
+      "GamesPage.tsx"
+    ]
+  }
+]

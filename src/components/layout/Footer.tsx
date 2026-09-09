@@ -1,6 +1,7 @@
 import { Mail } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
+import { loginStateFor } from '@/lib/afterAuth'
 
 import { Container } from '@/components/ui/Container'
 import { LanguageToggle } from '@/components/ui/LanguageToggle'
@@ -83,6 +84,7 @@ const FOOTER_LINK_CLASS =
 
 export function Footer() {
   const { t } = useTranslation()
+  const location = useLocation()
 
   return (
     <footer className="relative mt-32 overflow-hidden bg-ink-950 text-white">
@@ -131,7 +133,7 @@ export function Footer() {
                         {t(link.labelKey)}
                       </a>
                     ) : (
-                      <Link to={link.to} className={FOOTER_LINK_CLASS}>
+                      <Link to={link.to} state={link.to === '/login' ? loginStateFor(location) : undefined} className={FOOTER_LINK_CLASS}>
                         {t(link.labelKey)}
                       </Link>
                     )}

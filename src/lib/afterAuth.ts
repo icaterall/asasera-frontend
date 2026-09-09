@@ -18,7 +18,10 @@ import type { PublicUser } from '@/lib/api'
  * dedicated place to join live classes and open teacher assignments.
  */
 export function homePathFor(user: Pick<PublicUser, 'role'>): string {
-  return user.role === 'teacher' ? '/teacher/dashboard' : '/student'
+  if (user.role === 'teacher') return '/teacher/dashboard'
+  if (user.role === 'student') return '/student'
+  // Admin/support have no dedicated workspace in this application yet.
+  return '/account'
 }
 
 /**
@@ -36,15 +39,36 @@ export function homePathFor(user: Pick<PublicUser, 'role'>): string {
  * phishing page borrows a real sign-in flow.
  */
 export function safeReturnPath(value: unknown): string | null {
-  if (typeof value !== 'string' || value.length === 0) return null
-  if (!value.startsWith('/')) return null
-  if (value.startsWith('//') || value.startsWith('/\\')) return null
-  /* Matching control characters is the whole intent here — a newline in a
-     redirect target is how a header gets split. */
-  // eslint-disable-next-line no-control-regex
-  if (/[\u0000-\u001f\u007f]/.test(value)) return null
-  /* Never bounce back to an authentication screen: a person who just signed in
-     being returned to the sign-in page reads as a failed sign-in. */
-  if (/^\/(login|signup|forgot|reset|verify-email|auth)\b/.test(value)) return null
-  return value
+  if (typeof value !== 'string' || value.length === 0 || value.length > 4096) return null
+  const unsafeCharacters = (text: string) => [...text].some(char => char === '\\' || char.charCodeAt(0) < 32 || char.charCodeAt(0) === 127)
+  if (!value.startsWith('/') || value.startsWith('//') || unsafeCharacters(value)) return null
+  try {
+    const url = new URL(value, 'https://asasera.invalid')
+    const pathname = decodeURIComponent(url.pathname)
+    if (url.origin !== 'https://asasera.invalid' || unsafeCharacters(pathname) || pathname.startsWith('//')) return null
+    // Normalize dot segments before excluding authentication and API routes.
+    // Those endpoints can themselves redirect, so they are never destinations.
+    if (pathname === '/' || /^\/(login|signup|register|forgot|reset|verify-email|auth|api)(\/|$)/i.test(pathname)) return null
+    return url.pathname + url.search + url.hash
+  } catch {
+    return null
+  }
+}
+
+/** Navigation follows the authenticated role; it never grants access. */
+export function loginDestinationFor(user: Pick<PublicUser, 'role'>, requested: unknown): string {
+  const path = safeReturnPath(requested)
+  if (!path) return homePathFor(user)
+  const pathname = decodeURIComponent(new URL(path, 'https://asasera.invalid').pathname)
+  if (/^\/teacher(\/|$)/i.test(pathname) && user.role !== 'teacher') return homePathFor(user)
+  if (/^\/student(\/|$)/i.test(pathname) && user.role !== 'student') return homePathFor(user)
+  return path
+}
+
+export function loginStateFor(location: { pathname: string; search: string; hash: string }) {
+  return { from: safeReturnPath(location.pathname + location.search + location.hash) }
+}
+
+export function isAuthenticationPath(pathname: string): boolean {
+  return /^\/(login|signup|register|forgot|reset|verify-email|auth)(\/|$)/i.test(pathname)
 }

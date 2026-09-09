@@ -1,0 +1,48 @@
+# Teacher Home surface brief
+
+Audience: Arabic-first teachers returning to their own work, creating an activity or finding a classroom resource.
+Mode: Operate.
+Scope: Teacher Home, owned activity library, creation entry, shared discovery and simplified teacher sidebar/header. Editor, game, student and other surfaces retain their existing contracts.
+Authority: The user's rejection of the crowded catalog-style Home, duplicate Arabic curriculum controls in English mode and published fixture rows. The screenshot is before evidence only. [DESIGN.md](../../DESIGN.md) retains Asasera Blue `#004ccc`, Montserrat/Neo Sans Arabic and theme-aware neutrals. PRODUCT.md's starter content does not override the current implementation or the user's scoped direction.
+
+## Direction and first viewport
+
+Latest direction: colorful, more organized and easy to understand, with expressive icons and pictures. Welcome → illustrated creation hero → four colored shortcuts → recent owned work and classroom inspiration. The hero has a yellow Create activity action on Asasera Blue, with an original 3D classroom picture. Four large Lucide icons distinguish My activities, Explore, Homework and Reports; a jungle preview, Random wheel and guide remain separate from recent work. Shared discovery has its own destination. Real empty states replace invented analytics, social proof or fixture activity.
+
+The page caps at 1180px. Home's hero pairs text and art in 1.05fr/1fr columns, above a four-column shortcut bar. Recent work and inspiration use a flexible/290px grid with a 28px gap, narrowing to 260px/20px at 1190px. The hero and content stack at 800px; the inspiration area uses two columns until 520px, then one, and shortcuts become two-by-two. Image containment preserves the generated scene. Shared owned rows keep their previous wrapping and mobile dimensions. Library, creation and discovery retain their earlier layouts. These are source-defined behaviors, not verified rendered results.
+
+## Routes and built behavior
+
+- `/teacher/dashboard`: personalized welcome, illustrated Create activity hero, four navigation shortcuts, four recent owned activities with View all, a discovery invitation, jungle-world inspiration, Random wheel and help. Existing destinations and ownership boundaries are preserved.
+- `/teacher/activities`: the complete owned list with title search and All activities/Drafts/Published filtering. Rows show theme thumbnail, authored title, written status, edited date and Edit; only published rows expose Play. Empty work offers creation; empty filtering offers Clear filters; failed loading offers retry.
+- `/teacher/activities/new`: required activity name, subject and stage/grade, followed by Continue to questions and Cancel. Teaching purpose is available under More settings. Reference-loading failures offer retry; submission disables fields, prevents repeat submission, displays errors and opens the existing editor after creation.
+- `/teacher/discover`: native subject/stage selects and an optional Show this unit first preference, followed by preview-led shared activity cards. Saved preferences can initialize selection; absent preferences leave subject/stage unselected. Cards show question count, author, Preview and Make a copy. Pagination, preview questions, play setup, reporting and copy-destination selection retain their existing flows. Failed preference saves preserve working filters and offer retry.
+- `/teacher/shelf`: redirects to `/teacher/discover` for compatibility.
+
+The sidebar has five primary destinations: Home, My activities, Explore activities, Homework & study and Class reports. Tools & resources is a native disclosure containing Random wheel, Lessons, Materials, Courses and All tools; an active resource route opens it. Help & guides remains separate. The header retains language, theme and account controls and the existing mobile drawer trigger/logo. Its Create activity link goes to the same dedicated route and is omitted on Home, My activities and Create activity.
+
+## Content and bilingual behavior
+
+Owned activity queries are keyed by the signed-in account; shared discovery remains separate. Confirmed legacy helper and synthetic content is hidden from discovery through migration 0018 while records, owners, published versions and delivery history remain intact. [Verification](../review/teacher-home/verification.md) records 337 hidden activities and 24 hidden units, with zero remaining visible shared units in the configured database. Classification is not inferred from activity titles; owner listing and existing delivery authorization are preserved.
+
+Missing English unit translations use “Unit” plus the stored order, and Arabic uses its corresponding label. Authored titles remain in their original language with automatic direction; personalized and author names use bidirectional isolation. Interface labels, loading/failure/empty states and recovery actions have English and Arabic variants. The existing Arabic font-file and copy-review limitations still apply.
+
+## Visual controls and assets
+
+Library creation links remain blue with 6px corners, 14px/22px padding, a small shadow and a 1px hover lift over 180ms. Home uses a yellow hero action with 6px corners, 14px/20px padding and a 2px hover lift. The jungle preview zooms slightly on hover; reduced motion disables both effects. Blue, teal, yellow and red shortcut-icon tints have corresponding dark variants. No movement runs continuously. Reduced motion removes that movement. Shared submission/copy buttons keep the shared button treatment. Owned list, form, empty and discovery surfaces use 12px corners and neutral borders; local fields use 6px corners and a 46px minimum height. Edit/Play actions use 5px corners and a 40px minimum height. These local dimensions do not replace global control/card tokens.
+
+The shared page title requests `clamp(26px, 2.6vw, 38px)` at weight 800 and 1.25 leading. Section headings request 21px/750, becoming 19px on phones; owned titles use 17px/700, becoming 16px. Metadata uses 12px and field/action labels use 14px. Local title sizes and requested weights remain scoped facts, not new font assets or a global ramp. Home/library focus uses a 3px theme-aware accent outline with a 4px offset; native labels and disclosures retain their keyboard semantics.
+
+The built-in image tool generated [classroom-studio.webp](../../src/assets/images/teacher-dashboard/classroom-studio.webp), 1536×1024, with a 640px mobile variant. The [exact prompt and provenance](../../src/assets/images/teacher-dashboard/classroom-studio.prompt.json) travel with both assets. A generated 3D classroom is illustrative, not customer evidence. Home also uses the existing jungle thumbnail. Home rows and discovery covers reuse [ThemeThumbnail](../../src/features/activity-themes/ActivityStage.tsx) and its existing catalog images or Classic geometry. Existing artwork provenance remains in [the activity-world brief](activity-themes.md).
+
+## Evidence and disposition
+
+Sources: [Home and owned query](../../src/features/teacher-home/), [owned library](../../src/features/editor/ActivityList.tsx), [creation](../../src/features/editor/CreateActivity.tsx), [discovery](../../src/features/shelf/Shelf.tsx), [discovery styles](../../src/features/shelf/Shelf.module.css), [unit labels](../../src/features/shelf/unitLabel.ts), [header](../../src/components/teacher/TeacherHeader.tsx), [sidebar](../../src/components/teacher/TeacherSidebar.tsx) and [routes](../../src/App.tsx).
+
+[Verification](../review/teacher-home/verification.md) records 52 passing targeted tests: 26 activity authoring/publication/authorization, 5 labels/discovery/cursor, 4 fixture-discovery isolation/test-database guard and 17 frontend unit-label/login-return. Frontend/backend builds and build assertions, backend typecheck, scoped frontend lint, schema and whitespace checks passed. The existing game-renderer bundle warning remains. [The detector](../review/teacher-home/detector.json) reports 14 advisory local type/radius differences and no non-advisory findings. These checks validate code only.
+
+**Finish disposition: recapture.** [The fresh finish review](../review/teacher-home/finish-review.md) could not assess current desktop/mobile English/LTR and Arabic/RTL views. Existing desktop/mobile images show the teacher editor; the user's screenshot shows the rejected Home. Neither proves the replacement. Browser access is blocked by admin-enforced security policy; no alternate browser, headless renderer, URL alias or indirect rendering workaround is authorized. Rendered appearance, overflow, focus interaction and responsive presentation remain unverified. No fidelity matrix, craft verdict or visual approval is issued; a full finish re-review requires valid current captures through a permitted route.
+
+## Colorful refinement verification
+
+[Current verification](../review/teacher-home-colorful/verification.md) supersedes the old Home composition above wherever it differs. New illustration1536×1024 is 138,636 bytes; mobile 640×427 is 39,222 bytes. Eleven explicit light/dark foreground-background pairs clear 4.5:1 in source contrast calculations. Current frontend build/bundle assertions and scoped lint pass. The image provenance scan covers 38 assets without missing metadata. No backend or business-flow behavior changed and no new test fixtures were generated. Historical 52 tests above were from the preceding functional change and were not rerun as proof of this visual refinement. Current rendered desktop/mobile, Arabic and keyboard interaction validation remains blocked by the established browser-access restriction.

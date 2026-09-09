@@ -42,14 +42,14 @@ export function MaterialArt({ className }: ArtProps) {
     <Art className={className}>
       <rect x="34" y="18" width="86" height="106" rx="5" fill="#ffffff" opacity="0.28" />
       <rect x="42" y="26" width="86" height="106" rx="5" fill="#ffffff" />
-      <rect x="54" y="42" width="62" height="7" rx="3.5" fill="#46178f" opacity="0.85" />
+      <rect x="54" y="42" width="62" height="7" rx="3.5" fill="var(--color-brand-500)" opacity="0.85" />
       <rect x="54" y="58" width="46" height="5" rx="2.5" fill="#10101d" opacity="0.28" />
       <rect x="54" y="70" width="58" height="5" rx="2.5" fill="#10101d" opacity="0.28" />
       <rect x="54" y="82" width="38" height="5" rx="2.5" fill="#10101d" opacity="0.28" />
       <rect x="54" y="100" width="30" height="14" rx="5" fill="#14bf96" />
       {/* The lesson the page turns into. */}
       <rect x="140" y="46" width="72" height="60" rx="5" fill="#ffffff" opacity="0.94" />
-      <rect x="140" y="46" width="72" height="18" rx="5" fill="#46178f" />
+      <rect x="140" y="46" width="72" height="18" rx="5" fill="var(--color-brand-500)" />
       <rect x="150" y="74" width="52" height="5" rx="2.5" fill="#10101d" opacity="0.3" />
       <rect x="150" y="86" width="34" height="5" rx="2.5" fill="#10101d" opacity="0.3" />
       <path
@@ -94,7 +94,7 @@ export function ClassArt({ className }: ArtProps) {
   return (
     <Art className={className}>
       <rect x="72" y="14" width="130" height="76" rx="5" fill="#ffffff" />
-      <rect x="86" y="30" width="60" height="7" rx="3.5" fill="#46178f" opacity="0.8" />
+      <rect x="86" y="30" width="60" height="7" rx="3.5" fill="var(--color-brand-500)" opacity="0.8" />
       <rect x="86" y="46" width="90" height="5" rx="2.5" fill="#10101d" opacity="0.25" />
       <rect x="86" y="58" width="70" height="5" rx="2.5" fill="#10101d" opacity="0.25" />
       <rect x="130" y="90" width="14" height="16" rx="3" fill="#ffffff" opacity="0.55" />
@@ -140,7 +140,7 @@ export function ReportArt({ className }: ArtProps) {
 export function LibraryArt({ className }: ArtProps) {
   return (
     <Art className={className}>
-      <rect x="30" y="24" width="52" height="76" rx="5" fill="#46178f" />
+      <rect x="30" y="24" width="52" height="76" rx="5" fill="var(--color-brand-500)" />
       <rect x="38" y="38" width="34" height="5" rx="2.5" fill="#ffffff" opacity="0.8" />
       <rect x="38" y="50" width="24" height="5" rx="2.5" fill="#ffffff" opacity="0.5" />
       <rect x="90" y="14" width="52" height="86" rx="5" fill="#14bf96" />
@@ -178,7 +178,7 @@ export function ReuseArt({ className }: ArtProps) {
   return (
     <Art className={className}>
       <rect x="26" y="34" width="70" height="72" rx="5" fill="#ffffff" />
-      <rect x="38" y="48" width="42" height="6" rx="3" fill="#46178f" opacity="0.8" />
+      <rect x="38" y="48" width="42" height="6" rx="3" fill="var(--color-brand-500)" opacity="0.8" />
       <rect x="38" y="62" width="32" height="5" rx="2.5" fill="#10101d" opacity="0.25" />
       <rect x="38" y="74" width="38" height="5" rx="2.5" fill="#10101d" opacity="0.25" />
       <rect x="144" y="34" width="70" height="72" rx="5" fill="#ffffff" opacity="0.92" />
@@ -223,7 +223,7 @@ export function HeroArt({ className }: ArtProps) {
       <circle cx="70" cy="150" r="46" fill="#ffffff" opacity="0.07" />
       {/* Material on the leading side. */}
       <rect x="44" y="30" width="74" height="94" rx="5" fill="#ffffff" opacity="0.95" />
-      <rect x="56" y="46" width="44" height="6" rx="3" fill="#46178f" />
+      <rect x="56" y="46" width="44" height="6" rx="3" fill="var(--color-brand-500)" />
       <rect x="56" y="60" width="50" height="5" rx="2.5" fill="#10101d" opacity="0.25" />
       <rect x="56" y="72" width="36" height="5" rx="2.5" fill="#10101d" opacity="0.25" />
       <rect x="56" y="84" width="46" height="5" rx="2.5" fill="#10101d" opacity="0.25" />
@@ -239,7 +239,7 @@ export function HeroArt({ className }: ArtProps) {
       />
       {/* The prepared lesson on the trailing side. */}
       <rect x="182" y="22" width="96" height="66" rx="5" fill="#ffffff" opacity="0.96" />
-      <rect x="182" y="22" width="96" height="16" rx="5" fill="#46178f" />
+      <rect x="182" y="22" width="96" height="16" rx="5" fill="var(--color-brand-500)" />
       <rect x="194" y="50" width="40" height="18" rx="5" fill="#f5a524" />
       <rect x="238" y="50" width="28" height="18" rx="5" fill="#1e88e5" />
       {/* And the class it reaches. */}

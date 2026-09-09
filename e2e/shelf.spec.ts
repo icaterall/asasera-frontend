@@ -1,3 +1,4 @@
+import {selectOption} from './select-option'
 import {test,expect} from '@playwright/test'
 import {localShelf} from './local-fixture'
 import {writeFileSync} from 'node:fs'
@@ -12,12 +13,12 @@ test('empty shelf exits work and a foreign private curriculum can be copied into
  await capture('shelf-empty-1440.png',1440,900)
  await page.getByRole('button',{name:f.activities[1]!.title,exact:true}).click();await expect(page.getByRole('dialog')).toContainText('One plus one equals two');await page.keyboard.press('Escape')
  await page.getByRole('button',{name:/Explore level/}).click();await expect(page.getByRole('heading',{name:'This shelf is waiting for its first activity'})).not.toBeVisible()
- await page.goto('/teacher/shelf');await page.getByRole('combobox',{name:'Level',exact:true}).selectOption(String(f.emptyLevel))
+ await page.goto('/teacher/shelf');await selectOption(page.getByRole('combobox',{name:'Level',exact:true}),String(f.emptyLevel))
  await expect(page.getByRole('heading',{name:'This shelf is waiting for its first activity'})).toBeVisible();await page.getByRole('button',{name:'Be the first to create here',exact:true}).click();await expect(page).toHaveURL(/\/teacher\/activities$/)
- await page.goto('/teacher/shelf');await page.getByRole('combobox',{name:'Level',exact:true}).selectOption('8')
+ await page.goto('/teacher/shelf');await selectOption(page.getByRole('combobox',{name:'Level',exact:true}),'8')
  const article=page.locator('article').filter({has:page.getByRole('heading',{name:f.activities[0]!.title,exact:true})})
  await expect(article).toBeVisible();await capture('shelf-populated-390.png',390,844)
- await article.getByRole('button',{name:'Copy activity',exact:true}).click();const dialog=page.getByRole('dialog',{name:'Choose a shelf for your copy'});await expect(dialog).toBeVisible();await dialog.getByLabel('Copy destination').selectOption('purpose:2');await dialog.getByRole('button',{name:'Save my copy'}).click()
+ await article.getByRole('button',{name:'Copy activity',exact:true}).click();const dialog=page.getByRole('dialog',{name:'Choose a shelf for your copy'});await expect(dialog).toBeVisible();await selectOption(dialog.getByLabel('Copy destination'),'purpose:2');await dialog.getByRole('button',{name:'Save my copy'}).click()
  await expect(page).toHaveURL(/\/teacher\/activities\/[0-9]+$/);await expect(page.getByLabel('Question text')).toHaveValue('One plus one equals two')
  writeFileSync('../screenshots/v4/shelf-evidence.json',JSON.stringify(measurements,null,2))
 })

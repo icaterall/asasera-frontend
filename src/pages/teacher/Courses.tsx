@@ -1,3 +1,4 @@
+import { Select } from '@/design'
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -127,15 +128,15 @@ export default function TeacherCourses() {
           </div>
 
           <Field label={t('teaching.courses.fieldLanguage')} htmlFor="course-language">
-            <select
+            <Select
               id="course-language"
               className={inputClass}
               value={language}
-              onChange={(event) => setLanguage(event.target.value as 'ar' | 'en')}
+              onValueChange={(event) => setLanguage(event as 'ar' | 'en')}
             >
               <option value="ar">{t('teaching.courses.languageAr')}</option>
               <option value="en">{t('teaching.courses.languageEn')}</option>
-            </select>
+            </Select>
           </Field>
 
           <Field
@@ -143,12 +144,12 @@ export default function TeacherCourses() {
             hint={t('teaching.common.optional')}
             htmlFor="course-category"
           >
-            <select
+            <Select
               id="course-category"
               className={inputClass}
               value={categoryId}
               disabled={categories.loading || categories.failed}
-              onChange={(event) => setCategoryId(event.target.value)}
+              onValueChange={(event) => setCategoryId(event)}
             >
               <option value="">{t('teaching.common.none')}</option>
               {categories.options.map((option) => (
@@ -156,7 +157,7 @@ export default function TeacherCourses() {
                   {name(option)}
                 </option>
               ))}
-            </select>
+            </Select>
           </Field>
 
           <div className="flex items-end gap-2">

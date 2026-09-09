@@ -10,7 +10,7 @@ import { useApiErrorMessage } from '@/hooks/useApiErrorMessage'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 import { useAuth } from '@/hooks/useAuth'
 import { useSignup } from '@/hooks/useSignup'
-import { homePathFor } from '@/lib/afterAuth'
+import { useLoginRedirect } from '@/hooks/useLoginRedirect'
 import { ApiError, auth } from '@/lib/api'
 
 /**
@@ -37,6 +37,7 @@ import { ApiError, auth } from '@/lib/api'
 export default function PasswordStep() {
   const { c } = useAuthCopy()
   const navigate = useNavigate()
+  const redirectAfterLogin = useLoginRedirect()
   const { role } = useParams<{ role: string }>()
   const { draft } = useSignup()
   const { signIn } = useAuth()
@@ -91,16 +92,9 @@ export default function PasswordStep() {
           ...(draft!.workplaceId !== null ? { workplace_type_id: draft!.workplaceId } : {}),
         })
       } else {
-        await auth.registerStudent({...payload,...(draft!.stageId!==null?{education_stage_id:draft!.stageId}:{})})
+        await auth.registerStudent({ ...payload, learning_profile: draft!.learningProfile })
       }
 
-      /*
-       * A student's stage still rides through to profile completion rather
-       * than being sent here: the student register route accepts no
-       * education_stage_id, and the authenticated profile endpoint already
-       * validates it. It stays in the draft so the completion screen can
-       * offer it prefilled.
-       */
       /*
        * STRAIGHT INTO THE APPLICATION, not to a check-your-email wall.
        *
@@ -131,7 +125,7 @@ export default function PasswordStep() {
          * approved behaviour.
          */
         const user = await signIn(draft!.email, password)
-        navigate(homePathFor(user), { replace: true })
+        redirectAfterLogin(user)
       } catch {
         /*
          * The account exists — the register call succeeded — but signing in

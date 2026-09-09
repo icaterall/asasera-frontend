@@ -1,21 +1,21 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-09-07T19:48:02.262Z",
+  "generatedAt": "2026-09-08T18:08:29Z",
   "title": "Design System: Asasera",
   "extensions": {
     "colorMeta": {
       "brand": {
         "role": "primary",
-        "displayName": "Classroom Purple",
+        "displayName": "Asasera Blue",
         "tonalRamp": [
-          "#19053c",
-          "#25076b",
-          "#341069",
-          "#46178f",
-          "#9768cf",
-          "#c4a2f2",
-          "#d8c2f1",
-          "#f5effc"
+          "#001333",
+          "#002666",
+          "#003999",
+          "#004ccc",
+          "#3370d6",
+          "#6694e0",
+          "#99b7eb",
+          "#e6edfa"
         ]
       },
       "brand-dark": {
@@ -25,7 +25,7 @@
           "#19053c",
           "#25076b",
           "#341069",
-          "#46178f",
+          "#004ccc",
           "#9768cf",
           "#c4a2f2",
           "#d8c2f1",
@@ -319,11 +319,109 @@
           "#19053c",
           "#25076b",
           "#341069",
-          "#46178f",
+          "#004ccc",
           "#9768cf",
           "#c4a2f2",
           "#d8c2f1",
           "#f5effc"
+        ]
+      },
+      "landing-yellow": {
+        "role": "secondary",
+        "displayName": "Play Yellow — public landing",
+        "tonalRamp": [
+          "oklch(15% 0.1647 90.02)",
+          "oklch(27% 0.1647 90.02)",
+          "oklch(39% 0.1647 90.02)",
+          "oklch(51% 0.1647 90.02)",
+          "oklch(63% 0.1647 90.02)",
+          "oklch(75% 0.1647 90.02)",
+          "oklch(87% 0.1647 90.02)",
+          "oklch(95% 0.1647 90.02)"
+        ]
+      },
+      "landing-yellow-hover": {
+        "role": "secondary",
+        "displayName": "Play Yellow Hover — public landing",
+        "tonalRamp": [
+          "oklch(15% 0.1423 92.01)",
+          "oklch(27% 0.1423 92.01)",
+          "oklch(39% 0.1423 92.01)",
+          "oklch(51% 0.1423 92.01)",
+          "oklch(63% 0.1423 92.01)",
+          "oklch(75% 0.1423 92.01)",
+          "oklch(87% 0.1423 92.01)",
+          "oklch(95% 0.1423 92.01)"
+        ]
+      },
+      "landing-deep": {
+        "role": "primary",
+        "displayName": "Stage Blue — public landing",
+        "tonalRamp": [
+          "oklch(15% 0.1556 261.63)",
+          "oklch(27% 0.1556 261.63)",
+          "oklch(39% 0.1556 261.63)",
+          "oklch(51% 0.1556 261.63)",
+          "oklch(63% 0.1556 261.63)",
+          "oklch(75% 0.1556 261.63)",
+          "oklch(87% 0.1556 261.63)",
+          "oklch(95% 0.1556 261.63)"
+        ]
+      },
+      "landing-tint": {
+        "role": "neutral",
+        "displayName": "Lesson Tint — public landing",
+        "tonalRamp": [
+          "oklch(15% 0.0165 259.42)",
+          "oklch(27% 0.0165 259.42)",
+          "oklch(39% 0.0165 259.42)",
+          "oklch(51% 0.0165 259.42)",
+          "oklch(63% 0.0165 259.42)",
+          "oklch(75% 0.0165 259.42)",
+          "oklch(87% 0.0165 259.42)",
+          "oklch(95% 0.0165 259.42)"
+        ]
+      },
+      "landing-dark-tint": {
+        "role": "neutral",
+        "displayName": "Dark Lesson Tint — public landing",
+        "tonalRamp": [
+          "oklch(15% 0.0508 259.04)",
+          "oklch(27% 0.0508 259.04)",
+          "oklch(39% 0.0508 259.04)",
+          "oklch(51% 0.0508 259.04)",
+          "oklch(63% 0.0508 259.04)",
+          "oklch(75% 0.0508 259.04)",
+          "oklch(87% 0.0508 259.04)",
+          "oklch(95% 0.0508 259.04)"
+        ]
+      },
+      "game-panel": {
+        "role": "neutral",
+        "displayName": "Game Panel",
+        "tonalRamp": [
+          "oklch(15.00% 0.0540 250.48)",
+          "oklch(26.43% 0.0540 250.48)",
+          "oklch(37.86% 0.0540 250.48)",
+          "oklch(49.29% 0.0540 250.48)",
+          "oklch(60.71% 0.0540 250.48)",
+          "oklch(72.14% 0.0540 250.48)",
+          "oklch(83.57% 0.0540 250.48)",
+          "oklch(95.00% 0.0540 250.48)"
+        ]
+      },
+      "game-control-ink": {
+        "role": "neutral",
+        "displayName": "Game Control Ink",
+        "tonalRamp": [
+          "oklch(15.00% 0.0652 250.85)",
+          "oklch(26.43% 0.0652 250.85)",
+          "oklch(37.86% 0.0652 250.85)",
+          "oklch(49.29% 0.0652 250.85)",
+          "oklch(60.71% 0.0652 250.85)",
+          "oklch(72.14% 0.0652 250.85)",
+          "oklch(83.57% 0.0652 250.85)",
+          "oklch(95.00% 0.0652 250.85)"
         ]
       }
     },
@@ -355,13 +453,21 @@
       "caption": {
         "displayName": "Caption",
         "purpose": "Hints, counters, and property metadata."
+      },
+      "landing-headline": {
+        "displayName": "Landing section headline",
+        "purpose": "Public landing only: repeated section headings; 29px on phones, normal tracking in Arabic."
+      },
+      "landing-action": {
+        "displayName": "Landing action",
+        "purpose": "Public landing only: creation, signup and outline demo actions; compact feedback and plan actions use local sizes."
       }
     },
     "shadows": [
       {
         "name": "press",
         "value": "0 2px 4px rgba(0,0,0,.15), inset 0 -4px 0 rgba(0,0,0,.25)",
-        "purpose": "Shared primary actions, answer tiles, and student submit controls."
+        "purpose": "Shared primary actions and answer tiles; current student actions use their scoped inset edge."
       },
       {
         "name": "answer-hover",
@@ -371,7 +477,7 @@
       {
         "name": "stage-answer-edge",
         "value": "inset 0 -4px 0 #0003",
-        "purpose": "Creator and live answer bottom edge."
+        "purpose": "Creator and live answer bottom edge; also used by current student blue and yellow actions."
       },
       {
         "name": "creator-toolbar",
@@ -392,6 +498,36 @@
         "name": "account-menu",
         "value": "0 8px 24px #0003",
         "purpose": "Temporary account menu over neutral pages; ordinary settings sections remain flat."
+      },
+      {
+        "name": "landing-demo",
+        "value": "0 18px 46px #00194a55",
+        "purpose": "Public landing only: white playable demo above the solid blue stage."
+      },
+      {
+        "name": "landing-source-paper",
+        "value": "0 7px 18px #002f8814",
+        "purpose": "Public landing only: the source-document example."
+      },
+      {
+        "name": "landing-answer-edge",
+        "value": "inset 0 -5px 0 #0003",
+        "purpose": "Public landing only: tactile demo answer controls."
+      },
+      {
+        "name": "landing-action-pressed",
+        "value": "inset 0 -1px 0 #0003",
+        "purpose": "Public landing only: residual edge after the local 3px press."
+      },
+      {
+        "name": "educational-game-control-edge",
+        "value": "inset 0 -5px #0003",
+        "purpose": "Educational-game directional and Drop controls: local tactile bottom edge, paired with the three-pixel active press."
+      },
+      {
+        "name": "teacher-home-create",
+        "value": "0 3px 5px #003b9e30",
+        "purpose": "Owned library creation links only; lists, creation forms and discovery cards remain flat with neutral borders."
       }
     ],
     "motion": [
@@ -424,6 +560,81 @@
         "name": "distribution-stagger",
         "value": "80ms",
         "purpose": "Step between live distribution bars in SessionPage."
+      },
+      {
+        "name": "landing-stage-arrival",
+        "value": "650ms cubic-bezier(.16,1,.3,1)",
+        "purpose": "Public landing only: one entrance from translateY(16px) rotate(1deg); suppressed under reduced motion."
+      },
+      {
+        "name": "landing-feedback-arrival",
+        "value": "240ms ease-out",
+        "purpose": "Public landing only: feedback enters from translateY(6px); suppressed under reduced motion."
+      },
+      {
+        "name": "landing-action-state",
+        "value": "160ms ease-out",
+        "purpose": "Public landing only: action transform, shadow and background changes; local active travel is 3px."
+      },
+      {
+        "name": "landing-workflow-state",
+        "value": "180ms ease-out",
+        "purpose": "Public landing only: workflow step background and border changes."
+      },
+      {
+        "name": "activity-scene-load",
+        "value": "450ms ease-out",
+        "purpose": "Activity worlds only: opacity fade after the selected scene image loads; disabled when stage motion is off."
+      },
+      {
+        "name": "activity-scene-camera",
+        "value": "30s ease-in-out infinite alternate",
+        "purpose": "Activity worlds only: slight scale and translation; paused during live question_open and suppressed for editing, hidden/offscreen stages, paused preference and reduced motion."
+      },
+      {
+        "name": "activity-question-arrival",
+        "value": "380ms cubic-bezier(.16,1,.3,1)",
+        "purpose": "Activity worlds only: short perspective arrival on the marked question surface. Preview repeats on world or phase change; live questions repeat on question identity."
+      },
+      {
+        "name": "activity-atmosphere",
+        "value": "14s–26s linear infinite",
+        "purpose": "Activity worlds only: twelve decorative theme-specific particles using transform and opacity. No particles in Classic or after a failed scene image."
+      },
+      {
+        "name": "activity-preview-answer",
+        "value": "130ms ease-out",
+        "purpose": "Activity picker only: transform state; a 3px downward press with -2deg rotation."
+      },
+      {
+        "name": "activity-preview-podium",
+        "value": "550ms cubic-bezier(.16,1,.3,1)",
+        "purpose": "Activity picker only: podium rise, with 0/120/60ms delays in display order."
+      },
+      {
+        "name": "activity-live-podium",
+        "value": "1200ms cubic-bezier(.2,.8,.2,1)",
+        "purpose": "Live activity podium: existing JavaScript vertical entrance and finite confetti gated by the shared motion preference/reduced motion; preference-off cancels the animation and resets confetti. Stage hidden/offscreen suppression covers CSS, not this separate effect."
+      },
+      {
+        "name": "activity-gallery-hover",
+        "value": "180ms ease-out",
+        "purpose": "Activity picker only: image scale to 1.025 on gallery hover; disabled by device reduced motion."
+      },
+      {
+        "name": "educational-game-control-press",
+        "value": "100ms ease-out",
+        "purpose": "Educational-game controls move down 3px while pressed. Device reduced motion removes the transition and travel; this does not describe renderer timing or frame-rate performance."
+      },
+      {
+        "name": "student-action-state",
+        "value": "140ms ease",
+        "purpose": "Student blue/yellow actions move down 2px; reduced motion removes transitions and travel."
+      },
+      {
+        "name": "teacher-home-create-hover",
+        "value": "180ms ease",
+        "purpose": "Owned library creation links lift 1px and change background on hover; reduced motion removes the transition and travel."
       }
     ],
     "breakpoints": [
@@ -444,7 +655,15 @@
         "value": "640px"
       },
       {
-        "name": "student-single-column",
+        "name": "student-compact-rail",
+        "value": "1120px"
+      },
+      {
+        "name": "student-horizontal-navigation",
+        "value": "900px"
+      },
+      {
+        "name": "student-stacked-content",
         "value": "640px"
       },
       {
@@ -454,6 +673,58 @@
       {
         "name": "account-compact-spacing",
         "value": "640px"
+      },
+      {
+        "name": "landing-compact-desktop",
+        "value": "1100px"
+      },
+      {
+        "name": "landing-stacked",
+        "value": "800px"
+      },
+      {
+        "name": "landing-phone",
+        "value": "480px"
+      },
+      {
+        "name": "activity-picker-stacked",
+        "value": "800px"
+      },
+      {
+        "name": "activity-picker-strip",
+        "value": "480px"
+      },
+      {
+        "name": "activity-mobile-scene",
+        "value": "700px"
+      },
+      {
+        "name": "educational-games-compact",
+        "value": "1000px"
+      },
+      {
+        "name": "educational-games-stacked",
+        "value": "720px"
+      },
+      {
+        "name": "teacher-home-wrapping-rows",
+        "value": "1150px"
+      },
+      {
+        "name": "teacher-home-stacked",
+        "value": "800px"
+      },
+      {
+        "name": "teacher-discovery-two-columns",
+        "value": "1200px"
+      },
+      {
+        "name": "teacher-discovery-single-column",
+        "value": "640px"
+      },
+      {
+        "name": "teacher-home-phone-shortcuts",
+        "value": "520px"
       }
     ]
   },
@@ -534,17 +805,17 @@
       "name": "Classroom Stage",
       "kind": "custom",
       "refersTo": "classroom-stage",
-      "description": "White prompt panel on classic purple with four fixed answer identities at classroom scale.",
+      "description": "Core prompt and answer specimen: Asasera blue or the selected world, a large white question and four fixed color/shape identities. The application also supplies the compact join toolbar, teacher progression action, real answer count, deadline timer and localized feedback; see the live-question reference verification for the outstanding browser inspection.",
       "html": "<section class=\"ds-stage\" aria-label=\"Classroom question\"><h2 class=\"ds-stage-prompt\">Which answer is correct?</h2><div class=\"ds-stage-answers\"><button type=\"button\" class=\"ds-stage-answer ds-stage-answer-1\"><svg class=\"ds-stage-glyph\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M12 3 22 21H2Z\"/></svg><span class=\"ds-stage-label\">First answer</span></button><button type=\"button\" class=\"ds-stage-answer ds-stage-answer-2\"><svg class=\"ds-stage-glyph\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M12 2 22 12 12 22 2 12Z\"/></svg><span class=\"ds-stage-label\">Second answer</span></button><button type=\"button\" class=\"ds-stage-answer ds-stage-answer-3\"><svg class=\"ds-stage-glyph\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"10\"/></svg><span class=\"ds-stage-label\">Third answer</span></button><button type=\"button\" class=\"ds-stage-answer ds-stage-answer-4\"><svg class=\"ds-stage-glyph\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><rect x=\"2.5\" y=\"2.5\" width=\"19\" height=\"19\" rx=\"1\"/></svg><span class=\"ds-stage-label\">Fourth answer</span></button></div></section>",
-      "css": ".ds-stage{background:var(--brand,#46178f);color:#fff;padding:24px clamp(16px,3vw,48px) 32px;font-family:Montserrat,\"Neo Sans Arabic\",sans-serif;overflow-wrap:anywhere;}.ds-stage-prompt{background:#fff;color:#333;border-radius:4px;padding:20px 24px;font-size:clamp(40px,4vw,72px);line-height:1.4;font-weight:700;margin:12px auto 32px;text-align:center;max-width:100%;text-wrap:balance;box-shadow:0 4px 0 #0002;}.ds-stage-answers{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;}.ds-stage-answer{display:flex;align-items:center;gap:12px;min-width:0;min-height:120px;padding:12px 16px;border:0;border-radius:4px;font-family:Montserrat,\"Neo Sans Arabic\",sans-serif;font-size:clamp(24px,2.7vw,46px);font-weight:700;text-align:start;box-shadow:inset 0 -4px 0 #0003;cursor:pointer;transition:transform 100ms cubic-bezier(.2,0,0,1);}.ds-stage-answer-1{background:var(--a1,#e21b3c);color:var(--on-a1,#fff);}.ds-stage-answer-2{background:var(--a2,#1368ce);color:var(--on-a2,#fff);}.ds-stage-answer-3{background:var(--a3,#d89e00);color:var(--on-a3,#141821);}.ds-stage-answer-4{background:var(--a4,#26890c);color:var(--on-a4,#fff);}.ds-stage-answer:active{transform:translateY(4px);}.ds-stage-answer:focus-visible{outline:3px solid #fff;outline-offset:4px;}.ds-stage-glyph{width:1.5em;height:1.5em;fill:currentColor;flex:0 0 auto;}.ds-stage-label{flex:1 1 auto;min-width:0;overflow-wrap:anywhere;}.ds-stage-answer-4 .ds-stage-label{font-size:max(1.25rem,1em);}@media(max-width:700px){.ds-stage-prompt{padding:16px;font-size:32px;}.ds-stage-answers{gap:8px;}.ds-stage-answer{font-size:22px;min-height:96px;padding:16px;}}@media(prefers-reduced-motion:reduce){.ds-stage-answer{transition:none;}}"
+      "css": ".ds-stage{background:var(--brand,#004ccc);color:#fff;padding:24px clamp(16px,3vw,48px) 32px;font-family:Montserrat,\"Neo Sans Arabic\",sans-serif;overflow-wrap:anywhere;}.ds-stage-prompt{background:#fff;color:#333;border-radius:4px;padding:20px 24px;font-size:clamp(28px,3.3vw,64px);line-height:1.28;font-weight:800;margin:12px auto 32px;text-align:center;max-width:100%;text-wrap:balance;box-shadow:0 4px 0 #0002;}.ds-stage-answers{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;}.ds-stage-answer{display:flex;align-items:center;gap:12px;min-width:0;min-height:120px;padding:12px 16px;border:0;border-radius:4px;font-family:Montserrat,\"Neo Sans Arabic\",sans-serif;font-size:clamp(22px,2.35vw,48px);font-weight:800;text-align:start;box-shadow:inset 0 -4px 0 #0003;cursor:pointer;transition:transform 100ms cubic-bezier(.2,0,0,1);}.ds-stage-answer-1{background:var(--a1,#e21b3c);color:var(--on-a1,#fff);}.ds-stage-answer-2{background:var(--a2,#1368ce);color:var(--on-a2,#fff);}.ds-stage-answer-3{background:var(--a3,#d89e00);color:var(--on-a3,#141821);}.ds-stage-answer-4{background:var(--a4,#26890c);color:var(--on-a4,#fff);}.ds-stage-answer:active{transform:translateY(4px);}.ds-stage-answer:focus-visible{outline:3px solid #fff;outline-offset:4px;}.ds-stage-glyph{width:1.5em;height:1.5em;fill:currentColor;flex:0 0 auto;}.ds-stage-label{flex:1 1 auto;min-width:0;overflow-wrap:anywhere;}.ds-stage-answer-4 .ds-stage-label{font-size:max(1.25rem,1em);}@media(max-width:480px){.ds-stage-prompt{padding:16px;font-size:25px;}.ds-stage-answers{gap:8px;}.ds-stage-answer{font-size:20px;min-height:118px;padding:16px 12px;}}@media(prefers-reduced-motion:reduce){.ds-stage-answer{transition:none;}}"
     },
     {
       "name": "Student PIN Panel",
       "kind": "custom",
-      "refersTo": "student-live-panel",
-      "description": "Student workspace live-class entry: white PIN and Join controls on purple, with explicit placeholders, white focus, and reduced-motion press behavior.",
-      "html": "<section class=\"ds-student-live\" aria-labelledby=\"ds-student-live-title\"><div><h2 id=\"ds-student-live-title\">Join the class</h2><p>Your teacher will show a PIN when the class is ready.</p></div><div class=\"ds-student-pin-form\"><label for=\"ds-student-pin\">Game PIN</label><input id=\"ds-student-pin\" inputmode=\"numeric\" dir=\"ltr\" placeholder=\"123 456\" autocomplete=\"off\"><button type=\"button\">Join</button></div></section>",
-      "css": ".ds-student-live{display:grid;grid-template-columns:minmax(0,1fr) 280px;align-items:center;gap:40px;background:var(--brand,#46178f);color:#fff;padding:36px;border-radius:8px;font-family:Montserrat,\"Neo Sans Arabic\",sans-serif}.ds-student-live h2{font-size:32px;font-weight:800;margin:12px 0}.ds-student-live p{line-height:1.7;margin:8px 0}.ds-student-pin-form{display:grid;gap:10px;min-width:0}.ds-student-pin-form label{font-weight:700;font-size:14px;margin-bottom:8px}.ds-student-pin-form input{width:100%;min-width:0;min-height:48px;padding:12px;border:1px solid var(--line,#ccc);border-radius:4px;font:inherit;background:#fff;color:#333;text-align:center;font-weight:800;font-size:24px;letter-spacing:.08em}.ds-student-pin-form input::placeholder{color:#6e6e6e;opacity:1}.ds-student-pin-form button{min-height:48px;padding:10px 24px;border:0;border-radius:4px;background:#fff;color:#333;box-shadow:var(--press,0 2px 4px rgba(0,0,0,.15),inset 0 -4px 0 rgba(0,0,0,.25));font:inherit;font-weight:700;cursor:pointer;transition:transform 100ms,filter 150ms,box-shadow 100ms}.ds-student-pin-form button:active{transform:translateY(4px);box-shadow:inset 0 -1px 0 rgba(0,0,0,.15)}.ds-student-pin-form :is(input,button):focus-visible{outline:3px solid #fff;outline-offset:2px}@media(hover:hover){.ds-student-pin-form button:hover{filter:brightness(.94)}}@media(max-width:640px){.ds-student-live{grid-template-columns:1fr;gap:20px;padding:24px}.ds-student-live h2{font-size:28px}}@media(prefers-reduced-motion:reduce){.ds-student-pin-form button{transition:none}.ds-student-pin-form button:active{transform:none}}"
+      "refersTo": "student-join-panel",
+      "description": "Current student workspace: neutral PIN panel, left-to-right digits and blue Join now action. Static specimen; the application supplies normalization, six-digit validation and navigation. Source-defined focus awaits permitted theme inspection.",
+      "html": "<section class=\"ds-student-join\" aria-labelledby=\"ds-student-join-title\"><h2 id=\"ds-student-join-title\">Join the class</h2><p>Got a PIN from your teacher? Let’s join in.</p><div class=\"ds-student-pin-form\"><label for=\"ds-student-pin\">Game PIN</label><input id=\"ds-student-pin\" inputmode=\"numeric\" dir=\"ltr\" placeholder=\"123 456\" autocomplete=\"off\"><button type=\"button\">Join now<svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M5 12h14m-7-7 7 7-7 7\"/></svg></button></div></section>",
+      "css": ".ds-student-join{padding:24px;background:var(--surface,#fff);color:var(--ink,#333);border:1px solid var(--line,#ccc);border-radius:8px;font-family:Montserrat,\"Neo Sans Arabic\",sans-serif}.ds-student-join h2{font-size:24px;line-height:1.3;font-weight:800;margin:0 0 10px}.ds-student-join>p{font-size:14px;line-height:1.7;color:var(--muted,#6e6e6e);margin:0 0 20px}.ds-student-pin-form{display:grid;gap:10px}.ds-student-pin-form label{font-size:12px;font-weight:700}.ds-student-pin-form input{min-width:0;max-width:100%;height:58px;padding:12px 14px;background:var(--surface,#fff);color:var(--ink,#333);border:1px solid var(--line,#ccc);border-radius:4px;font-family:inherit;font-size:26px;text-align:center;font-weight:800;letter-spacing:.12em;caret-color:var(--brand,#004ccc)}.ds-student-pin-form button{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:48px;padding:12px 18px;background:var(--brand,#004ccc);color:#fff;border:0;border-radius:4px;font-family:inherit;font-size:14px;font-weight:800;line-height:1.5;cursor:pointer;box-shadow:inset 0 -4px #0003;transition:transform 140ms ease,background 140ms ease}.ds-student-pin-form button:hover{background:#003daa}.ds-student-pin-form button:active{transform:translateY(2px)}.ds-student-pin-form button:disabled{opacity:.6;cursor:wait}.ds-student-pin-form :is(input,button):focus-visible{outline:3px solid var(--brand,#004ccc);outline-offset:3px}@media(max-width:640px){.ds-student-join{padding:22px}.ds-student-pin-form input{height:56px}}@media(prefers-reduced-motion:reduce){.ds-student-pin-form button{transition:none}.ds-student-pin-form button:active{transform:none}}"
     },
     {
       "name": "Support Form",
@@ -552,14 +823,118 @@
       "refersTo": "field",
       "description": "Independent support-form visual specimen with editable labeled fields, recipient, hover, focus, invalid and disabled styles. The specimen button does not submit; application validation and API/result handling live in ContactForm. Inherits light/dark tokens and direction from its host.",
       "html": "<section class=\"ds-support\" aria-labelledby=\"ds-support-title\"><div class=\"ds-support-intro\"><h2 id=\"ds-support-title\">Let’s talk</h2><p>Have a question about your account, need help with an activity, or want to use Asasera with your team? Send us a message.</p></div><form class=\"ds-support-form\" aria-label=\"Contact form\"><div class=\"ds-support-pair\"><div class=\"ds-support-field\"><label for=\"ds-support-name\">Name</label><input id=\"ds-support-name\" name=\"name\" autocomplete=\"name\" dir=\"auto\" maxlength=\"120\" required></div><div class=\"ds-support-field\"><label for=\"ds-support-email\">Email address</label><input id=\"ds-support-email\" name=\"email\" type=\"email\" autocomplete=\"email\" dir=\"ltr\" maxlength=\"254\" required></div></div><div class=\"ds-support-field\"><label for=\"ds-support-company\">Organization (optional)</label><input id=\"ds-support-company\" name=\"company\" autocomplete=\"organization\" dir=\"auto\" maxlength=\"160\"></div><div class=\"ds-support-field\"><label for=\"ds-support-message\">How can we help?</label><textarea id=\"ds-support-message\" name=\"message\" rows=\"6\" maxlength=\"5000\" dir=\"auto\" aria-describedby=\"ds-support-hint\" required></textarea><p id=\"ds-support-hint\" class=\"ds-support-hint\">10–5,000 characters. Keep passwords and payment details out of your message.</p></div><div class=\"ds-support-actions\"><button type=\"button\">Send message</button><p>To the Asasera team at <a href=\"mailto:support@asasera.com\"><bdi>support@asasera.com</bdi></a></p></div></form></section>",
-      "css": ".ds-support{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:64px;max-width:1100px;padding:48px 24px;background:var(--raised,#f2f2f2);color:var(--ink,#333);font-family:Montserrat,\"Neo Sans Arabic\",sans-serif;text-align:start}.ds-support-intro h2{font-size:clamp(28px,3vw,40px);font-weight:800;line-height:1.2;margin:0 0 20px;text-wrap:balance}.ds-support-intro p{max-width:48ch;font-size:18px;line-height:1.7;color:var(--muted,#6e6e6e);margin:0}.ds-support-form{display:grid;gap:24px;min-width:0}.ds-support-pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}.ds-support-field{display:grid;gap:8px;min-width:0}.ds-support-field label{font-size:14px;font-weight:700}.ds-support-field input,.ds-support-field textarea{box-sizing:border-box;min-width:0;width:100%;min-height:48px;padding:12px;border:1px solid var(--line,#ccc);border-radius:var(--r-control,4px);background:var(--surface,#fff);color:var(--ink,#333);font:inherit;font-size:16px;caret-color:var(--ink,#333)}.ds-support-field textarea{resize:vertical}.ds-support-field :is(input,textarea):hover{border-color:var(--muted,#6e6e6e)}.ds-support-field [aria-invalid=true]{border-color:var(--danger-ink,#b8122f)}.ds-support-field :is(input,textarea):disabled{opacity:.6}.ds-support-hint{font-size:12px;margin:0;line-height:1.6;color:var(--muted,#6e6e6e)}.ds-support-actions{display:flex;align-items:center;flex-wrap:wrap;gap:16px}.ds-support-actions p{flex:1;min-width:180px;font-size:12px;color:var(--muted,#6e6e6e);line-height:1.6;margin:0}.ds-support-actions a{color:var(--ink,#333);text-decoration:underline;text-underline-offset:3px}.ds-support-actions button{min-height:48px;padding:0 24px;border:0;border-radius:var(--r-control,4px);background:var(--act,#1368ce);color:#fff;font:inherit;font-weight:700;box-shadow:var(--press,0 2px 4px rgba(0,0,0,.15),inset 0 -4px 0 rgba(0,0,0,.25));cursor:pointer;transition:transform var(--t-select,100ms) var(--ease,cubic-bezier(.2,0,0,1)),background-color var(--t-state,200ms) var(--ease,cubic-bezier(.2,0,0,1)),box-shadow var(--t-select,100ms) var(--ease,cubic-bezier(.2,0,0,1))}.ds-support-actions button:hover{background:var(--act-press,#105cb4)}.ds-support-actions button:active{transform:translateY(4px);box-shadow:0 0 0 rgba(0,0,0,.15),inset 0 0 0 rgba(0,0,0,.25)}.ds-support :is(a,input,textarea,button):focus-visible{outline:var(--focus-ring,3px) solid var(--focus-colour,#141821);outline-offset:var(--focus-offset,2px)}.ds-support ::selection{background:var(--brand,#46178f);color:#fff}@media(max-width:700px){.ds-support{grid-template-columns:1fr;gap:32px;padding:48px 20px}.ds-support-pair{grid-template-columns:1fr;gap:24px}}@media(prefers-reduced-motion:reduce){.ds-support-actions button{transition:none}.ds-support-actions button:active{transform:none}}"
+      "css": ".ds-support{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:64px;max-width:1100px;padding:48px 24px;background:var(--raised,#f2f2f2);color:var(--ink,#333);font-family:Montserrat,\"Neo Sans Arabic\",sans-serif;text-align:start}.ds-support-intro h2{font-size:clamp(28px,3vw,40px);font-weight:800;line-height:1.2;margin:0 0 20px;text-wrap:balance}.ds-support-intro p{max-width:48ch;font-size:18px;line-height:1.7;color:var(--muted,#6e6e6e);margin:0}.ds-support-form{display:grid;gap:24px;min-width:0}.ds-support-pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}.ds-support-field{display:grid;gap:8px;min-width:0}.ds-support-field label{font-size:14px;font-weight:700}.ds-support-field input,.ds-support-field textarea{box-sizing:border-box;min-width:0;width:100%;min-height:48px;padding:12px;border:1px solid var(--line,#ccc);border-radius:var(--r-control,4px);background:var(--surface,#fff);color:var(--ink,#333);font:inherit;font-size:16px;caret-color:var(--ink,#333)}.ds-support-field textarea{resize:vertical}.ds-support-field :is(input,textarea):hover{border-color:var(--muted,#6e6e6e)}.ds-support-field [aria-invalid=true]{border-color:var(--danger-ink,#b8122f)}.ds-support-field :is(input,textarea):disabled{opacity:.6}.ds-support-hint{font-size:12px;margin:0;line-height:1.6;color:var(--muted,#6e6e6e)}.ds-support-actions{display:flex;align-items:center;flex-wrap:wrap;gap:16px}.ds-support-actions p{flex:1;min-width:180px;font-size:12px;color:var(--muted,#6e6e6e);line-height:1.6;margin:0}.ds-support-actions a{color:var(--ink,#333);text-decoration:underline;text-underline-offset:3px}.ds-support-actions button{min-height:48px;padding:0 24px;border:0;border-radius:var(--r-control,4px);background:var(--act,#1368ce);color:#fff;font:inherit;font-weight:700;box-shadow:var(--press,0 2px 4px rgba(0,0,0,.15),inset 0 -4px 0 rgba(0,0,0,.25));cursor:pointer;transition:transform var(--t-select,100ms) var(--ease,cubic-bezier(.2,0,0,1)),background-color var(--t-state,200ms) var(--ease,cubic-bezier(.2,0,0,1)),box-shadow var(--t-select,100ms) var(--ease,cubic-bezier(.2,0,0,1))}.ds-support-actions button:hover{background:var(--act-press,#105cb4)}.ds-support-actions button:active{transform:translateY(4px);box-shadow:0 0 0 rgba(0,0,0,.15),inset 0 0 0 rgba(0,0,0,.25)}.ds-support :is(a,input,textarea,button):focus-visible{outline:var(--focus-ring,3px) solid var(--focus-colour,#141821);outline-offset:var(--focus-offset,2px)}.ds-support ::selection{background:var(--brand,#004ccc);color:#fff}@media(max-width:700px){.ds-support{grid-template-columns:1fr;gap:32px;padding:48px 20px}.ds-support-pair{grid-template-columns:1fr;gap:24px}}@media(prefers-reduced-motion:reduce){.ds-support-actions button{transition:none}.ds-support-actions button:active{transform:none}}"
+    },
+    {
+      "name": "Landing Yellow Action",
+      "kind": "button",
+      "refersTo": "landing-action-yellow",
+      "description": "Public landing only: yellow action specimen with source hover, focus and active treatment. Application code supplies its destination or demo behavior.",
+      "html": "<div class=\"ds-landing-yellow-stage\"><button type=\"button\" class=\"ds-landing-action-yellow\">Create your first activity<svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M5 12h14m-6-6 6 6-6 6\"/></svg></button></div>",
+      "css": ".ds-landing-action-yellow{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:52px;padding:14px 24px 17px;font-family:Montserrat,\"Neo Sans Arabic\",sans-serif;font-size:15px;font-weight:700;line-height:1.4;background:#ffcf36;color:#141821;border:0;border-radius:var(--r-control,4px);box-shadow:var(--press,0 2px 4px rgba(0,0,0,.15),inset 0 -4px 0 rgba(0,0,0,.25));text-decoration:none;cursor:pointer;transition:transform 160ms ease-out,box-shadow 160ms ease-out,background-color 160ms ease-out;}.ds-landing-action-yellow:hover{background:#ffda63;box-shadow:0 4px 10px #0002,inset 0 -4px 0 #0003;}.ds-landing-action-yellow:active{transform:translateY(3px);box-shadow:inset 0 -1px 0 #0003;}.ds-landing-action-yellow:focus-visible{outline:3px solid #ffcf36;outline-offset:4px;}.ds-landing-yellow-stage{padding:24px;background:var(--color-brand-500,#004ccc);}@media(prefers-reduced-motion:reduce){.ds-landing-action-yellow{transition:none;}}"
+    },
+    {
+      "name": "Landing Blue Action",
+      "kind": "button",
+      "refersTo": "landing-action-blue",
+      "description": "Public landing only: blue action specimen with source hover, focus and active treatment. Application code supplies its destination or demo behavior.",
+      "html": "<button type=\"button\" class=\"ds-landing-action-blue\">Start teaching<svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M5 12h14m-6-6 6 6-6 6\"/></svg></button>",
+      "css": ".ds-landing-action-blue{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:52px;padding:14px 24px 17px;font-family:Montserrat,\"Neo Sans Arabic\",sans-serif;font-size:15px;font-weight:700;line-height:1.4;background:var(--color-brand-500,#004ccc);color:#fff;border:0;border-radius:var(--r-control,4px);box-shadow:var(--press,0 2px 4px rgba(0,0,0,.15),inset 0 -4px 0 rgba(0,0,0,.25));text-decoration:none;cursor:pointer;transition:transform 160ms ease-out,box-shadow 160ms ease-out,background-color 160ms ease-out;}.ds-landing-action-blue:hover{background:#002f88;box-shadow:0 4px 10px #0002,inset 0 -4px 0 #0003;}.ds-landing-action-blue:active{transform:translateY(3px);box-shadow:inset 0 -1px 0 #0003;}.ds-landing-action-blue:focus-visible{outline:3px solid var(--focus-colour,#141821);outline-offset:4px;}@media(prefers-reduced-motion:reduce){.ds-landing-action-blue{transition:none;}}"
+    },
+    {
+      "name": "Landing Outline Action",
+      "kind": "button",
+      "refersTo": "landing-action-outline",
+      "description": "Public landing only: outline action specimen with source hover, focus and active treatment. Application code supplies its destination or demo behavior.",
+      "html": "<div class=\"ds-landing-outline-stage\"><button type=\"button\" class=\"ds-landing-action-outline\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"currentColor\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"m6 3 14 9-14 9V3Z\"/></svg>Try a quick quiz</button></div>",
+      "css": ".ds-landing-action-outline{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:52px;padding:14px 24px 17px;font-family:Montserrat,\"Neo Sans Arabic\",sans-serif;font-size:15px;font-weight:700;line-height:1.4;background:transparent;color:#fff;border:1px solid #ffffff80;border-radius:var(--r-control,4px);box-shadow:none;text-decoration:none;cursor:pointer;transition:transform 160ms ease-out,box-shadow 160ms ease-out,background-color 160ms ease-out;}.ds-landing-action-outline:hover{background:#ffffff14;box-shadow:none;}.ds-landing-action-outline:active{transform:translateY(3px);box-shadow:inset 0 -1px 0 #0003;}.ds-landing-action-outline:focus-visible{outline:3px solid #ffcf36;outline-offset:4px;}.ds-landing-outline-stage{padding:24px;background:var(--color-brand-500,#004ccc);}@media(prefers-reduced-motion:reduce){.ds-landing-action-outline{transition:none;}}"
+    },
+    {
+      "name": "Landing Playable Demo",
+      "kind": "custom",
+      "refersTo": "landing-demo",
+      "description": "Public landing only: a photo-question specimen with the compact New questions control, metadata progress, full-frame generated image and four answer identities. Desktop pairs wording with the photo; phones stack them. The application supplies the 80-question bilingual bank, three-topic rounds, shuffled options, recent-24 history, failure fallback, selection, explanations, scoring and fresh-round reset; this HTML/CSS specimen does not simulate those behaviors.",
+      "html": "<div class=\"ds-landing-demo-stage\"><section class=\"ds-landing-demo\" aria-label=\"Three-question demo specimen\"><div class=\"ds-landing-demo-top\"><span>3-question demo · No account needed</span><button type=\"button\" class=\"ds-landing-demo-shuffle\"><svg width=\"15\" height=\"15\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"m18 14 4 4-4 4M18 2l4 4-4 4M2 18h2.5a6 6 0 0 0 5-3l5-8a6 6 0 0 1 5-3H22M2 6h2.5a6 6 0 0 1 5 3l5 8a6 6 0 0 0 5 3H22\"/></svg>New questions</button></div><div class=\"ds-landing-demo-question\"><div class=\"ds-landing-demo-meta\"><span>Question 1 of 3</span><span class=\"ds-landing-demo-progress\" aria-hidden=\"true\"><i data-active=\"true\"></i><i></i><i></i></span></div><div class=\"ds-landing-demo-photo-question\"><h2>How does a sea turtle breathe?</h2><figure class=\"ds-landing-demo-photo\"><img src=\"/src/assets/images/landing-quiz/reef.webp\" width=\"960\" height=\"640\" alt=\"A sea turtle swimming above a colorful coral reef\" decoding=\"async\"><figcaption>AI-generated image</figcaption></figure></div></div><div class=\"ds-landing-demo-answers\" role=\"group\" aria-label=\"How does a sea turtle breathe?\"><button type=\"button\" class=\"ds-landing-demo-answer\" data-answer=\"0\" aria-pressed=\"false\"><svg viewBox=\"0 0 32 32\" width=\"24\" height=\"24\" aria-hidden=\"true\"><path d=\"M16 3 30 28H2Z\" fill=\"currentColor\"/></svg><span>Through gills</span></button><button type=\"button\" class=\"ds-landing-demo-answer\" data-answer=\"1\" aria-pressed=\"false\"><svg viewBox=\"0 0 32 32\" width=\"24\" height=\"24\" aria-hidden=\"true\"><path d=\"m16 1 15 15-15 15L1 16Z\" fill=\"currentColor\"/></svg><span>With lungs</span></button><button type=\"button\" class=\"ds-landing-demo-answer\" data-answer=\"2\" aria-pressed=\"false\"><svg viewBox=\"0 0 32 32\" width=\"24\" height=\"24\" aria-hidden=\"true\"><circle cx=\"16\" cy=\"16\" r=\"14\" fill=\"currentColor\"/></svg><span>Through its shell</span></button><button type=\"button\" class=\"ds-landing-demo-answer\" data-answer=\"3\" aria-pressed=\"false\"><svg viewBox=\"0 0 32 32\" width=\"24\" height=\"24\" aria-hidden=\"true\"><rect x=\"3\" y=\"3\" width=\"26\" height=\"26\" rx=\"1\" fill=\"currentColor\"/></svg><span>Through its fins</span></button></div><p class=\"ds-landing-demo-instruction\">Pick an answer. Let’s see what you know!</p></section></div>",
+      "css": ".ds-landing-demo-stage{padding:24px;background:var(--color-brand-500,#004ccc);}.ds-landing-demo{max-width:580px;margin-inline:auto;background:#fff;color:#242424;border-radius:var(--r-card,8px);box-shadow:0 18px 46px #00194a55;overflow:hidden;font-family:Montserrat,\"Neo Sans Arabic\",sans-serif;}.ds-landing-demo-top{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:16px 22px;background:#edf4ff;color:#294568;font-size:12px;font-weight:600;}.ds-landing-demo-question{text-align:center;padding:24px 25px 28px;}.ds-landing-demo-meta{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:12px;color:#636363;}.ds-landing-demo-progress{display:flex;gap:4px;flex-shrink:0;}.ds-landing-demo-progress i{width:16px;height:5px;border-radius:2px;background:#bfcee3;}.ds-landing-demo-progress i[data-active=\"true\"]{background:var(--color-brand-500,#004ccc);}.ds-landing-demo-photo-question{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:center;gap:20px;margin-top:18px;}.ds-landing-demo-question h2{margin:0;display:grid;place-content:center;font-size:clamp(21px,1.85vw,27px);font-weight:800;line-height:1.35;text-align:start;overflow-wrap:anywhere;}.ds-landing-demo-photo{min-width:0;margin:0;}.ds-landing-demo-photo img{display:block;width:100%;height:auto;aspect-ratio:3/2;object-fit:contain;border-radius:var(--r-control,4px);background:#edf4ff;}.ds-landing-demo-photo figcaption{font-size:10px;line-height:1.5;color:#636363;margin-top:6px;text-align:center;}.ds-landing-demo-shuffle{display:inline-flex;flex-shrink:0;align-items:center;justify-content:center;gap:6px;min-height:36px;padding:7px 9px;border-radius:var(--r-control,4px);border:1px solid #9cb6dc;color:#002f88;background:#fff;font-family:Montserrat,\"Neo Sans Arabic\",sans-serif;font-size:12px;font-weight:700;line-height:1.4;cursor:pointer;}.ds-landing-demo-shuffle:hover{background:#dce9fc;}.ds-landing-demo-shuffle:focus-visible{outline:3px solid var(--color-brand-500,#004ccc);outline-offset:4px;}.ds-landing-demo-answers{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;padding-inline:14px;}.ds-landing-demo-answer{display:flex;align-items:center;gap:12px;text-align:start;min-height:92px;padding:20px 16px 24px;border:0;border-radius:var(--r-control,4px);box-shadow:inset 0 -5px 0 #0003;font-family:Montserrat,\"Neo Sans Arabic\",sans-serif;font-size:21px;font-weight:800;line-height:1.35;cursor:pointer;transition:transform 140ms ease-out,box-shadow 140ms ease-out,opacity 180ms ease-out;}.ds-landing-demo-answer>svg{flex:0 0 auto;}.ds-landing-demo-answer>span{flex:1;overflow-wrap:anywhere;}.ds-landing-demo-answer[data-answer=\"0\"]{background:var(--a1,#e21b3c);color:#fff;}.ds-landing-demo-answer[data-answer=\"1\"]{background:var(--a2,#1368ce);color:#fff;}.ds-landing-demo-answer[data-answer=\"2\"]{background:var(--a3,#d89e00);color:#141821;}.ds-landing-demo-answer[data-answer=\"3\"]{background:var(--a4,#26890c);color:#fff;}.ds-landing-demo-answer:hover:not([aria-disabled=\"true\"]){transform:translateY(-2px);box-shadow:0 5px 10px #0002,inset 0 -5px 0 #0003;}.ds-landing-demo-answer:active:not([aria-disabled=\"true\"]){transform:translateY(3px);box-shadow:inset 0 -1px 0 #0003;}.ds-landing-demo-answer:focus-visible{outline:3px solid var(--color-brand-500,#004ccc);outline-offset:4px;}.ds-landing-demo-answer[aria-pressed=\"true\"]{outline:3px solid #242424;outline-offset:2px;}.ds-landing-demo-answer[aria-disabled=\"true\"]{cursor:default;}.ds-landing-demo-answer[data-muted=\"true\"]{opacity:.56;}.ds-landing-demo-instruction{text-align:center;padding:20px 22px;margin:0;color:#5c5c5c;font-size:13px;}@media(max-width:480px){.ds-landing-demo-stage{padding:16px;}.ds-landing-demo-top{padding:13px 14px;font-size:10px;}.ds-landing-demo-progress i{width:13px;}.ds-landing-demo-question{padding:20px 18px;}.ds-landing-demo-photo-question{grid-template-columns:1fr;gap:14px;margin-top:14px;}.ds-landing-demo-question h2{text-align:center;font-size:22px;}.ds-landing-demo-photo{width:min(100%,280px);margin-inline:auto;}.ds-landing-demo-shuffle{font-size:11px;padding:7px 8px;}.ds-landing-demo-answers{padding-inline:10px;gap:8px;}.ds-landing-demo-answer{min-height:90px;padding:16px 10px 20px;font-size:20px;gap:8px;}.ds-landing-demo-answer>svg{width:19px;height:19px;}}@media(prefers-reduced-motion:reduce){.ds-landing-demo-answer{transition:none;}}"
+    },
+    {
+      "name": "Landing Workflow Step",
+      "kind": "button",
+      "refersTo": "landing-workflow-step-selected",
+      "description": "Public landing only: the selected source step. Application buttons update aria-pressed, the example preview and signup wording. The specimen inherits direction and neutral tokens; hosts showing dark mode must supply --landing-tint for the local dark ground.",
+      "html": "<button type=\"button\" class=\"ds-landing-workflow-step\" aria-pressed=\"true\"><span class=\"ds-landing-workflow-number\" aria-hidden=\"true\">1</span><span class=\"ds-landing-workflow-copy\"><strong>Bring your material</strong><span>Upload a PDF or start from scratch. Give your activity a home in your course.</span></span><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M5 12h14m-6-6 6 6-6 6\"/></svg></button>",
+      "css": ".ds-landing-workflow-step{display:flex;align-items:start;gap:18px;max-width:560px;padding:22px 18px;border:1px solid transparent;border-radius:var(--r-card,8px);background:transparent;color:var(--ink,#333);text-align:start;font-family:Montserrat,\"Neo Sans Arabic\",sans-serif;cursor:pointer;transition:background 180ms ease-out,border-color 180ms ease-out;}.ds-landing-workflow-step:hover{background:var(--raised,#f2f2f2);}.ds-landing-workflow-step[aria-pressed=\"true\"]{background:var(--landing-tint,#edf4ff);border-color:#86ace8;}.ds-landing-workflow-step:focus-visible{outline:3px solid var(--focus-colour,#141821);outline-offset:4px;}.ds-landing-workflow-number{display:grid;place-items:center;flex:0 0 auto;width:35px;height:35px;border-radius:50%;background:var(--raised,#f2f2f2);color:var(--ink,#333);font-weight:800;}.ds-landing-workflow-step[aria-pressed=\"true\"] .ds-landing-workflow-number{background:var(--color-brand-500,#004ccc);color:#fff;}.ds-landing-workflow-copy{flex:1;}.ds-landing-workflow-copy strong{display:block;font-size:19px;font-weight:800;line-height:1.4;}.ds-landing-workflow-copy>span{display:block;margin-top:8px;color:var(--muted,#6e6e6e);font-size:14px;line-height:1.75;}.ds-landing-workflow-step>svg{flex:0 0 auto;margin-top:7px;}@media(max-width:800px){.ds-landing-workflow-step{padding:18px 12px;}}@media(max-width:480px){.ds-landing-workflow-step{gap:12px;}.ds-landing-workflow-copy strong{font-size:18px;}.ds-landing-workflow-number{width:30px;height:30px;}.ds-landing-workflow-step>svg{display:none;}}@media(prefers-reduced-motion:reduce){.ds-landing-workflow-step{transition:none;}}"
+    },
+    {
+      "name": "Activity Motion Control",
+      "kind": "button",
+      "refersTo": "activity-theme-motion",
+      "description": "Activity worlds: neutral picker specimen for the saved Pause/Resume control. Live stages inherit white. The app owns the shared preference, storage fallback and reduced-motion disabled state.",
+      "html": "<button type=\"button\" class=\"ds-activity-motion\" aria-label=\"Pause motion\"><svg width=\"17\" height=\"17\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><rect x=\"14\" y=\"3\" width=\"5\" height=\"18\" rx=\"1\"/><rect x=\"5\" y=\"3\" width=\"5\" height=\"18\" rx=\"1\"/></svg><span>Pause motion</span></button>",
+      "css": ".ds-activity-motion{display:inline-flex;align-items:center;justify-content:center;gap:7px;font-family:Montserrat,\"Neo Sans Arabic\",sans-serif;font-size:12px;min-height:40px;border:1px solid currentColor;border-radius:var(--r-control,4px);padding:8px 10px;color:var(--ink,#333);background:transparent;cursor:pointer;white-space:nowrap;}.ds-activity-motion:focus-visible{outline:3px solid var(--focus-colour,#141821);outline-offset:3px;}.ds-activity-motion:disabled{cursor:default;opacity:.6;}"
+    },
+    {
+      "name": "Activity Theme Apply and Retry",
+      "kind": "custom",
+      "refersTo": "activity-theme-apply",
+      "description": "Activity picker only: a failed-save footer with retained choice, written alert and retry via Use this theme. The host supplies inherited light/dark neutral, focus and danger tokens. Saving disables both actions and shows Saving…; successful draft saving closes the native dialog. Republish messaging, focus restoration and persistence remain in React.",
+      "html": "<footer class=\"ds-activity-footer\"><div><p class=\"ds-activity-error\" role=\"alert\">Could not save this theme. Try again.</p></div><button type=\"button\" class=\"ds-activity-cancel\">Cancel</button><button type=\"button\" class=\"ds-activity-apply\">Use this theme</button></footer>",
+      "css": ".ds-activity-footer{display:flex;align-items:center;gap:12px;padding:18px 24px;border-top:1px solid var(--line,#ccc);background:var(--surface,#fff);color:var(--ink,#333);font-family:Montserrat,\"Neo Sans Arabic\",sans-serif;}.ds-activity-footer>div{flex:1;}.ds-activity-footer p{margin:0;max-width:62ch;font-size:12px;line-height:1.7;color:var(--muted,#6e6e6e);}.ds-activity-footer .ds-activity-error{color:var(--danger-ink,#b8122f);}.ds-activity-apply,.ds-activity-cancel{min-height:46px;border:1px solid var(--line,#ccc);border-radius:var(--r-control,4px);font:inherit;font-size:14px;font-weight:700;padding:10px 18px;cursor:pointer;white-space:nowrap;}.ds-activity-apply{background:var(--color-brand-500,#004ccc);color:#fff;border-color:transparent;box-shadow:inset 0 -3px #0002;}.ds-activity-cancel{background:var(--surface,#fff);color:var(--ink,#333);}.ds-activity-footer button:focus-visible{outline:3px solid var(--focus-colour,#141821);outline-offset:3px;}.ds-activity-footer button:disabled{cursor:default;opacity:.6;}@media(max-width:800px){.ds-activity-footer{flex-wrap:wrap;padding:14px 18px;}.ds-activity-footer>div{flex-basis:100%;}.ds-activity-apply{margin-inline-start:auto;}}"
+    },
+    {
+      "name": "Educational Game Controls",
+      "kind": "custom",
+      "refersTo": "game-control",
+      "description": "Static specimen of white directional and Jump actions. The application supplies input handling, disabled countdown/end states and accessible bilingual labels.",
+      "html": "<div class=\"ds-game-controls\" dir=\"ltr\"><button aria-label=\"Move left\"><svg width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"m12 19-7-7 7-7M5 12h14\"/></svg></button><button><svg width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"m5 12 7-7 7 7M12 19V5\"/></svg>Jump</button><button aria-label=\"Move right\" disabled><svg width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M5 12h14m-7-7 7 7-7 7\"/></svg></button></div>",
+      "css": ".ds-game-controls{display:grid;grid-template-columns:64px minmax(64px,150px) 64px;justify-content:center;gap:8px;padding:12px;background:#102840;font-family:Montserrat,\"Neo Sans Arabic\",sans-serif}.ds-game-controls button{display:flex;align-items:center;justify-content:center;gap:8px;min-height:56px;padding:12px 18px;background:#fff;color:#12304e;border:0;border-radius:4px;box-shadow:inset 0 -5px #0003;font-family:inherit;font-size:17px;font-weight:800;cursor:pointer;transition:transform 100ms ease-out}.ds-game-controls button:active:not(:disabled){transform:translateY(3px)}.ds-game-controls button:focus-visible{outline:3px solid #fff;outline-offset:4px}.ds-game-controls button:disabled{opacity:.5;cursor:default}@media(prefers-reduced-motion:reduce){.ds-game-controls button{transition:none}.ds-game-controls button:active:not(:disabled){transform:none}}"
+    },
+    {
+      "name": "Educational Game HUD",
+      "kind": "custom",
+      "refersTo": "game-hud",
+      "description": "Static sample values illustrate separate game points, resources and remaining time. The live arena places this above the viewport and keeps academic correctness in a separate display.",
+      "html": "<div class=\"ds-game-hud\" aria-label=\"Sample game status\"><span><strong>300</strong><small>points</small></span><span><strong>2</strong><small>shields</small></span><span class=\"ds-game-time\"><strong>12</strong><small>sec</small></span></div>",
+      "css": ".ds-game-hud{display:flex;gap:28px;align-items:center;min-height:62px;padding:12px 20px;background:#102840;color:#fff;border-radius:4px 4px 0 0;font-family:Montserrat,\"Neo Sans Arabic\",sans-serif}.ds-game-hud>span{display:flex;align-items:center;gap:8px}.ds-game-hud strong{font-size:25px;font-weight:800;font-variant-numeric:tabular-nums}.ds-game-hud small{font-size:12px}.ds-game-hud .ds-game-time{margin-inline-start:auto}.ds-game-time strong{font-size:26px}@media(max-width:1000px){.ds-game-hud{gap:15px;padding:12px 16px}}@media(max-width:720px){.ds-game-hud strong{font-size:23px}.ds-game-time strong{font-size:26px}}"
+    },
+    {
+      "name": "Student Navigation",
+      "kind": "nav",
+      "refersTo": "student-navigation-active",
+      "description": "Five real student destinations, current-route emphasis and horizontal navigation at 900px. Static route specimen; host routing supplies the current page. The full application rail is 232px, narrowing to 200px before stacking.",
+      "html": "<nav class=\"ds-student-nav\" aria-label=\"Student navigation\"><a href=\"/student\" aria-current=\"page\"><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M3 10 12 3l9 7v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z M9 21v-8h6v8\"/></svg><span>Home</span></a><a href=\"/student/activities\"><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 3h6a2 2 0 0 1 2 2v16a3 3 0 0 0-3-3H4z M20 3h-6a2 2 0 0 0-2 2v16a3 3 0 0 1 3-3h5z\"/></svg><span>My activities</span></a><a href=\"/student/progress\"><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M3 3v18h18 M7 14v3 M12 9v8 M17 5v12\"/></svg><span>My progress</span></a><a href=\"/student/practice\"><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M6 8h12l3 11H3z M7 11v5 M4.5 13.5h5 M16 12h.01 M18 15h.01\"/></svg><span>Play & learn</span></a><a href=\"/student/profile\"><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M3 6h18 M3 12h18 M3 18h18 M8 3v6 M16 9v6 M10 15v6\"/></svg><span>Learning preferences</span></a></nav>",
+      "css": ".ds-student-nav{display:grid;gap:8px;padding:16px;background:var(--surface,#fff);font-family:Montserrat,\"Neo Sans Arabic\",sans-serif}.ds-student-nav a{display:flex;gap:12px;align-items:center;min-height:48px;padding:12px;border-radius:4px;color:var(--ink,#333);font-size:14px;font-weight:700;text-decoration:none;transition:background 160ms ease,color 160ms ease}.ds-student-nav a svg{flex-shrink:0}.ds-student-nav a:hover{background:var(--raised,#f2f2f2)}.ds-student-nav a[aria-current=page]{background:var(--brand,#004ccc);color:#fff;box-shadow:inset 0 -3px #0002}.ds-student-nav a:focus-visible{outline:3px solid var(--brand,#004ccc);outline-offset:3px}@media(max-width:1120px){.ds-student-nav a{font-size:12px;gap:9px}}@media(max-width:900px){.ds-student-nav{display:flex;overflow-x:auto;padding:4px 3px 8px;scrollbar-width:thin;scrollbar-color:var(--line,#ccc) var(--surface,#fff)}.ds-student-nav a{white-space:nowrap;flex-shrink:0}}@media(prefers-reduced-motion:reduce){.ds-student-nav a{transition:none}}"
+    },
+    {
+      "name": "Student Learning Stage",
+      "kind": "custom",
+      "refersTo": "student-stage-option",
+      "description": "Native stage radio specimen for signup and learning preferences. The app also presents the optional stage-specific grade/year select, clears grade when stage changes and owns saving. Selecting a stage here demonstrates native state only; it does not infer age or consent.",
+      "html": "<fieldset class=\"ds-student-picker\"><legend>Your learning stage</legend><div class=\"ds-student-stage-grid\"><label class=\"ds-student-stage\"><input type=\"radio\" name=\"ds-student-stage\" value=\"0\"><span><strong>Kindergarten</strong><small>Numbers, shapes and discovery</small></span><svg class=\"ds-student-check\" width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"m20 6-11 11-5-5\"/></svg></label><label class=\"ds-student-stage\"><input type=\"radio\" name=\"ds-student-stage\" value=\"1\" checked><span><strong>School</strong><small>Grades 1 through 12</small></span><svg class=\"ds-student-check\" width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"m20 6-11 11-5-5\"/></svg></label><label class=\"ds-student-stage\"><input type=\"radio\" name=\"ds-student-stage\" value=\"2\"><span><strong>University</strong><small>Study years and beyond</small></span><svg class=\"ds-student-check\" width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"m20 6-11 11-5-5\"/></svg></label><label class=\"ds-student-stage\"><input type=\"radio\" name=\"ds-student-stage\" value=\"3\"><span><strong>General learning</strong><small>No specific stage or grade</small></span><svg class=\"ds-student-check\" width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"m20 6-11 11-5-5\"/></svg></label></div><p>You can change this later. We do not ask for your date of birth.</p></fieldset>",
+      "css": ".ds-student-picker{border:0;padding:0;margin:0;min-width:0;color:var(--ink,#333);font-family:Montserrat,\"Neo Sans Arabic\",sans-serif}.ds-student-picker legend{font-size:16px;font-weight:800;padding:0;margin:0 0 16px}.ds-student-stage-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.ds-student-stage{position:relative;display:flex;align-items:center;gap:14px;padding:20px 16px;min-height:106px;border:2px solid var(--line,#ccc);border-radius:8px;background:var(--surface,#fff);cursor:pointer;transition:border-color 160ms ease,background 160ms ease}.ds-student-stage input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;margin:0}.ds-student-stage>span{flex:1;min-width:0}.ds-student-stage strong{display:block;font-size:14px;font-weight:800;line-height:1.5}.ds-student-stage small{display:block;font-size:12px;line-height:1.7;margin-top:5px;color:var(--muted,#6e6e6e)}.ds-student-check{visibility:hidden;color:var(--brand,#004ccc);flex-shrink:0}.ds-student-stage:has(input:checked){border-color:var(--brand,#004ccc);background:var(--raised,#f2f2f2)}.ds-student-stage:has(input:checked) .ds-student-check{visibility:visible}.ds-student-stage:focus-within{outline:3px solid var(--brand,#004ccc);outline-offset:3px}.ds-student-stage input:disabled{cursor:wait}.ds-student-picker>p{font-size:12px;line-height:1.8;color:var(--muted,#6e6e6e);margin:20px 0}@media(max-width:640px){.ds-student-stage-grid{grid-template-columns:1fr}.ds-student-stage{min-height:92px}.ds-student-stage strong{font-size:16px}}@media(prefers-reduced-motion:reduce){.ds-student-stage{transition:none}}"
+    },
+    {
+      "name": "Teacher Create Activity Link",
+      "kind": "button",
+      "refersTo": "teacher-create-action",
+      "description": "Primary navigation action on My activities (Home now uses its separate yellow hero action). Opens the dedicated creation page; this local hover lift does not change shared button press behavior. Source specimen only; current rendered teacher views remain unverified.",
+      "html": "<a class=\"ds-teacher-create\" href=\"/teacher/activities/new\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M12 5v14M5 12h14\"/></svg>Create activity</a>",
+      "css": ".ds-teacher-create{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:var(--color-brand-500,#004ccc);color:white;padding:14px 22px;border-radius:6px;font-family:Montserrat,\"Neo Sans Arabic\",sans-serif;font-weight:750;text-decoration:none;white-space:nowrap;box-shadow:0 3px 5px #003b9e30;transition:background .18s,transform .18s}.ds-teacher-create:hover{background:var(--color-brand-600,#003999);transform:translateY(-1px)}.ds-teacher-create:focus-visible{outline:3px solid var(--accent,#004ccc);outline-offset:4px}@media(prefers-reduced-motion:reduce){.ds-teacher-create{transition:none}.ds-teacher-create:hover{transform:none}}"
+    },
+    {
+      "name": "Teacher Labeled Field",
+      "kind": "input",
+      "refersTo": "teacher-field",
+      "description": "Local title field used by teacher activity creation and owned-library search. Selection controls now use the shared Select/Dropdown component, including search for long lists. The app owns required validation, pending state and submission; this specimen does not create data.",
+      "html": "<label class=\"ds-teacher-field\">Activity name<input required maxlength=\"200\" placeholder=\"For example: The fractions adventure\"></label>",
+      "css": ".ds-teacher-field{display:flex;flex-direction:column;gap:8px;color:var(--ink,#333);font-family:Montserrat,\"Neo Sans Arabic\",sans-serif;font-weight:650;font-size:14px}.ds-teacher-field input{background:var(--surface,#fff);color:var(--ink,#333);border:1px solid var(--line,#ccc);border-radius:6px;padding:12px;min-height:46px;font:inherit;inline-size:100%}.ds-teacher-field input:focus-visible{outline:3px solid var(--accent,#004ccc);outline-offset:4px}"
     }
   ],
   "narrative": {
     "northStar": "Familiar quiz authoring and a theatrical classroom",
-    "overview": "Asasera uses the user's Kahoot reference as its visual authority. Authoring is a compact working environment: white controls and rails, gray canvas, a centered question, and colored answer inputs. Classroom delivery expands that same vocabulary into a purple stage with large white question and PIN panels. The four answer colors remain recognizable across authoring, preview, classroom play, and homework.\n\nArabic leads the content and direction model; Latin uses Montserrat alongside the locally hosted Arabic face. Clear wording, shape, selection outlines, and a separate feedback row carry information alongside color. The interface supports the sequence of authoring, approval, delivery, play, and evidence without making each step a new visual identity.",
+    "overview": "On 8 September 2026 the user restored the main brand color to Asasera Blue `#004CCC`, replacing `#46178F` throughout the application. All of those live uses now resolve through `--color-brand-500`. Earlier purple classroom descriptions and review captures below document the previous color; this explicit color update takes precedence. The existing layout, answer colors, other theme variants and type system continue to apply.\n\nAsasera uses the user's Kahoot reference as its visual authority. Authoring is a compact working environment: white controls and rails, gray canvas, a centered question, and colored answer inputs. Classroom delivery expands that same vocabulary into a purple stage with large white question and PIN panels. The four answer colors remain recognizable across authoring, preview, classroom play, and homework.\n\nArabic leads the content and direction model; Latin uses Montserrat alongside the locally hosted Arabic face. Clear wording, shape, selection outlines, and a separate feedback row carry information alongside color. The interface supports the sequence of authoring, approval, delivery, play, and evidence without making each step a new visual identity.\n\nThe public landing extends the existing quiz world with a solid Asasera-blue stage, yellow creation action, emphatic bilingual headings, and a playable four-color demonstration. The user's pinned playful Kahoot direction and current Asasera primary remain its authority. This addition applies to `/` and its homepage navigation treatment; it preserves the authoring, classroom, student, and account guidance above. PRODUCT.md remains starter-era context rather than authority for this extension's palette, corners, or typography.\n\nActivity worlds extend the established quiz identity with original dimensional scenery around a stable reading and answer plane. Asasera Blue remains Classic and the primary apply action; the four answer colors and SVG shapes, bilingual type, and host/projector/player roles remain stable. The editor presents the chosen scene as a quiet wash, while previews, live play, homework and self-study share its full scenic treatment. This scoped record supersedes the earlier purple-only stage, flat forest/cosmic/coral theme descriptions, and unconsumed-podium observation for these activity-world surfaces; it does not replace the landing, account or other historical records above.\n\nEducational games extend the same bilingual quiz world with controllable Three.js arenas between reviewed questions. Jungle Dash, Sky Builders and Treasure Quest reuse the existing jungle, sky and island artwork around original geometric game objects. Asasera Blue remains the pinned brand; solid reading surfaces, the four answer identities and separate written feedback continue through the learning steps. This addition applies to public practice, live classroom games and immediate-feedback self-study; it preserves the preceding landing, authoring and activity-world records.\n\nRecorded from [the game components, catalog and renderer](src/features/games/), [live-session integration](src/features/session/SessionPage.tsx), [delivery setup](src/features/delivery/DeliverySetup.tsx), [self-study](src/features/delivery/LearnPage.tsx) and the [shared game rules](../asasera-backend/packages/shared/src/arcade.ts). The [surface brief](.impeccable/surfaces/educational-games.md) owns the playable sequence and mechanics. [Verification](.impeccable/review/educational-games/verification.md) records 21 passing backend tests, four passing local transport flows and passing frontend/backend builds. The [finish review](.impeccable/review/educational-games/finish-review.md) returns **recapture**: no current-game browser playtesting or visual captures were permitted. Actual WebGL rendering, desktop/mobile presentation, touch behavior, Arabic layout and frame rates remain unverified; historical world captures are not evidence for this renderer. This source record is not visual ship approval or exact Kahoot parity.\n\nThe student workspace extends the same Asasera Blue identity into a persistent navigation rail, neutral account header and stage-aware learning pages. Kindergarten uses the existing garden artwork, larger actions and simpler wording; school uses a sky adventure; university uses a quieter space image and concise task language. General learning retains the sky image with general learning preferences. These are scoped learner presentations, not separate brands or inferred ages.\n\nRecorded from [the student layout, pages, picker and styles](src/features/student/), [signup stage selection](src/pages/signup/StageStep.tsx), [practice](src/features/games/GamesPage.tsx) and [account-aware self-study](src/features/delivery/LearnPage.tsx). The [surface brief](.impeccable/surfaces/student-workspace.md) owns the student routes, selected stage/optional grade, saved activities and separation of teacher progress from free practice. [Verification](.impeccable/review/student-workspace/verification.md) records passing source builds and API tests. The [finish review](.impeccable/review/student-workspace/finish-review.md) returns **recapture**: browser security policy denied localhost access and no valid student captures were supplied. Old desktop/mobile captures show the teacher editor. This is an implemented-source record; rendered stage variants, EN/AR layouts, focus interactions and phone presentation remain unverified.\n\nTeacher Home extends the existing identity into a colorful, illustrated instructor workspace with readable owned-activity rows and a separate shared-discovery destination. The latest user direction explicitly asks for color, organization, expressive icons and pictures. Asasera Blue, theme-aware neutrals, Montserrat and Neo Sans Arabic remain its visual authority. PRODUCT.md retains the name and bilingual commitments; its starter-era corner and typography guidance does not replace this scoped implementation. The user's rejected screenshot establishes the density problem, not a replacement brand.\n\nRecorded from [teacher Home and its styles](src/features/teacher-home/), [the owned library](src/features/editor/ActivityList.tsx), [creation](src/features/editor/CreateActivity.tsx), [shared discovery](src/features/shelf/Shelf.tsx) and the teacher sidebar/header. The [surface brief](.impeccable/surfaces/teacher-home.md) owns routes, task sequence and content boundaries. [Verification](.impeccable/review/teacher-home/verification.md) records 52 targeted tests, frontend/backend builds, scoped lint and schema/whitespace checks as code validation only. The [finish review](.impeccable/review/teacher-home/finish-review.md) returns **recapture**: current desktop/mobile English and Arabic screenshots are absent because browser access is denied by enforced security policy. Rendered layout, overflow, focus interaction and responsive presentation remain unverified. The 14 advisory detector findings describe local type/radius steps; they do not establish visual approval or change the global token scales. The subsequent [colorful refinement](.impeccable/review/teacher-home-colorful/verification.md) adds an original generated 3D classroom illustration with responsive WebP sources, a blue/yellow creation hero, four colored icon shortcuts and an existing jungle-world image. The earlier recapture limitation still applies; no current rendered capture has been obtained.\n\n\n\nThe subsequent colorful instructor-Home refinement replaces its formerly quiet top section with an Asasera-blue creation hero, yellow action and original generated 3D classroom illustration. Four large colored Lucide shortcuts organize activities, exploration, homework and reports. Recent owned rows remain separate from shared content; a jungle preview and wheel invitation provide classroom inspiration. New neutral/tinted dark variants, responsive image sources and reduced-motion hover states are scoped to Dashboard.module.css. Build/lint and source contrast checks pass; fresh browser captures remain blocked, so this is not visual approval.",
     "keyCharacteristics": [
-      "Purple classroom ground and gray creator canvas.",
+      "Asasera Blue Classic or a selected scenic activity world, with a quiet creator canvas.",
       "Fixed red triangle, blue diamond, yellow circle, and green square answer identities.",
       "Compact rectangular controls, softly rounded containers, and tactile answer presses.",
       "Large classroom type, wrapping answer text, and feedback in its own row.",
@@ -574,6 +949,16 @@
       {
         "name": "The Foreground Rule",
         "body": "Use white on red and blue answers and dark ink on yellow answers. White on the shared green answer tile requires a bold label of at least 20px; preserve the inherited classroom size when it is larger.",
+        "section": "colors"
+      },
+      {
+        "name": "The Landing Color Roles Rule",
+        "body": "On the public landing, reserve Play Yellow for creation and emphasis; keep the answer-slot yellow and its circle identity unchanged.",
+        "section": "colors"
+      },
+      {
+        "name": "The Stable Game Plane Rule",
+        "body": "Change the environment around the question, while retaining solid reading surfaces, the four paired answer identities, written feedback and deliberate progression.",
         "section": "colors"
       },
       {
@@ -597,18 +982,58 @@
         "section": "elevation"
       },
       {
+        "name": "The Resting Challenge Rule",
+        "body": "Keep authoring still, settle question arrival quickly, pause the scenic camera during open live questions, and let the motion preference or reduced-motion setting suppress travel without hiding learning state.",
+        "section": "elevation"
+      },
+      {
         "name": "The Four Shapes Rule",
         "body": "Draw the answer symbols as SVG geometry and keep their identities stable as they scale. They are answer markers, not general-purpose decorations.",
         "section": "shapes"
+      },
+      {
+        "name": "The Demonstration Identity Rule",
+        "body": "Keep the public landing's sample quiz and workflow previews visibly identified, and retain written feedback alongside their color and shape states.",
+        "section": "components"
+      },
+      {
+        "name": "The Physical Game Controls Rule",
+        "body": "Mirror bilingual interface wording while retaining left-to-right physical controls and board coordinates, so Left and Right continue to describe movement in the arena.",
+        "section": "layout"
+      },
+      {
+        "name": "The Learning and Play Rule",
+        "body": "Keep reviewed answer feedback, game points and academic correctness distinct; present game resources as the bridge from a question to an actively controlled round.",
+        "section": "components"
+      },
+      {
+        "name": "The Optional Wheel Rule",
+        "body": "Keep selection separate from assessment, preserve the selected result across reconnect, and let the teacher decide when to open, spin, reset and close the wheel. Full names remain readable outside the rotating graphic.",
+        "section": "components"
+      },
+      {
+        "name": "Shared Dropdown Rule",
+        "body": "Use the shared Select component for choices. Keep API IDs and labels, allow search for long lists, and pair blue selected fill with a checkmark. Menus use scoped 8px trigger, 12px popup and 7px row radii, 48px triggers, dark/Arabic support and reduced motion. Account and session action menus share the same dropdown palette. See DESIGN.md Shared dropdowns; current rendered verification remains outstanding.",
+        "section": "layout"
       }
     ],
     "dos": [
       "Do keep answer color and shape paired across authoring, preview, classroom, and homework.",
-      "Do use the neutral creator canvas and purple classroom ground for their established contexts.",
+      "Do use Classic blue or the selected scenic activity world for play and keep the corresponding authoring surface quiet.",
       "Do preserve the green shared-answer minimum and let classroom labels inherit the full tile size.",
       "Do keep feedback beneath the answer row and allow long Arabic wording to wrap.",
       "Do preserve visible keyboard focus, written state information, and reduced-motion feedback.",
-      "Do use the two established corner roles and the shared spacing rhythm."
+      "Do use the two established corner roles and the shared spacing rhythm.",
+      "Do scope the public landing's yellow actions, blue tonal surfaces, type overrides, and responsive layout to that surface.",
+      "Do retain visible demo identification, written explanations, deliberate advancement, and replay on the public landing.",
+      "Do use the catalog for world names, aliases, scene colors and image selection.",
+      "Do keep preview, saved draft and republished delivery states distinct in the theme picker.",
+      "Do retain theme-aware neutral focus and save-error colors in both picker themes.",
+      "Do keep game objectives, resources, timer and written event feedback outside the canvas, with the same actions available in the simplified view.",
+      "Do retain separate academic correctness and game-point displays, physical directional controls and explicit sound opt-in in educational games.",
+      "Do use the student's selected learning stage and optional grade for dashboard presentation and free practice, preserving teacher-chosen activity content and released-feedback rules.",
+      "Do retain real saved-work counts, written empty/error states and neutral metric borders in the student workspace.",
+      "Do keep teacher Home's personal-work rows, separate shared discovery, written recovery states and localized interface labels within their scoped surface contract."
     ],
     "donts": [
       "Don't restore the historical blue/teal identity or five-pixel-only corner rule from the superseded guide.",
@@ -616,7 +1041,17 @@
       "Don't shrink the green classroom label to 20px when its tile is larger.",
       "Don't use yellow as small foreground wording on a neutral surface.",
       "Don't replace answer SVG shapes with emoji or font glyphs.",
-      "Don't promote unconsumed motion tokens, legacy glyph controls, or the Arabic weight-file limitation into rules for future surfaces."
+      "Don't promote unconsumed motion tokens, legacy glyph controls, or the Arabic weight-file limitation into rules for future surfaces.",
+      "Don't treat the public landing's examples or sample classroom code as real session activity or verified customer evidence.",
+      "Don't carry the removed standalone demo label into new landing components; the existing demo top bar owns that identification.",
+      "Don't animate the authoring scene or move question-image coordinates when changing worlds.",
+      "Don't turn scenery, particle colors or preview podium geometry into new global answer or brand roles.",
+      "Don't claim native 1440p art, a real-time 3D engine or benchmarked frame rates for the activity worlds.",
+      "Don't use historical activity-world captures as visual approval for the new Three.js games, or treat source-defined responsive behavior as completed browser, phone or Arabic validation.",
+      "Don't turn the games' local terrain materials, incidental glyph marker or detector advisories into new global brand, icon or typography rules.",
+      "Don't infer age or consent from learning stage, require a birth date, or present free practice as teacher-assignment progress.",
+      "Don't use historical teacher-editor or single-column learner captures as approval for the current student workspace; its finish disposition remains recapture.",
+      "Don't treat teacher Home's local type/radius advisories, passing code checks or historical editor captures as current desktop/mobile English/Arabic visual approval; its finish disposition remains recapture."
     ]
   }
 }

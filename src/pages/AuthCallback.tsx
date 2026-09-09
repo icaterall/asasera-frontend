@@ -4,7 +4,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { AuthCard } from '@/components/form/AuthCard'
 import { useAuthCopy } from '@/copy/useAuthCopy'
 import { useAuth } from '@/hooks/useAuth'
-import { homePathFor } from '@/lib/afterAuth'
+import { useLoginRedirect } from '@/hooks/useLoginRedirect'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 
 /**
@@ -32,6 +32,7 @@ export default function AuthCallback() {
   const { c } = useAuthCopy()
   const [params] = useSearchParams()
   const navigate = useNavigate()
+  const redirectAfterLogin = useLoginRedirect()
   const { status, user } = useAuth()
   useDocumentTitle(c.login.title)
 
@@ -51,7 +52,7 @@ export default function AuthCallback() {
     if (status === 'authenticated' && user) {
       /* Same destination policy as password sign-in. The OAuth exchange above
          is untouched; only where it lands has changed. */
-      navigate(homePathFor(user), { replace: true })
+      redirectAfterLogin(user)
       return
     }
 
@@ -63,7 +64,7 @@ export default function AuthCallback() {
     if (status === 'anonymous') {
       navigate('/login?error=failed', { replace: true })
     }
-  }, [error, status, user, navigate])
+  }, [error, status, user, navigate, redirectAfterLogin])
 
   return (
     <AuthCard title={c.login.title}>

@@ -14,9 +14,9 @@ import type { LandingCopy } from './landing.ar'
  */
 export const landingEn: LandingCopy = {
   /* Document ------------------------------------------------------- */
-  'meta.title': 'Asasera — Your lesson is ready. Class takes two taps.',
+  'meta.title': 'Asasera — A little play. A lot of learning.',
   'meta.description':
-    'A live in-class loop for university teachers. Open a link, find your course already mapped lesson by lesson, press start. Five minutes later you know who understood and who did not — without writing a question or marking a paper.',
+    'Turn your teaching material into interactive learning activities. Create questions with AI, host live quizzes, assign practice, and follow your students’ progress in Arabic and English.',
   'skipToContent': 'Skip to content',
 
   /* 1 — Nav -------------------------------------------------------- */

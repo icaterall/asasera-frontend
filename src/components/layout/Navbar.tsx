@@ -12,6 +12,7 @@ import { ThemeToggle } from '@/components/ui/ThemeToggle'
 import { useAuth } from '@/hooks/useAuth'
 import { useScrollProgress } from '@/hooks/useScrollProgress'
 import { cn } from '@/lib/cn'
+import { loginStateFor } from '@/lib/afterAuth'
 
 /*
  * `/#features` and `/#platform` were anchors on a page that is no longer
@@ -30,6 +31,7 @@ export function Navbar() {
   const { t } = useTranslation()
   const { status } = useAuth()
   const location = useLocation()
+  const isLanding = location.pathname === '/'
   const { scrolled, progress } = useScrollProgress()
   const [menuOpen, setMenuOpen] = useState(false)
   const [lastLocationKey, setLastLocationKey] = useState(location.key)
@@ -66,7 +68,7 @@ export function Navbar() {
       className={cn(
         'inset-x-0 top-0 z-50 transition-all duration-500 ease-out-expo',
         status === 'authenticated' ? 'sticky' : 'fixed',
-        scrolled ? 'py-2' : 'py-4',
+        isLanding ? 'landingNav py-0' : scrolled ? 'py-2' : 'py-4',
       )}
     >
       {/* Reading-progress hairline */}
@@ -79,9 +81,10 @@ export function Navbar() {
       <Container>
         <nav
           className={cn(
-            'flex h-16 items-center justify-between gap-4 rounded-2xl px-3 sm:px-4',
+            'flex items-center justify-between gap-2 sm:gap-4 rounded-2xl px-3 sm:px-4',
+            isLanding ? 'h-20' : 'h-16',
             'transition-all duration-500 ease-out-expo',
-            scrolled
+            scrolled && !isLanding
               ? 'glass shadow-[0_10px_40px_-24px_rgb(0_0_0/0.5)]'
               : 'border border-transparent bg-transparent',
           )}
@@ -91,7 +94,7 @@ export function Navbar() {
             className="rounded-xl outline-offset-4"
             aria-label={t('brand.name')}
           >
-            <Logo />
+            <Logo className={status === 'authenticated' ? '[&_img]:h-6 sm:[&_img]:h-9' : undefined} />
           </Link>
 
           {/* Desktop navigation */}
@@ -145,13 +148,14 @@ export function Navbar() {
                 */}
                 <Link
                   to="/login"
+                  state={loginStateFor(location)}
                   className="hidden rounded-sm px-3 py-2 text-sm font-semibold transition-colors lg:inline-flex"
                   style={{ color: 'var(--ink-muted)' }}
                 >
                   {t('nav.logIn')}
                 </Link>
                 <Link
-                  to="/signup"
+                  to="/register"
                   className={buttonStyles({ size: 'sm', className: 'hidden lg:inline-flex' })}
                 >
                   {t('nav.getStarted')}
@@ -227,12 +231,13 @@ export function Navbar() {
               <div className="flex items-center gap-2">
                 <Link
                   to="/login"
+                  state={loginStateFor(location)}
                   className="rounded-sm px-3 py-2 text-sm font-semibold"
                   style={{ color: 'var(--ink-muted)' }}
                 >
                   {t('nav.logIn')}
                 </Link>
-                <Link to="/signup" className={buttonStyles({ size: 'sm' })}>
+                <Link to="/register" className={buttonStyles({ size: 'sm' })}>
                   {t('nav.getStarted')}
                 </Link>
               </div>

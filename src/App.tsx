@@ -13,7 +13,12 @@ import { ThemeProvider } from '@/context/ThemeProvider'
 import Landing from '@/pages/Landing'
 import { useAuth } from '@/hooks/useAuth'
 import { homePathFor } from '@/lib/afterAuth'
-const StudentHome = lazy(() => import('@/pages/student/StudentHome'))
+const StudentLayout = lazy(() => import('@/features/student/StudentLayout'))
+const StudentHome = lazy(() => import('@/features/student/StudentPages').then(m => ({ default: m.StudentHome })))
+const StudentActivities = lazy(() => import('@/features/student/StudentPages').then(m => ({ default: m.StudentActivities })))
+const StudentProgress = lazy(() => import('@/features/student/StudentPages').then(m => ({ default: m.StudentProgress })))
+const StudentProfile = lazy(() => import('@/features/student/StudentPages').then(m => ({ default: m.StudentProfile })))
+const StudentPractice = lazy(() => import('@/features/student/StudentPages').then(m => ({ default: m.StudentPractice })))
 
 // The landing page is the common entry point, so it stays in the main
 // chunk; everything else is split out.
@@ -61,7 +66,11 @@ const DeliverySetup=lazy(()=>import('@/features/delivery/DeliverySetup'))
 const LearnPage=lazy(()=>import('@/features/delivery/LearnPage'))
 const Assignments=lazy(()=>import('@/features/delivery/Assignments'))
 const SessionPage = lazy(() => import('@/features/session/SessionPage'))
+const GamesPage=lazy(()=>import('@/features/games/GamesPage'))
+const WheelPage=lazy(()=>import('@/features/wheel/WheelPage'))
 const Shelf = lazy(() => import('@/features/shelf/Shelf'))
+const TeacherHome = lazy(() => import('@/features/teacher-home/TeacherHome'))
+const CreateActivity = lazy(() => import('@/features/editor/CreateActivity'))
 const VerificationLinks=lazy(()=>import('./features/reports/VerificationLinks'))
 const Reports = lazy(() => import('@/features/reports/Reports'))
 const LessonEditor = lazy(() => import('@/pages/teacher/LessonEditor'))
@@ -99,7 +108,14 @@ export default function App() {
           <SignupProvider>
           <Suspense fallback={<RouteFallback />}>
             <Routes>
-              <Route path="student" element={<StudentHome />} />
+              <Route path="student" element={<StudentLayout />}>
+                <Route index element={<StudentHome />} />
+                <Route path="activities" element={<StudentActivities />} />
+                <Route path="progress" element={<StudentProgress />} />
+                <Route path="profile" element={<StudentProfile />} />
+                <Route path="practice" element={<StudentPractice />} />
+              </Route>
+              <Route path="games" element={<GamesPage/>}/>
               <Route path="learn/:id" element={<LearnPage/>}/>
               <Route path="join" element={<SessionPage role="player" />} />
               <Route path="projector/:id" element={<SessionPage role="projector" />} />
@@ -149,12 +165,13 @@ export default function App() {
                 screen. A person half-way through creating an account should not
                 be offered Pricing.
 
-                `/signup` is the role choice; `/signup/teacher` and
+                `/register` is the role choice (`/signup` remains an alias); `/signup/teacher` and
                 `/signup/student` preselect it via a direct link. The old
                 `/register/*` paths are kept as redirects rather than deleted —
                 they are in the wild, and a 404 mid-signup is worse than a hop.
               */}
               <Route element={<AuthLayout />}>
+                <Route path="register" element={<ChooseRole />} />
                 <Route path="signup" element={<ChooseRole />} />
 
                 {/*
@@ -193,8 +210,9 @@ export default function App() {
               */}
               <Route path="teacher" element={<TeacherLayout />}>
                 <Route index element={<Navigate to="/teacher/dashboard" replace />} />
-                <Route path="dashboard" element={<Shelf />} />
+                <Route path="dashboard" element={<TeacherHome />} />
                 <Route path="tools" element={<TeacherDashboard />} />
+                <Route path="wheel" element={<WheelPage/>}/>
                 <Route path="guides" element={<TeacherGuides />} />
                 <Route path="courses" element={<TeacherCourses />} />
                 <Route path="materials" element={<TeacherMaterials />} />
@@ -202,9 +220,11 @@ export default function App() {
                 <Route path="lessons" element={<TeacherLessons />} />
                 <Route path="lessons/new" element={<NewLesson />} />
                 <Route path="activities" element={<ActivityList />} />
+                <Route path="activities/new" element={<CreateActivity />} />
                 <Route path="activities/:id/play" element={<DeliverySetup/>}/>
                 <Route path="assignments" element={<Assignments/>}/>
-                <Route path="shelf" element={<Shelf />} />
+                <Route path="shelf" element={<Navigate to="/teacher/discover" replace />} />
+                <Route path="discover" element={<Shelf />} />
                 <Route path="verification" element={<VerificationLinks/>}/>
                 <Route path="reports" element={<Reports />} />
                 <Route path="reports/runs/:id" element={<Reports />} />

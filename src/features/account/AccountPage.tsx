@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, Navigate } from 'react-router-dom'
+import { Link, Navigate, useLocation } from 'react-router-dom'
 import { Bdi } from '@/components/Bdi'
 import { Button } from '@/design'
 import { DeleteAccount } from '@/features/delivery/DeleteAccount'
@@ -9,16 +9,18 @@ import { useApiErrorMessage } from '@/hooks/useApiErrorMessage'
 import { useAuthForm } from '@/hooks/useAuthForm'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 import { auth, type PublicUser } from '@/lib/api'
-import { homePathFor } from '@/lib/afterAuth'
+import { homePathFor, loginStateFor } from '@/lib/afterAuth'
+import { accountRoleLabel } from '@/lib/accountRole'
 import styles from './AccountPage.module.css'
 
 export default function AccountPage() {
+  const location = useLocation()
   const { user, status } = useAuth()
   const { i18n } = useTranslation()
   const title = i18n.language.startsWith('ar') ? 'إعدادات الحساب' : 'Account settings'
   useDocumentTitle(title)
   if (status === 'loading') return <p role="status">{i18n.language.startsWith('ar') ? 'جارٍ التحميل…' : 'Loading…'}</p>
-  if (!user) return <Navigate to="/login" replace state={{ from: '/account' }} />
+  if (!user) return <Navigate to="/login" replace state={loginStateFor(location)} />
   return <Settings key={user.id} user={user} title={title} />
 }
 
@@ -54,9 +56,9 @@ function Settings({ user, title }: { user: PublicUser; title: string }) {
       </form>
       <dl className={styles.details}>
         <div><dt>{t('البريد الإلكتروني', 'Email address')}</dt><dd><Bdi>{user.email}</Bdi><span>{user.emailVerified ? t('تم التحقق', 'Verified') : t('بانتظار التحقق — استخدم الشريط أعلى الصفحة.', 'Awaiting verification — use the banner above.')}</span></dd></div>
-        <div><dt>{t('نوع الحساب', 'Account type')}</dt><dd>{user.role === 'teacher' ? t('معلّم', 'Teacher') : t('طالب', 'Student')}</dd></div>
+        <div><dt>{t('نوع الحساب', 'Account type')}</dt><dd>{accountRoleLabel(user.role, i18n.language)}</dd></div>
       </dl>
-      <Link className={styles.link} to="/complete-profile">{user.role === 'teacher' ? t('تعديل المادة وجهة العمل', 'Edit subject and workplace') : t('تعديل المادة والمستوى الدراسي', 'Edit subject and study level')}</Link>
+      <Link className={styles.link} to={user.role === 'student' ? '/student/profile' : '/complete-profile'}>{user.role === 'teacher' ? t('تعديل المادة وجهة العمل', 'Edit subject and workplace') : t('تعديل المرحلة والصف', 'Edit learning stage and grade')}</Link>
     </section>
     <section className={styles.section} aria-labelledby="security-heading">
       <h2 id="security-heading">{t('كلمة المرور والأمان', 'Password and security')}</h2>

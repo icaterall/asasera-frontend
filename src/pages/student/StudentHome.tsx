@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, Navigate, useNavigate } from 'react-router-dom'
+import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
+import { homePathFor, loginStateFor } from '@/lib/afterAuth'
 import { AccountControl } from '@/components/layout/AccountControl'
 import { VerifyEmailBanner } from '@/components/layout/VerifyEmailBanner'
 import { Logo } from '@/components/ui/Logo'
@@ -17,6 +18,7 @@ export default function StudentHome() {
   const ar = i18n.language.startsWith('ar')
   const t = (arabic: string, english: string) => ar ? arabic : english
   const navigate = useNavigate()
+  const location = useLocation()
   const [pin, setPin] = useState('')
   const [link, setLink] = useState('')
   const [pinError, setPinError] = useState('')
@@ -24,8 +26,8 @@ export default function StudentHome() {
   useDocumentTitle(t('تعلّمك', 'Your learning'))
 
   if (status === 'loading') return <main className={styles.loading} role="status">{t('جارٍ فتح حسابك…', 'Opening your account…')}</main>
-  if (!user) return <Navigate to="/login" replace state={{ from: '/student' }} />
-  if (user.role !== 'student') return <Navigate to="/teacher/dashboard" replace />
+  if (!user) return <Navigate to="/login" replace state={loginStateFor(location)} />
+  if (user.role !== 'student') return <Navigate to={homePathFor(user)} replace />
 
   function join(event: FormEvent) {
     event.preventDefault()
@@ -66,7 +68,7 @@ export default function StudentHome() {
           {linkError && <p id="link-error" className={styles.error} role="alert">{linkError}</p>}
         </form>
       </section>
-      <footer className={styles.footer}><p>{t('تحتاج مساعدة؟ اطلب الرمز أو الرابط من معلّمك.', 'Need a hand? Ask your teacher for a PIN or activity link.')}</p><Link to="/complete-profile">{t('مستواك الدراسي', 'Your study level')}</Link></footer>
+      <footer className={styles.footer}><p>{t('تحتاج مساعدة؟ اطلب الرمز أو الرابط من معلّمك.', 'Need a hand? Ask your teacher for a PIN or activity link.')}</p><Link to="/games">{t('تدرّب بالألعاب','Practice with games')}</Link><Link to="/complete-profile">{t('مستواك الدراسي', 'Your study level')}</Link></footer>
     </main>
   </div>
 }

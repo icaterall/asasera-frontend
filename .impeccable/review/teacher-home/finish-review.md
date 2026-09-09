@@ -1,0 +1,8 @@
+disposition: recapture
+
+## recapture
+
+- `.impeccable/review/desktop.png` is invalid evidence for this surface: it shows the Arabic activity editor, not the current teacher Home replacement. A valid current desktop capture must show teacher Home from the document top, including the welcome, primary creation action, readable recent activity rows, teaching-tools column, and teacher navigation, at a recorded desktop viewport without blank or black regions.
+- `.impeccable/review/mobile.png` is invalid evidence for this surface: it shows the Arabic activity editor, not the current teacher Home replacement. A valid current mobile capture must show teacher Home from the document top at a recorded mobile viewport, including the stacked layout, readable activity content, row-action wrapping, and mobile navigation without clipping or blank regions. No current teacher Home desktop or mobile captures are present in `.impeccable/review/teacher-home/`.
+- Current captures must cover the English/LTR and Arabic/RTL presentation promised for teacher Home. The user-supplied rejected screenshot is before evidence and cannot verify the replacement. The existing browser security denial must be respected; no alternate browser, headless renderer, URL alias, or indirect rendering workaround may be used to obtain captures.
+- Check 0 fails. No fidelity matrix, craft verdict, or visual approval is issued. The 14 advisory detector findings and reported passing builds, lint, and targeted checks do not substitute for current rendered evidence. A full finish re-review is required when valid captures can be supplied through a permitted route.

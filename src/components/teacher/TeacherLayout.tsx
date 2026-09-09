@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { VerifyEmailBanner } from '@/components/layout/VerifyEmailBanner'
 import { Logo } from '@/components/ui/Logo'
 import { useAuth } from '@/hooks/useAuth'
+import { homePathFor } from '@/lib/afterAuth'
 import { TeacherGuideProvider } from './TeacherGuidePanel'
 import { TeacherHeader } from './TeacherHeader'
 import { TeacherSidebar, TeacherSidebarNav } from './TeacherSidebar'
@@ -86,7 +87,7 @@ export function TeacherLayout() {
   }
 
   /* Student accounts return to their own learning workspace. */
-  if (user.role !== 'teacher') return <Navigate to="/student" replace />
+  if (user.role !== 'teacher') return <Navigate to={homePathFor(user)} replace />
 
   return (
     <TeacherGuideProvider>

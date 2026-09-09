@@ -1,0 +1,1207 @@
+[
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/activity-themes/ActivityThemes.module.css",
+    "line": 7,
+    "snippet": "Undocumented color #061324ad is outside DESIGN.md colors",
+    "ignoreValue": "#061324ad",
+    "importedBy": [
+      "ActivityStage.tsx",
+      "ThemePicker.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/activity-themes/ActivityThemes.module.css",
+    "line": 10,
+    "snippet": "Undocumented color #081627d9 is outside DESIGN.md colors",
+    "ignoreValue": "#081627d9",
+    "importedBy": [
+      "ActivityStage.tsx",
+      "ThemePicker.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/activity-themes/ActivityThemes.module.css",
+    "line": 15,
+    "snippet": "Undocumented color #b5fbff9c is outside DESIGN.md colors",
+    "ignoreValue": "#b5fbff9c",
+    "importedBy": [
+      "ActivityStage.tsx",
+      "ThemePicker.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/activity-themes/ActivityThemes.module.css",
+    "line": 15,
+    "snippet": "Undocumented color #c8f7ff14 is outside DESIGN.md colors",
+    "ignoreValue": "#c8f7ff14",
+    "importedBy": [
+      "ActivityStage.tsx",
+      "ThemePicker.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/activity-themes/ActivityThemes.module.css",
+    "line": 18,
+    "snippet": "Undocumented color #ffbc73 is outside DESIGN.md colors",
+    "ignoreValue": "#ffbc73",
+    "importedBy": [
+      "ActivityStage.tsx",
+      "ThemePicker.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/activity-themes/ActivityThemes.module.css",
+    "line": 36,
+    "snippet": "Undocumented color #05132966 is outside DESIGN.md colors",
+    "ignoreValue": "#05132966",
+    "importedBy": [
+      "ActivityStage.tsx",
+      "ThemePicker.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/activity-themes/ActivityThemes.module.css",
+    "line": 38,
+    "snippet": "Undocumented color #ddd is outside DESIGN.md colors",
+    "ignoreValue": "#ddd",
+    "importedBy": [
+      "ActivityStage.tsx",
+      "ThemePicker.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/activity-themes/ActivityThemes.module.css",
+    "line": 47,
+    "snippet": "font-size: 13px is off the DESIGN.md type ramp",
+    "ignoreValue": "13px",
+    "importedBy": [
+      "ActivityStage.tsx",
+      "ThemePicker.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/activity-themes/ActivityThemes.module.css",
+    "line": 52,
+    "snippet": "font-size: 13px is off the DESIGN.md type ramp",
+    "ignoreValue": "13px",
+    "importedBy": [
+      "ActivityStage.tsx",
+      "ThemePicker.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/activity-themes/ActivityThemes.module.css",
+    "line": 53,
+    "snippet": "Undocumented color #ffdc76 is outside DESIGN.md colors",
+    "ignoreValue": "#ffdc76",
+    "importedBy": [
+      "ActivityStage.tsx",
+      "ThemePicker.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/activity-themes/ActivityThemes.module.css",
+    "line": 54,
+    "snippet": "Undocumented color #08132933 is outside DESIGN.md colors",
+    "ignoreValue": "#08132933",
+    "importedBy": [
+      "ActivityStage.tsx",
+      "ThemePicker.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/activity-themes/ActivityThemes.module.css",
+    "line": 55,
+    "snippet": "Undocumented color #06132433 is outside DESIGN.md colors",
+    "ignoreValue": "#06132433",
+    "importedBy": [
+      "ActivityStage.tsx",
+      "ThemePicker.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/activity-themes/ActivityThemes.module.css",
+    "line": 55,
+    "snippet": "font-size: clamp(38px,5vw,58px) has fluid endpoints 38px and 58px off the DESIGN.md type ramp",
+    "ignoreValue": "38px",
+    "importedBy": [
+      "ActivityStage.tsx",
+      "ThemePicker.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/activity-themes/ActivityThemes.module.css",
+    "line": 57,
+    "snippet": "Undocumented color #06132426 is outside DESIGN.md colors",
+    "ignoreValue": "#06132426",
+    "importedBy": [
+      "ActivityStage.tsx",
+      "ThemePicker.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/activity-themes/ActivityThemes.module.css",
+    "line": 63,
+    "snippet": "font-size: 13px is off the DESIGN.md type ramp",
+    "ignoreValue": "13px",
+    "importedBy": [
+      "ActivityStage.tsx",
+      "ThemePicker.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/activity-themes/ActivityThemes.module.css",
+    "line": 64,
+    "snippet": "Undocumented color #00329a is outside DESIGN.md colors",
+    "ignoreValue": "#00329a",
+    "importedBy": [
+      "ActivityStage.tsx",
+      "ThemePicker.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/activity-themes/ActivityThemes.module.css",
+    "line": 66,
+    "snippet": "Undocumented color #283247 is outside DESIGN.md colors",
+    "ignoreValue": "#283247",
+    "importedBy": [
+      "ActivityStage.tsx",
+      "ThemePicker.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/activity-themes/ActivityThemes.module.css",
+    "line": 66,
+    "snippet": "Undocumented color #00000012 is outside DESIGN.md colors",
+    "ignoreValue": "#00000012",
+    "importedBy": [
+      "ActivityStage.tsx",
+      "ThemePicker.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-radius",
+    "name": "Radius outside DESIGN.md",
+    "description": "A border-radius value is outside the DESIGN.md rounded scale. Use a documented radius token or update the design system if the new shape is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/activity-themes/ActivityThemes.module.css",
+    "line": 66,
+    "snippet": "border-radius: 5px is outside the DESIGN.md rounded scale",
+    "ignoreValue": "5px",
+    "importedBy": [
+      "ActivityStage.tsx",
+      "ThemePicker.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/activity-themes/ActivityThemes.module.css",
+    "line": 67,
+    "snippet": "Undocumented color #efc5ad is outside DESIGN.md colors",
+    "ignoreValue": "#efc5ad",
+    "importedBy": [
+      "ActivityStage.tsx",
+      "ThemePicker.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/activity-themes/ActivityThemes.module.css",
+    "line": 70,
+    "snippet": "Undocumented color #606060 is outside DESIGN.md colors",
+    "ignoreValue": "#606060",
+    "importedBy": [
+      "ActivityStage.tsx",
+      "ThemePicker.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/activity-themes/ActivityThemes.module.css",
+    "line": 70,
+    "snippet": "font-size: 22px is off the DESIGN.md type ramp",
+    "ignoreValue": "22px",
+    "importedBy": [
+      "ActivityStage.tsx",
+      "ThemePicker.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/activity-themes/ActivityThemes.module.css",
+    "line": 70,
+    "snippet": "font-size: 11px is off the DESIGN.md type ramp",
+    "ignoreValue": "11px",
+    "importedBy": [
+      "ActivityStage.tsx",
+      "ThemePicker.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-radius",
+    "name": "Radius outside DESIGN.md",
+    "description": "A border-radius value is outside the DESIGN.md rounded scale. Use a documented radius token or update the design system if the new shape is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/activity-themes/ActivityThemes.module.css",
+    "line": 73,
+    "snippet": "border-radius: 7px is outside the DESIGN.md rounded scale",
+    "ignoreValue": "7px",
+    "importedBy": [
+      "ActivityStage.tsx",
+      "ThemePicker.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/activity-themes/ActivityThemes.module.css",
+    "line": 75,
+    "snippet": "Undocumented color #172e56 is outside DESIGN.md colors",
+    "ignoreValue": "#172e56",
+    "importedBy": [
+      "ActivityStage.tsx",
+      "ThemePicker.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/activity-themes/ActivityThemes.module.css",
+    "line": 78,
+    "snippet": "font-size: 13px is off the DESIGN.md type ramp",
+    "ignoreValue": "13px",
+    "importedBy": [
+      "ActivityStage.tsx",
+      "ThemePicker.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/activity-themes/ActivityThemes.module.css",
+    "line": 79,
+    "snippet": "Undocumented color #ddd is outside DESIGN.md colors",
+    "ignoreValue": "#ddd",
+    "importedBy": [
+      "ActivityStage.tsx",
+      "ThemePicker.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/activity-themes/ActivityThemes.module.css",
+    "line": 80,
+    "snippet": "Undocumented color #606060 is outside DESIGN.md colors",
+    "ignoreValue": "#606060",
+    "importedBy": [
+      "ActivityStage.tsx",
+      "ThemePicker.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/activity-themes/ActivityThemes.module.css",
+    "line": 90,
+    "snippet": "font-size: 21px is off the DESIGN.md type ramp",
+    "ignoreValue": "21px",
+    "importedBy": [
+      "ActivityStage.tsx",
+      "ThemePicker.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/activity-themes/ActivityThemes.module.css",
+    "line": 91,
+    "snippet": "font-size: 18px is off the DESIGN.md type ramp",
+    "ignoreValue": "18px",
+    "importedBy": [
+      "ActivityStage.tsx",
+      "ThemePicker.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/activity-themes/ActivityThemes.module.css",
+    "line": 91,
+    "snippet": "font-size: 13px is off the DESIGN.md type ramp",
+    "ignoreValue": "13px",
+    "importedBy": [
+      "ActivityStage.tsx",
+      "ThemePicker.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/activity-themes/ActivityThemes.module.css",
+    "line": 91,
+    "snippet": "font-size: 11px is off the DESIGN.md type ramp",
+    "ignoreValue": "11px",
+    "importedBy": [
+      "ActivityStage.tsx",
+      "ThemePicker.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/activity-themes/ActivityThemes.module.css",
+    "line": 91,
+    "snippet": "font-size: 25px is off the DESIGN.md type ramp",
+    "ignoreValue": "25px",
+    "importedBy": [
+      "ActivityStage.tsx",
+      "ThemePicker.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/activity-themes/ActivityThemes.module.css",
+    "line": 96,
+    "snippet": "font-size: 18px is off the DESIGN.md type ramp",
+    "ignoreValue": "18px",
+    "importedBy": [
+      "ActivityStage.tsx",
+      "ThemePicker.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/activity-themes/catalog.ts",
+    "line": 6,
+    "snippet": "Undocumented color #123c2c is outside DESIGN.md colors",
+    "ignoreValue": "#123c2c",
+    "importedBy": [
+      "ActivityStage.tsx",
+      "ThemePicker.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/activity-themes/catalog.ts",
+    "line": 6,
+    "snippet": "Undocumented color #dcf5a0 is outside DESIGN.md colors",
+    "ignoreValue": "#dcf5a0",
+    "importedBy": [
+      "ActivityStage.tsx",
+      "ThemePicker.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/activity-themes/catalog.ts",
+    "line": 7,
+    "snippet": "Undocumented color #214e7a is outside DESIGN.md colors",
+    "ignoreValue": "#214e7a",
+    "importedBy": [
+      "ActivityStage.tsx",
+      "ThemePicker.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/activity-themes/catalog.ts",
+    "line": 8,
+    "snippet": "Undocumented color #124750 is outside DESIGN.md colors",
+    "ignoreValue": "#124750",
+    "importedBy": [
+      "ActivityStage.tsx",
+      "ThemePicker.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/activity-themes/catalog.ts",
+    "line": 8,
+    "snippet": "Undocumented color #ffe5a7 is outside DESIGN.md colors",
+    "ignoreValue": "#ffe5a7",
+    "importedBy": [
+      "ActivityStage.tsx",
+      "ThemePicker.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/activity-themes/catalog.ts",
+    "line": 9,
+    "snippet": "Undocumented color #063951 is outside DESIGN.md colors",
+    "ignoreValue": "#063951",
+    "importedBy": [
+      "ActivityStage.tsx",
+      "ThemePicker.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/activity-themes/catalog.ts",
+    "line": 9,
+    "snippet": "Undocumented color #a1f5f0 is outside DESIGN.md colors",
+    "ignoreValue": "#a1f5f0",
+    "importedBy": [
+      "ActivityStage.tsx",
+      "ThemePicker.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/activity-themes/catalog.ts",
+    "line": 10,
+    "snippet": "Undocumented color #624125 is outside DESIGN.md colors",
+    "ignoreValue": "#624125",
+    "importedBy": [
+      "ActivityStage.tsx",
+      "ThemePicker.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/activity-themes/catalog.ts",
+    "line": 10,
+    "snippet": "Undocumented color #ffdea0 is outside DESIGN.md colors",
+    "ignoreValue": "#ffdea0",
+    "importedBy": [
+      "ActivityStage.tsx",
+      "ThemePicker.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/activity-themes/catalog.ts",
+    "line": 11,
+    "snippet": "Undocumented color #121e49 is outside DESIGN.md colors",
+    "ignoreValue": "#121e49",
+    "importedBy": [
+      "ActivityStage.tsx",
+      "ThemePicker.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/activity-themes/catalog.ts",
+    "line": 11,
+    "snippet": "Undocumented color #c4d4ff is outside DESIGN.md colors",
+    "ignoreValue": "#c4d4ff",
+    "importedBy": [
+      "ActivityStage.tsx",
+      "ThemePicker.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/activity-themes/catalog.ts",
+    "line": 12,
+    "snippet": "Undocumented color #102f3d is outside DESIGN.md colors",
+    "ignoreValue": "#102f3d",
+    "importedBy": [
+      "ActivityStage.tsx",
+      "ThemePicker.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/activity-themes/catalog.ts",
+    "line": 12,
+    "snippet": "Undocumented color #acffdf is outside DESIGN.md colors",
+    "ignoreValue": "#acffdf",
+    "importedBy": [
+      "ActivityStage.tsx",
+      "ThemePicker.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/activity-themes/catalog.ts",
+    "line": 13,
+    "snippet": "Undocumented color #402b40 is outside DESIGN.md colors",
+    "ignoreValue": "#402b40",
+    "importedBy": [
+      "ActivityStage.tsx",
+      "ThemePicker.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/activity-themes/catalog.ts",
+    "line": 13,
+    "snippet": "Undocumented color #ffd1a4 is outside DESIGN.md colors",
+    "ignoreValue": "#ffd1a4",
+    "importedBy": [
+      "ActivityStage.tsx",
+      "ThemePicker.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/activity-themes/catalog.ts",
+    "line": 14,
+    "snippet": "Undocumented color #613653 is outside DESIGN.md colors",
+    "ignoreValue": "#613653",
+    "importedBy": [
+      "ActivityStage.tsx",
+      "ThemePicker.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/activity-themes/catalog.ts",
+    "line": 14,
+    "snippet": "Undocumented color #ffe0f0 is outside DESIGN.md colors",
+    "ignoreValue": "#ffe0f0",
+    "importedBy": [
+      "ActivityStage.tsx",
+      "ThemePicker.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/activity-themes/catalog.ts",
+    "line": 15,
+    "snippet": "Undocumented color #254959 is outside DESIGN.md colors",
+    "ignoreValue": "#254959",
+    "importedBy": [
+      "ActivityStage.tsx",
+      "ThemePicker.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/activity-themes/catalog.ts",
+    "line": 15,
+    "snippet": "Undocumented color #dcfaff is outside DESIGN.md colors",
+    "ignoreValue": "#dcfaff",
+    "importedBy": [
+      "ActivityStage.tsx",
+      "ThemePicker.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/activity-themes/catalog.ts",
+    "line": 16,
+    "snippet": "Undocumented color #314b37 is outside DESIGN.md colors",
+    "ignoreValue": "#314b37",
+    "importedBy": [
+      "ActivityStage.tsx",
+      "ThemePicker.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/activity-themes/catalog.ts",
+    "line": 16,
+    "snippet": "Undocumented color #ffe8ad is outside DESIGN.md colors",
+    "ignoreValue": "#ffe8ad",
+    "importedBy": [
+      "ActivityStage.tsx",
+      "ThemePicker.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/activity-themes/catalog.ts",
+    "line": 17,
+    "snippet": "Undocumented color #2a482d is outside DESIGN.md colors",
+    "ignoreValue": "#2a482d",
+    "importedBy": [
+      "ActivityStage.tsx",
+      "ThemePicker.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/activity-themes/catalog.ts",
+    "line": 17,
+    "snippet": "Undocumented color #fff2b2 is outside DESIGN.md colors",
+    "ignoreValue": "#fff2b2",
+    "importedBy": [
+      "ActivityStage.tsx",
+      "ThemePicker.tsx"
+    ]
+  },
+  {
+    "antipattern": "overused-font",
+    "name": "Overused font",
+    "description": "Inter, Roboto, Fraunces, Geist, Plus Jakarta Sans, and Space Grotesk are used on so many sites they no longer feel distinctive. Each new wave of AI-generated UIs converges on the same handful of faces. Choose a face that gives your interface personality.",
+    "severity": "warning",
+    "category": "slop",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/session/Session.module.css",
+    "line": 1,
+    "snippet": "font-family:\"Montserrat"
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/session/Session.module.css",
+    "line": 5,
+    "snippet": "Undocumented color #fff3c9 is outside DESIGN.md colors",
+    "ignoreValue": "#fff3c9"
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/session/Session.module.css",
+    "line": 5,
+    "snippet": "Undocumented color #292211 is outside DESIGN.md colors",
+    "ignoreValue": "#292211"
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/session/Session.module.css",
+    "line": 5,
+    "snippet": "Undocumented color #00329a is outside DESIGN.md colors",
+    "ignoreValue": "#00329a"
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/session/Session.module.css",
+    "line": 6,
+    "snippet": "font-size: clamp(36px,4.5vw,68px) has fluid endpoints 36px and 68px off the DESIGN.md type ramp",
+    "ignoreValue": "36px"
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/session/Session.module.css",
+    "line": 6,
+    "snippet": "font-size: clamp(18px,2vw,24px) has fluid endpoint 18px off the DESIGN.md type ramp",
+    "ignoreValue": "18px"
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/session/Session.module.css",
+    "line": 6,
+    "snippet": "font-size: 22px is off the DESIGN.md type ramp",
+    "ignoreValue": "22px"
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/session/Session.module.css",
+    "line": 7,
+    "snippet": "font-size: clamp(64px,10vw,160px) has fluid endpoints 64px and 160px off the DESIGN.md type ramp",
+    "ignoreValue": "64px"
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/session/Session.module.css",
+    "line": 8,
+    "snippet": "font-size: clamp(24px,2.7vw,46px) has fluid endpoint 46px off the DESIGN.md type ramp",
+    "ignoreValue": "46px"
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/session/Session.module.css",
+    "line": 8,
+    "snippet": "font-size: 36px is off the DESIGN.md type ramp",
+    "ignoreValue": "36px"
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/session/Session.module.css",
+    "line": 9,
+    "snippet": "font-size: 22px is off the DESIGN.md type ramp",
+    "ignoreValue": "22px"
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/session/Session.module.css",
+    "line": 11,
+    "snippet": "font-size: 13px is off the DESIGN.md type ramp",
+    "ignoreValue": "13px"
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/session/Session.module.css",
+    "line": 11,
+    "snippet": "font-size: clamp(60px,17vw,96px) has fluid endpoints 60px and 96px off the DESIGN.md type ramp",
+    "ignoreValue": "60px"
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/session/Session.module.css",
+    "line": 11,
+    "snippet": "font-size: 18px is off the DESIGN.md type ramp",
+    "ignoreValue": "18px"
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/session/Session.module.css",
+    "line": 19,
+    "snippet": "Undocumented color #0000000d is outside DESIGN.md colors",
+    "ignoreValue": "#0000000d"
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/session/Session.module.css",
+    "line": 23,
+    "snippet": "Undocumented color #00000026 is outside DESIGN.md colors",
+    "ignoreValue": "#00000026"
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/session/Session.module.css",
+    "line": 25,
+    "snippet": "Undocumented color #0003 is outside DESIGN.md colors",
+    "ignoreValue": "#0003"
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/session/Session.module.css",
+    "line": 33,
+    "snippet": "font-size: clamp(40px,12vw,70px) has fluid endpoint 70px off the DESIGN.md type ramp",
+    "ignoreValue": "70px"
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/session/Session.module.css",
+    "line": 33,
+    "snippet": "font-size: 32px is off the DESIGN.md type ramp",
+    "ignoreValue": "32px"
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/session/Session.module.css",
+    "line": 35,
+    "snippet": "font-size: clamp(16px,1.8vw,22px) has fluid endpoint 22px off the DESIGN.md type ramp",
+    "ignoreValue": "22px"
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/session/Session.module.css",
+    "line": 35,
+    "snippet": "font-size: 64px is off the DESIGN.md type ramp",
+    "ignoreValue": "64px"
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/session/Session.module.css",
+    "line": 40,
+    "snippet": "Undocumented color #071326b3 is outside DESIGN.md colors",
+    "ignoreValue": "#071326b3"
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/session/Session.module.css",
+    "line": 42,
+    "snippet": "Undocumented color #071326bd is outside DESIGN.md colors",
+    "ignoreValue": "#071326bd"
+  },
+  {
+    "antipattern": "side-tab",
+    "name": "Side-tab accent border",
+    "description": "Thick colored border on one side of a card — the most recognizable tell of AI-generated UIs. Use a subtler accent or remove it entirely.",
+    "severity": "warning",
+    "category": "slop",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/editor/Editor.module.css",
+    "line": 86,
+    "snippet": "border-inline-start: 3px solid"
+  },
+  {
+    "antipattern": "design-system-radius",
+    "name": "Radius outside DESIGN.md",
+    "description": "A border-radius value is outside the DESIGN.md rounded scale. Use a documented radius token or update the design system if the new shape is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/editor/Editor.module.css",
+    "line": 133,
+    "snippet": "border-radius: 2px is outside the DESIGN.md rounded scale",
+    "ignoreValue": "2px"
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/editor/Editor.module.css",
+    "line": 198,
+    "snippet": "Undocumented color #0045D8 is outside DESIGN.md colors",
+    "ignoreValue": "#0045D8"
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/editor/Editor.module.css",
+    "line": 202,
+    "snippet": "font-size: 22px is off the DESIGN.md type ramp",
+    "ignoreValue": "22px"
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/editor/Editor.module.css",
+    "line": 211,
+    "snippet": "font-size: clamp(24px,2.5vw,36px) has fluid endpoint 36px off the DESIGN.md type ramp",
+    "ignoreValue": "36px"
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/editor/Editor.module.css",
+    "line": 212,
+    "snippet": "font-size: 18px is off the DESIGN.md type ramp",
+    "ignoreValue": "18px"
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/editor/Editor.module.css",
+    "line": 213,
+    "snippet": "Undocumented color #0001 is outside DESIGN.md colors",
+    "ignoreValue": "#0001"
+  },
+  {
+    "antipattern": "design-system-radius",
+    "name": "Radius outside DESIGN.md",
+    "description": "A border-radius value is outside the DESIGN.md rounded scale. Use a documented radius token or update the design system if the new shape is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/editor/Editor.module.css",
+    "line": 215,
+    "snippet": "border-radius: 2px is outside the DESIGN.md rounded scale",
+    "ignoreValue": "2px"
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/editor/Editor.module.css",
+    "line": 222,
+    "snippet": "Undocumented color #183452 is outside DESIGN.md colors",
+    "ignoreValue": "#183452"
+  }
+]

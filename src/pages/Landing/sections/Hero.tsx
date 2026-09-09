@@ -1,162 +1,141 @@
-import heroBackdropPng from '@/assets/images/bk-hero.png'
-import heroBackdropWebp from '@/assets/images/bk-hero.webp'
-import { Bdi } from '@/components/Bdi'
+import { ArrowRight, Check, ImageOff, Play, RotateCcw, Shuffle, Trophy, X } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useCopy } from '@/copy/useCopy'
+import { experienceAr, experienceEn } from '../experience.copy'
+import { localizeDemoCard, newDemoRound, rememberDemoRound } from '../demo-quiz'
+import { demoMedia } from '../demo-media'
+import styles from '../Landing.module.css'
 
-import { Button } from '../ui/Button'
-import { IconPlay } from '../ui/Icons'
-
-/**
- * The in-class decision card — the hero's focal point, and one of the five
- * boxes on the page.
- *
- * `--warn` appears here and nowhere else. The motion is a slow shadow pulse
- * rather than a scale or a bounce: this is a card that interrupts a lecture,
- * and it should read as "this needs you" rather than as a notification toy.
- * `prefers-reduced-motion` swaps the pulse for a static ring in tokens.css,
- * so the emphasis survives without the movement.
- */
-function DecisionCard() {
-  const { t } = useCopy()
-
-  return (
-    <div className="asas-attention rounded-md border border-line bg-surface p-6 md:p-8">
-      <div className="mb-4 flex items-center gap-2.5">
-        <span className="size-2.5 shrink-0 rounded-full bg-amber-500" />
-        <span className="text-sm font-medium text-muted">{t('hero.decisionLabel')}</span>
-      </div>
-
-      {/*
-        The count is a Latin numeral opening an Arabic sentence, so it is
-        isolated: left bare, the digit and the word after it can resolve
-        against each other and swap sides.
-      */}
-      <p className="mb-6 text-[1.5rem] leading-snug font-bold text-fg md:text-[1.875rem]">
-        <Bdi dir="ltr">{t('hero.decisionCount')}</Bdi> {t('hero.decisionTitle')}
-      </p>
-
-      <div className="flex flex-wrap gap-3">
-        <span className="inline-flex min-h-12 items-center rounded-md bg-brand-500 px-6 font-bold text-white">
-          {t('hero.decisionFix')}
-        </span>
-        <span className="inline-flex min-h-12 items-center rounded-md border border-line px-6 font-bold text-fg">
-          {t('hero.decisionSkip')}
-        </span>
-      </div>
-    </div>
-  )
-}
-
-/**
- * The end-of-session line — the page's bidi stress test.
- *
- * Each English term is wrapped in its own isolate *including its
- * parentheses*. The brackets are neutral characters, so leaving them outside
- * the isolate lets the algorithm resolve them against the surrounding Arabic
- * and flip them onto the wrong side of the term.
- */
-function SessionSummary() {
-  const { t } = useCopy()
-
-  return (
-    <div className="rounded-md border border-line bg-surface p-6 md:p-7">
-      <p className="mb-3 text-sm font-medium text-muted">{t('hero.summaryLabel')}</p>
-
-      <p className="mb-4 flex flex-wrap items-baseline gap-x-3 gap-y-1 text-lead font-bold text-fg">
-        <span className="text-accent-alt">
-          <Bdi dir="ltr">{t('hero.summaryMasteredCount')}</Bdi> {t('hero.summaryMastered')}
-        </span>
-        <span aria-hidden="true" className="text-line">
-          •
-        </span>
-        <span className="text-accent">
-          <Bdi dir="ltr">{t('hero.summaryRecoveredCount')}</Bdi> {t('hero.summaryRecovered')}
-        </span>
-        <span aria-hidden="true" className="text-line">
-          •
-        </span>
-        <span className="text-fg">
-          <Bdi dir="ltr">{t('hero.summaryNeedYouCount')}</Bdi> {t('hero.summaryNeedYou')}
-        </span>
-      </p>
-
-      <p className="text-[0.9375rem] leading-[1.8] text-muted">
-        <span className="font-bold text-fg">{t('hero.summaryReasonLabel')} </span>
-        {t('hero.summaryReasonBefore')}{' '}
-        <Bdi dir="ltr" className="font-medium text-fg">
-          ({t('hero.summaryReasonTermOne')})
-        </Bdi>{' '}
-        {t('hero.summaryReasonMiddle')}{' '}
-        <Bdi dir="ltr" className="font-medium text-fg">
-          ({t('hero.summaryReasonTermTwo')})
-        </Bdi>
-      </p>
-    </div>
-  )
+export function AnswerShape({ index }: { index: number }) {
+  return <svg viewBox="0 0 32 32" width="24" height="24" aria-hidden="true" className={styles.answerShape}>
+    {index === 0 ? <path d="M16 3 30 28H2Z" fill="currentColor" />
+      : index === 1 ? <path d="m16 1 15 15-15 15L1 16Z" fill="currentColor" />
+        : index === 2 ? <circle cx="16" cy="16" r="14" fill="currentColor" />
+          : <rect x="3" y="3" width="26" height="26" rx="1" fill="currentColor" />}
+  </svg>
 }
 
 export function Hero() {
-  const { t } = useCopy()
+  const { lang } = useCopy()
+  const copy = lang === 'ar' ? experienceAr : experienceEn
+  const [round, setRound] = useState(() => newDemoRound())
+  const questions = round.map(card => localizeDemoCard(card, lang === 'ar' ? 'ar' : 'en'))
+  const [index, setIndex] = useState(0)
+  const [selected, setSelected] = useState<number | null>(null)
+  const [score, setScore] = useState(0)
+  const [complete, setComplete] = useState(false)
+  const heading = useRef<HTMLHeadingElement>(null)
+  const resultHeading = useRef<HTMLHeadingElement>(null)
+  const focusNext = useRef(false)
+  const question = questions[index]!
 
-  return (
-    <section
-      id="top"
-      className="relative flex min-h-[88svh] items-center overflow-hidden bg-surface py-16 md:py-24"
-    >
-      {/*
-        The supplied backdrop is off-brand purple, so it is desaturated and
-        hue-shifted toward the brand blue, dropped to 14% opacity, and masked
-        so it fades out well before the column holding the heading. It sits in
-        the inline-end corner precisely so it never lies under text in either
-        direction. Decorative, so hidden from assistive tech.
-      */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute -top-24 hidden w-[560px] lg:block"
-        style={{
-          insetInlineEnd: '-6rem',
-          maskImage: 'radial-gradient(closest-side, black 40%, transparent 100%)',
-          WebkitMaskImage: 'radial-gradient(closest-side, black 40%, transparent 100%)',
-        }}
-      >
-        <picture>
-          <source srcSet={heroBackdropWebp} type="image/webp" />
-          <img
-            src={heroBackdropPng}
-            alt=""
-            width={800}
-            height={529}
-            className="w-full opacity-[0.14]"
-            style={{ filter: 'grayscale(0.5) hue-rotate(-58deg) saturate(1.15)' }}
-          />
-        </picture>
-      </div>
+  useEffect(() => { rememberDemoRound(round) }, [round])
 
-      <div className="relative mx-auto grid w-full max-w-[1200px] items-center gap-12 px-5 md:px-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,30rem)] lg:gap-16">
-        <div>
-          <h1 className="max-w-[16ch] text-hero font-bold text-fg">{t('hero.title')}</h1>
+  useEffect(() => {
+    if (!focusNext.current) return
+    focusNext.current = false
+    const target = complete ? resultHeading : heading
+    target.current?.focus({ preventScroll: true })
+  }, [index, complete, selected, round])
 
-          <p className="mt-6 max-w-[46ch] text-lead text-muted">{t('hero.subtitle')}</p>
+  function answer(choice: number) {
+    if (selected !== null) return
+    setSelected(choice)
+    if (choice === question.correct) setScore(value => value + 1)
+  }
 
-          <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-            <Button href="#join" variant="primary" size="lg">
-              {t('hero.ctaPrimary')}
-            </Button>
-            <Button href="#how" variant="ghost" size="lg">
-              <IconPlay size={20} />
-              {t('hero.ctaSecondary')}
-            </Button>
-          </div>
+  function advance() {
+    focusNext.current = true
+    if (index < questions.length - 1) {
+      setIndex(value => value + 1)
+      setSelected(null)
+    } else {
+      setComplete(true)
+      if (score > 0 && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        void import('canvas-confetti').then(({ default: confetti }) => {
+          void confetti({ particleCount: 65, spread: 65, origin: { y: 0.6 }, ticks: 150, disableForReducedMotion: true,
+            colors: ['#004ccc', '#e21b3c', '#ffcf36', '#26890c'] })
+        }).catch(() => { /* Optional celebration must never block the result. */ })
+      }
+    }
+  }
 
-          <p className="mt-6 text-sm text-muted">{t('hero.trust')}</p>
+  function replay() {
+    focusNext.current = true
+    setComplete(false)
+    setIndex(0)
+    setSelected(null)
+    setScore(0)
+    setRound(newDemoRound(round))
+  }
+
+  function tryQuiz() {
+    document.getElementById('demo')?.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth', block: 'center' })
+    const target = complete ? resultHeading : heading
+    target.current?.focus({ preventScroll: true })
+  }
+
+  return <section id="top" className={styles.hero} aria-labelledby="landing-title">
+    <div className={styles.stageShapes} aria-hidden="true"><span /><span /><span /><span /></div>
+    <div className={`${styles.container} ${styles.heroGrid}`}>
+      <div className={styles.heroCopy}>
+        <h1 id="landing-title">{copy.title}<br /><span>{copy.titleAccent}</span></h1>
+        <p>{copy.intro}</p>
+        <div className={styles.heroActions}>
+          <Link to="/register" className={`${styles.action} ${styles.yellowAction}`}>{copy.create}<ArrowRight className={styles.forward} size={20} /></Link>
+          <button type="button" className={`${styles.action} ${styles.outlineAction}`} onClick={tryQuiz}><Play size={18} fill="currentColor" />{copy.try}</button>
         </div>
-
-        {/* Real DOM rather than a screenshot, so it stays crisp at any size. */}
-        <div className="flex flex-col gap-4">
-          <DecisionCard />
-          <SessionSummary />
+        <p className={styles.heroNote}>{copy.note} <Link to="/games" className={styles.textAction}>{lang==='ar'?'العب مغامرات أساسيرا':'Play Asasera adventures'}<ArrowRight size={18}/></Link></p>
+        <div className={styles.roleLinks}>
+          <Link to="/register">{copy.teacher}<ArrowRight size={15} className={styles.forward} /></Link>
+          <Link to="/register">{copy.student}<ArrowRight size={15} className={styles.forward} /></Link>
         </div>
       </div>
-    </section>
-  )
+      <div className={styles.demoWrap}>
+        <section id="demo" className={styles.demo} aria-label={copy.demo} data-question-id={complete ? undefined : question.id}>
+          <div className={styles.demoTop}><span>{copy.demoNote}</span><button type="button" className={styles.shuffleButton} onClick={replay}><Shuffle size={15} aria-hidden="true" />{copy.shuffle}</button></div>
+          {complete ? <div className={styles.result}>
+            <Trophy size={48} aria-hidden="true" />
+            <h2 ref={resultHeading} tabIndex={-1}>{copy.complete}</h2>
+            <p className={styles.score} aria-label={`${copy.scoreLabel}: ${score} ${copy.of} ${questions.length}`}><bdi>{score} / {questions.length}</bdi></p>
+            <p>{copy.correctCount}</p><p>{copy.resultBody}</p>
+            <div className={styles.resultActions}>
+              <button onClick={replay} className={`${styles.action} ${styles.blueAction}`}><RotateCcw size={18} />{copy.replay}</button>
+              <Link to="/register" className={styles.textAction}>{copy.create}<ArrowRight size={18} className={styles.forward} /></Link>
+            </div>
+          </div> : <>
+            <div className={styles.questionPanel}>
+              <div className={styles.questionMeta}><span className={styles.questionCount}>{copy.question} <bdi>{index + 1}</bdi> {copy.of} <bdi>{questions.length}</bdi></span><span className={styles.demoProgress} aria-hidden="true">{questions.map((_, i) => <i key={i} data-active={i <= index} />)}</span></div>
+              <div className={styles.photoQuestion}><h2 ref={heading} tabIndex={-1}>{question.title}</h2><QuizPhoto key={question.id} media={demoMedia[question.media]} lang={lang} label={copy.imageLabel} unavailable={copy.imageUnavailable} /></div>
+            </div>
+            <div className={styles.answers} role="group" aria-label={question.title}>
+              {question.answers.map((option, i) => <button key={`${index}-${i}`} type="button" onClick={() => answer(i)}
+                className={styles.answer} data-answer={i} data-selected={selected === i} data-muted={selected !== null && i !== question.correct && i !== selected}
+                aria-pressed={selected === i} aria-disabled={selected !== null}>
+                <AnswerShape index={i} /><span>{option}</span>
+                {selected !== null && (i === question.correct ? <Check size={23} aria-label={copy.correct} /> : i === selected ? <X size={23} aria-label={copy.incorrect} /> : null)}
+              </button>)}
+            </div>
+            <div className={styles.feedback} aria-live="polite" aria-atomic="true">
+              {selected === null ? <p className={styles.choose}>{copy.choose}</p> : <>
+                <div className={styles.feedbackCopy}><strong>{selected === question.correct ? copy.correct : copy.incorrect}</strong><p>{selected !== question.correct && <>{copy.correctAnswer} {question.answers[question.correct]}. </>}{question.explanation}</p></div>
+                <button className={`${styles.action} ${styles.blueAction}`} type="button" onClick={advance}>{index === questions.length - 1 ? copy.results : copy.next}<ArrowRight size={17} className={styles.forward} /></button>
+              </>}
+            </div>
+          </>}
+        </section>
+      </div>
+    </div>
+    <div className={styles.ribbon} aria-label={lang === 'ar' ? 'تعلّم مع أساسيرا' : 'Learn with Asasera'}>{copy.ribbon.map((label, i) => <span key={label}><AnswerShape index={i} />{label}</span>)}</div>
+  </section>
+}
+
+function QuizPhoto({ media, lang, label, unavailable }: { media: (typeof demoMedia)[keyof typeof demoMedia]; lang: string; label: string; unavailable: string }) {
+  const [failed, setFailed] = useState(false)
+  return <figure className={styles.quizPhoto}>
+    {failed ? <div className={styles.photoFallback} role="img" aria-label={media[lang === 'ar' ? 'ar' : 'en']}><ImageOff size={26} aria-hidden="true" /><span>{unavailable}</span></div>
+      : <img src={media.src} alt={media[lang === 'ar' ? 'ar' : 'en']} width="960" height="640" decoding="async" onError={() => setFailed(true)} />}
+    <figcaption>{label}</figcaption>
+  </figure>
 }

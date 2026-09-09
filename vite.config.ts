@@ -1,10 +1,13 @@
 import path from 'node:path'
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
-import { defineConfig } from 'vite'
+import { defineConfig, loadEnv } from 'vite'
 
 // https://vite.dev/config/
-export default defineConfig({
+export default defineConfig(({ mode }) => {
+  const localEnv = loadEnv(mode, import.meta.dirname, 'VITE_')
+  const apiTarget = localEnv.VITE_DEV_API_TARGET || 'http://localhost:4000'
+  return {
   plugins: [react(), tailwindcss()],
   resolve: {
     alias: {
@@ -12,6 +15,8 @@ export default defineConfig({
     },
   },
   server: {
+    port: 5173,
+    strictPort: true,
     /*
      * KEEP TEST OUTPUT OUT OF THE WATCHER.
      *
@@ -49,12 +54,12 @@ export default defineConfig({
      */
     proxy: {
       '/socket.io': {
-        target: process.env.VITE_DEV_API_TARGET ?? 'http://localhost:4000',
+        target: apiTarget,
         changeOrigin: true,
         ws: true,
       },
       '/api': {
-        target: process.env.VITE_DEV_API_TARGET ?? 'http://localhost:4000',
+        target: apiTarget,
         changeOrigin: true,
         secure: false,
       },
@@ -69,10 +74,11 @@ export default defineConfig({
        * break the end of every sign-in in development.
        */
       '/auth/facebook': {
-        target: process.env.VITE_DEV_API_TARGET ?? 'http://localhost:4000',
+        target: apiTarget,
         changeOrigin: true,
         secure: false,
       },
     },
   },
+  }
 })

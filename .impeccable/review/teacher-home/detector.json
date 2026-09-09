@@ -1,0 +1,195 @@
+[
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/teacher-home/TeacherHome.module.css",
+    "line": 3,
+    "snippet": "font-size: clamp(26px, 2.6vw, 38px) has fluid endpoints 26px and 38px off the DESIGN.md type ramp",
+    "ignoreValue": "26px",
+    "importedBy": [
+      "TeacherHome.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/teacher-home/TeacherHome.module.css",
+    "line": 4,
+    "snippet": "font-size: 21px is off the DESIGN.md type ramp",
+    "ignoreValue": "21px",
+    "importedBy": [
+      "TeacherHome.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-radius",
+    "name": "Radius outside DESIGN.md",
+    "description": "A border-radius value is outside the DESIGN.md rounded scale. Use a documented radius token or update the design system if the new shape is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/teacher-home/TeacherHome.module.css",
+    "line": 9,
+    "snippet": "border-radius: 6px is outside the DESIGN.md rounded scale",
+    "ignoreValue": "6px",
+    "importedBy": [
+      "TeacherHome.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-radius",
+    "name": "Radius outside DESIGN.md",
+    "description": "A border-radius value is outside the DESIGN.md rounded scale. Use a documented radius token or update the design system if the new shape is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/teacher-home/TeacherHome.module.css",
+    "line": 15,
+    "snippet": "border-radius: 12px is outside the DESIGN.md rounded scale",
+    "ignoreValue": "12px",
+    "importedBy": [
+      "TeacherHome.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-radius",
+    "name": "Radius outside DESIGN.md",
+    "description": "A border-radius value is outside the DESIGN.md rounded scale. Use a documented radius token or update the design system if the new shape is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/teacher-home/TeacherHome.module.css",
+    "line": 18,
+    "snippet": "border-radius: 6px is outside the DESIGN.md rounded scale",
+    "ignoreValue": "6px",
+    "importedBy": [
+      "TeacherHome.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/teacher-home/TeacherHome.module.css",
+    "line": 20,
+    "snippet": "font-size: 17px is off the DESIGN.md type ramp",
+    "ignoreValue": "17px",
+    "importedBy": [
+      "TeacherHome.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-radius",
+    "name": "Radius outside DESIGN.md",
+    "description": "A border-radius value is outside the DESIGN.md rounded scale. Use a documented radius token or update the design system if the new shape is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/teacher-home/TeacherHome.module.css",
+    "line": 27,
+    "snippet": "border-radius: 5px is outside the DESIGN.md rounded scale",
+    "ignoreValue": "5px",
+    "importedBy": [
+      "TeacherHome.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-radius",
+    "name": "Radius outside DESIGN.md",
+    "description": "A border-radius value is outside the DESIGN.md rounded scale. Use a documented radius token or update the design system if the new shape is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/teacher-home/TeacherHome.module.css",
+    "line": 32,
+    "snippet": "border-radius: 12px is outside the DESIGN.md rounded scale",
+    "ignoreValue": "12px",
+    "importedBy": [
+      "TeacherHome.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/teacher-home/TeacherHome.module.css",
+    "line": 34,
+    "snippet": "font-size: 23px is off the DESIGN.md type ramp",
+    "ignoreValue": "23px",
+    "importedBy": [
+      "TeacherHome.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/teacher-home/TeacherHome.module.css",
+    "line": 41,
+    "snippet": "font-size: 18px is off the DESIGN.md type ramp",
+    "ignoreValue": "18px",
+    "importedBy": [
+      "TeacherHome.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-radius",
+    "name": "Radius outside DESIGN.md",
+    "description": "A border-radius value is outside the DESIGN.md rounded scale. Use a documented radius token or update the design system if the new shape is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/teacher-home/TeacherHome.module.css",
+    "line": 55,
+    "snippet": "border-radius: 6px is outside the DESIGN.md rounded scale",
+    "ignoreValue": "6px",
+    "importedBy": [
+      "TeacherHome.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-radius",
+    "name": "Radius outside DESIGN.md",
+    "description": "A border-radius value is outside the DESIGN.md rounded scale. Use a documented radius token or update the design system if the new shape is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/teacher-home/TeacherHome.module.css",
+    "line": 59,
+    "snippet": "border-radius: 12px is outside the DESIGN.md rounded scale",
+    "ignoreValue": "12px",
+    "importedBy": [
+      "TeacherHome.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/teacher-home/TeacherHome.module.css",
+    "line": 66,
+    "snippet": "font-size: 19px is off the DESIGN.md type ramp",
+    "ignoreValue": "19px",
+    "importedBy": [
+      "TeacherHome.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-radius",
+    "name": "Radius outside DESIGN.md",
+    "description": "A border-radius value is outside the DESIGN.md rounded scale. Use a documented radius token or update the design system if the new shape is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/ashrafqahman/MyWork/ReactAsas/Web-App/asasera-frontend/src/features/shelf/Shelf.module.css",
+    "line": 4,
+    "snippet": "border-radius: 12px is outside the DESIGN.md rounded scale",
+    "ignoreValue": "12px"
+  }
+]

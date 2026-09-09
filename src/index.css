@@ -35,13 +35,13 @@
  * Design tokens
  * ------------------------------------------------------------------ */
 @theme {
-  /* Kahoot classic palette — explicit owner direction, 2026-09-07. */
+  /* Primary restored to Asasera blue by owner direction, 2026-09-08. */
   --color-brand-50: #f5effc;
   --color-brand-100: #ece0fa;
   --color-brand-200: #d8c2f1;
   --color-brand-300: #c4a2f2;
   --color-brand-400: #9768cf;
-  --color-brand-500: #46178f;
+  --color-brand-500: #004ccc;
   --color-brand-600: #3c137b;
   --color-brand-700: #341069;
   --color-brand-800: #2c0d59;
@@ -189,7 +189,7 @@
 
   /*
    * Foreground-safe brand colours. A single ramp step cannot serve both
-   * themes: measured, #46178f is 7.0:1 on the light canvas but only ~2.4:1 on
+   * themes: measured, #004ccc is 7.0:1 on the light canvas but only ~2.4:1 on
    * the dark one. Anything that renders as text, an icon, a hairline or a
    * focus ring uses these; solid fills that carry white text keep `brand-500`,
    * where white measures 7.2:1.
@@ -232,7 +232,7 @@
   --accent-alt: var(--color-teal-700);
 
   /* Ambient light behind the page — tuned per theme. */
-  --glow-a: color-mix(in oklab, #46178f 26%, transparent);
+  --glow-a: color-mix(in oklab, var(--color-brand-500) 26%, transparent);
   --glow-b: color-mix(in oklab, #26890c 24%, transparent);
   --glow-c: color-mix(in oklab, #1368ce 20%, transparent);
 
@@ -273,7 +273,7 @@
   --accent: var(--color-brand-300);
   --accent-alt: var(--color-teal-400);
 
-  --glow-a: color-mix(in oklab, #46178f 68%, transparent);
+  --glow-a: color-mix(in oklab, var(--color-brand-500) 68%, transparent);
   --glow-b: color-mix(in oklab, #26890c 34%, transparent);
   --glow-c: color-mix(in oklab, #1368ce 30%, transparent);
 }

@@ -4,6 +4,7 @@ import { io, type Socket } from 'socket.io-client'
 import { getAccessToken,refreshSession } from '@/lib/api'
 import { snapshotSchema, type SessionSnapshot,type ServerEvents,type ClientEvents,type CommandName,type CommandInput,type Reply } from '@/shared/session'
 import { ServerClock } from './clock'
+import type {GameMode} from '@/shared/arcade'
 
 interface LiveState {snapshot:SessionSnapshot|null;connected:boolean;error:string|null;set:(patch:Partial<LiveState>)=>void}
 export const useLiveState=create<LiveState>(set=>({snapshot:null,connected:false,error:null,set:patch=>set(patch)}))
@@ -11,7 +12,7 @@ export const PARTICIPANT_STORAGE='asasera:participant'
 export function storedSeat():{runId:number;resumeToken:string}|null {
   try{const s=JSON.parse(sessionStorage.getItem(PARTICIPANT_STORAGE)??'null');return s&&typeof s.runId==='number'&&typeof s.resumeToken==='string'?s:null}catch{return null}
 }
-export function useSession(options:{role:'host'|'projector'|'player';runId?:number;activityId?:number;requestId?:string;projectorToken?:string;onCreated?:(id:number)=>void}) {
+export function useSession(options:{role:'host'|'projector'|'player';runId?:number;activityId?:number;requestId?:string;gameMode?:GameMode;projectorToken?:string;onCreated?:(id:number)=>void}) {
   const socketRef=useRef<Socket<ServerEvents,ClientEvents>|null>(null)
   const [clock]=useState(()=>new ServerClock())
   const state=useLiveState()
@@ -34,7 +35,7 @@ export function useSession(options:{role:'host'|'projector'|'player';runId?:numb
     // Socket.IO can flush a buffered answer before its reconnect callback has
     // restored the seat (including after a device wall-clock jump). Restore
     // the capability, then retry the identical idempotent answer once.
-    if(!reply.ok&&reply.code==='forbidden'&&event==='player:answer'){
+    if(!reply.ok&&reply.code==='forbidden'&&(event==='player:answer'||event==='player:game')){
       const seat=storedSeat()
       if(seat){await send('player:resume',seat);reply=await emitCommand()}
     }
@@ -66,7 +67,7 @@ export function useSession(options:{role:'host'|'projector'|'player';runId?:numb
       void(async()=>{
         if(options.role==='host') {
           if(options.runId)await send('host:resume',{runId:options.runId})
-          else if(options.activityId){const r=await send('host:create',{activityId:options.activityId,requestId:options.requestId??crypto.randomUUID()});if(alive&&r.snapshot)createdRef.current?.(r.snapshot.runId)}
+          else if(options.activityId){const r=await send('host:create',{activityId:options.activityId,requestId:options.requestId??crypto.randomUUID(),gameMode:options.gameMode??'quiz'});if(alive&&r.snapshot)createdRef.current?.(r.snapshot.runId)}
         }else if(options.role==='projector'&&options.runId&&options.projectorToken)await send('projector:join',{runId:options.runId,token:options.projectorToken})
         else if(options.role==='player'){const seat=storedSeat();if(seat)await send('player:resume',seat)}
         await synchronize()
@@ -82,6 +83,6 @@ export function useSession(options:{role:'host'|'projector'|'player';runId?:numb
     return()=>{alive=false;document.removeEventListener('visibilitychange',visibility);socket.removeAllListeners();socket.disconnect();socketRef.current=null}
     // Session identity, not render-time callbacks, determines connection lifetime.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  },[options.role,options.runId,options.activityId,options.requestId,options.projectorToken])
+  },[options.role,options.runId,options.activityId,options.requestId,options.projectorToken,options.gameMode])
   return {...state,send,clock,exit:()=>{sessionStorage.removeItem(PARTICIPANT_STORAGE);useLiveState.getState().set({snapshot:null,error:null});socketRef.current?.disconnect()}}
 }

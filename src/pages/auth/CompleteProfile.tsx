@@ -1,6 +1,7 @@
 import {DeleteAccount} from '@/features/delivery/DeleteAccount'
 import { useEffect, useRef } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Navigate, useLocation, useNavigate } from 'react-router-dom'
+import { loginStateFor } from '@/lib/afterAuth'
 
 import { AuthCard, FormError } from '@/components/form/AuthCard'
 import { SelectField } from '@/components/form/SelectField'
@@ -13,7 +14,6 @@ import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 import { useReferenceList } from '@/hooks/useReferenceList'
 import { auth, reference } from '@/lib/api'
 
-const loadStages = (signal?: AbortSignal) => reference.educationStages(signal)
 const loadWorkplaceTypes = (signal?: AbortSignal) => reference.workplaceTypes(signal)
 const loadCategories = (signal?: AbortSignal) => reference.categories(signal)
 
@@ -48,10 +48,10 @@ export default function CompleteProfile() {
   useDocumentTitle(c.completeProfile.title)
 
   const navigate = useNavigate()
+  const location = useLocation()
   const { status, user, applyUser } = useAuth()
   const toMessage = useApiErrorMessage()
 
-  const stages = useReferenceList(loadStages)
   const categories = useReferenceList(loadCategories)
   /* So that "you can change this later" on the workplace step is true. */
   const workplaces = useReferenceList(loadWorkplaceTypes)
@@ -63,8 +63,8 @@ export default function CompleteProfile() {
    * for a frame on every reload of this route.
    */
   useEffect(() => {
-    if (status === 'anonymous') navigate('/login', { replace: true })
-  }, [status, navigate])
+    if (status === 'anonymous') navigate('/login', { replace: true, state: loginStateFor(location) })
+  }, [status, navigate, location])
 
   const form = useAuthForm({
     initial: { category_id: '', education_stage_id: '', workplace_type_id: '' },
@@ -139,6 +139,8 @@ export default function CompleteProfile() {
     )
   }
 
+  if (user.role === 'student') return <Navigate to="/student/profile" replace />
+
   return (
     <AuthCard title={c.completeProfile.title} lead={c.completeProfile.lead} width="wide">
       {/* Subject and stage are one question asked twice, so they share a row. */}
@@ -156,7 +158,7 @@ export default function CompleteProfile() {
           onRetry={categories.reload}
           value={form.values.category_id}
           error={form.errors.category_id}
-          onChange={form.field('category_id').onChange}
+          onValueChange={value=>form.setValue('category_id',value)}
           onBlur={form.field('category_id').onBlur}
         />
 
@@ -177,37 +179,8 @@ export default function CompleteProfile() {
             onRetry={workplaces.reload}
             value={form.values.workplace_type_id}
             error={form.errors.workplace_type_id}
-            onChange={form.field('workplace_type_id').onChange}
+            onValueChange={value=>form.setValue('workplace_type_id',value)}
             onBlur={form.field('workplace_type_id').onBlur}
-          />
-        ) : null}
-
-        {/*
-          STUDENTS ONLY, and this is the other half of the workplace
-          correction rather than a tidy-up.
-          
-          A teacher's signup no longer asks which level they teach — four
-          workplace cards replaced that ladder. Leaving the stage select here
-          for teachers would have put the same question back one screen later,
-          which is precisely the complexity the correction removes; it would
-          also have offered them two overlapping answers about the same thing.
-          A student's signup DOES ask for a level, so a student keeps it and
-          can correct it here.
-        */}
-        {user.role === 'student' ? (
-          <SelectField
-            label={c.registerTeacher.stageLabel}
-            placeholder={c.registerTeacher.stagePlaceholder}
-            name="education_stage_id"
-            disabled={form.submitting}
-            options={stages.options}
-            loading={stages.loading}
-            failed={stages.failed}
-            onRetry={stages.reload}
-            value={form.values.education_stage_id}
-            error={form.errors.education_stage_id}
-            onChange={form.field('education_stage_id').onChange}
-            onBlur={form.field('education_stage_id').onBlur}
           />
         ) : null}
 

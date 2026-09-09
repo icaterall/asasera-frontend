@@ -1,0 +1,331 @@
+{
+  "generatedAt": "2026-09-08",
+  "method": "Built-in image_gen",
+  "purpose": "Asasera activity theme backgrounds",
+  "images": [
+    {
+      "id": "jungle",
+      "prompt": "Use case: stylized-concept. Asset type: HD full-screen background for Asasera educational quiz activities. Generate a wide 16:9 landscape, ideally 2560×1440 or higher native resolution. Style: original polished three-dimensional game environment, rounded carefully sculpted forms, tactile matte materials, soft realistic global illumination, rich but controlled saturated colors, convincing foreground/middle/background depth, beautiful fine detail without visual noise. Composition: environment details concentrated along the outer 20% edges; the middle 60% is tranquil uncluttered atmosphere for a quiz panel overlay. Keep an interesting recognizable world even when viewed on a portrait phone with side cropping. Render only the environment, no interface, no text, letters, symbols, logos, watermarks, characters, mascots or answer cards. No frame. Not a collage. An adventurous emerald jungle clearing. Enormous glossy tropical leaves and mossy tree roots frame the lower corners, layered distant rainforest canopies, a narrow waterfall at the far left, warm shafts of morning sun, a quiet misty teal central clearing. Friendly lush explorer world.",
+      "source": "/Users/ashrafqahman/.codex/generated_images/01a07c6f-f123-7362-bbf6-ff293223e50a/exec-ef2e1a17-06f4-4192-8e04-39a4a01ebd1c.png",
+      "nativeWidth": 1672,
+      "nativeHeight": 941,
+      "outputs": [
+        {
+          "path": "src/assets/images/activity-themes/jungle-hd.webp",
+          "width": 1672,
+          "height": 941,
+          "bytes": 333050
+        },
+        {
+          "path": "src/assets/images/activity-themes/jungle-mobile.webp",
+          "width": 1280,
+          "height": 720,
+          "bytes": 191900
+        },
+        {
+          "path": "src/assets/images/activity-themes/jungle-thumb.webp",
+          "width": 480,
+          "height": 270,
+          "bytes": 33124
+        }
+      ]
+    },
+    {
+      "id": "sky",
+      "prompt": "Use case: stylized-concept. Asset type: HD full-screen background for Asasera educational quiz activities. Generate a wide 16:9 landscape, ideally 2560×1440 or higher native resolution. Style: original polished three-dimensional game environment, rounded carefully sculpted forms, tactile matte materials, soft realistic global illumination, rich but controlled saturated colors, convincing foreground/middle/background depth, beautiful fine detail without visual noise. Composition: environment details concentrated along the outer 20% edges; the middle 60% is tranquil uncluttered atmosphere for a quiz panel overlay. Keep an interesting recognizable world even when viewed on a portrait phone with side cropping. Render only the environment, no interface, no text, letters, symbols, logos, watermarks, characters, mascots or answer cards. No frame. Not a collage. A magical sky world above soft white clouds. A few beautifully formed floating grassy rock islands at the far left and right, distant blue mountains suspended above cloud banks, calm expansive blue sky in the middle, radiant daylight. Airy and uplifting, clear depth.",
+      "source": "/Users/ashrafqahman/.codex/generated_images/01a07c6f-f123-7362-bbf6-ff293223e50a/exec-dbfb013f-d81d-47d8-93e6-550d2724356d.png",
+      "nativeWidth": 1672,
+      "nativeHeight": 941,
+      "outputs": [
+        {
+          "path": "src/assets/images/activity-themes/sky-hd.webp",
+          "width": 1672,
+          "height": 941,
+          "bytes": 164244
+        },
+        {
+          "path": "src/assets/images/activity-themes/sky-mobile.webp",
+          "width": 1280,
+          "height": 720,
+          "bytes": 97350
+        },
+        {
+          "path": "src/assets/images/activity-themes/sky-thumb.webp",
+          "width": 480,
+          "height": 270,
+          "bytes": 19952
+        }
+      ]
+    },
+    {
+      "id": "island",
+      "prompt": "Use case: stylized-concept. Asset type: HD full-screen background for Asasera educational quiz activities. Generate a wide 16:9 landscape, ideally 2560×1440 or higher native resolution. Style: original polished three-dimensional game environment, rounded carefully sculpted forms, tactile matte materials, soft realistic global illumination, rich but controlled saturated colors, convincing foreground/middle/background depth, beautiful fine detail without visual noise. Composition: environment details concentrated along the outer 20% edges; the middle 60% is tranquil uncluttered atmosphere for a quiz panel overlay. Keep an interesting recognizable world even when viewed on a portrait phone with side cropping. Render only the environment, no interface, no text, letters, symbols, logos, watermarks, characters, mascots or answer cards. No frame. Not a collage. A tropical island lagoon. Sculpted palm trees at the outer corners, warm cream sand and rounded coastal rocks in the foreground, turquoise ocean and a distant tiny island, bright clear sky. A playful luxurious tropical game world, empty peaceful open central lagoon.",
+      "source": "/Users/ashrafqahman/.codex/generated_images/01a07c6f-f123-7362-bbf6-ff293223e50a/exec-ce78a9b8-21fb-4aa9-bf2c-071ca7c7788c.png",
+      "nativeWidth": 1672,
+      "nativeHeight": 941,
+      "outputs": [
+        {
+          "path": "src/assets/images/activity-themes/island-hd.webp",
+          "width": 1672,
+          "height": 941,
+          "bytes": 241630
+        },
+        {
+          "path": "src/assets/images/activity-themes/island-mobile.webp",
+          "width": 1280,
+          "height": 720,
+          "bytes": 137904
+        },
+        {
+          "path": "src/assets/images/activity-themes/island-thumb.webp",
+          "width": 480,
+          "height": 270,
+          "bytes": 24290
+        }
+      ]
+    },
+    {
+      "id": "ocean",
+      "prompt": "Use case: stylized-concept. Asset type: HD full-screen background for Asasera educational quiz activities. Generate a wide 16:9 landscape, ideally 2560×1440 or higher native resolution. Style: original polished three-dimensional game environment, rounded carefully sculpted forms, tactile matte materials, soft realistic global illumination, rich but controlled saturated colors, convincing foreground/middle/background depth, beautiful fine detail without visual noise. Composition: environment details concentrated along the outer 20% edges; the middle 60% is tranquil uncluttered atmosphere for a quiz panel overlay. Keep an interesting recognizable world even when viewed on a portrait phone with side cropping. Render only the environment, no interface, no text, letters, symbols, logos, watermarks, characters, mascots or answer cards. No frame. Not a collage. An underwater coral kingdom. Rounded colorful coral gardens and smooth stones frame the lower corners, layered turquoise water, delicate caustic sunlight through water from above, tiny distant fish silhouettes at the outer edges only, open deep-blue water in the center. Friendly and wondrous.",
+      "source": "/Users/ashrafqahman/.codex/generated_images/01a07c6f-f123-7362-bbf6-ff293223e50a/exec-ddd3fe53-0fc4-4a72-bb75-443a96dc0100.png",
+      "nativeWidth": 1672,
+      "nativeHeight": 941,
+      "outputs": [
+        {
+          "path": "src/assets/images/activity-themes/ocean-hd.webp",
+          "width": 1672,
+          "height": 941,
+          "bytes": 233582
+        },
+        {
+          "path": "src/assets/images/activity-themes/ocean-mobile.webp",
+          "width": 1280,
+          "height": 720,
+          "bytes": 137276
+        },
+        {
+          "path": "src/assets/images/activity-themes/ocean-thumb.webp",
+          "width": 480,
+          "height": 270,
+          "bytes": 25512
+        }
+      ]
+    },
+    {
+      "id": "desert",
+      "prompt": "Use case: stylized-concept. Asset type: HD full-screen background for Asasera educational quiz activities. Generate a wide 16:9 landscape, ideally 2560×1440 or higher native resolution. Style: original polished three-dimensional game environment, rounded carefully sculpted forms, tactile matte materials, soft realistic global illumination, rich but controlled saturated colors, convincing foreground/middle/background depth, beautiful fine detail without visual noise. Composition: environment details concentrated along the outer 20% edges; the middle 60% is tranquil uncluttered atmosphere for a quiz panel overlay. Keep an interesting recognizable world even when viewed on a portrait phone with side cropping. Render only the environment, no interface, no text, letters, symbols, logos, watermarks, characters, mascots or answer cards. No frame. Not a collage. An Arabian desert adventure. Layered golden sand dunes flowing toward distant mauve mountains, elegant weathered sandstone arches at the far edges, small date palms near one corner, late-afternoon warm sunlight and vast peaceful sky. Distinct rounded game-world sculpting.",
+      "source": "/Users/ashrafqahman/.codex/generated_images/01a07c6f-f123-7362-bbf6-ff293223e50a/exec-a73d6aef-6103-477d-9b83-af59da63f0a0.png",
+      "nativeWidth": 1672,
+      "nativeHeight": 941,
+      "outputs": [
+        {
+          "path": "src/assets/images/activity-themes/desert-hd.webp",
+          "width": 1672,
+          "height": 941,
+          "bytes": 143296
+        },
+        {
+          "path": "src/assets/images/activity-themes/desert-mobile.webp",
+          "width": 1280,
+          "height": 720,
+          "bytes": 82462
+        },
+        {
+          "path": "src/assets/images/activity-themes/desert-thumb.webp",
+          "width": 480,
+          "height": 270,
+          "bytes": 16048
+        }
+      ]
+    },
+    {
+      "id": "space",
+      "prompt": "Use case: stylized-concept. Asset type: HD full-screen background for Asasera educational quiz activities. Generate a wide 16:9 landscape, ideally 2560×1440 or higher native resolution. Style: original polished three-dimensional game environment, rounded carefully sculpted forms, tactile matte materials, soft realistic global illumination, rich but controlled saturated colors, convincing foreground/middle/background depth, beautiful fine detail without visual noise. Composition: environment details concentrated along the outer 20% edges; the middle 60% is tranquil uncluttered atmosphere for a quiz panel overlay. Keep an interesting recognizable world even when viewed on a portrait phone with side cropping. Render only the environment, no interface, no text, letters, symbols, logos, watermarks, characters, mascots or answer cards. No frame. Not a collage. A space exploration world viewed from a rounded alien moon landscape. Smooth blue-violet moon rocks at foreground edges, a beautiful large ringed planet in the far upper right, distant stars and luminous cyan nebula, open dark-navy center. Welcoming science adventure, no spacecraft or text.",
+      "source": "/Users/ashrafqahman/.codex/generated_images/01a07c6f-f123-7362-bbf6-ff293223e50a/exec-aa671b2b-435b-499d-b3d3-fc3cf20cd91b.png",
+      "nativeWidth": 1672,
+      "nativeHeight": 941,
+      "outputs": [
+        {
+          "path": "src/assets/images/activity-themes/space-hd.webp",
+          "width": 1672,
+          "height": 941,
+          "bytes": 181584
+        },
+        {
+          "path": "src/assets/images/activity-themes/space-mobile.webp",
+          "width": 1280,
+          "height": 720,
+          "bytes": 106190
+        },
+        {
+          "path": "src/assets/images/activity-themes/space-thumb.webp",
+          "width": 480,
+          "height": 270,
+          "bytes": 18812
+        }
+      ]
+    },
+    {
+      "id": "aurora",
+      "prompt": "Use case: stylized-concept. Asset type: HD full-screen background for Asasera educational quiz activities. Generate a wide 16:9 landscape, ideally 2560×1440 or higher native resolution. Style: original polished three-dimensional game environment, rounded carefully sculpted forms, tactile matte materials, soft realistic global illumination, rich but controlled saturated colors, convincing foreground/middle/background depth, beautiful fine detail without visual noise. Composition: environment details concentrated along the outer 20% edges; the middle 60% is tranquil uncluttered atmosphere for a quiz panel overlay. Keep an interesting recognizable world even when viewed on a portrait phone with side cropping. Render only the environment, no interface, no text, letters, symbols, logos, watermarks, characters, mascots or answer cards. No frame. Not a collage. An enchanted northern night. Rounded snowy fir trees at the outer edges, distant mountains mirrored in a still icy lake, sweeping emerald and turquoise aurora ribbons across the upper sky, open deep navy central lake and horizon. Magical but serene sculpted 3D landscape.",
+      "source": "/Users/ashrafqahman/.codex/generated_images/01a07c6f-f123-7362-bbf6-ff293223e50a/exec-3b0b8cc3-9bac-45e5-8d60-d0eda6c1a171.png",
+      "nativeWidth": 1672,
+      "nativeHeight": 941,
+      "outputs": [
+        {
+          "path": "src/assets/images/activity-themes/aurora-hd.webp",
+          "width": 1672,
+          "height": 941,
+          "bytes": 163972
+        },
+        {
+          "path": "src/assets/images/activity-themes/aurora-mobile.webp",
+          "width": 1280,
+          "height": 720,
+          "bytes": 94184
+        },
+        {
+          "path": "src/assets/images/activity-themes/aurora-thumb.webp",
+          "width": 480,
+          "height": 270,
+          "bytes": 19028
+        }
+      ]
+    },
+    {
+      "id": "volcano",
+      "prompt": "Use case: stylized-concept. Asset type: HD full-screen background for Asasera educational quiz activities. Generate a wide 16:9 landscape, ideally 2560×1440 or higher native resolution. Style: original polished three-dimensional game environment, rounded carefully sculpted forms, tactile matte materials, soft realistic global illumination, rich but controlled saturated colors, convincing foreground/middle/background depth, beautiful fine detail without visual noise. Composition: environment details concentrated along the outer 20% edges; the middle 60% is tranquil uncluttered atmosphere for a quiz panel overlay. Keep an interesting recognizable world even when viewed on a portrait phone with side cropping. Render only the environment, no interface, no text, letters, symbols, logos, watermarks, characters, mascots or answer cards. No frame. Not a collage. A friendly volcanic adventure island at dusk. Warm glowing lava ribbons between rounded dark volcanic rocks at the lower edges, a distant gently glowing volcano at far left, smoky orange and plum sky, open quiet dark-violet center. Dramatic game environment without danger, eruption or characters.",
+      "source": "/Users/ashrafqahman/.codex/generated_images/01a07c6f-f123-7362-bbf6-ff293223e50a/exec-9b130f0a-13ce-415d-a27c-43e84ce3182b.png",
+      "nativeWidth": 1672,
+      "nativeHeight": 941,
+      "outputs": [
+        {
+          "path": "src/assets/images/activity-themes/volcano-hd.webp",
+          "width": 1672,
+          "height": 941,
+          "bytes": 135998
+        },
+        {
+          "path": "src/assets/images/activity-themes/volcano-mobile.webp",
+          "width": 1280,
+          "height": 720,
+          "bytes": 77994
+        },
+        {
+          "path": "src/assets/images/activity-themes/volcano-thumb.webp",
+          "width": 480,
+          "height": 270,
+          "bytes": 14826
+        }
+      ]
+    },
+    {
+      "id": "candy",
+      "prompt": "Use case: stylized-concept. Asset type: HD full-screen background for Asasera educational quiz activities. Generate a wide 16:9 landscape, ideally 2560×1440 or higher native resolution. Style: original polished three-dimensional game environment, rounded carefully sculpted forms, tactile matte materials, soft realistic global illumination, rich but controlled saturated colors, convincing foreground/middle/background depth, beautiful fine detail without visual noise. Composition: environment details concentrated along the outer 20% edges; the middle 60% is tranquil uncluttered atmosphere for a quiz panel overlay. Keep an interesting recognizable world even when viewed on a portrait phone with side cropping. Render only the environment, no interface, no text, letters, symbols, logos, watermarks, characters, mascots or answer cards. No frame. Not a collage. A joyful candy valley. Rounded pastel candy trees, smooth gumdrop hills and peppermint-inspired curving forms framing the outer edges, a winding soft pink path and distant lavender hills, clear aqua and peach sky. High-quality tactile 3D materials, playful yet elegant, uncluttered open center.",
+      "source": "/Users/ashrafqahman/.codex/generated_images/01a07c6f-f123-7362-bbf6-ff293223e50a/exec-8ef22812-2699-4af7-b048-a17ed72b28f4.png",
+      "nativeWidth": 1672,
+      "nativeHeight": 941,
+      "outputs": [
+        {
+          "path": "src/assets/images/activity-themes/candy-hd.webp",
+          "width": 1672,
+          "height": 941,
+          "bytes": 164244
+        },
+        {
+          "path": "src/assets/images/activity-themes/candy-mobile.webp",
+          "width": 1280,
+          "height": 720,
+          "bytes": 101312
+        },
+        {
+          "path": "src/assets/images/activity-themes/candy-thumb.webp",
+          "width": 480,
+          "height": 270,
+          "bytes": 20898
+        }
+      ]
+    },
+    {
+      "id": "arctic",
+      "prompt": "Use case: stylized-concept. Asset type: HD full-screen background for Asasera educational quiz activities. Generate a wide 16:9 landscape, ideally 2560×1440 or higher native resolution. Style: original polished three-dimensional game environment, rounded carefully sculpted forms, tactile matte materials, soft realistic global illumination, rich but controlled saturated colors, convincing foreground/middle/background depth, beautiful fine detail without visual noise. Composition: environment details concentrated along the outer 20% edges; the middle 60% is tranquil uncluttered atmosphere for a quiz panel overlay. Keep an interesting recognizable world even when viewed on a portrait phone with side cropping. Render only the environment, no interface, no text, letters, symbols, logos, watermarks, characters, mascots or answer cards. No frame. Not a collage. A sunny polar ice adventure. Sculpted blue icebergs, rounded snowdrifts and small crystalline ice formations framing edges, a calm cyan sea and distant white mountains, clear pale blue sky. Bright, crisp, dimensional, expansive empty central horizon.",
+      "source": "/Users/ashrafqahman/.codex/generated_images/01a07c6f-f123-7362-bbf6-ff293223e50a/exec-47d744c4-30e4-40ab-8502-afc2f7bc7ab0.png",
+      "nativeWidth": 1672,
+      "nativeHeight": 941,
+      "outputs": [
+        {
+          "path": "src/assets/images/activity-themes/arctic-hd.webp",
+          "width": 1672,
+          "height": 941,
+          "bytes": 153808
+        },
+        {
+          "path": "src/assets/images/activity-themes/arctic-mobile.webp",
+          "width": 1280,
+          "height": 720,
+          "bytes": 92190
+        },
+        {
+          "path": "src/assets/images/activity-themes/arctic-thumb.webp",
+          "width": 480,
+          "height": 270,
+          "bytes": 18600
+        }
+      ]
+    },
+    {
+      "id": "castle",
+      "prompt": "Use case: stylized-concept. Asset type: HD full-screen background for Asasera educational quiz activities. Generate a wide 16:9 landscape, ideally 2560×1440 or higher native resolution. Style: original polished three-dimensional game environment, rounded carefully sculpted forms, tactile matte materials, soft realistic global illumination, rich but controlled saturated colors, convincing foreground/middle/background depth, beautiful fine detail without visual noise. Composition: environment details concentrated along the outer 20% edges; the middle 60% is tranquil uncluttered atmosphere for a quiz panel overlay. Keep an interesting recognizable world even when viewed on a portrait phone with side cropping. Render only the environment, no interface, no text, letters, symbols, logos, watermarks, characters, mascots or answer cards. No frame. Not a collage. A storybook castle landscape. A charming stone castle with blue conical roofs on a distant grassy hill at the far right, rounded ancient trees and garden stones framing the foreground, a meandering path and open green valley under a blue sky. Premium friendly 3D adventure world, no characters.",
+      "source": "/Users/ashrafqahman/.codex/generated_images/01a07c6f-f123-7362-bbf6-ff293223e50a/exec-7c9124dc-f98c-4e33-afc6-e3884cf1aaa1.png",
+      "nativeWidth": 1672,
+      "nativeHeight": 941,
+      "outputs": [
+        {
+          "path": "src/assets/images/activity-themes/castle-hd.webp",
+          "width": 1672,
+          "height": 941,
+          "bytes": 282268
+        },
+        {
+          "path": "src/assets/images/activity-themes/castle-mobile.webp",
+          "width": 1280,
+          "height": 720,
+          "bytes": 167444
+        },
+        {
+          "path": "src/assets/images/activity-themes/castle-thumb.webp",
+          "width": 480,
+          "height": 270,
+          "bytes": 30700
+        }
+      ]
+    },
+    {
+      "id": "garden",
+      "prompt": "Use case: stylized-concept. Asset type: HD full-screen background for Asasera educational quiz activities. Generate a wide 16:9 landscape, ideally 2560×1440 or higher native resolution. Style: original polished three-dimensional game environment, rounded carefully sculpted forms, tactile matte materials, soft realistic global illumination, rich but controlled saturated colors, convincing foreground/middle/background depth, beautiful fine detail without visual noise. Composition: environment details concentrated along the outer 20% edges; the middle 60% is tranquil uncluttered atmosphere for a quiz panel overlay. Keep an interesting recognizable world even when viewed on a portrait phone with side cropping. Render only the environment, no interface, no text, letters, symbols, logos, watermarks, characters, mascots or answer cards. No frame. Not a collage. A secret spring garden seen from a small explorer's low viewpoint. Oversized daisies and colorful wildflowers, soft fern fronds and rounded mossy stones at the extreme edges, a gently curving garden path into a warm sunlit open clearing. Lush fresh green and golden light, magical tactile 3D nature.",
+      "source": "/Users/ashrafqahman/.codex/generated_images/01a07c6f-f123-7362-bbf6-ff293223e50a/exec-8443609f-a0f5-4570-aa06-7eaadd825786.png",
+      "nativeWidth": 1672,
+      "nativeHeight": 941,
+      "outputs": [
+        {
+          "path": "src/assets/images/activity-themes/garden-hd.webp",
+          "width": 1672,
+          "height": 941,
+          "bytes": 284742
+        },
+        {
+          "path": "src/assets/images/activity-themes/garden-mobile.webp",
+          "width": 1280,
+          "height": 720,
+          "bytes": 172938
+        },
+        {
+          "path": "src/assets/images/activity-themes/garden-thumb.webp",
+          "width": 480,
+          "height": 270,
+          "bytes": 35960
+        }
+      ]
+    }
+  ]
+}

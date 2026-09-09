@@ -1,0 +1,11 @@
+# Colorful instructor dashboard
+
+User request: the instructor dashboard must be colorful, organized, easy to understand and supported by expressive icons and pictures.
+
+The refinement is confined to TeacherHome.tsx and its new Dashboard.module.css. Existing owned activity rows, library, creation form, discovery, sidebar, student screens and backend behavior remain as before. Home now has a personal greeting, Asasera-blue illustrated creation hero with a yellow action, four colored Lucide shortcuts, recent work, teal discovery invitation, a jungle-world preview, yellow Random wheel invitation and teacher-guide link. Headings and consistent labeled destinations communicate hierarchy; no metric or content is invented.
+
+The built-in image_gen tool created the original 3D classroom illustration. The source was inspected in the generation result; it shows an instructor, three collaborating learners, learning objects and a four-color board without text or branding. It is an illustration, not evidence of customers. Project assets are src/assets/images/teacher-dashboard/classroom-studio.webp (1536×1024; 138,636 bytes) and classroom-studio-small.webp (640×427; 39,222 bytes), with exact prompt/provenance sidecars and the source preserved in the generated-images directory. Existing jungle artwork is reused. Image dimensions, srcset/sizes, contain framing and lazy-loading for the secondary preview are explicit.
+
+Validation: frontend typecheck/build/bundle assertions and scoped lint pass. Eleven source-defined color pairs, including light/dark icon treatments and hero/action text, range from 5.68:1 to 9.72:1. One static detector pass reports 25 advisory palette/type/radius findings and no non-advisory findings. All 38 shipping raster sources scanned have provenance. Existing large game-renderer bundle warning remains. No backend tests were rerun for this visual-only refinement; the preceding 52-test result is historical.
+
+Browser inspection remains blocked by the existing admin-enforced security denial. No alternate browser, renderer or URL workaround was used. No current desktop/mobile or EN/AR screenshot exists, so actual rendered spacing, overflow and focus interactions remain unverified. Prior recapture status is not a visual approval of this refinement.

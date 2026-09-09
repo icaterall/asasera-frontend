@@ -4,7 +4,7 @@ import {useQuery} from '@tanstack/react-query'
 import {useTranslation} from 'react-i18next'
 import {X,Sparkles,FileText,Check} from 'lucide-react'
 import {api,teaching,type ActivityRecord,type QuestionRecord} from '@/lib/api'
-import {Button} from '@/design'
+import {Button, Select } from '@/design'
 import {type GenerationTask} from '@/shared/generation'
 import {useImage} from './ImageUpload'
 import styles from './GenerationPanel.module.css'
@@ -41,17 +41,17 @@ export function GenerationPanel({activity,question,onClose,onApplied}:{activity:
   <div className={styles.body}>
    <p>{t('راجع صحة المحتوى قبل إضافته. تبقى المقترحات مسودات حتى تختارها وتنشر النشاط.','Review accuracy before adding anything. Candidates remain drafts until you select them and publish the activity.')}</p>
    <div className={styles.form}>
-    <label>{t('المهمة','Task')}<select value={task} onChange={e=>{setTask(e.target.value as GenerationTask);setJobId(null);setSelected([])}}>
+    <label>{t('المهمة','Task')}<Select value={task} onValueChange={e=>{setTask(e as GenerationTask);setJobId(null);setSelected([])}}>
      <option value="questions">{t('توليد أسئلة','Generate questions')}</option><option value="reasons" disabled={!question}>{t('اقتراح أسباب الإجابات الخاطئة','Suggest distractor reasons')}</option><option value="zones" disabled={question?.kind!=='hotspot'}>{t('اقتراح مناطق الصورة','Suggest image regions')}</option><option value="merges">{t('مراجعة تسميات التصورات المتشابهة','Review similar misconception labels')}</option>
-    </select></label>
-    {task==='questions'&&<><label>{t('من أين نبدأ؟','Starting point')}<select value={origin} onChange={e=>setOrigin(e.target.value as 'topic'|'file')}><option value="topic">{t('موضوع ضمن مادة النشاط ومستواه','Topic within this subject and level')}</option><option value="file">{t('صفحات أو فقرات من ملفاتي','Pages or paragraphs from my sources')}</option></select></label>
+    </Select></label>
+    {task==='questions'&&<><label>{t('من أين نبدأ؟','Starting point')}<Select value={origin} onValueChange={e=>setOrigin(e as 'topic'|'file')}><option value="topic">{t('موضوع ضمن مادة النشاط ومستواه','Topic within this subject and level')}</option><option value="file">{t('صفحات أو فقرات من ملفاتي','Pages or paragraphs from my sources')}</option></Select></label>
      {question&&<label className={styles.check}><input type="checkbox" checked={replace} onChange={e=>setReplace(e.target.checked)}/>{t('أعد توليد السؤال الحالي وحده؛ الاستبدال بعد اختياري','Regenerate this question only; replace after I accept')}</label>}
      {!replace&&<label>{t('عدد الأسئلة','Question count')}<input type="number" min={1} max={10} value={count} onChange={e=>setCount(Number(e.target.value))}/></label>}
      <fieldset><legend>{t('الأنواع','Types')}</legend>{[['mcq','اختيار من متعدد','Multiple choice'],['tf','صح / خطأ','True / false'],['order','ترتيب','Ordering'],['match','مطابقة','Matching']].map(([kind,a,e])=><label className={styles.check} key={kind}><input type="checkbox" checked={kinds.includes(kind!)} onChange={()=>setKinds(k=>k.includes(kind!)?k.filter(x=>x!==kind):[...k,kind!])}/>{t(a!,e!)}</label>)}</fieldset>
     </>}
-    {task==='questions'&&origin==='file'&&<section className={styles.sources}><label>{t('المصدر','Source')}<select value={revisionId??''} onChange={e=>{setRevisionId(Number(e.target.value)||null);setSegments([])}}><option value="">{t('اختر مصدرًا مقروءًا','Choose a readable source')}</option>{materials.data?.materials.map(m=><option value={m.revisionId??''} disabled={!m.revisionId} key={m.id}>{m.title}</option>)}</select></label>
+    {task==='questions'&&origin==='file'&&<section className={styles.sources}><label>{t('المصدر','Source')}<Select value={revisionId??''} onValueChange={e=>{setRevisionId(Number(e)||null);setSegments([])}}><option value="">{t('اختر مصدرًا مقروءًا','Choose a readable source')}</option>{materials.data?.materials.map(m=><option value={m.revisionId??`unavailable:${m.id}`} disabled={!m.revisionId} key={m.id}>{m.title}</option>)}</Select></label>
      <a href="/teacher/materials" target="_blank" rel="noreferrer">{t('افتح ملفاتي لرفع PDF أو إضافة نص','Open my sources to upload a PDF or add text')}</a>
-     <div className={styles.segmentList}>{pages.data?.segments.map(s=><label key={s.segmentIndex} className={styles.check}><input type="checkbox" checked={segments.includes(s.segmentIndex)} onChange={()=>setSegments(current=>current.includes(s.segmentIndex)?current.filter(n=>n!==s.segmentIndex):[...current,s.segmentIndex])}/><span>{s.pageIndex!==null?t(`صفحة ${s.pageIndex+1}`,`Page ${s.pageIndex+1}`):t(`فقرة ${s.segmentIndex}`,`Paragraph ${s.segmentIndex}`)} — {s.text.slice(0,180)}</span></label>)}</div>
+     <div className={styles.segmentList}>{pages.data?.segments.map(s=><label key={s.segmentIndex} className={styles.check}><input type="checkbox" checked={segments.includes(s.segmentIndex)} onChange={()=>setSegments(current=>current.includes(s.segmentIndex)?current.filter(n=>n!==s.segmentIndex):[...current,s.segmentIndex])}/><span>{s.pageIndex!==null?t(`صفحة ${s.pageIndex}`,`Page ${s.pageIndex}`):t(`فقرة ${s.segmentIndex}`,`Paragraph ${s.segmentIndex}`)} — {s.text.slice(0,180)}</span></label>)}</div>
     </section>}
     <label>{t('ما الذي تريد مراجعته أو تعليمه؟','What should learners practice?')}<textarea value={objective} onChange={e=>setObjective(e.target.value)} maxLength={1000} rows={3} placeholder={t('مثال: مقارنة الكسور ذات المقامات المتساوية','Example: compare fractions with the same denominator')}/></label>
    </div>
@@ -67,8 +67,10 @@ export function GenerationPanel({activity,question,onClose,onApplied}:{activity:
      <Button variant="primary" disabled={busy||!quoted.value.affordable||!quoted.value.providerConfigured} onClick={()=>void act(async()=>{const r=await api.post<{job:Job}>('/api/v1/activity-generation/jobs',{...request,maxAuthorizedMillicents:quoted.value.maxAuthorizedMillicents,idempotencyKey:requestKey});setJobId(r.job.id);setSelected([]);await jobs.refetch()})}>{t('ابدأ ضمن هذا الحد','Generate within this cap')}</Button>
     </>}
    </div>
-   {jobs.data?.jobs.length!==0&&<label>{t('العمليات السابقة','Previous jobs')}<select value={jobId??''} onChange={e=>{setJobId(Number(e.target.value)||null);setSelected([]);setSource(null)}}><option value="">{t('اختر عملية لعرضها','Choose a job')}</option>{jobs.data?.jobs.map(j=><option key={j.id} value={j.id}>#{j.id} · {taskLabel(j.task)} · {stateLabel(j.state)}</option>)}</select></label>}
+   {jobs.data?.jobs.length!==0&&<label>{t('العمليات السابقة','Previous jobs')}<Select value={jobId??''} onValueChange={e=>{setJobId(Number(e)||null);setSelected([]);setSource(null)}}><option value="">{t('اختر عملية لعرضها','Choose a job')}</option>{jobs.data?.jobs.map(j=><option key={j.id} value={j.id}>#{j.id} · {taskLabel(j.task)} · {stateLabel(j.id===job?.id?job.state:j.state)}</option>)}</Select></label>}
    {job&&<section className={styles.results} aria-live="polite"><h3>{t('المقترحات','Candidates')}</h3>
+    {!!result?.rejected&&<p role="status">{t(`استُبعد ${result.rejected} من المقترحات لعدم اجتياز التحقق. راجع المقترحات المتاحة؛ تُحسب التكلفة على النتائج الصالحة فقط.`,`${result.rejected} candidate(s) did not pass validation. Review the available candidates; you are charged only for valid results.`)}</p>}
+
     {['queued','running'].includes(job.state)&&<><p>{t('جارٍ التحضير. يمكنك إغلاق النافذة والعودة للعملية لاحقًا.','Preparing. You can close this panel and return to the job later.')}</p><Button disabled={busy} onClick={()=>void act(async()=>{await api.post(`/api/v1/activity-generation/jobs/${job.id}/cancel`);await active.refetch()})}>{t('إلغاء وإعادة الرصيد','Cancel and release credit')}</Button></>}
     {['failed','needs_review','cancelled'].includes(job.state)&&<p role="status">{job.settlementComplete?t('لم تُسلَّم مقترحات. أُعيد الرصيد المحجوز.','No candidates were delivered. Reserved credit was released.'):t('لم تُسلَّم مقترحات. إعادة الرصيد قيد المعالجة.','No candidates were delivered. Credit release is being processed.')} {job.state==='needs_review'&&t('حالة طلب المزوّد غير مؤكدة؛ لن نكرره تلقائيًا.','The provider outcome is uncertain; it will not be retried automatically.')}</p>}
     {job.task==='zones'&&jobImage&&result&&<div className={styles.zonePreview}><img src={jobImage??undefined} alt={t('معاينة المناطق المقترحة','Proposed image regions')}/><svg viewBox="0 0 1 1" preserveAspectRatio="none">{result.candidates.filter((_,i)=>selected.includes(i)).map((c,i)=><rect key={i} x={c.x} y={c.y} width={c.w} height={c.h}/>)}</svg></div>}

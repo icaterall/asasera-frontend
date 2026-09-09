@@ -50,7 +50,7 @@ const ar: typeof en = {
     signingOut: 'جارٍ الخروج…',
     unnamedAccount: 'حسابك',
     logIn: 'تسجيل الدخول',
-    getStarted: 'ابدأ الآن',
+    getStarted: 'إنشاء حساب',
   },
 
   cta: {

@@ -1,3 +1,4 @@
+import {selectOption} from './select-option'
 import {localTeacher} from './local-fixture'
 import {test,expect} from '@playwright/test'
 import {createRequire} from 'node:module'
@@ -12,20 +13,20 @@ test('teacher authors ordering, matching, and confirmed image zones with durable
   await page.getByRole('button',{name:'أضف سؤالًا',exact:true}).first().click()
   await expect(page.locator('[data-question-thumb]')).toHaveCount(1)
   await expect(page.locator('main')).not.toHaveAttribute('inert','')
-  const type=page.locator('aside select').first()
-  await type.selectOption('order');await page.getByLabel('نص السؤال').fill('رتب الأعداد تصاعديًا')
+  const type=page.locator('aside [data-select-trigger]').first()
+  await selectOption(type,'order');await page.getByLabel('نص السؤال').fill('رتب الأعداد تصاعديًا')
   await page.getByLabel('العنصر 1',{exact:true}).fill('واحد');await page.getByLabel('العنصر 2',{exact:true}).fill('اثنان')
   await page.getByRole('button',{name:'أضف عنصرًا',exact:true}).click();await page.getByLabel('العنصر 3',{exact:true}).fill('ثلاثة')
   await page.getByRole('button',{name:'أضف سؤالًا',exact:true}).first().click()
   await expect(page.locator('[data-question-thumb]')).toHaveCount(2)
   await expect(page.locator('main')).not.toHaveAttribute('inert','')
-  await type.selectOption('match');await page.getByLabel('نص السؤال').fill('طابق العدد مع اسمه')
+  await selectOption(type,'match');await page.getByLabel('نص السؤال').fill('طابق العدد مع اسمه')
   await page.getByLabel('الهدف 1',{exact:true}).fill('واحد');await page.getByLabel('الهدف 2',{exact:true}).fill('اثنان')
   await page.getByLabel('البطاقة 1',{exact:true}).fill('1');await page.getByLabel('البطاقة 2',{exact:true}).fill('2')
   await page.getByRole('button',{name:'أضف سؤالًا',exact:true}).first().click()
   await expect(page.locator('[data-question-thumb]')).toHaveCount(3)
   await expect(page.locator('main')).not.toHaveAttribute('inert','')
-  await type.selectOption('hotspot')
+  await selectOption(type,'hotspot')
   const image=await sharp({create:{width:640,height:400,channels:3,background:'#8bd3c7'}}).png().toBuffer()
   await page.locator('aside input[type=file]').setInputFiles({name:'synthetic-zones.png',mimeType:'image/png',buffer:image})
   await expect(page.getByRole('heading',{name:'مناطق الصورة',exact:true})).toBeVisible({timeout:20_000})

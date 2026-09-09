@@ -7,8 +7,10 @@
  */
 import { z } from 'zod'
 import { answerPayloadSchema, mcqPublicSchema, imageZoneSchema } from './questions.ts'
+import {gameModeSchema,arcadeInputSchema,arcadeViewSchema,gameStandingSchema} from './arcade.ts'
+import {wheelStateSchema,wheelCommandSchema} from './wheel.ts'
 
-export const sessionStateSchema = z.enum(['lobby', 'question_open', 'question_locked', 'revealing', 'podium', 'ended'])
+export const sessionStateSchema = z.enum(['lobby', 'question_open', 'question_locked', 'revealing', 'game_play', 'game_results', 'podium', 'ended'])
 export type SessionState = z.infer<typeof sessionStateSchema>
 const key = z.string().max(32)
 const item = z.object({ key, text: z.string().max(500) })
@@ -34,6 +36,8 @@ export const revealSchema = z.object({
 export type Reveal = z.infer<typeof revealSchema>
 export const snapshotSchema = z.object({
   runId: z.number(), pin: z.string(), title: z.string(), theme: z.string(), state: sessionStateSchema,
+  gameMode:gameModeSchema.default('quiz'),arcade:arcadeViewSchema.nullable().default(null),gameScores:z.array(gameStandingSchema).default([]),
+  wheel:wheelStateSchema.nullable().default(null),
   revision: z.number(), serverNow: z.number(), endsAt: z.number().nullable(), questionCount: z.number(),
   question: publicQuestionSchema.nullable(), participants: z.array(z.object({ id: z.string(), name: z.string(), connected: z.boolean() })),
   acceptedCount: z.number(), reveal: revealSchema.nullable(), top: z.array(standing),
@@ -47,8 +51,9 @@ export const requestIdSchema = z.string().min(8).max(80)
 const runRequest = { runId: z.number().int().positive(), requestId: requestIdSchema }
 export const commandSchemas = {
   'auth:refresh': z.object({accessToken:z.string().min(20).max(8192)}).strict(),
-  'host:create': z.object({ activityId: z.number().int().positive(), requestId: requestIdSchema, classId: z.number().int().positive().optional(), speedWeighting: z.boolean().default(false) }).strict(),
+  'host:create': z.object({ activityId: z.number().int().positive(), requestId: requestIdSchema, classId: z.number().int().positive().optional(), speedWeighting: z.boolean().default(false),gameMode:gameModeSchema.default('quiz') }).strict(),
   'host:class': z.object({runId:z.number().int().positive(),classId:z.number().int().positive().nullable()}).strict(),
+  'host:wheel':z.object({...runRequest,command:wheelCommandSchema}).strict(),
   'host:decision': z.object({...runRequest,choice:z.enum(['treat','continue'])}).strict(),
   'host:resume': z.object({ runId: z.number().int().positive() }).strict(),
   'host:start': z.object(runRequest).strict(),
@@ -60,6 +65,7 @@ export const commandSchemas = {
   'player:resume': z.object({ runId: z.number().int().positive(), resumeToken: z.string().min(32).max(80) }).strict(),
   'projector:join': z.object({ runId: z.number().int().positive(), token: z.string().min(32).max(80) }).strict(),
   'player:answer': z.object({ ...runRequest, qIndex: z.number().int().nonnegative(), questionId: z.number().int().positive(), payload: answerPayloadSchema }).strict(),
+  'player:game':arcadeInputSchema.extend({runId:z.number().int().positive()}).strict(),
   'session:sync': z.object({}).strict(),
   'clock:sync': z.object({}).strict(),
 } as const

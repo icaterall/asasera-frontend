@@ -1,10 +1,12 @@
 import { useEffect, useId, useLayoutEffect, useRef, useState, type KeyboardEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useLocation } from 'react-router-dom'
-import { UserRound } from 'lucide-react'
+import { BookOpen, ChartNoAxesCombined, ClipboardList, House, KeyRound, LifeBuoy, LogIn, LogOut, Settings2, UserRound } from 'lucide-react'
+import '@/design/Dropdown.module.css'
 import { Bdi } from '@/components/Bdi'
 import { useAuth } from '@/hooks/useAuth'
 import { homePathFor } from '@/lib/afterAuth'
+import { accountRoleLabel } from '@/lib/accountRole'
 import styles from './AccountControl.module.css'
 
 function initial(name: string | null): string | null {
@@ -53,16 +55,18 @@ export function AccountControl() {
   if (!user) return null
   const letter = initial(user.name)
   const teacher = user.role === 'teacher'
+  const student = user.role === 'student'
+  const roleLabel = accountRoleLabel(user.role, i18n.language)
   const links = [
-    { to: homePathFor(user), label: teacher ? t('مساحة العمل', 'Workspace') : t('تعلّمك', 'Your learning') },
+    ...((teacher || student) ? [{ to: homePathFor(user), label: t('لوحة التحكم', 'Dashboard'), icon:House }] : []),
     ...(teacher ? [
-      { to: '/teacher/activities', label: t('أنشطتي', 'My activities') },
-      { to: '/teacher/assignments', label: t('الواجبات', 'Assignments') },
-      { to: '/teacher/reports', label: t('التقارير', 'Reports') },
-    ] : [{ to: '/join', label: t('انضمّ إلى حصّة', 'Join a class') }]),
-    { to: '/account', label: t('إعدادات الحساب', 'Account settings') },
-    { to: '/forgot', label: t('إعادة تعيين كلمة المرور', 'Reset password') },
-    { to: '/contact', label: t('تواصل مع الدعم', 'Contact support') },
+      { to: '/teacher/activities', label: t('أنشطتي', 'My activities'), icon:BookOpen },
+      { to: '/teacher/assignments', label: t('الواجبات', 'Assignments'), icon:ClipboardList },
+      { to: '/teacher/reports', label: t('التقارير', 'Reports'), icon:ChartNoAxesCombined },
+    ] : student ? [{ to: '/join', label: t('انضمّ إلى حصّة', 'Join a class'), icon:LogIn }] : []),
+    { to: '/account', label: t('إعدادات الحساب', 'Account settings'), icon:Settings2 },
+    { to: '/forgot', label: t('إعادة تعيين كلمة المرور', 'Reset password'), icon:KeyRound },
+    { to: '/contact', label: t('تواصل مع الدعم', 'Contact support'), icon:LifeBuoy },
   ]
 
   function keyboard(event: KeyboardEvent) {
@@ -81,25 +85,26 @@ export function AccountControl() {
   return <div ref={root} className={`asas ${styles.root}`} onBlur={event => {
     if (event.relatedTarget instanceof Node && !event.currentTarget.contains(event.relatedTarget)) setOpen(false)
   }}>
-    <button ref={trigger} type="button" className={styles.avatar} aria-label={t('قائمة الحساب', 'Account menu')}
+    <button ref={trigger} type="button" className={styles.trigger} data-account-role={user.role}
+      aria-label={`${t('قائمة الحساب', 'Account menu')} — ${roleLabel}`} title={roleLabel}
       aria-haspopup="menu" aria-expanded={open} aria-controls={open ? id : undefined}
       onClick={() => { focusLast.current = false; setOpen(value => !value) }}
       onKeyDown={event => { if (event.key === 'ArrowDown' || event.key === 'ArrowUp') { event.preventDefault(); focusLast.current = event.key === 'ArrowUp'; setOpen(true) } }}>
-      {letter ? <span aria-hidden="true"><Bdi>{letter}</Bdi></span> : <UserRound size={22} aria-hidden="true" />}
+      <span className={styles.avatar} aria-hidden="true">{letter ? <Bdi>{letter}</Bdi> : <UserRound size={22} />}</span>
     </button>
     {open && <div ref={menu} id={id} role="menu" aria-label={t('قائمة الحساب', 'Account menu')} className={styles.menu} style={{ maxHeight: height }} onKeyDown={keyboard}>
       <div className={styles.identity} role="presentation">
         <strong><Bdi>{user.name || t('حسابك', 'Your account')}</Bdi></strong>
         {user.email && <Bdi className={styles.email}>{user.email}</Bdi>}
-        <span>{teacher ? t('معلّم', 'Teacher') : t('طالب', 'Student')}</span>
+        <span className={styles.identityRole}>{roleLabel}</span>
       </div>
-      {links.map(link => <Link key={link.to} to={link.to} role="menuitem" tabIndex={-1} onClick={() => setOpen(false)}>{link.label}</Link>)}
+      {links.map(link => <Link key={link.to} to={link.to} role="menuitem" tabIndex={-1} onClick={() => setOpen(false)}><link.icon size={19} aria-hidden="true"/>{link.label}</Link>)}
       <div role="separator" className={styles.separator} />
       <button type="button" role="menuitem" tabIndex={-1} disabled={leaving} onClick={async () => {
         if (leavingRef.current) return
         leavingRef.current = true; setLeaving(true)
         try { await signOut() } catch { /* AuthProvider clears local credentials even on network failure. */ }
-      }}>{leaving ? t('جارٍ تسجيل الخروج…', 'Signing out…') : t('تسجيل الخروج', 'Sign out')}</button>
+      }}><LogOut size={19} aria-hidden="true"/>{leaving ? t('جارٍ تسجيل الخروج…', 'Signing out…') : t('تسجيل الخروج', 'Sign out')}</button>
     </div>}
   </div>
 }

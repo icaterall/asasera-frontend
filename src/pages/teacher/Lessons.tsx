@@ -1,3 +1,4 @@
+import { Select } from '@/design'
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
@@ -84,10 +85,10 @@ export default function TeacherLessons() {
           onChange={(event) => setQ(event.target.value)}
           aria-label={t('teaching.lessons.search')}
         />
-        <select
+        <Select
           className={`${inputClass} max-w-[220px]`}
           value={courseId}
-          onChange={(event) => setCourseId(event.target.value)}
+          onValueChange={(event) => setCourseId(event)}
           aria-label={t('teaching.create.fieldCourse')}
         >
           <option value="">{t('teaching.lessons.allCourses')}</option>
@@ -96,18 +97,18 @@ export default function TeacherLessons() {
               {course.title}
             </option>
           ))}
-        </select>
-        <select
+        </Select>
+        <Select
           className={`${inputClass} max-w-[180px]`}
           value={status}
-          onChange={(event) => setStatus(event.target.value)}
+          onValueChange={(event) => setStatus(event)}
           aria-label={t('teaching.lessons.statusDraft')}
         >
           <option value="">{t('teaching.lessons.allCourses')}</option>
           <option value="draft">{t('teaching.lessons.statusDraft')}</option>
           <option value="approved">{t('teaching.lessons.statusApproved')}</option>
           <option value="archived">{t('teaching.lessons.statusArchived')}</option>
-        </select>
+        </Select>
       </div>
 
       {failed ? <SectionError onRetry={load} /> : null}
