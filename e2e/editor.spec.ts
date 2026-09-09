@@ -88,11 +88,6 @@ test.describe('the four-region editor', () => {
         await page.getByLabel(`نص الخيار ${slots[slot]}`).fill(answer)
       }
 
-      /* The first option is correct by default, so the three others need a
-         reason. Nothing here opens region 4. */
-      for (const slot of [1, 2, 3]) {
-        await page.locator(`#reason-opt_${'abcd'[slot]}`).fill(`خطأ شائع في السؤال ${index + 1}`)
-      }
     }
 
     /*
@@ -125,7 +120,7 @@ test.describe('the four-region editor', () => {
     expect(body.questions.every((q: { timeLimitS: number }) => q.timeLimitS === 20)).toBeTruthy()
   })
 
-  test('publishing without a reason is refused and the editor points at the option', async ({ page }) => {
+  test('a blank answer is refused and the editor points at the option', async ({ page }) => {
     const { accessToken } = await signInAsNewTeacher(page)
     const activityId = await createActivity(page, accessToken)
 
@@ -137,10 +132,8 @@ test.describe('the four-region editor', () => {
     await page.getByLabel('نص الخيار مثلث').fill('باريس')
     await page.getByLabel('نص الخيار معيّن').fill('لندن')
     await page.getByLabel('نص الخيار دائرة').fill('برلين')
-    await page.getByLabel('نص الخيار مربع').fill('مدريد')
-    // Two of the three distractors get a reason; the square deliberately does not.
-    await page.locator('#reason-opt_b').fill('يخلط بين لندن وباريس')
-    await page.locator('#reason-opt_c').fill('يخلط بين برلين وباريس')
+    // The fourth answer is deliberately empty.
+    await expect(page.getByLabel('نص الخيار مربع')).toHaveValue('')
 
     await page.getByRole('button', { name: 'انشر' }).click()
 

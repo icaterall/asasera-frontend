@@ -1,0 +1,74 @@
+.mark {
+  --loader-size: 72px;
+  position: relative;
+  display: inline-block;
+  inline-size: var(--loader-size);
+  block-size: var(--loader-size);
+  flex: 0 0 var(--loader-size);
+  vertical-align: middle;
+}
+
+.small { --loader-size: 24px; }
+.medium { --loader-size: clamp(72px, 8vw, 96px); }
+.large { --loader-size: clamp(112px, 12vw, 152px); }
+
+.core {
+  position: absolute;
+  inset: 17%;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 0 1px rgb(0 76 204 / 8%);
+}
+
+.logo {
+  display: block;
+  inline-size: 79%;
+  block-size: 79%;
+  object-fit: contain;
+}
+
+.orbit {
+  position: absolute;
+  inset: 0;
+  inline-size: 100%;
+  block-size: 100%;
+  transform-origin: center;
+  animation: orbit 2.4s linear infinite;
+  animation-play-state: var(--loader-play-state, running);
+}
+
+.status {
+  box-sizing: border-box;
+  inline-size: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  color: var(--ink-muted, var(--muted, #555));
+}
+
+.page, .section {
+  flex-direction: column;
+  padding: 32px 20px;
+  text-align: center;
+}
+
+.page { min-block-size: 100svh; }
+.section { min-block-size: 180px; }
+.inline { justify-content: flex-start; gap: 10px; }
+.label { max-inline-size: 38ch; font-size: 14px; font-weight: 500; line-height: 1.6; overflow-wrap: anywhere; }
+
+@keyframes orbit { to { transform: rotate(360deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+  /* Keep the logo, segmented ring, dots and readable status without rotation. */
+  .orbit { animation: none; }
+}
+
+@media (forced-colors: active) {
+  .orbit circle[stroke] { stroke: CanvasText; }
+  .orbit circle[fill] { fill: CanvasText; }
+}

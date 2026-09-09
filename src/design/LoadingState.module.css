@@ -1,0 +1,80 @@
+.root {
+  --skeleton-fill: #dce2ea;
+  --skeleton-surface: #fff;
+  --skeleton-border: #e2e6ec;
+  box-sizing: border-box;
+  inline-size: 100%;
+  min-inline-size: 0;
+  container-type: inline-size;
+}
+
+:global(.dark) .root {
+  --skeleton-fill: #3b4655;
+  --skeleton-surface: #222;
+  --skeleton-border: #414955;
+}
+
+.page { min-block-size: 100svh; padding: clamp(16px, 3vw, 32px); background: var(--canvas, #f2f2f2); }
+.section { min-block-size: 260px; }
+.content { max-inline-size: 1120px; inline-size: 100%; margin-inline: auto; }
+.well { display: grid; place-items: center; min-inline-size: 0; min-block-size: 200px; }
+.page .well { min-block-size: clamp(240px, 38svh, 420px); }
+.placeholders { display: grid; gap: 24px; }
+.lines { display: grid; gap: 12px; min-inline-size: 0; inline-size: 100%; }
+.line { display: block; block-size: 14px; inline-size: 100%; border-radius: 4px; background: var(--skeleton-fill); }
+.medium { inline-size: 68%; }
+.short { inline-size: 40%; }
+.list { display: grid; gap: 12px; }
+.row { display: grid; grid-template-columns: 72px minmax(0, 1fr) 88px; align-items: center; gap: 20px; padding: 16px; border-radius: 8px; background: var(--skeleton-surface); border: 1px solid var(--skeleton-border); }
+.thumbnail { inline-size: 72px; block-size: 54px; border-radius: 4px; background: var(--skeleton-fill); }
+.rowAction { display: block; inline-size: 88px; block-size: 32px; border-radius: 4px; background: var(--skeleton-fill); }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 20px; }
+.card { min-inline-size: 0; overflow: hidden; border-radius: 8px; background: var(--skeleton-surface); border: 1px solid var(--skeleton-border); }
+.cover { display: block; aspect-ratio: 16 / 7; background: var(--skeleton-fill); }
+.cardBody { display: grid; gap: 24px; padding: 20px; }
+.fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
+.field { display: grid; gap: 12px; }
+.field:first-child { grid-column: 1 / -1; }
+.input { display: block; block-size: 48px; border: 1px solid var(--skeleton-border); border-radius: 4px; background: var(--skeleton-fill); }
+.dashboardHeading { max-inline-size: 480px; }
+
+/* The editor keeps its canvas centered between the two rails on wide screens. */
+.editor { display: flex; flex-direction: column; gap: 20px; }
+.toolbar { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 16px; background: var(--skeleton-surface); border-radius: 4px; }
+.title { inline-size: min(50%, 380px); block-size: 28px; background: var(--skeleton-fill); border-radius: 4px; }
+.editorBody { display: grid; grid-template-columns: 260px minmax(0, 1fr) 280px; gap: 24px; flex: 1; }
+.editorRail, .editorProperties { display: flex; flex-direction: column; gap: 24px; padding: 20px; background: var(--skeleton-surface); border-radius: 4px; }
+.editorProperties .fields { grid-template-columns: minmax(0, 1fr); }
+.questionThumb { display: block; aspect-ratio: 4 / 3; background: var(--skeleton-fill); border-radius: 4px; }
+.editorCanvas { display: flex; flex-direction: column; gap: 20px; min-inline-size: 0; inline-size: 100%; max-inline-size: 1080px; margin-inline: auto; }
+.editorCanvas .well { flex: 1; }
+.prompt { padding: 24px; border-radius: 4px; background: var(--skeleton-surface); }
+.prompt .lines { max-inline-size: 560px; margin-inline: auto; }
+.answers { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.answer { display: block; min-block-size: 84px; border-radius: 4px; background: var(--skeleton-fill); }
+
+@media (max-width: 1024px) {
+  .editorBody { grid-template-columns: minmax(0, 1fr); }
+  .editorRail, .editorProperties { display: none; }
+}
+
+@media (max-width: 719px) {
+  .answers { grid-template-columns: minmax(0, 1fr); }
+  .answer { min-block-size: 72px; }
+}
+
+/* Embedded panels respond to their own width, including a narrow sidebar. */
+@container (max-width: 900px) {
+  .editorBody { grid-template-columns: minmax(0, 1fr); }
+  .editorRail, .editorProperties { display: none; }
+}
+@container (max-width: 560px) {
+  .fields { grid-template-columns: minmax(0, 1fr); }
+  .row { grid-template-columns: 56px minmax(0, 1fr); gap: 12px; padding: 12px; }
+  .thumbnail { inline-size: 56px; block-size: 48px; }
+  .row > .rowAction { display: none; }
+}
+
+@media (forced-colors: active) {
+  .line, .thumbnail, .cover, .input, .answer, .rowAction, .title, .questionThumb { outline: 1px solid GrayText; }
+}

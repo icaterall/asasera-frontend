@@ -33,37 +33,32 @@ function Glyph({ slot }: { slot: AnswerSlot }) {
 }
 
 export interface McqCanvasProps {
+  mediaKey: string | null
+  onMediaChange: (key: string | null) => void
   options: McqOption[]
   correct: string
-  reasons: Record<string, string>
   onOptionImage:(key:string,image:string|undefined)=>void
   onOptionText: (key: string, text: string) => void
   onCorrect: (key: string) => void
-  onReason: (key: string, reason: string) => void
-  /** Highlights the options a failed publish attempt named. */
-  flagged?: Set<string>
 }
 
 export function McqCanvas({
-  options, correct, reasons, onOptionText, onOptionImage, onCorrect, onReason, flagged,
+  mediaKey, onMediaChange, options, correct, onOptionText, onOptionImage, onCorrect,
 }: McqCanvasProps) {
   const {i18n}=useTranslation(),ar=i18n.language.startsWith('ar')
   const [imageTools,setImageTools]=useState(()=>options.some(option=>!!option.image))
   const optionsId=useId()
   return (
     <>
-    <div className={styles.optionMediaTools}>
-      <Button variant="quiet" aria-expanded={imageTools} aria-controls={optionsId} onClick={()=>setImageTools(value=>!value)}>
-        {imageTools?(ar?'إخفاء أدوات الصور':'Hide picture controls'):(ar?'إضافة صور للإجابات (اختياري)':'Add answer pictures (optional)')}
-      </Button>
-    </div>
+    <ImageUpload label={ar?'صورة السؤال (اختياري)':'Question image (optional)'} imageKey={mediaKey} onImage={onMediaChange} onRemove={()=>onMediaChange(null)} />
+    <Button className={styles.answerImageToggle} variant="quiet" aria-expanded={imageTools} aria-controls={optionsId} onClick={()=>setImageTools(value=>!value)}>
+      {imageTools?(ar?'إخفاء خيارات صور الإجابات':'Hide answer image options'):(ar?'خيارات صور الإجابات':'Answer image options')}
+    </Button>
     <div id={optionsId} className={styles.options}>
       {options.map((option, index) => {
         const slot = ((index % 4) + 1) as AnswerSlot
         const token = SLOT_TOKENS[slot]
         const isCorrect = option.key === correct
-        const reason = reasons[option.key] ?? ''
-        const missing = !isCorrect && reason.trim().length === 0
 
         return (
           <div key={option.key} className={styles.optionCell}>
@@ -92,27 +87,6 @@ export function McqCanvas({
               />
               {isCorrect ? (ar?'الإجابة الصحيحة':'Correct answer') : (ar?'اجعلها الصحيحة':'Mark correct')}
             </label>
-
-            {/*
-              * The reason field appears only under a WRONG option, and it is
-              * removed — not disabled — from the correct one. §12 asks «لماذا
-              * قد يختار الطالب هذا؟», which has no meaning for the answer.
-              * Marking a different option correct moves the field with it.
-              */}
-            {!isCorrect && (
-              <div className={styles.reason}>
-                <label className={styles.reasonLabel} htmlFor={`reason-${option.key}`}>
-                  {ar?'لماذا قد يختار الطالب هذا؟':'Why might a learner choose this?'} {missing && <span style={{ color: 'var(--a3)' }}>{ar?'· مطلوب قبل النشر':'· Required before publication'}</span>}
-                </label>
-                <textarea
-                  id={`reason-${option.key}`}
-                  className={`${styles.reasonInput} ${missing || flagged?.has(option.key) ? styles.reasonMissing : ''}`}
-                  value={reason}
-                  rows={2}
-                  onChange={(event) => onReason(option.key, event.target.value)}
-                />
-              </div>
-            )}
           </div>
         )
       })}
@@ -123,20 +97,16 @@ export function McqCanvas({
 
 export interface TfCanvasProps {
   correct: boolean
-  reasons: Record<string, string>
   onCorrect: (value: boolean) => void
-  onReason: (key: string, reason: string) => void
 }
 
-export function TfCanvas({ correct, reasons, onCorrect, onReason }: TfCanvasProps) {
+export function TfCanvas({ correct, onCorrect }: TfCanvasProps) {
   const {i18n}=useTranslation(),ar=i18n.language.startsWith('ar')
   /*
    * The wire value is the literal 'true' / 'false', never the rendered label.
    * A translation change must not be able to invert a question — which is
    * exactly what happens when «صح» is the stored answer.
    */
-  const wrongKey = correct ? 'false' : 'true'
-  const reason = reasons[wrongKey] ?? ''
 
   return (
     <>
@@ -162,19 +132,6 @@ export function TfCanvas({ correct, reasons, onCorrect, onReason }: TfCanvasProp
             </label>
           )
         })}
-      </div>
-      <div className={styles.reason}>
-        <label className={styles.reasonLabel} htmlFor="reason-tf">
-          {ar?`لماذا قد يختار الطالب «${wrongKey === 'true' ? 'صح' : 'خطأ'}»؟`:`Why might a learner choose ${wrongKey}?`}
-          {reason.trim().length === 0 && <span style={{ color: 'var(--a3)' }}>{ar?' · مطلوب قبل النشر':' · Required before publication'}</span>}
-        </label>
-        <textarea
-          id="reason-tf"
-          className={`${styles.reasonInput} ${reason.trim().length === 0 ? styles.reasonMissing : ''}`}
-          value={reason}
-          rows={2}
-          onChange={(event) => onReason(wrongKey, event.target.value)}
-        />
       </div>
     </>
   )

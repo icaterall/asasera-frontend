@@ -57,9 +57,6 @@ test('capture editor-authored-1440.png', async ({ page }) => {
   for (const [slot, answer] of [['مثلث', 'باريس'], ['معيّن', 'لندن'], ['دائرة', 'برلين'], ['مربع', 'مدريد']]) {
     await page.getByLabel(`نص الخيار ${slot}`).fill(answer!)
   }
-  await page.locator('#reason-opt_b').fill('يخلط بين عاصمة بريطانيا وفرنسا')
-  await page.locator('#reason-opt_c').fill('يخلط بين عاصمة ألمانيا وفرنسا')
-  await page.locator('#reason-opt_d').fill('يخلط بين عاصمة إسبانيا وفرنسا')
   await expect(page.getByText('محفوظ', { exact: true })).toBeVisible({ timeout: 15_000 })
 
   if (await page.evaluate(() => window.innerWidth) !== 1440) throw new Error('viewport mismatch')

@@ -1,4 +1,4 @@
-import {useEffect,useState} from 'react'
+import {useEffect,useId,useState} from 'react'
 import {useTranslation} from 'react-i18next'
 import {api,getAccessToken} from '@/lib/api'
 import {Button} from '@/design'
@@ -9,8 +9,9 @@ export function useImage(key:string|null){
   useEffect(()=>{let alive=true;setUrl(null);if(key)void api.post<{url:string}>('/api/v1/activity-media/resolve',{key}).then(r=>{if(alive)setUrl(mediaUrl(r.url))}).catch(()=>{});return()=>{alive=false}},[key])
   return url
 }
-export function ImageUpload({imageKey,onImage,onRemove,showPreview=true}:{imageKey:string|null;onImage:(key:string)=>void;onRemove?:()=>void;showPreview?:boolean}){
+export function ImageUpload({imageKey,onImage,onRemove,showPreview=true,label}:{imageKey:string|null;onImage:(key:string)=>void;onRemove?:()=>void;showPreview?:boolean;label?:string}){
   const {i18n}=useTranslation(),ar=i18n.language.startsWith('ar'),url=useImage(imageKey)
+  const labelId=useId()
   const [busy,setBusy]=useState(false),[error,setError]=useState('')
   async function upload(file:File){
     setBusy(true);setError('')
@@ -23,9 +24,10 @@ export function ImageUpload({imageKey,onImage,onRemove,showPreview=true}:{imageK
       onImage(confirmed.objectKey)
     }catch(e){setError(e instanceof Error?e.message:'Image upload failed')}finally{setBusy(false)}
   }
-  return <section className={styles.imageUpload}>
+  return <section className={styles.imageUpload} aria-labelledby={label?labelId:undefined}>
+    {label&&<span id={labelId} className={styles.imageUploadCaption}>{label}</span>}
     {showPreview&&url&&<img src={url} alt={ar?'صورة السؤال':'Question image'} className={styles.editorImage}/>}
-    <label className={styles.uploadLabel}>{busy?(ar?'جارٍ التحقق من الصورة…':'Checking image…'):imageKey?(ar?'استبدل الصورة':'Replace image'):(ar?'أضف صورة':'Add an image')}<input type="file" accept="image/png,image/jpeg" disabled={busy} onChange={e=>{const file=e.target.files?.[0];if(file)void upload(file);e.target.value=''}}/></label>
+    <label className={styles.uploadLabel}>{busy?(ar?'جارٍ التحقق من الصورة…':'Checking image…'):imageKey?(ar?'استبدل الصورة':'Replace image'):(ar?'أضف صورة':'Add an image')}<input type="file" aria-describedby={label?labelId:undefined} accept="image/png,image/jpeg" disabled={busy} onChange={e=>{const file=e.target.files?.[0];if(file)void upload(file);e.target.value=''}}/></label>
     <span className={styles.propHint}>PNG / JPEG · 5 MB</span>
     {imageKey&&onRemove&&<Button variant="quiet" onClick={onRemove}>{ar?'إزالة الصورة':'Remove image'}</Button>}
     {error&&<p role="alert">{error}</p>}

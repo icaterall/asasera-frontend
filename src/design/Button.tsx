@@ -1,4 +1,5 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react'
+import { LoadingMark } from './LoadingIndicator'
 
 import styles from './Button.module.css'
 
@@ -27,7 +28,7 @@ export function Button({
       aria-busy={loading || undefined}
       {...rest}
     >
-      {loading ? <span className={styles.spinner} aria-hidden="true" /> : icon}
+      {loading ? <LoadingMark size="small" /> : icon}
       {children}
     </button>
   )

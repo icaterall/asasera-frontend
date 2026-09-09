@@ -1,4 +1,5 @@
 import { useAuthCopy } from '@/copy/useAuthCopy'
+import { LoadingMark } from '@/design/LoadingIndicator'
 
 /**
  * The primary action, and the only place a form is submitted from.
@@ -35,14 +36,7 @@ export function SubmitButton({
       aria-busy={submitting}
       className="auth-button auth-button--primary"
     >
-      {submitting ? (
-        <span
-          // `rounded-full` on a circle, which is what the radius rule reserves
-          // it for — this is not a pill button.
-          className="size-4 shrink-0 animate-spin rounded-full border-2 border-current border-t-transparent motion-reduce:animate-none"
-          aria-hidden="true"
-        />
-      ) : null}
+      {submitting ? <LoadingMark size="small" /> : null}
       <span>{submitting ? (busyLabel ?? c.common.submitting) : label}</span>
     </button>
   )

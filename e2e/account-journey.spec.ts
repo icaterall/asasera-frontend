@@ -83,7 +83,6 @@ test('teacher registers, follows the actual verification email, creates and publ
   await page.getByRole('button',{name:'Add question',exact:true}).first().click()
   await page.getByLabel('Question text',{exact:true}).fill('What is two plus two?')
   for(const [i,shape]of ['triangle','diamond','circle','square'].entries())await page.getByLabel(`Answer text ${shape}`,{exact:true}).fill(['Four','Three','Five','Six'][i]!)
-  for(const key of ['b','c','d'])await page.locator(`#reason-opt_${key}`).fill('Count two objects and then two more.')
   await page.getByRole('button',{name:'Publish',exact:true}).click()
   await expect(page.getByRole('button',{name:'Publish changes',exact:true})).toBeVisible()
   await page.reload()

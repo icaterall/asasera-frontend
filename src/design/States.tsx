@@ -1,5 +1,6 @@
 import {Inbox,TriangleAlert,CircleCheck} from 'lucide-react'
 import type { ReactNode } from 'react'
+export { LoadingState } from './LoadingState'
 
 import styles from './States.module.css'
 
@@ -48,21 +49,6 @@ export function SuccessState({ title, body, actions }: BaseProps) {
       <h3 className={styles.title}>{title}</h3>
       {body && <p className={styles.body}>{body}</p>}
       {actions && <div className={styles.actions}>{actions}</div>}
-    </div>
-  )
-}
-
-/**
- * Skeleton rather than a spinner wherever the shape of the result is known:
- * a spinner says "wait", a skeleton says "wait, and here is what is coming".
- * `aria-busy` plus a live label is what a screen reader gets instead.
- */
-export function LoadingState({ rows = 3, label = 'جارٍ التحميل' }: { rows?: number; label?: string }) {
-  return (
-    <div className={styles.skeletonWrap} aria-busy="true" aria-live="polite" aria-label={label}>
-      {Array.from({ length: rows }, (_, i) => (
-        <div key={i} className={styles.bar} style={{ width: `${100 - i * 12}%` }} />
-      ))}
     </div>
   )
 }

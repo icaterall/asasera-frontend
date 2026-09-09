@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { LoadingIndicator } from '@/design/LoadingIndicator'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 
 import { AuthCard } from '@/components/form/AuthCard'
@@ -68,9 +69,7 @@ export default function AuthCallback() {
 
   return (
     <AuthCard title={c.login.title}>
-      <p className="text-sm" style={{ color: 'var(--ink-muted)' }} role="status" aria-live="polite">
-        {c.callback.working}
-      </p>
+      <LoadingIndicator label={c.callback.working} />
     </AuthCard>
   )
 }

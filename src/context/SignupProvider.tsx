@@ -46,7 +46,7 @@ export function SignupProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const setLearningProfile = useCallback((learningProfile: LearningProfile) => {
-    setDraft(current => current ? { ...current, learningProfile, stageId: null, stageAnswered: true } : current)
+    setDraft(current => current ? { ...current, learningProfile, stageId: learningProfile.educationStageId ?? null, stageAnswered: true } : current)
   }, [])
 
   const setEmail = useCallback((email: string) => {

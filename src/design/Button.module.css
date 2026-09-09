@@ -66,18 +66,5 @@
 
 .full { width: 100%; }
 
-/* Loading: the label stays in place so the button does not resize and move
-   whatever is under the pointer. */
-.spinner {
-  width: 1em; height: 1em;
-  border: 2px solid currentColor;
-  border-top-color: transparent;
-  border-radius: 999px;
-  animation: spin 700ms linear infinite;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
-@media (prefers-reduced-motion: reduce) {
-  /* Still moves — a spinner that does not spin says "frozen", which is the
-     opposite of what it is for. Slowed to a pulse-like rate instead. */
-  .spinner { animation-duration: 2.4s; }
-}
+/* Keep the brand mark legible while a disabled button is working. */
+.btn[aria-busy="true"] { opacity: 1; cursor: progress; }

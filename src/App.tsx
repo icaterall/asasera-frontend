@@ -1,4 +1,6 @@
 import { Suspense, lazy } from 'react'
+import { LoadingState } from '@/design/LoadingState'
+import { loadingVariantForPath } from '@/design/loadingVariant'
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 
 import { KeepQueryRedirect } from '@/components/KeepQueryRedirect'
@@ -79,12 +81,8 @@ const LessonEditor = lazy(() => import('@/pages/teacher/LessonEditor'))
 const NotFound = lazy(() => import('@/pages/NotFound'))
 
 function RouteFallback() {
-  return (
-    <div className="grid min-h-svh place-items-center" role="status" aria-live="polite">
-      <span className="size-8 animate-spin rounded-full border-2 border-line border-t-accent" />
-      <span className="sr-only">Loading…</span>
-    </div>
-  )
+  const { pathname } = useLocation()
+  return <LoadingState layout="page" variant={loadingVariantForPath(pathname)} />
 }
 
 function HomeEntry() {

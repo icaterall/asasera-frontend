@@ -21,6 +21,8 @@ jobs:
       # otherwise be reverted by the next sync with nobody noticing.
       # See asasera-backend/docs/implementation/decisions-v4.md D-V4-001.
       - run: npm run check:shared
+      - run: npm run test:media
+      - run: npm run test:education-stages
 
       - run: npm run typecheck
       - run: npm run lint

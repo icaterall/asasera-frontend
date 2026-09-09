@@ -1,10 +1,10 @@
 import {LabelReview} from './LabelReview'
 import {useEffect,useId,useRef,useState} from 'react'
-import {useQuery} from '@tanstack/react-query'
+import {useQuery,useQueryClient} from '@tanstack/react-query'
 import {useTranslation} from 'react-i18next'
 import {X,Sparkles,FileText,Check} from 'lucide-react'
 import {api,teaching,type ActivityRecord,type QuestionRecord} from '@/lib/api'
-import {Button, Select } from '@/design'
+import {Button,LoadingIndicator,Select} from '@/design'
 import {type GenerationTask} from '@/shared/generation'
 import {useImage} from './ImageUpload'
 import styles from './GenerationPanel.module.css'
@@ -17,11 +17,20 @@ export function GenerationPanel({activity,question,onClose,onApplied}:{activity:
  const dialogTitleId=useId()
  const {i18n}=useTranslation(),ar=i18n.language.startsWith('ar'),t=(a:string,e:string)=>ar?a:e
  const dialog=useRef<HTMLDialogElement>(null)
+ const closeButton=useRef<HTMLButtonElement>(null),actionInFlight=useRef(false)
+ const queryClient=useQueryClient()
  const [task,setTask]=useState<GenerationTask>('questions'),[origin,setOrigin]=useState<'topic'|'file'>('topic'),[objective,setObjective]=useState(''),[count,setCount]=useState(3),[replace,setReplace]=useState(false)
  const [kinds,setKinds]=useState(['mcq','tf']),[revisionId,setRevisionId]=useState<number|null>(null),[segments,setSegments]=useState<number[]>([])
- const [jobId,setJobId]=useState<number|null>(null),[selected,setSelected]=useState<number[]>([]),[busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState(''),[source,setSource]=useState<{index:number;text:string}|null>(null)
+ const [jobId,setJobId]=useState<number|null>(null),[selected,setSelected]=useState<number[]>([]),[pendingAction,setPendingAction]=useState<string|null>(null),[error,setError]=useState(''),[notice,setNotice]=useState(''),[source,setSource]=useState<{index:number;text:string}|null>(null)
+ const busy=pendingAction!==null
  const [requestKey,setRequestKey]=useState(()=>crypto.randomUUID()),[quoted,setQuoted]=useState<{input:string;value:Quote}|null>(null)
- useEffect(()=>{dialog.current?.showModal();return()=>dialog.current?.close()},[])
+ useEffect(()=>{
+  const element=dialog.current,previousFocus=document.activeElement,overflow=document.body.style.overflow
+  element?.showModal()
+  document.body.style.overflow='hidden'
+  closeButton.current?.focus()
+  return()=>{element?.close();document.body.style.overflow=overflow;if(previousFocus instanceof HTMLElement&&previousFocus.isConnected)previousFocus.focus()}
+ },[])
  const target=(task==='reasons'||task==='zones'||replace)?question:null
  const request={activityId:activity.id,task,origin:task==='questions'?origin:'topic',objective,language:ar?'ar':'en',count:task!=='questions'||replace?1:count,kinds,questionId:target?.id??null,expectedRevision:target?.revision??activity.revision,materialRevisionId:task==='questions'&&origin==='file'?revisionId:null,segments:task==='questions'&&origin==='file'?segments:[]}
  const requestText=JSON.stringify(request)
@@ -31,14 +40,16 @@ export function GenerationPanel({activity,question,onClose,onApplied}:{activity:
  const jobs=useQuery({queryKey:['activity-generation',activity.id],queryFn:()=>api.get<{jobs:Job[]}>(`/api/v1/activity-generation/activities/${activity.id}`)})
  const active=useQuery({queryKey:['activity-generation-job',jobId],queryFn:()=>api.get<{job:Job}>(`/api/v1/activity-generation/jobs/${jobId}`),enabled:!!jobId,refetchInterval:q=>['queued','running'].includes(q.state.data?.job.state??'queued')?1500:false})
  const job=active.data?.job,result=job?.result
+ const preparing=job?.state==='queued'||job?.state==='running'
  const jobImage=useImage(job?.imageKey??null)
  const taskLabel=(value:string)=>({questions:t('أسئلة','Questions'),reasons:t('أسباب','Reasons'),zones:t('مناطق الصورة','Image regions'),merges:t('مراجعة التسميات','Label review')}[value]??value)
  const stateLabel=(value:string)=>({queued:t('في الانتظار','Queued'),running:t('قيد التحضير','Preparing'),succeeded:t('جاهز للمراجعة','Ready for review'),failed:t('لم يكتمل','Failed'),needs_review:t('يحتاج تحققًا','Needs review'),cancelled:t('أُلغي','Cancelled')}[value]??value)
- const act=async(work:()=>Promise<void>)=>{setBusy(true);setError('');setNotice('');try{await work()}catch(e){setError(e instanceof Error?e.message:t('تعذّر تنفيذ الطلب','The request failed'))}finally{setBusy(false)}}
+ const act=async(action:string,work:()=>Promise<void>)=>{if(actionInFlight.current)return;actionInFlight.current=true;setPendingAction(action);setError('');setNotice('');try{await work()}catch(e){setError(e instanceof Error?e.message:t('تعذّر تنفيذ الطلب','The request failed'))}finally{actionInFlight.current=false;setPendingAction(null)}}
  const toggle=(index:number)=>setSelected(current=>current.includes(index)?current.filter(x=>x!==index):[...current,index])
- return <dialog aria-labelledby={dialogTitleId} ref={dialog} className={`asas ${styles.dialog}`} onCancel={onClose}>
-  <header><div><Sparkles/><h2 id={dialogTitleId}>{t('حضّر أسئلة بمساعدة الذكاء الاصطناعي','Prepare with AI')}</h2></div><button aria-label={t('إغلاق','Close')} onClick={onClose}><X/></button></header>
+ return <dialog aria-labelledby={dialogTitleId} ref={dialog} dir={ar?'rtl':'ltr'} className={`asas ${styles.dialog}`} onCancel={onClose}>
+  <header><div><Sparkles aria-hidden="true"/><h2 id={dialogTitleId}>{t('توليد بالذكاء الاصطناعي','Generate with AI')}</h2></div><button ref={closeButton} type="button" aria-label={t('إغلاق','Close')} onClick={onClose}><X/></button></header>
   <div className={styles.body}>
+   {task==='questions'&&<p>{t('أنشئ أسئلة بالذكاء الاصطناعي من موضوع أو من صفحات محددة في مصادرك المرفوعة.','Use AI to create questions from a topic or selected pages in your uploaded sources.')}</p>}
    <p>{t('راجع صحة المحتوى قبل إضافته. تبقى المقترحات مسودات حتى تختارها وتنشر النشاط.','Review accuracy before adding anything. Candidates remain drafts until you select them and publish the activity.')}</p>
    <div className={styles.form}>
     <label>{t('المهمة','Task')}<Select value={task} onValueChange={e=>{setTask(e as GenerationTask);setJobId(null);setSelected([])}}>
@@ -58,20 +69,22 @@ export function GenerationPanel({activity,question,onClose,onApplied}:{activity:
    {error&&<p role="alert" className={styles.error}>{error}</p>}{notice&&<p role="status" className={styles.notice}>{notice}</p>}
    <LabelReview activityId={activity.id} question={question} onChanged={onApplied} weeklyCap={task==='merges'&&quoted?.input===requestText&&quoted.value.pricingAvailable&&quoted.value.providerConfigured&&quoted.value.affordable?quoted.value.maxAuthorizedMillicents:undefined}/>
    <div className={styles.cost}>
-    <Button disabled={busy||objective.trim().length<3||!kinds.length} onClick={()=>void act(async()=>{const value=await api.post<Quote>('/api/v1/activity-generation/quote',request);setQuoted({input:requestText,value})})}>{t('اعرض الحد الأقصى للتكلفة','Show the cost cap')}</Button>
+    <Button loading={pendingAction==='quote'} disabled={busy||objective.trim().length<3||!kinds.length} onClick={()=>void act('quote',async()=>{const value=await api.post<Quote>('/api/v1/activity-generation/quote',request);setQuoted({input:requestText,value})})}>{t('اعرض الحد الأقصى للتكلفة','Show the cost cap')}</Button>
     {quoted?.input===requestText&&<><p>{t('الحد الأقصى','Maximum')}: <strong dir="ltr">{usd(quoted.value.maxAuthorizedMillicents)}</strong> · {t('الرصيد المتاح','Available credit')}: <span dir="ltr">{usd(quoted.value.spendableMillicents)}</span></p>
      <small>{t('لا رسوم عند الفشل. النتيجة الجزئية تُحسب بنسبة عدد المقترحات الصالحة المستلمة، حتى قبل إضافتها.','No charge on failure. Partial delivery is charged by the proportion of valid candidates received, before insertion.')}</small>
      {!quoted.value.providerConfigured&&<p>{t('خدمة التوليد غير مهيأة في هذه البيئة. يمكنك متابعة التأليف يدويًا.','Generation is not configured here. You can continue editing manually.')}</p>}
      {!quoted.value.pricingAvailable&&<p>{t('لم تُعتمد أسعار التوليد في هذه البيئة بعد.','Generation pricing is not approved for this environment.')}</p>}
      {!quoted.value.affordable&&<a href="/teacher/tools">{t('افتح المحفظة للتحقق من الرصيد والترحيب','Open your wallet to check credit eligibility')}</a>}
-     <Button variant="primary" disabled={busy||!quoted.value.affordable||!quoted.value.providerConfigured} onClick={()=>void act(async()=>{const r=await api.post<{job:Job}>('/api/v1/activity-generation/jobs',{...request,maxAuthorizedMillicents:quoted.value.maxAuthorizedMillicents,idempotencyKey:requestKey});setJobId(r.job.id);setSelected([]);await jobs.refetch()})}>{t('ابدأ ضمن هذا الحد','Generate within this cap')}</Button>
+     <Button variant="primary" loading={pendingAction==='generate'} disabled={busy||preparing||!quoted.value.affordable||!quoted.value.providerConfigured} onClick={()=>void act('generate',async()=>{const r=await api.post<{job:Job}>('/api/v1/activity-generation/jobs',{...request,maxAuthorizedMillicents:quoted.value.maxAuthorizedMillicents,idempotencyKey:requestKey});queryClient.setQueryData(['activity-generation-job',r.job.id],r);setJobId(r.job.id);setSelected([]);await jobs.refetch()})}>{t('ابدأ ضمن هذا الحد','Generate within this cap')}</Button>
     </>}
    </div>
-   {jobs.data?.jobs.length!==0&&<label>{t('العمليات السابقة','Previous jobs')}<Select value={jobId??''} onValueChange={e=>{setJobId(Number(e)||null);setSelected([]);setSource(null)}}><option value="">{t('اختر عملية لعرضها','Choose a job')}</option>{jobs.data?.jobs.map(j=><option key={j.id} value={j.id}>#{j.id} · {taskLabel(j.task)} · {stateLabel(j.id===job?.id?job.state:j.state)}</option>)}</Select></label>}
+   {!!jobs.data?.jobs.length&&<label>{t('العمليات السابقة','Previous jobs')}<Select disabled={busy} value={jobId??''} onValueChange={e=>{setJobId(Number(e)||null);setSelected([]);setSource(null)}}><option value="">{t('اختر عملية لعرضها','Choose a job')}</option>{jobs.data?.jobs.map(j=><option key={j.id} value={j.id}>#{j.id} · {taskLabel(j.task)} · {stateLabel(j.id===job?.id?job.state:j.state)}</option>)}</Select></label>}
+   {jobId&&active.isPending&&<LoadingIndicator label={t('جارٍ تحميل عملية التوليد…','Loading your AI job…')}/>}
+   {jobId&&active.isError&&<div className={styles.error}><p role="alert">{t('تعذّر تحديث حالة التوليد. حاول التحقق مرة أخرى.','Could not update generation status. Try checking again.')}</p><Button loading={active.isFetching} onClick={()=>void active.refetch()}>{t('تحقق مرة أخرى','Check again')}</Button></div>}
    {job&&<section className={styles.results} aria-live="polite"><h3>{t('المقترحات','Candidates')}</h3>
     {!!result?.rejected&&<p role="status">{t(`استُبعد ${result.rejected} من المقترحات لعدم اجتياز التحقق. راجع المقترحات المتاحة؛ تُحسب التكلفة على النتائج الصالحة فقط.`,`${result.rejected} candidate(s) did not pass validation. Review the available candidates; you are charged only for valid results.`)}</p>}
 
-    {['queued','running'].includes(job.state)&&<><p>{t('جارٍ التحضير. يمكنك إغلاق النافذة والعودة للعملية لاحقًا.','Preparing. You can close this panel and return to the job later.')}</p><Button disabled={busy} onClick={()=>void act(async()=>{await api.post(`/api/v1/activity-generation/jobs/${job.id}/cancel`);await active.refetch()})}>{t('إلغاء وإعادة الرصيد','Cancel and release credit')}</Button></>}
+    {preparing&&<><div className={styles.progress}>{!active.isError&&<LoadingIndicator size="large" label={job.state==='queued'?t('في انتظار الذكاء الاصطناعي…','Waiting for AI…'):t('الذكاء الاصطناعي يحضّر مقترحاتك…',job.task==='questions'?'AI is preparing your questions…':'AI is preparing your suggestions…')}/>}<p>{t('يمكنك إغلاق النافذة والعودة للعملية لاحقًا.','You can close this panel and return to the job later.')}</p></div><Button loading={pendingAction==='cancel'} disabled={busy} onClick={()=>void act('cancel',async()=>{await api.post(`/api/v1/activity-generation/jobs/${job.id}/cancel`);await active.refetch()})}>{t('إلغاء وإعادة الرصيد','Cancel and release credit')}</Button></>}
     {['failed','needs_review','cancelled'].includes(job.state)&&<p role="status">{job.settlementComplete?t('لم تُسلَّم مقترحات. أُعيد الرصيد المحجوز.','No candidates were delivered. Reserved credit was released.'):t('لم تُسلَّم مقترحات. إعادة الرصيد قيد المعالجة.','No candidates were delivered. Credit release is being processed.')} {job.state==='needs_review'&&t('حالة طلب المزوّد غير مؤكدة؛ لن نكرره تلقائيًا.','The provider outcome is uncertain; it will not be retried automatically.')}</p>}
     {job.task==='zones'&&jobImage&&result&&<div className={styles.zonePreview}><img src={jobImage??undefined} alt={t('معاينة المناطق المقترحة','Proposed image regions')}/><svg viewBox="0 0 1 1" preserveAspectRatio="none">{result.candidates.filter((_,i)=>selected.includes(i)).map((c,i)=><rect key={i} x={c.x} y={c.y} width={c.w} height={c.h}/>)}</svg></div>}
     {result?.candidates.map((c,index)=>{const added=result.appliedIndexes.includes(index);let payload:Record<string,unknown>={};try{payload=JSON.parse(c.payloadJson??'{}') as Record<string,unknown>}catch{/* Rejected by the server before delivery. */}
@@ -84,14 +97,14 @@ export function GenerationPanel({activity,question,onClose,onApplied}:{activity:
       {c.reasons?.map((r,i)=><p key={i} dir="auto"><strong>{r.elementKey}</strong>: {r.reason}</p>)}
       {c.key&&<p>{c.key} · {t('راجع حدود المنطقة على الصورة','Review the region on the image')}</p>}
       {c.sourceId&&<p>{c.sourceId} → {c.targetId}</p>}
-      {c.sourceSegments?.map(segment=><Button key={segment} variant="quiet" onClick={()=>void act(async()=>{setSource(await api.get(`/api/v1/activity-generation/jobs/${job.id}/source/${segment}`))})}><FileText size={16}/>{t(`افتح المصدر ${segment}`,`Open source ${segment}`)}</Button>)}
+      {c.sourceSegments?.map(segment=><Button key={segment} variant="quiet" loading={pendingAction===`source:${index}:${segment}`} disabled={busy} icon={<FileText size={16}/>} onClick={()=>void act(`source:${index}:${segment}`,async()=>{setSource(await api.get(`/api/v1/activity-generation/jobs/${job.id}/source/${segment}`))})}>{t(`افتح المصدر ${segment}`,`Open source ${segment}`)}</Button>)}
       {job.origin==='topic'&&c.prompt&&<small>{t('من موضوع · يحتاج مراجعتك · بلا مراجع ملف مُختلقة','Topic based · teacher review required · no file citations')}</small>}
      </article>
     })}
     {source&&<section className={styles.sourceText}><h4>{t(`المصدر ${source.index}`,`Source ${source.index}`)}</h4><p>{source.text}</p><Button onClick={()=>setSource(null)}>{t('أغلق المصدر','Close source')}</Button></section>}
     {result&&<><p>{t(`${result.candidates.length-result.appliedIndexes.length} مقترحات متبقية`,`${result.candidates.length-result.appliedIndexes.length} candidates remaining`)} · {t('التكلفة النهائية','Final charge')} <span dir="ltr">{usd(job.settledMillicents)}</span></p>
      {job.task==='zones'&&<p>{t('تُضاف المناطق دون تأكيد. راجعها وحدّد الإجابة الصحيحة ثم أكّدها في المحرر.','Regions are added unconfirmed. Review them, set the correct answer, then confirm in the editor.')}</p>}
-     <Button variant="primary" disabled={busy||selected.length===0} onClick={()=>void act(async()=>{const r=await api.post<{added:number;remaining:number}>(`/api/v1/activity-generation/jobs/${job.id}/apply`,{selected,expectedRevision:result.nextRevision});setSelected([]);setNotice(t(`أُضيف ${r.added}، وبقي ${r.remaining}.`,`Added ${r.added}; ${r.remaining} remain.`));await onApplied();await active.refetch()})}>{t('أضف المختار فقط','Add selected only')}</Button>
+     <Button variant="primary" loading={pendingAction==='apply'} disabled={busy||selected.length===0} onClick={()=>void act('apply',async()=>{const r=await api.post<{added:number;remaining:number}>(`/api/v1/activity-generation/jobs/${job.id}/apply`,{selected,expectedRevision:result.nextRevision});setSelected([]);setNotice(t(`أُضيف ${r.added}، وبقي ${r.remaining}.`,`Added ${r.added}; ${r.remaining} remain.`));await onApplied();await active.refetch()})}>{t('أضف المختار فقط','Add selected only')}</Button>
     </>}
    </section>}
   </div>

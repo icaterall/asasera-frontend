@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "npm run check:media && tsc -b && vite build",
     "typecheck": "tsc -b --noEmit",
     "test:login-return": "node --test tests/login-return.test.ts",
     "check:k8s": "node scripts/check-k8s.ts",
@@ -15,10 +15,13 @@
     "postbuild": "npm run assert:build",
     "smoke": "node scripts/smoke.mjs",
     "check:shared": "node scripts/check-shared.mjs",
+    "check:media": "node scripts/check-media-policy.mjs",
+    "test:media": "node --test tests/media-policy.test.ts && vitest run tests/audio.spec.tsx",
     "e2e": "playwright test",
     "e2e:ui": "playwright test --ui",
     "test:student-learning": "node --test tests/student-learning.test.ts",
-    "test:dropdowns": "vitest run tests/dropdowns.spec.tsx"
+    "test:dropdowns": "vitest run tests/dropdowns.spec.tsx",
+    "test:education-stages": "node --test tests/student-learning.test.ts && vitest run tests/education-stages.spec.tsx tests/audience.spec.tsx"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",

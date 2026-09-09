@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, Navigate, useLocation } from 'react-router-dom'
 import { Bdi } from '@/components/Bdi'
-import { Button } from '@/design'
+import { Button, LoadingIndicator } from '@/design'
 import { DeleteAccount } from '@/features/delivery/DeleteAccount'
 import { useAuth } from '@/hooks/useAuth'
 import { useApiErrorMessage } from '@/hooks/useApiErrorMessage'
@@ -19,7 +19,7 @@ export default function AccountPage() {
   const { i18n } = useTranslation()
   const title = i18n.language.startsWith('ar') ? 'إعدادات الحساب' : 'Account settings'
   useDocumentTitle(title)
-  if (status === 'loading') return <p role="status">{i18n.language.startsWith('ar') ? 'جارٍ التحميل…' : 'Loading…'}</p>
+  if (status === 'loading') return <LoadingIndicator />
   if (!user) return <Navigate to="/login" replace state={loginStateFor(location)} />
   return <Settings key={user.id} user={user} title={title} />
 }

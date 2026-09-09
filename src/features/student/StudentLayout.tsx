@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next'
+import { LoadingState } from '@/design/LoadingState'
 import { Link, NavLink, Navigate, Outlet, useLocation } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { Home, BookOpen, ChartNoAxesColumn, Gamepad2, SlidersHorizontal, Settings, CircleHelp } from 'lucide-react'
@@ -17,7 +18,7 @@ export default function StudentLayout() {
   const { user, status } = useAuth(), location = useLocation()
   const { i18n } = useTranslation(), ar = i18n.language.startsWith('ar'), t = (a: string, e: string) => ar ? a : e
   const query = useQuery({ queryKey: studentQueryKey(user?.id ?? 0), queryFn: studentApi.overview, enabled: user?.role === 'student', staleTime: 15000 })
-  if (status === 'loading') return <main role="status">{t('جارٍ فتح حسابك…', 'Opening your account…')}</main>
+  if (status === 'loading') return <main><LoadingState layout="page" variant="dashboard" label={t('جارٍ فتح حسابك…', 'Opening your account…')} /></main>
   if (!user) return <Navigate to="/login" state={loginStateFor(location)} replace />
   if (user.role !== 'student') return <Navigate to={homePathFor(user)} replace />
   const stage = query.data?.profile.stage ?? 'general'
@@ -40,7 +41,7 @@ export default function StudentLayout() {
       <header className={styles.header}><span>{query.data ? learningLabel(query.data.profile, ar ? 'ar' : 'en') : t('مساحة التعلّم', 'Learning space')}</span><div className={styles.headerControls}><LanguageToggle /><ThemeToggle /><AccountControl /></div></header>
       <VerifyEmailBanner />
       <main className={styles.main} id="student-main" tabIndex={-1}>
-        {query.isPending ? <p role="status">{t('نجهّز مساحة تعلّمك…', 'Loading your learning space…')}</p> : query.isError ? <div className={styles.empty}><h1>{t('تعذّر فتح مساحة التعلّم', 'Your learning space could not load')}</h1><p role="alert">{t('تحقق من الاتصال ثم حاول مجددًا.', 'Check your connection and try again.')}</p><button className={styles.primary} onClick={() => void query.refetch()}>{t('حاول مجددًا', 'Try again')}</button></div> : <Outlet context={{ data: query.data, reload: query.refetch }} />}
+        {query.isPending ? <LoadingState variant="dashboard" label={t('نجهّز مساحة تعلّمك…', 'Loading your learning space…')} /> : query.isError ? <div className={styles.empty}><h1>{t('تعذّر فتح مساحة التعلّم', 'Your learning space could not load')}</h1><p role="alert">{t('تحقق من الاتصال ثم حاول مجددًا.', 'Check your connection and try again.')}</p><button className={styles.primary} onClick={() => void query.refetch()}>{t('حاول مجددًا', 'Try again')}</button></div> : <Outlet context={{ data: query.data, reload: query.refetch }} />}
       </main>
     </div>
   </div>

@@ -8,7 +8,7 @@ test('existing live-provider results open citations and image proposals without 
  const login=await page.request.post('/api/v1/auth/login',{data:{email:fixture.email,password:fixture.password}});expect(login.ok()).toBe(true)
  let submissions=0;page.on('request',r=>{if(r.method()==='POST'&&r.url().endsWith('/activity-generation/jobs'))submissions++})
  await page.setViewportSize({width:1440,height:900});await page.goto(`/teacher/activities/${fixture.activityId}`)
- await page.getByRole('button',{name:'Generate',exact:true}).click();await expect(page.getByRole('dialog',{name:'Prepare with AI',exact:true})).toBeVisible()
+ await page.getByRole('button',{name:'Generate with AI',exact:true}).click();await expect(page.getByRole('dialog',{name:'Generate with AI',exact:true})).toBeVisible()
  await selectOption(page.getByRole('combobox',{name:'Previous jobs',exact:true}),'306')
  await expect(page.getByRole('button',{name:'Open source 1'}).first()).toBeVisible();await page.getByRole('button',{name:'Open source 1'}).first().click()
  await expect(page.getByRole('heading',{name:'Source 1',exact:true})).toBeVisible();await expect(page.locator('section[class*=sourceText] p')).not.toBeEmpty()

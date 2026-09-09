@@ -24,14 +24,20 @@ export function gradesFor(stage: StudyStage): { id: string; en: string; ar: stri
 // Learning preferences describe a stage, never an exact age or consent status.
 export const learningProfileSchema = z.object({
   stage: z.enum(studyStages), grade: z.string().nullable().default(null),
+  // A database choice takes precedence over the legacy broad stage/grade.
+  educationStageId: z.number().int().positive().nullable().optional(),
 }).strict().superRefine((value, ctx) => {
   if (value.grade !== null && !gradesFor(value.stage).some(g => g.id === value.grade)) {
     ctx.addIssue({ code: 'custom', path: ['grade'], message: 'Choose a grade from your selected stage, or keep it general.' })
   }
 })
 export type LearningProfile = z.infer<typeof learningProfileSchema>
+export type StudentLearningProfile = LearningProfile & {
+  educationStage?: { id: number; name_en: string; name_ar: string }
+}
 export const generalLearning: LearningProfile = { stage: 'general', grade: null }
-export function learningLabel(profile: LearningProfile, lang: 'en' | 'ar'): string {
+export function learningLabel(profile: StudentLearningProfile, lang: 'en' | 'ar'): string {
+  if (profile.educationStage) return lang === 'ar' ? profile.educationStage.name_ar : profile.educationStage.name_en
   return gradesFor(profile.stage).find(g => g.id === profile.grade)?.[lang] ?? stageNames[profile.stage][lang]
 }
 export type StudentActivity = {
@@ -40,4 +46,4 @@ export type StudentActivity = {
   attemptId: string | null; questionCount: number; answered: number;
   correctCount: number | null; score: number | null; feedbackAvailable: boolean;
 }
-export type StudentOverview = { profile: LearningProfile; activities: StudentActivity[] }
+export type StudentOverview = { profile: StudentLearningProfile; activities: StudentActivity[] }

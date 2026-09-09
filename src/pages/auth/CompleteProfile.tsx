@@ -1,4 +1,5 @@
 import {DeleteAccount} from '@/features/delivery/DeleteAccount'
+import { LoadingIndicator } from '@/design/LoadingIndicator'
 import { useEffect, useRef } from 'react'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { loginStateFor } from '@/lib/afterAuth'
@@ -132,9 +133,7 @@ export default function CompleteProfile() {
   if (status === 'loading' || !user) {
     return (
       <AuthCard title={c.completeProfile.title}>
-        <p className="text-sm" style={{ color: 'var(--ink-muted)' }} role="status" aria-live="polite">
-          {c.common.loading}
-        </p>
+        <LoadingIndicator label={c.common.loading} />
       </AuthCard>
     )
   }

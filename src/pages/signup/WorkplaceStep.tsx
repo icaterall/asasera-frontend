@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { LoadingIndicator } from '@/design/LoadingIndicator'
 import { Link, useNavigate } from 'react-router-dom'
 
 import { AuthCard, FormError } from '@/components/form/AuthCard'
@@ -60,9 +61,7 @@ export default function WorkplaceStep() {
   return (
     <AuthCard title={c.signup.workplace.title} lead={c.signup.workplace.lead} width="choice">
       {options.loading ? (
-        <p className="text-sm" style={{ color: 'var(--ink-muted)' }} role="status" aria-live="polite">
-          {c.common.loading}
-        </p>
+        <LoadingIndicator label={c.common.loading} />
       ) : options.failed ? (
         /*
          * The list is the screen. Unlike the old step there is no "choose

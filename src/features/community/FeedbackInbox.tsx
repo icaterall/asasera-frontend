@@ -1,4 +1,7 @@
 import { useState } from 'react'
+import { z } from 'zod'
+import { useSessionDraft } from '@/features/editor/useSessionDraft'
+import { draftKey } from '@/features/editor/session-drafts'
 import { Link, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -11,10 +14,16 @@ import { community, type FeedbackStatus, type InboxItem } from './api'
 import { Recommendations } from './Recommendations'
 import styles from './Community.module.css'
 
-export function InboxEntry({ item, onSaved }: { item: InboxItem; onSaved: () => void }) {
+const replySchema = z.object({status: z.enum(['open', 'reviewed', 'resolved']), response: z.string()})
+type ReviewInEditor = (questionId: number | null) => void
+export function InboxEntry({ item, onSaved, onReview, onRefresh }: { item: InboxItem; onSaved: () => void; onReview?: ReviewInEditor; onRefresh?: () => void }) {
   const { i18n } = useTranslation(), ar = i18n.language.startsWith('ar'), t = (a: string, e: string) => ar ? a : e
-  const [status, setStatus] = useState<FeedbackStatus>(item.status), [response, setResponse] = useState(item.response)
-  const save = useMutation({ mutationFn: () => community.respond(item, status, response), onSuccess: onSaved })
+  const {user} = useAuth()
+  const draft = useSessionDraft(draftKey(user?.id, `activity:${item.activityId}:reply:${item.kind}:${item.id}`), {status: item.status, response: item.response}, replySchema)
+  const {status, response} = draft.value
+  const setStatus = (status: FeedbackStatus) => draft.update(current => ({...current, status}))
+  const setResponse = (response: string) => draft.update(current => ({...current, response}))
+  const save = useMutation({ mutationFn: (snapshot: typeof draft.value) => community.respond(item, snapshot.status, snapshot.response), onSuccess: (_result, snapshot) => {draft.clear(snapshot); onSaved()} })
   const reasons: Record<string, string> = { incorrect_answer: t('إجابة تحتاج مراجعة', 'Check the answer'), unclear_wording: t('صياغة غير واضحة', 'Unclear wording'), inappropriate_content: t('محتوى غير مناسب', 'Inappropriate content'), technical_problem: t('مشكلة تقنية', 'Technical problem') }
   const statuses = { open: t('جديد', 'New'), reviewed: t('تمت المراجعة', 'Reviewed'), resolved: t('تمت المعالجة', 'Resolved') }
   return <article className={styles.inboxEntry}>
@@ -23,19 +32,20 @@ export function InboxEntry({ item, onSaved }: { item: InboxItem; onSaved: () => 
     {item.reason && <strong>{reasons[item.reason] ?? item.reason}</strong>}
     {item.strengths && <div className={styles.feedbackText}><h3>{t('ما أعجبه', 'What worked well')}</h3><p dir="auto">{item.strengths}</p></div>}
     {item.suggestion && <div className={styles.feedbackText}><h3>{t('اقتراح التحسين', 'Suggested improvement')}</h3><p dir="auto">{item.suggestion}</p></div>}
-    <div className={styles.actions}><Link to={`/teacher/activities/${item.activityId}${item.questionId ? `?question=${item.questionId}` : ''}`}>{t('راجع النشاط وعدّله', 'Review and edit activity')}</Link><Link to={`/teacher/reports/authors/${item.activityId}`}>{t('الدليل الصفّي', 'Classroom evidence')}</Link></div>
+    <div className={styles.actions}>{onReview ? <Button onClick={() => onReview(item.questionId)}>{t('راجع النشاط وعدّله', 'Review and edit activity')}</Button> : <><Link to={`/teacher/activities/${item.activityId}${item.questionId ? `?question=${item.questionId}` : ''}`}>{t('راجع النشاط وعدّله', 'Review and edit activity')}</Link><Link to={`/teacher/reports/authors/${item.activityId}`}>{t('الدليل الصفّي', 'Classroom evidence')}</Link></>}</div>
     <details className={styles.respond}><summary>{t('الردّ وتحديث الحالة', 'Reply and update status')}</summary>
-      <form onSubmit={e => { e.preventDefault(); if (!save.isPending) save.mutate() }}>
+      <form onSubmit={e => { e.preventDefault(); if (!save.isPending) save.mutate(draft.value) }}>
         <label className={styles.field}>{t('ردّك للمعلّم (اختياري)', 'Your reply to the teacher (optional)')}<textarea dir="auto" rows={3} value={response} maxLength={2000} disabled={save.isPending} onChange={e => setResponse(e.target.value)} /></label>
         <label className={styles.field}>{t('حالة الملاحظة', 'Feedback status')}<Select value={status} disabled={save.isPending} onValueChange={v => setStatus(v as FeedbackStatus)}>{Object.entries(statuses).map(([key, label]) => <option key={key} value={key}>{label}</option>)}</Select></label>
         <Button type="submit" variant="primary" loading={save.isPending}><CheckCheck size={18} aria-hidden="true" />{t('حفظ الردّ', 'Save response')}</Button>
-        {save.error && <p role="alert">{save.error.message} <Button variant="quiet" onClick={onSaved}>{t('تحديث الملاحظات', 'Refresh feedback')}</Button></p>}
+        {draft.storageError && <p role="alert">{t('تعذّر الاحتفاظ بنسخة من الردّ في هذا المتصفح.', 'This browser could not keep a recovery copy of your reply.')}</p>}
+        {save.error && <p role="alert">{save.error.message} <Button variant="quiet" onClick={onRefresh ?? onSaved}>{t('تحديث الملاحظات', 'Refresh feedback')}</Button></p>}
       </form>
     </details>
   </article>
 }
 
-function ImprovementIdeas({ activityId }: { activityId: number }) {
+export function ImprovementIdeas({ activityId, onReview }: { activityId: number; onReview?: ReviewInEditor }) {
   const { user } = useAuth(), { i18n } = useTranslation(), ar = i18n.language.startsWith('ar'), t = (a: string, e: string) => ar ? a : e
   const data = useQuery({ queryKey: ['community-insights', user?.id, activityId], queryFn: () => community.insights(activityId) })
   const copy: Record<string, [string, string]> = {
@@ -45,10 +55,10 @@ function ImprovementIdeas({ activityId }: { activityId: number }) {
   }
   return <section className={styles.insights}><div className={styles.sectionHeading}><Lightbulb size={24} aria-hidden="true" /><h2>{t('خطوتك التالية', 'Your next improvement')}</h2></div>
     {data.isPending ? <LoadingState rows={1} /> : data.error ? <div role="alert"><p>{t('تعذّر تحميل الدليل.', 'Evidence couldn’t load.')}</p><Button onClick={() => void data.refetch()}>{t('إعادة المحاولة', 'Try again')}</Button></div> : data.data.ideas.length ? <ul className={styles.ideaList}>{data.data.ideas.map(idea => <li key={`${idea.version}-${idea.questionId}`}>
-      <strong>{t('السؤال', 'Question')} {idea.questionNumber} · {t('النسخة', 'Version')} {idea.version}</strong><p dir="auto">{idea.prompt}</p><p>{copy[idea.code]?.[ar ? 0 : 1]}</p><Link to={`/teacher/activities/${activityId}?question=${idea.questionId}`}>{t('راجع هذا السؤال', 'Review this question')}</Link>
+      <strong>{t('السؤال', 'Question')} {idea.questionNumber} · {t('النسخة', 'Version')} {idea.version}</strong><p dir="auto">{idea.prompt}</p><p>{copy[idea.code]?.[ar ? 0 : 1]}</p>{onReview ? <Button onClick={() => onReview(idea.questionId)}>{t('راجع هذا السؤال', 'Review this question')}</Button> : <Link to={`/teacher/activities/${activityId}?question=${idea.questionId}`}>{t('راجع هذا السؤال', 'Review this question')}</Link>}
     </li>)}</ul> : <p>{data.data.status === 'aggregate' ? t('لم تظهر إشارة تستدعي تعديلًا محدّدًا. راجع ملاحظات المعلّمين قبل اختيار خطوتك التالية.', 'No specific revision signal has appeared. Read the teacher feedback before choosing your next change.') : t('شارك النشاط ليجرّبه معلّمون آخرون. تحتاج الاقتراحات الصفّية إلى دليل كافٍ من ثلاثة صفوف، مع استبعاد الصفوف الصغيرة.', 'Share the activity for other teachers to try. Classroom suggestions need enough evidence from three distinct classes, excluding small classes.')}</p>}
     <p className={styles.muted}>{t('هذه إشارات لمراجعة النشاط، وليست حكمًا على فهم الطالب. لا تُعرض بيانات الطلاب الفردية هنا.', 'These are signals for reviewing the activity, not judgments about a learner. Individual student data is not shown here.')}</p>
-    <Link to={`/teacher/reports/authors/${activityId}`}>{t('فتح تقرير المؤلّف', 'Open author evidence')}</Link>
+    {!onReview && <Link to={`/teacher/reports/authors/${activityId}`}>{t('فتح تقرير المؤلّف', 'Open author evidence')}</Link>}
   </section>
 }
 

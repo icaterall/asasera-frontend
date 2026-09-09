@@ -1,9 +1,15 @@
+import {AccountControl} from '@/components/layout/AccountControl'
+import {LanguageToggle} from '@/components/ui/LanguageToggle'
+import {Logo} from '@/components/ui/Logo'
+import {useAuth} from '@/hooks/useAuth'
+import {ActivityFeedbackModal} from '@/features/community/ActivityFeedbackModal'
+import {acknowledgeQuestion, acknowledgeTitle, draftKey, editorDraftSchema, emptyEditorDraft, hasEditorChanges, readDraft, storeEditorDraft, type EditorDraft} from './session-drafts'
 import {ActivityAudience} from '@/features/audience/ActivityAudience'
-import {Menu,Settings,TriangleAlert,Check,Palette,Share2,MessageSquare} from 'lucide-react'
+import {Menu,Settings,TriangleAlert,Check,Palette,Share2,MessageSquare,Sparkles} from 'lucide-react'
 import {useTranslation} from 'react-i18next'
 import {useEditorText} from './useEditorText'
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 
 import { Button, EmptyState, FailureState, LoadingState, Select } from '@/design'
 import {
@@ -84,11 +90,27 @@ function SaveIndicator({ state }: { state: ReturnType<typeof useAutosave>['state
 }
 
 export default function ActivityEditor() {
+  const {id} = useParams<{id: string}>(), {user} = useAuth()
+  return <ActivityEditorWorkspace key={`${user?.id}:${id}`}/>
+}
+
+function ActivityEditorWorkspace() {
   const t=useEditorText(),{i18n}=useTranslation(),ar=i18n.language.startsWith('ar')
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const activityId = Number(id)
-  const [searchParams] = useSearchParams()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const {user} = useAuth()
+  const recoveryKey = draftKey(user?.id, `activity:${activityId}`)
+  const journal = useRef<EditorDraft>(emptyEditorDraft())
+  const [recovered, setRecovered] = useState(false)
+  const [recoveryConflict, setRecoveryConflict] = useState(false)
+  const [storageError, setStorageError] = useState(false)
+  const persist = useCallback((next: EditorDraft) => {
+    journal.current = next
+    setStorageError(!storeEditorDraft(recoveryKey, next))
+  }, [recoveryKey])
+  const [feedbackOpen, setFeedbackOpen] = useState(false)
   const requestedQuestion = Number(searchParams.get('question'))
 
   const [data, setData] = useState<Loaded | null>(null)
@@ -110,6 +132,7 @@ export default function ActivityEditor() {
   const [activeId, setActiveId] = useState<number | null>(null)
   const [problems, setProblems] = useState<PublicationProblem[]>([])
   const [generationOpen,setGenerationOpen]=useState(false)
+  const [generationOpening,setGenerationOpening]=useState(false)
   const [themesOpen,setThemesOpen]=useState(false)
   const [publishing, setPublishing] = useState(false)
   /*
@@ -145,12 +168,29 @@ export default function ActivityEditor() {
 
   const reload = useCallback(async () => {
     try {
-      const loaded=await activities.load(activityId);dataRef.current=loaded;baseTitle.current=loaded.activity.title;setData(loaded)
+      const loaded = await activities.load(activityId)
+      baseTitle.current = loaded.activity.title
+      const draft = readDraft(recoveryKey, editorDraftSchema) ?? emptyEditorDraft()
+      journal.current = draft
+      const needsReview = hasEditorChanges(draft)
+      setRecovered(needsReview)
+      setRecoveryConflict(!!(draft.title && draft.title.base !== loaded.activity.title) || Object.entries(draft.questions).some(([id, entry]) => loaded.questions.find(q => q.id === Number(id))?.revision !== entry.baseRevision))
+      if (draft.title) loaded.activity = {...loaded.activity, title: draft.title.value}
+      loaded.questions = loaded.questions.map(question => {
+        const entry = draft.questions[question.id]
+        if (!entry) return question
+        const {errorPairs, confirmZones: _confirmZones, ...fields} = entry.patch
+        loaded.errorPairs = [...loaded.errorPairs.filter(pair => pair.questionId !== question.id), ...errorPairs.map(pair => ({...pair, questionId: question.id}))]
+        return {...question, ...fields}
+      })
+      if (needsReview && loaded.questions.some(q => q.id === draft.activeQuestionId)) setActiveId(draft.activeQuestionId)
+      dataRef.current = loaded
+      setData(loaded)
       setLoadError(null)
     } catch (error) {
-      setLoadError(error instanceof Error ? error.message : t("تعذّر تحميل النشاط"))
+      setLoadError(error instanceof Error ? error.message : '')
     }
-  }, [activityId,t])
+  }, [activityId,recoveryKey])
 
   useEffect(() => { void reload() }, [reload])
 
@@ -166,15 +206,6 @@ export default function ActivityEditor() {
     [data, activeId],
   )
 
-  /** Reasons for the active question, keyed by element. */
-  const reasons = useMemo(() => {
-    const map: Record<string, string> = {}
-    for (const pair of data?.errorPairs ?? []) {
-      if (pair.questionId === activeId && pair.wrongTargetKey === null) map[pair.elementKey] = pair.reason
-    }
-    return map
-  }, [data, activeId])
-
   /* ---- autosave ---------------------------------------------------------
    * The whole active question is the unit. Field-level saves would multiply
    * the out-of-order problem by the number of fields for no benefit — the
@@ -187,6 +218,7 @@ export default function ActivityEditor() {
         ...current,
         questions: current.questions.map((q) => (q.id === question.id ? {...q,revision:question.revision} : q)),
       }))
+      persist(acknowledgeQuestion(readDraft(recoveryKey, editorDraftSchema) ?? journal.current, questionId, patch, question.revision))
     },
   })
 
@@ -194,6 +226,7 @@ export default function ActivityEditor() {
     save: async (title) => {
       const { activity } = await activities.update(activityId, { title,expectedTitle:baseTitle.current })
       baseTitle.current=activity.title
+      persist(acknowledgeTitle(readDraft(recoveryKey, editorDraftSchema) ?? journal.current, title))
       changeData((current) => current && { ...current, activity:{...activity,title:current.activity.title} })
     },
   })
@@ -223,19 +256,21 @@ export default function ActivityEditor() {
       ...current,
       questions: current.questions.map((q) => (q.id === next.id ? next : q)),
     }))
-    questionSave.change({
+    const edit = {
       id: next.id,
       patch: {
         kind: next.kind,
         prompt: next.prompt,
-        payload: next.payload,
+        payload: next.payload as Record<string, unknown>,
         timeLimitS: next.timeLimitS,
         mediaKey:next.mediaKey,
         confirmZones:patch.confirmZones===true,
         errorPairs:(dataRef.current?.errorPairs??[]).filter(p=>p.questionId===next.id).map(({elementKey,wrongTargetKey,reason})=>({elementKey,wrongTargetKey,reason})),
       },
-    })
-  }, [questionSave])
+    }
+    persist({...journal.current, activeQuestionId: next.id, questions: {...journal.current.questions, [next.id]: {baseRevision: journal.current.questions[next.id]?.baseRevision ?? current.revision, patch: edit.patch}}})
+    if (!recovered) questionSave.change(edit)
+  }, [questionSave, persist, recovered])
 
   /**
    * Changing the active question FLUSHES the pending save first.
@@ -251,10 +286,13 @@ export default function ActivityEditor() {
    * in flight before question 2's first keystroke can queue anything.
    */
   const selectQuestion = useCallback(async (nextId: number | null) => {
-    await questionSave.flushNow()
+    if (!recovered) await questionSave.flushNow()
     setActiveId(nextId)
+    activeIdRef.current = nextId
+    persist({...journal.current, activeQuestionId: nextId})
+    setSearchParams(previous => { const params = new URLSearchParams(previous); if (nextId) params.set('question', String(nextId)); else params.delete('question'); return params }, {replace: true})
     setRailOpen(false)
-  }, [questionSave])
+  }, [questionSave, recovered, persist, setSearchParams])
 
   const payload = (active?.payload ?? {}) as { options?: McqOption[]; correct?: string | boolean }
 
@@ -274,19 +312,27 @@ export default function ActivityEditor() {
     })
     patchActive({})
   }, [active,patchActive])
-  const setReason=(elementKey:string,reason:string)=>setReasonPair(elementKey,null,reason)
 
   /** Wraps an editor action so a failure is reported rather than swallowed. */
   const run = useCallback(async (what: string, action: () => Promise<void>) => {
     if(actionInFlight.current)return
     actionInFlight.current=true;setActionBusy(true);setActionError(null)
     try {
+      if (recovered) throw new Error(ar ? 'راجع التعديلات المستعادة واحفظها أولًا.' : 'Review and save your recovered edits first.')
       await questionSave.flushNow();await titleSave.flushNow()
       await action()
     } catch (error) {
       setActionError(`${what}: ${error instanceof Error ? error.message : t("خطأ غير معروف")}`)
     }finally{actionInFlight.current=false;setActionBusy(false)}
-  }, [questionSave,titleSave,t])
+  }, [questionSave,titleSave,t,recovered,ar])
+
+  const openGeneration = async () => {
+    if (actionInFlight.current) return
+    setGenerationOpening(true)
+    try {
+      await run(t("تعذّر حفظ التعديلات"), async () => {await reload();setGenerationOpen(true)})
+    } finally {setGenerationOpening(false)}
+  }
 
   const addQuestion = useCallback((kind: 'mcq' | 'tf') => run(t("تعذّرت إضافة السؤال"), async () => {
     /* The question being left may have an unsaved edit queued. */
@@ -297,13 +343,14 @@ export default function ActivityEditor() {
       payload: kind === 'mcq' ? DEFAULT_MCQ() : { correct: true },
     })
     changeData((current) => current && { ...current, questions: [...current.questions, question] })
-    setActiveId(question.id)
+    await selectQuestion(question.id)
     setRailOpen(false)
     /* Focus lands on the prompt, because that is the next thing to type. */
     requestAnimationFrame(() => promptRef.current?.focus())
-  }), [activityId, run, questionSave,t])
+  }), [activityId, run, questionSave,selectQuestion,t])
 
   const publish = useCallback(async () => {
+    if (recovered) {setActionError(ar ? 'راجع التعديلات المستعادة واحفظها قبل النشر.' : 'Review and save your recovered edits before publishing.'); return}
     setPublishing(true)
     setProblems([])
     try {
@@ -330,27 +377,58 @@ export default function ActivityEditor() {
     } finally {
       setPublishing(false)
     }
-  }, [activityId, questionSave, titleSave,t])
+  }, [activityId, questionSave, titleSave,t,recovered,ar])
 
-  if (loadError) {
+  async function saveRecovered() {
+    if (actionInFlight.current) return
+    actionInFlight.current = true; setActionBusy(true); setActionError(null)
+    try {
+      // A save started before this editor remounted can still acknowledge its
+      // older snapshot. Read the journal again to pick up that confirmed base.
+      const stored = readDraft(recoveryKey, editorDraftSchema)
+      if (stored) {
+        if (stored.title && journal.current.title?.base === baseTitle.current) baseTitle.current = stored.title.base
+        journal.current = stored
+      }
+      for (const [id, entry] of Object.entries(journal.current.questions)) {
+        const questionId = Number(id), current = dataRef.current?.questions.find(q => q.id === questionId)
+        if (!current) throw new Error(ar ? 'حُذف أحد الأسئلة المستعادة. استخدم النسخة المحفوظة لإزالة هذه المسودة.' : 'A recovered question was deleted. Use the saved version to discard this draft.')
+        const {question} = await activities.updateQuestion(questionId, {...entry.patch, expectedRevision: Math.max(current.revision, entry.baseRevision)})
+        changeData(value => value && ({...value, questions: value.questions.map(q => q.id === questionId ? {...q, revision: question.revision} : q)}))
+        persist(acknowledgeQuestion(readDraft(recoveryKey, editorDraftSchema) ?? journal.current, questionId, entry.patch, question.revision))
+      }
+      const title = journal.current.title?.value
+      if (title !== undefined) {
+        const {activity} = await activities.update(activityId, {title, expectedTitle: baseTitle.current})
+        baseTitle.current = activity.title
+        persist(acknowledgeTitle(readDraft(recoveryKey, editorDraftSchema) ?? journal.current, title))
+      }
+      setRecovered(false)
+    } catch (error) {setActionError(error instanceof Error ? error.message : (ar ? 'تعذّر الحفظ. مسودتك محفوظة في هذه الجلسة.' : 'Saving failed. Your draft is kept in this session.'))}
+    finally {actionInFlight.current = false; setActionBusy(false)}
+  }
+
+  if (loadError !== null) {
     return (
       <div className="asas" style={{ padding: 'var(--s-6)' }}>
-        <FailureState title={t("تعذّر فتح النشاط")} body={loadError}
+        <FailureState title={t("تعذّر فتح النشاط")} body={loadError || t("تعذّر تحميل النشاط")}
           actions={<Button variant="primary" onClick={() => void reload()}>{t("أعد المحاولة")}</Button>} />
       </div>
     )
   }
   if (!data) {
-    return <div className="asas" style={{ padding: 'var(--s-6)' }}><LoadingState rows={5} /></div>
+    return <LoadingState variant="editor" layout="page" label={ar ? 'جارٍ تحميل نشاطك…' : 'Loading your activity…'} />
   }
 
-  const flaggedForActive = new Set(
-    problems.filter((p) => p.questionId === activeId && p.elementKey).map((p) => p.elementKey!),
-  )
   const incompleteIds = new Set(problems.map((p) => p.questionId).filter((x): x is number => x != null))
 
   return (
-    <div className={`asas ${styles.shell}`}>
+    <div className={`asas ${styles.shell}`} dir={ar ? 'rtl' : 'ltr'}>
+      {feedbackOpen && <ActivityFeedbackModal activityId={activityId} title={data.activity.title} onClose={() => setFeedbackOpen(false)} onReview={async questionId => {
+        if (questionId && !data.questions.some(q => q.id === questionId)) throw new Error(ar ? 'هذا السؤال غير موجود في المسودة الحالية.' : 'This question is no longer in the current draft.')
+        if (questionId) await selectQuestion(questionId)
+        setFeedbackOpen(false)
+      }}/>}
       {themesOpen&&<ThemePicker value={data.activity.theme} published={!!data.activity.currentVersionId} onClose={()=>setThemesOpen(false)} onApply={async(theme)=>{
         await questionSave.flushNow();await titleSave.flushNow()
         const latest=await activities.load(activityId)
@@ -361,33 +439,45 @@ export default function ActivityEditor() {
       {generationOpen&&<GenerationPanel activity={data.activity} question={active} onClose={()=>setGenerationOpen(false)} onApplied={reload}/>}
       {/* ---- 1. top bar ---- */}
       <header className={styles.top}>
-        <Button variant="quiet" className={styles.drawerToggle} onClick={() => setRailOpen((v) => !v)}
-          aria-expanded={railOpen} aria-label={t("الأسئلة")}><Menu size={22} aria-hidden="true"/></Button>
-
+        <Link to="/teacher/dashboard" className={styles.brand} aria-label={ar ? 'أساسيرا — لوحة التحكم' : 'Asasera — dashboard'}>
+          <Logo />
+        </Link>
+        <div className={styles.activityIdentity}>
         <input
           className={styles.titleInput}
           value={data.activity.title}
+          disabled={actionBusy}
           aria-label={t("عنوان النشاط")}
           onChange={(event) => {
             const title = event.target.value
             changeData((current) => current && { ...current, activity: { ...current.activity, title } })
-            titleSave.change(title)
+            persist({...journal.current, title: {value: title, base: journal.current.title?.base ?? baseTitle.current}, activeQuestionId: activeIdRef.current})
+            if (!recovered) titleSave.change(title)
           }}
         />
 
         <SaveIndicator state={['failed','saving','dirty'].includes(questionSave.state.status)?questionSave.state:titleSave.state.status==='idle'?questionSave.state:titleSave.state} />
 
+        </div>
+        <div className={styles.accountControls}>
+          <LanguageToggle className={styles.languageToggle} />
+          <AccountControl />
+        </div>
+        <div className={styles.editorActions} role="group" aria-label={ar ? 'أدوات النشاط' : 'Activity actions'}>
+        <Button variant="quiet" className={styles.drawerToggle} onClick={() => setRailOpen((v) => !v)}
+          aria-expanded={railOpen} aria-label={t("الأسئلة")}><Menu size={22} aria-hidden="true"/></Button>
         <Button variant="quiet" className={styles.drawerToggle} onClick={() => setPropsOpen((v) => !v)}
           aria-expanded={propsOpen} aria-label={t("الخصائص")}><Settings size={22} aria-hidden="true"/></Button>
 
-        <Button variant="secondary" disabled={actionBusy||publishing} onClick={()=>setThemesOpen(true)}><Palette size={18} aria-hidden="true"/>{ar?'المظاهر':'Themes'}</Button>
-        <Button variant="secondary" onClick={() => void run(t("تعذّر حفظ التعديلات"),async()=>navigate('/teacher/dashboard'))}>{t("خروج")}</Button>
-        <Button variant="quiet" onClick={() => void run(t("تعذّر حفظ التعديلات"),async()=>navigate(`/teacher/feedback?activityId=${activityId}`))}><MessageSquare size={18} aria-hidden="true" />{ar?'الملاحظات':'Feedback'}</Button>
+        <Button variant="secondary" disabled={actionBusy||publishing||recovered} onClick={()=>setThemesOpen(true)}><Palette size={18} aria-hidden="true"/>{ar?'المظاهر':'Themes'}</Button>
+        <Button variant="secondary" onClick={() => recovered ? navigate('/teacher/dashboard') : void run(t("تعذّر حفظ التعديلات"),async()=>navigate('/teacher/dashboard'))}>{t("خروج")}</Button>
+        <Button variant="quiet" onClick={() => setFeedbackOpen(true)}><MessageSquare size={18} aria-hidden="true" />{ar?'الملاحظات':'Feedback'}</Button>
         {data.activity.visibility === 'published' && <Button variant="secondary" onClick={() => void run(t("تعذّر حفظ التعديلات"),async()=>navigate(`/activities/${activityId}`))}><Share2 size={18} aria-hidden="true" />{ar?'مشاركة':'Share'}</Button>}
         {data.activity.currentVersionId && <Button variant="secondary" onClick={() => navigate(`/teacher/activities/${activityId}/play`)}>{t("شغّل الحصة")}</Button>}
         <Button variant="primary" loading={publishing} onClick={() => void publish()}>
           {data.activity.visibility === 'published' ? t("إعادة النشر") : t("انشر")}
         </Button>
+        </div>
       </header>
 
       <ActivityAudience activity={data.activity} onSave={async value=>{
@@ -395,7 +485,7 @@ export default function ActivityEditor() {
         const latest=await activities.load(activityId)
         if(JSON.stringify([latest.activity.categoryId,latest.activity.educationStageIds,latest.activity.countryIds])!==JSON.stringify([data.activity.categoryId,data.activity.educationStageIds,data.activity.countryIds]))throw new Error(ar?'تغيّر الجمهور في جلسة أخرى. أعد فتح النشاط قبل الحفظ.':'The audience changed in another session. Reopen the activity before saving.')
         const result=await activities.update(activityId,{...value,expectedRevision:latest.activity.revision})
-        changeData(current=>current&&({...current,activity:result.activity}))
+        changeData(current=>current&&({...current,activity:{...result.activity,title:current.activity.title}}))
       }}/>
 
       {/* ---- 2. question rail ---- */}
@@ -415,7 +505,7 @@ export default function ActivityEditor() {
               incompleteIds.has(question.id) ? styles.thumbIncomplete : '',
             ].filter(Boolean).join(' ')}
             aria-current={question.id === activeId ? 'true' : undefined}
-            onClick={() => { void run(t("تعذّر حفظ السؤال"),()=>selectQuestion(question.id)) }}
+            onClick={() => { void selectQuestion(question.id).catch(error => setActionError(error instanceof Error ? error.message : t("تعذّر حفظ السؤال"))) }}
           >
             {incompleteIds.has(question.id) && <span className={styles.thumbFlag} aria-label={t("يحتاج إكمالًا")}><TriangleAlert size={18} aria-hidden="true"/></span>}
             <span className={styles.thumbOrdinal} dir="ltr">{question.ordinal}</span>
@@ -425,13 +515,19 @@ export default function ActivityEditor() {
 
         <div className={styles.railActions}>
           <Button variant="primary" full onClick={() => { void addQuestion('mcq') }}>{t("أضف سؤالًا")}</Button>
-          <Button variant="secondary" full onClick={()=>void run(t("تعذّر حفظ التعديلات"),async()=>{await reload();setGenerationOpen(true)})}>{t("و‍لّد")}</Button>
+          <Button variant="secondary" full className={styles.generateButton} loading={generationOpening} disabled={actionBusy||publishing} icon={<Sparkles size={18} aria-hidden="true"/>} aria-describedby="activity-ai-generation-hint" onClick={()=>void openGeneration()}>{t("توليد بالذكاء الاصطناعي")}</Button>
+          <p id="activity-ai-generation-hint" className={styles.generateHint}>{ar?'من موضوع أو من مصادرك المرفوعة.':'From a topic or your uploaded sources.'}</p>
         </div>
       </nav>
 
       {/* ---- 3. canvas ---- */}
       <ActivityStage as="main" theme={data.activity.theme} variant="editor" inert={actionBusy} className={styles.canvas}>
         <div className={styles.canvasInner}>
+          {recovered && <section className={styles.recovery} aria-label={ar ? 'استرداد التعديلات' : 'Recovered edits'}>
+            <p role="status">{recoveryConflict ? (ar ? 'استعدنا تعديلاتك، لكن النسخة المحفوظة تغيّرت. راجع المسودة قبل استبدالها.' : 'Your edits were restored, but the saved version has changed. Review your draft before replacing it.') : (ar ? 'استعدنا تعديلاتك غير المحفوظة. أكمل من حيث توقفت.' : 'Your unsaved edits were restored. Continue where you left off.')}</p>
+            <div><Button variant="primary" loading={actionBusy} onClick={() => void saveRecovered()}>{ar ? 'حفظ التعديلات المستعادة' : 'Save recovered edits'}</Button><Button disabled={actionBusy} onClick={() => {setActionBusy(true); persist(emptyEditorDraft()); void reload().finally(() => setActionBusy(false))}}>{ar ? 'استخدام النسخة المحفوظة' : 'Use saved version'}</Button></div>
+          </section>}
+          {storageError && <p role="alert" className={styles.recovery}>{ar ? 'تعذّر الاحتفاظ بنسخة استرداد. أبقِ الصفحة مفتوحة حتى يكتمل الحفظ.' : 'This browser could not keep a recovery copy. Keep this page open until saving finishes.'}</p>}
           {actionError && (
             <div className={styles.problems} role="alert">
               <h2 className={styles.problemsTitle}>{actionError}</h2>
@@ -473,15 +569,15 @@ export default function ActivityEditor() {
                 onChange={(event) => patchActive({ prompt: event.target.value })}
               />
 
-              {active.kind!=='hotspot'&&<ImageUpload imageKey={active.mediaKey} onImage={mediaKey=>patchActive({mediaKey})} onRemove={()=>patchActive({mediaKey:null})}/>}
+              {active.kind!=='hotspot'&&active.kind!=='mcq'&&<ImageUpload label={ar?'صورة السؤال (اختياري)':'Question image (optional)'} imageKey={active.mediaKey} onImage={mediaKey=>patchActive({mediaKey})} onRemove={()=>patchActive({mediaKey:null})}/>}
               {['order','match','hotspot'].includes(active.kind)&&<AdvancedCanvas key={active.id} question={active} pairs={data.errorPairs.filter(p=>p.questionId===active.id)} onPatch={patchActive} onPair={setReasonPair}/>}
               {active.kind === 'mcq' && (
                 <McqCanvas
                   key={active.id}
+                  mediaKey={active.mediaKey}
+                  onMediaChange={mediaKey=>patchActive({mediaKey})}
                   options={(payload.options ?? []) as McqOption[]}
                   correct={String(payload.correct ?? '')}
-                  reasons={reasons}
-                  flagged={flaggedForActive}
                   onOptionImage={(key,image)=>patchActive({payload:{...payload,options:(payload.options??[]).map(o=>o.key===key?{...o,image}:o)}})}
                   onOptionText={(key, text) => patchActive({
                     payload: {
@@ -490,16 +586,13 @@ export default function ActivityEditor() {
                     },
                   })}
                   onCorrect={(key) => patchActive({ payload: { ...payload, correct: key } })}
-                  onReason={setReason}
                 />
               )}
 
               {active.kind === 'tf' && (
                 <TfCanvas
                   correct={Boolean(payload.correct)}
-                  reasons={reasons}
                   onCorrect={(value) => patchActive({ payload: { correct: value } })}
-                  onReason={setReason}
                 />
               )}
             </>
@@ -571,7 +664,7 @@ export default function ActivityEditor() {
 
         <div className={styles.propGroup}>
           <span className={styles.propLabel}>{t("مظهر الحصة")}</span>
-          <button type="button" className={styles.themeTrigger} onClick={()=>{setPropsOpen(false);setThemesOpen(true)}}><ThemeThumbnail key={data.activity.theme} theme={data.activity.theme}/><span>{ar?getActivityTheme(data.activity.theme).ar:getActivityTheme(data.activity.theme).en}<Palette size={18} aria-hidden="true"/></span></button>
+          <button type="button" className={styles.themeTrigger} disabled={recovered} onClick={()=>{setPropsOpen(false);setThemesOpen(true)}}><ThemeThumbnail key={data.activity.theme} theme={data.activity.theme}/><span>{ar?getActivityTheme(data.activity.theme).ar:getActivityTheme(data.activity.theme).en}<Palette size={18} aria-hidden="true"/></span></button>
         </div>
         <div className={styles.propsFooter}>
           {data.activity.currentVersionId&&<Button onClick={()=>void run(t("تعذّر الحفظ"),async()=>navigate(`/teacher/verification?question=${active?.id??0}`))}>{t("اربط سؤال تحقق")}</Button>}
@@ -584,7 +677,7 @@ export default function ActivityEditor() {
               if (!active) return
               const { question } = await activities.duplicateQuestion(active.id)
               await reload()
-              setActiveId(question.id)
+              await selectQuestion(question.id)
             })}
           >
             {t("تكرار السؤال")}
@@ -596,6 +689,8 @@ export default function ActivityEditor() {
             onClick={() => void run(t("تعذّر حذف السؤال"), async () => {
               if (!active) return
               await activities.deleteQuestion(active.id)
+              const questions = {...journal.current.questions}; delete questions[active.id]
+              persist({...journal.current, questions, activeQuestionId: null})
               setActiveId(null)
               await reload()
             })}

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 
-import { AnswerTile, type AnswerSlot, Button, Card, Dialog, EmptyState, FailureState, Field, LoadingState, SuccessState } from '../index.ts'
+import { AnswerTile, type AnswerSlot, Button, Card, Dialog, EmptyState, FailureState, Field, LoadingIndicator, LoadingMark, LoadingState, SuccessState } from '../index.ts'
 import styles from './Gallery.module.css'
 import { contrast, tokenColour, verdict } from './contrast.ts'
 
@@ -239,6 +239,21 @@ export default function Gallery() {
           <p className={styles.note}>سيُحذف السؤال وأزواج الخطأ المرتبطة به. لا يمكن التراجع.</p>
         </Dialog>
       </Section>
+
+      <section id="loading">
+        <Section title={rtl ? 'مؤشر التحميل' : 'Asasera loading'} note={rtl ? 'شعار ثابت، حلقة زرقاء وخضراء بفواصل ونقاط. يتوقف الدوران عند تفضيل تقليل الحركة.' : 'A steady logo with a rotating blue-green ring, gaps and dots. Rotation stops when reduced motion is preferred.'}>
+          <div className={styles.row}>
+            <div className={styles.col}><LoadingIndicator label={rtl ? 'نجهّز مساحة تعلّمك…' : 'Loading your learning space…'} /></div>
+            <div className={styles.col}><LoadingMark size="large" /></div>
+            <div className={styles.col}><Button variant="primary" loading>{rtl ? 'جارٍ الحفظ…' : 'Saving…'}</Button></div>
+          </div>
+          <LoadingState variant="editor" label={rtl ? 'جارٍ تحميل نشاطك…' : 'Loading your activity…'} />
+          <div className={styles.row}>
+            <div className={styles.col}><LoadingState variant="list" rows={2} label={rtl ? 'جارٍ تحميل الأنشطة…' : 'Loading activities…'} /></div>
+            <div className={styles.col}><LoadingState variant="form" rows={3} label={rtl ? 'جارٍ تحميل الإعدادات…' : 'Loading settings…'} /></div>
+          </div>
+        </Section>
+      </section>
 
       <Section title="الحالات المشتركة" note="كل حالة تقول ما حدث وما التالي. الحالة بلا مخرج ليست حالة.">
         <div className={styles.row}>

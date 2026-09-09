@@ -1,4 +1,6 @@
 import type { ReactNode } from 'react'
+import { LoadingState } from '@/design/LoadingState'
+import { loadingVariantForPath } from '@/design/loadingVariant'
 import { useTranslation } from 'react-i18next'
 import { Navigate, useLocation } from 'react-router-dom'
 
@@ -24,12 +26,7 @@ export function RequireTeacher({ children }: { children: ReactNode }) {
   const { t } = useTranslation()
 
   if (status === 'loading') {
-    return (
-      <div className="grid min-h-dvh place-items-center bg-canvas" role="status" aria-live="polite">
-        <span className="size-8 animate-spin rounded-full border-2 border-line border-t-accent motion-reduce:animate-none" />
-        <span className="sr-only">{t('teacher.section.loading')}</span>
-      </div>
-    )
+    return <LoadingState layout="page" variant={loadingVariantForPath(location.pathname)} label={t('teacher.section.loading')} />
   }
 
   /* `state` carries where they were going, so signing in returns them here

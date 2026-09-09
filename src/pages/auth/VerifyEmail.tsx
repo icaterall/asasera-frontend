@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { LoadingIndicator } from '@/design/LoadingIndicator'
 import { Link, useSearchParams } from 'react-router-dom'
 
 import { AuthCard, AuthNotice } from '@/components/form/AuthCard'
@@ -89,9 +90,7 @@ export default function VerifyEmail() {
   if (state === 'working') {
     return (
       <AuthCard title={c.verify.title}>
-        <p className="text-sm" style={{ color: 'var(--ink-muted)' }} role="status" aria-live="polite">
-          {c.verify.working}
-        </p>
+        <LoadingIndicator label={c.verify.working} />
       </AuthCard>
     )
   }

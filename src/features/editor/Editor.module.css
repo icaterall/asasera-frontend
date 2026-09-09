@@ -14,11 +14,14 @@
   display: grid;
   grid-template-areas: 'top top top' 'audience audience audience' 'rail canvas props';
   grid-template-rows: auto auto minmax(0,1fr);
-  grid-template-columns: 180px minmax(0, 1fr) 280px;
+  grid-template-columns: 260px minmax(0, 1fr) 280px;
   height: 100dvh;
   background: var(--sunken);
   color: var(--ink);
 }
+.recovery { padding: 16px; margin-block-end: 16px; border: 1px solid var(--brand); border-radius: 12px; background: var(--surface); color: var(--ink); }
+.recovery p { margin-block: 0 12px; }
+.recovery > div { display: flex; flex-wrap: wrap; gap: 8px; }
 
 /* Below lg the two rails become drawers rather than squeezing the canvas into
    a column too narrow to preview anything in. §12: the canvas is the primary
@@ -39,14 +42,33 @@
 /* ---- 1. top bar ---- */
 .top {
   grid-area: top;
-  display: flex; align-items: center; gap: var(--s-3);
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas: 'brand identity account' 'actions actions actions';
+  align-items: center; gap: var(--s-2) var(--s-3);
   padding: var(--s-2) var(--s-4);
   background: var(--surface);
   border-bottom: 1px solid var(--line);
   min-height: 56px;
 }
+.brand { grid-area: brand; display:inline-flex; align-items:center; inline-size:116px; min-block-size:44px; border-radius:var(--r-control); }
+.brand img { block-size:30px; inline-size:auto; max-inline-size:100%; }
+.brand:focus-visible { outline:var(--focus-ring) solid var(--focus-colour); outline-offset:var(--focus-offset); }
+.activityIdentity { grid-area:identity; display:flex; flex-wrap:wrap; align-items:center; gap:4px 12px; min-width:0; }
+.accountControls { grid-area:account; display:flex; align-items:center; gap:8px; justify-self:end; }
+.languageToggle { min-block-size:44px; flex-shrink:0; }
+.editorActions { grid-area:actions; display:flex; flex-wrap:wrap; justify-content:flex-end; align-items:center; gap:8px; min-width:0; }
+.editorActions > button { min-height:44px; padding-inline:12px; }
+@media (min-width:1440px) {
+  .top { grid-template-columns:auto minmax(180px,1fr) auto auto; grid-template-areas:'brand identity actions account'; }
+}
+@media (max-width:700px) {
+  .top { grid-template-columns:minmax(0,1fr) auto; grid-template-areas:'brand account' 'identity identity' 'actions actions'; gap:8px; padding:8px; }
+  .editorActions { justify-content:flex-start; }
+  .editorActions > button { padding-inline:10px; font-size:14px; }
+}
 .titleInput {
-  flex: 1 1 auto; min-width: 0;
+  flex: 1 1 180px; min-width: 0; width:100%;
   border: 1px solid transparent; border-radius: var(--r-control);
   background: transparent; color: var(--ink);
   font: inherit; font-size: var(--f-heading); font-weight: var(--w-bold);
@@ -56,7 +78,7 @@
 .titleInput:focus-visible { outline: var(--focus-ring) solid var(--focus-colour); outline-offset: var(--focus-offset); border-color: var(--act); }
 
 /* The save state lives HERE and only here (§12: «حالة الحفظ في مكانها»). */
-.saveState { display: inline-flex; align-items: center; gap: var(--s-1); font-size: var(--f-small); color: var(--muted); white-space: nowrap; }
+.saveState { display: inline-flex; align-items: center; gap: var(--s-1); font-size: var(--f-small); color: var(--muted); white-space:normal; flex-wrap:wrap; }
 .saveDirty { color: var(--muted); }
 .saveSaving { color: var(--act); }
 .saveSaved { color: var(--evidence); }
@@ -92,6 +114,9 @@
 .thumbFlag { position: absolute; inset-block-start: 4px; inset-inline-end: 4px; font-size: var(--f-micro); color: var(--a3); }
 .thumbActions { display: flex; gap: var(--s-1); margin-top: var(--s-1); }
 .railActions { display: flex; flex-direction: column; gap: var(--s-2); margin-top: var(--s-2); }
+.generateButton { padding:10px 12px; line-height:1.4; white-space:normal; }
+.generateButton svg { flex-shrink:0; }
+.generateHint { margin:0; padding-inline:4px; color:var(--muted); font-size:var(--f-small); line-height:1.5; text-align:center; }
 
 /* ---- 3. canvas — the primary workspace ---- */
 .canvas { grid-area: canvas; overflow-y: auto; padding: var(--s-5); }
@@ -137,19 +162,6 @@
 .correctPick { display: inline-flex; align-items: center; gap: var(--s-1); font-size: var(--f-small); color: var(--muted); cursor: pointer; }
 .correctPick input { accent-color: var(--act); width: 18px; height: 18px; }
 .isCorrect { color: var(--evidence); font-weight: var(--w-bold); }
-
-/* The reason field. Present under every wrong option, always visible — §12
-   puts it under the option, not behind a disclosure. */
-.reason { display: flex; flex-direction: column; gap: var(--s-1); }
-.reasonLabel { font-size: var(--f-micro); color: var(--muted); }
-.reasonInput {
-  width: 100%; min-height: 40px; padding: var(--s-2);
-  border: 1px solid var(--line); border-radius: var(--r-control);
-  background: var(--surface); color: var(--ink); font: inherit; font-size: var(--f-small);
-  resize: vertical;
-}
-.reasonInput:focus-visible { outline: var(--focus-ring) solid var(--focus-colour); outline-offset: var(--focus-offset); border-color: var(--act); }
-.reasonMissing { border-color: var(--a3); }
 
 .tfRow { display: flex; gap: var(--s-3); flex-wrap: wrap; }
 
@@ -199,14 +211,14 @@
 .zoneNumbers {display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.zoneNumbers input {direction:ltr}.checkZone {display:inline-flex;gap:8px;margin-inline-end:18px}
 @media(max-width:700px){.matchEditor{grid-template-columns:1fr}.advanced{padding:12px}.editRow{flex-wrap:wrap}.editRow input{flex-basis:55%}.zoneNumbers{grid-template-columns:1fr 1fr}}
 @media(max-width:700px){
-  .top{gap:8px;padding:8px;flex-wrap:wrap}.titleInput{flex-basis:calc(100% - 112px);font-size:16px}.top>button{padding-inline:10px;min-height:44px;font-size:14px}.saveState{flex:1;font-size:12px}.canvas{padding:12px}.promptInput{font-size:22px}.props,.rail{width:min(320px,86vw)}
+  .saveState{font-size:12px}.canvas{padding:12px}.promptInput{font-size:22px}.props,.rail{width:min(320px,86vw)}
 }
 .saveSaved,.isCorrect {color:var(--ink)}.saveSaved{display:inline-flex;align-items:center;gap:4px}
 .uploadLabel {position:relative}.uploadLabel input{position:absolute;inline-size:1px;block-size:1px;opacity:0;overflow:hidden}.uploadLabel:focus-within{outline:3px solid var(--act);outline-offset:3px}
 
 /* Creator reference: compact white rails, pale canvas, rectangular question previews. */
-.shell{grid-template-columns:180px minmax(0,1fr) 280px}
-.top{box-shadow:0 2px 4px #0000001a;z-index:2}.titleInput{max-width:520px;border-color:var(--line);font-size:16px}
+.shell{grid-template-columns:260px minmax(0,1fr) 280px}
+.top{box-shadow:0 2px 4px #0000001a;z-index:2}.titleInput{border-color:var(--line);font-size:16px}
 .canvas{background:var(--sunken)}.canvasInner{max-width:1080px;min-height:100%;gap:20px}
 .promptInput{border-radius:4px;min-height:80px;text-align:center;font-weight:700;font-size:clamp(24px,2.5vw,36px);box-shadow:0 2px 4px #00000015}
 .optionTile{min-height:84px;box-shadow:inset 0 -4px 0 #0003}.optionText{font-size:18px}.optionGlyph{width:32px;height:32px}
@@ -221,7 +233,9 @@
 @media(max-width:700px){.canvasInner{gap:16px}.imageUpload{min-height:130px}.optionTile{min-height:72px}.top .titleInput{max-width:none}}
 :global(.dark) .thumbActive{background:#183452}
 
-.optionImage{max-height:96px;max-width:35%;object-fit:contain;border-radius:4px}.optionImageControls{font-size:14px;margin-block:8px}.optionMediaTools{display:flex;justify-content:flex-end;margin-block:8px}.optionMediaTools button{white-space:normal;text-align:start}
+.optionImage{max-height:96px;max-width:35%;object-fit:contain;border-radius:4px}.optionImageControls{font-size:14px;margin-block:8px}
+.imageUploadCaption { flex-basis:100%; min-width:0; text-align:center; font-weight:700; overflow-wrap:anywhere; }
+.answerImageToggle { align-self:flex-end; max-width:100%; white-space:normal; text-align:center; line-height:1.4; }
 
 /* Theme art stays quiet during authoring; the gallery previews the live world. */
 .canvas[data-activity-theme] { color:var(--ink); }

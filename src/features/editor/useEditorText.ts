@@ -25,7 +25,7 @@ const english:Record<string,string>={
   "يحتاج إكمالًا": "Needs attention",
   "سؤال بلا نص": "Untitled question",
   "أضف سؤالًا": "Add question",
-  "و‍لّد": "Generate",
+  "توليد بالذكاء الاصطناعي": "Generate with AI",
   "لا أسئلة بعد": "No questions yet",
   "أضف سؤالًا لتبدأ. النوع والمؤقّت مضبوطان مسبقًا.": "Add your first question. Type and timer are already set.",
   "اكتب السؤال هنا": "Type your question here",

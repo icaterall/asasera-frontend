@@ -606,7 +606,8 @@ export function federatedSignInUrl(
   const params = new URLSearchParams()
   if (intent?.role) params.set('role', intent.role)
   if (intent?.workplaceId != null) params.set('workplace_id', String(intent.workplaceId))
-  if (intent?.stageId != null) params.set('stage_id', String(intent.stageId))
+  const stageId = intent?.learningProfile?.educationStageId !== undefined ? intent.learningProfile.educationStageId : intent?.stageId
+  if (stageId != null) params.set('stage_id', String(stageId))
   if (intent?.learningProfile) {
     params.set('study_stage', intent.learningProfile.stage)
     if (intent.learningProfile.grade) params.set('study_grade', intent.learningProfile.grade)
