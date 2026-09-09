@@ -34,6 +34,8 @@ const Gallery = import.meta.env.DEV ? lazy(() => import('@/design/gallery/Galler
 
 const AccountPage = lazy(() => import('@/features/account/AccountPage'))
 const ContactPage = lazy(() => import('@/features/support/ContactPage'))
+const SharedActivity = lazy(() => import('@/features/community/SharedActivity'))
+const FeedbackInbox = lazy(() => import('@/features/community/FeedbackInbox'))
 const About = lazy(() => import('@/pages/About'))
 const ChooseRole = lazy(() => import('@/pages/auth/ChooseRole'))
 /*
@@ -138,6 +140,7 @@ export default function App() {
                 <Route path="about" element={<About />} />
                 <Route path="account" element={<AccountPage />} />
                 <Route path="contact" element={<ContactPage />} />
+                <Route path="activities/:id" element={<SharedActivity />} />
 
                 {/*
                   THE ROLE IS THE ROUTE.
@@ -225,6 +228,7 @@ export default function App() {
                 <Route path="assignments" element={<Assignments/>}/>
                 <Route path="shelf" element={<Navigate to="/teacher/discover" replace />} />
                 <Route path="discover" element={<Shelf />} />
+                <Route path="feedback" element={<FeedbackInbox />} />
                 <Route path="verification" element={<VerificationLinks/>}/>
                 <Route path="reports" element={<Reports />} />
                 <Route path="reports/runs/:id" element={<Reports />} />

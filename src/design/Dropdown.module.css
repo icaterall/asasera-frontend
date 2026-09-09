@@ -29,3 +29,19 @@
 @media(max-width:600px){.positioner{min-width:0}.list{max-height:min(300px,calc(var(--available-height) - 64px))}.item{min-height:48px;padding:11px 12px}}
 @media(prefers-reduced-motion:reduce){.trigger[data-select-trigger],.chevron,.popup{transition:none}}
 @media(forced-colors:active){.popup{border:1px solid CanvasText}.trigger[data-select-trigger]{border:1px solid ButtonText}.item[data-selected]{color:HighlightText;background:Highlight}.item[data-highlighted]{outline-color:Highlight}.check{color:inherit}}
+.multiField{min-width:0;display:flex;flex-direction:column;gap:8px}
+.fieldLabel{font-size:16px;font-weight:700;line-height:1.5;color:var(--dropdown-ink)}
+.fieldHint{margin:0;color:var(--dropdown-muted);font-size:14px;line-height:1.6;max-width:70ch}
+.checkbox{display:grid;place-items:center;flex:0 0 20px;width:20px;height:20px;border:1px solid var(--dropdown-line);border-radius:4px;color:var(--dropdown-accent)}
+.item[data-selected] .checkbox{border-color:var(--dropdown-accent);background:var(--dropdown-selected)}
+.multiActions{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 12px;border-top:1px solid var(--dropdown-line)}
+.multiActions button{min-height:44px;padding:8px 12px;background:transparent;border:0;border-radius:7px;font:inherit;font-weight:700;color:var(--dropdown-accent);cursor:pointer}
+.multiActions button:hover{background:var(--dropdown-hover)}
+.multiActions button:disabled{opacity:.5;cursor:not-allowed}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:0;padding:0;list-style:none}
+.chips li{display:flex;align-items:center;gap:4px;max-width:100%;padding-inline-start:10px;border-radius:8px;background:var(--dropdown-selected);color:var(--dropdown-ink);font-size:14px;line-height:1.5}
+.chips li>span{min-width:0;overflow-wrap:anywhere}
+.chips button{display:grid;place-items:center;flex:0 0 44px;width:44px;min-height:44px;background:transparent;border:0;border-radius:7px;color:var(--dropdown-accent);cursor:pointer}
+.chips button:hover{background:var(--dropdown-hover)}
+.chips button:disabled{opacity:.5;cursor:not-allowed}
+.chips button:focus-visible,.multiActions button:focus-visible{outline:2px solid var(--dropdown-accent);outline-offset:2px}

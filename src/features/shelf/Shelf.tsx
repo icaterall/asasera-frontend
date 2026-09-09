@@ -11,6 +11,7 @@ import type { PublicQuestion } from '@/shared/session'
 import { QuestionInput } from '@/features/session/QuestionInput'
 import { ThemeThumbnail } from '../activity-themes/ActivityStage'
 import { unitLabel, type CurriculumUnitLabel } from './unitLabel'
+import { Recommendations } from '@/features/community/Recommendations'
 import base from '../teacher-home/TeacherHome.module.css'
 import styles from './Shelf.module.css'
 
@@ -51,6 +52,7 @@ export default function Shelf() {
   const units = refs.data?.units.filter(u => u.subjectId === subject && u.levelId === level) ?? []
   return <div className={`asas ${base.page} ${styles.catalog}`}>
     <header className={base.welcome}><div><h1>{t('استكشاف الأنشطة', 'Explore activities')}</h1><p>{t('أفكار يشاركها المعلّمون. عاين النشاط واحفظ نسخة لتجعلها مناسبة لطلابك.', 'Ideas shared by teachers. Preview an activity and make a copy for your class.')}</p></div></header>
+    <Recommendations compact />
     {refs.isPending ? <LoadingState label={t('جارٍ التحميل', 'Loading subjects and stages')} /> : refs.error ? <FailureState title={t('تعذّر تحميل خيارات البحث', 'Search options couldn’t load')} actions={<Button onClick={() => void refs.refetch()}>{t('إعادة المحاولة', 'Try again')}</Button>} /> : <>
       <div className={styles.filters}>
         <label className={base.field}>{t('المادة', 'Subject')}<Select value={subject ?? ''} onValueChange={e => change(e ? Number(e) : null, level)}><option value="">{t('اختر المادة', 'Choose a subject')}</option>{refs.data.subjects.map(s => <option key={s.id} value={s.id}>{ar ? s.nameAr : s.nameEn}</option>)}</Select></label>
@@ -62,7 +64,7 @@ export default function Shelf() {
       {!subject || level === null ? <div className={base.empty}><Compass size={40} aria-hidden="true" /><h2>{t('ماذا تدرّس اليوم؟', 'What are you teaching today?')}</h2><p>{t('اختر المادة والمرحلة للعثور على أفكار مناسبة.', 'Choose a subject and stage to find relevant ideas.')}</p></div> : data.isPending ? <LoadingState rows={4} label={t('جارٍ تحميل الأنشطة', 'Loading activities')} /> : data.error ? <FailureState title={t('تعذّر تحميل الأنشطة', 'Activities couldn’t load')} body={t('حاول تحديث النتائج.', 'Try refreshing the results.')} actions={<Button onClick={() => { setCursor(undefined); setCeiling(undefined); setPage(0); void data.refetch() }}>{t('إعادة المحاولة', 'Try again')}</Button>} /> : data.data.activities.length ? <>
         <div className={styles.grid}>{data.data.activities.map(a => <article className={styles.activity} key={a.id}>
           <button className={styles.cover} onClick={() => openPreview(a.id)} aria-label={`${t('معاينة', 'Preview')}: ${a.title}`}><ThemeThumbnail theme={a.theme} className={styles.coverImage} /><span>{a.questionCount} {ar ? (a.questionCount === 1 ? 'سؤال' : 'أسئلة') : (a.questionCount === 1 ? 'question' : 'questions')}</span></button>
-          <div className={styles.cardBody}><h2 dir="auto">{a.title}</h2><p>{t('بواسطة', 'By')} <bdi>{a.authorName}</bdi></p><div className={styles.actions}><Button onClick={() => openPreview(a.id)}>{t('معاينة', 'Preview')}</Button><Button variant="primary" onClick={() => copy.mutate({ id: a.id })} disabled={copy.isPending}><Copy size={16} aria-hidden="true" />{t('احفظ نسخة', 'Make a copy')}</Button></div></div>
+          <div className={styles.cardBody}><h2 dir="auto">{a.title}</h2><p>{t('بواسطة', 'By')} <bdi>{a.authorName}</bdi></p><Link to={`/activities/${a.id}`}>{t('المشاركة والتقييم', 'Share & review')}</Link><div className={styles.actions}><Button onClick={() => openPreview(a.id)}>{t('معاينة', 'Preview')}</Button><Button variant="primary" onClick={() => copy.mutate({ id: a.id })} disabled={copy.isPending}><Copy size={16} aria-hidden="true" />{t('احفظ نسخة', 'Make a copy')}</Button></div></div>
         </article>)}</div>
         {(page > 0 || data.data.hasMore) && <nav className={styles.pagination} aria-label={t('صفحات الأنشطة', 'Activity pages')}><Button disabled={page === 0} onClick={() => setPage(p => p - 1)}>{t('السابق', 'Previous')}</Button><span>{t('صفحة', 'Page')} {page + 1}</span><Button disabled={!data.data.hasMore} onClick={() => { setCeiling(data.data.ceiling); setCursor(data.data.cursor); setPage(p => p + 1) }}>{t('التالي', 'Next')}</Button></nav>}
       </> : <div className={base.empty}><BookOpen size={40} aria-hidden="true" /><h2>{t('لا توجد أنشطة مشتركة هنا بعد', 'Nothing shared here just yet')}</h2><p>{t('جرّب مادة أو مرحلة أخرى، أو أنشئ نشاطك الخاص.', 'Try another subject or stage, or create an activity of your own.')}</p><Link to="/teacher/activities/new">{t('إنشاء نشاط', 'Create activity')}</Link>{data.data.neighbor && <p><Button onClick={() => change(subject, data.data.neighbor!.levelId)}>{t('استكشف', 'Explore')} {refs.data.levels.find(l => l.id === data.data.neighbor!.levelId)?.label[ar ? 'ar' : 'en']}</Button></p>}</div>}

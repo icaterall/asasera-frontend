@@ -12,8 +12,8 @@
  */
 .shell {
   display: grid;
-  grid-template-areas: 'top top top' 'rail canvas props';
-  grid-template-rows: auto 1fr;
+  grid-template-areas: 'top top top' 'audience audience audience' 'rail canvas props';
+  grid-template-rows: auto auto minmax(0,1fr);
   grid-template-columns: 180px minmax(0, 1fr) 280px;
   height: 100dvh;
   background: var(--sunken);
@@ -24,7 +24,7 @@
    a column too narrow to preview anything in. §12: the canvas is the primary
    workspace and does not get permanently shrunk. */
 @media (max-width: 1024px) {
-  .shell { grid-template-areas: 'top' 'canvas'; grid-template-columns: minmax(0, 1fr); }
+  .shell { grid-template-areas: 'top' 'audience' 'canvas'; grid-template-columns: minmax(0, 1fr); }
   .rail, .props { position: fixed; inset-block: 0; z-index: 10; width: min(320px, 86vw);
                   transform: translateX(0); box-shadow: 0 0 40px rgba(0,0,0,.25); }
   .rail { inset-inline-start: 0; }

@@ -1,3 +1,5 @@
+import {AudienceFields} from '@/features/audience/AudienceFields'
+import {useAudienceForm} from '@/features/audience/useAudienceForm'
 import { Select } from '@/design'
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -15,40 +17,19 @@ import {
 } from '@/components/teaching/TeachingUI'
 import { useApiErrorMessage } from '@/hooks/useApiErrorMessage'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
-import { useReferenceList } from '@/hooks/useReferenceList'
-import { reference, teaching, type Course } from '@/lib/api'
+import { teaching, type Course } from '@/lib/api'
 
-const loadCategories = (signal?: AbortSignal) => reference.categories(signal)
-
-/**
- * The course list, and creating one without leaving the page.
- *
- * A COURSE IS A NAME, and the form says so by requiring nothing else. Subject
- * and stage come from the shared reference lists and are optional; there is no
- * institution, no department, no term, and no country, because none of them
- * was ever asked for and each one would be another thing standing between a
- * teacher and their first lesson.
- *
- * The inline form rather than a separate route: creating a course is a
- * ten-second act, and a page transition either side of it is most of the cost.
- */
+/** Courses share the activity audience references and support editing in place. */
 export default function TeacherCourses() {
   const { t, i18n } = useTranslation()
-  const toMessage = useApiErrorMessage()
+  const ar=i18n.language.startsWith('ar')
   useDocumentTitle(t('teaching.courses.title'))
 
   const [courses, setCourses] = useState<Course[] | null>(null)
   const [failed, setFailed] = useState(false)
   const [showArchived, setShowArchived] = useState(false)
   const [open, setOpen] = useState(false)
-  const [busy, setBusy] = useState(false)
-  const [formError, setFormError] = useState<string | null>(null)
-
-  const [title, setTitle] = useState('')
-  const [language, setLanguage] = useState<'ar' | 'en'>('ar')
-  const [categoryId, setCategoryId] = useState('')
-
-  const categories = useReferenceList(loadCategories)
+  const [editing,setEditing]=useState<Course|null>(null)
 
   const load = useCallback(async () => {
     try {
@@ -67,33 +48,6 @@ export default function TeacherCourses() {
     void load()
   }, [load])
 
-  async function create(event: React.FormEvent) {
-    event.preventDefault()
-    /* The guard, not the disabled attribute: a second submit can land before
-       React has re-rendered the button. */
-    if (busy) return
-    setBusy(true)
-    setFormError(null)
-    try {
-      await teaching.createCourse({
-        title: title.trim(),
-        content_language: language,
-        ...(categoryId ? { category_id: Number(categoryId) } : {}),
-      })
-      setTitle('')
-      setCategoryId('')
-      setOpen(false)
-      await load()
-    } catch (cause) {
-      setFormError(toMessage(cause))
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  const name = (option: { name_en: string; name_ar: string }) =>
-    i18n.resolvedLanguage === 'en' ? option.name_en : option.name_ar
-
   return (
     <div className="mx-auto flex max-w-[1180px] flex-col gap-5">
       <SectionHeader
@@ -102,82 +56,14 @@ export default function TeacherCourses() {
         lead={t('teaching.courses.lead')}
         action={
           !open ? (
-            <PrimaryButton onClick={() => setOpen(true)}>
+            <PrimaryButton onClick={() => {setEditing(null);setOpen(true)}}>
               {t('teaching.courses.newTitle')}
             </PrimaryButton>
           ) : undefined
         }
       />
 
-      {open ? (
-        <form
-          onSubmit={create}
-          className="grid grid-cols-1 gap-4 rounded-sm border border-line bg-surface p-5 sm:grid-cols-3"
-        >
-          <div className="sm:col-span-3">
-            <Field label={t('teaching.courses.fieldTitle')} htmlFor="course-title" error={formError}>
-              <input
-                id="course-title"
-                className={inputClass}
-                value={title}
-                required
-                maxLength={200}
-                onChange={(event) => setTitle(event.target.value)}
-              />
-            </Field>
-          </div>
-
-          <Field label={t('teaching.courses.fieldLanguage')} htmlFor="course-language">
-            <Select
-              id="course-language"
-              className={inputClass}
-              value={language}
-              onValueChange={(event) => setLanguage(event as 'ar' | 'en')}
-            >
-              <option value="ar">{t('teaching.courses.languageAr')}</option>
-              <option value="en">{t('teaching.courses.languageEn')}</option>
-            </Select>
-          </Field>
-
-          <Field
-            label={t('teaching.courses.fieldCategory')}
-            hint={t('teaching.common.optional')}
-            htmlFor="course-category"
-          >
-            <Select
-              id="course-category"
-              className={inputClass}
-              value={categoryId}
-              disabled={categories.loading || categories.failed}
-              onValueChange={(event) => setCategoryId(event)}
-            >
-              <option value="">{t('teaching.common.none')}</option>
-              {categories.options.map((option) => (
-                <option key={option.id} value={option.id}>
-                  {name(option)}
-                </option>
-              ))}
-            </Select>
-          </Field>
-
-          <div className="flex items-end gap-2">
-            <PrimaryButton type="submit" disabled={busy || title.trim().length === 0}>
-              {busy ? t('teaching.common.saving') : t('teaching.common.create')}
-            </PrimaryButton>
-            <QuietButton type="button" onClick={() => setOpen(false)}>
-              {t('teaching.common.cancel')}
-            </QuietButton>
-          </div>
-
-          {/* The reference list failing must not block creating a course: the
-              subject is optional, so the form stays usable without it. */}
-          {categories.failed ? (
-            <div className="sm:col-span-3">
-              <SectionError onRetry={categories.reload} />
-            </div>
-          ) : null}
-        </form>
-      ) : null}
+      {open&&<CourseForm key={editing?.id??'new'} course={editing} onCancel={()=>setOpen(false)} onSaved={async()=>{setOpen(false);await load()}}/>}
 
       <label className="flex w-fit items-center gap-2 text-sm text-muted">
         <input
@@ -201,7 +87,7 @@ export default function TeacherCourses() {
           title={t('teaching.courses.empty')}
           body={t('teaching.courses.emptyBody')}
           action={
-            <PrimaryButton onClick={() => setOpen(true)}>
+            <PrimaryButton onClick={() => {setEditing(null);setOpen(true)}}>
               {t('teaching.courses.newTitle')}
             </PrimaryButton>
           }
@@ -227,7 +113,8 @@ export default function TeacherCourses() {
                   materials: course.materialCount ?? 0,
                 })}
               </p>
-              <div className="mt-1 flex gap-2">
+              <div className="mt-1 flex flex-wrap gap-2">
+                <QuietButton onClick={()=>{setEditing(course);setOpen(true);window.scrollTo({top:0,behavior:'instant'})}}>{ar?'تعديل التفاصيل والجمهور':'Edit details & audience'}</QuietButton>
                 {course.archivedAt ? (
                   <QuietButton
                     onClick={async () => {
@@ -254,4 +141,30 @@ export default function TeacherCourses() {
       ) : null}
     </div>
   )
+}
+
+function CourseForm({course,onCancel,onSaved}:{course:Course|null;onCancel:()=>void;onSaved:()=>Promise<void>}) {
+  const {t,i18n}=useTranslation(),ar=i18n.language.startsWith('ar'),toMessage=useApiErrorMessage()
+  const [title,setTitle]=useState(course?.title??''),[language,setLanguage]=useState(course?.contentLanguage??(ar?'ar':'en'))
+  const [busy,setBusy]=useState(false),[error,setError]=useState<string|null>(null)
+  const audience=useAudienceForm(course?{categoryId:course.categoryId,educationStageIds:course.educationStageIds??(course.educationStageId?[course.educationStageId]:[]),countryIds:course.countryIds??[]}:undefined)
+  async function save(event:React.FormEvent) {
+    event.preventDefault();if(busy||!audience.ready||!title.trim())return
+    setBusy(true);setError(null)
+    try{
+      const input={title:title.trim(),content_language:language,category_id:audience.value.categoryId!,education_stage_ids:audience.value.educationStageIds,country_ids:audience.value.countryIds}
+      if(course)await teaching.updateCourse(course.id,input);else await teaching.createCourse(input)
+      await onSaved()
+    }catch(cause){setError(toMessage(cause))}finally{setBusy(false)}
+  }
+  return <form onSubmit={save} className="flex flex-col gap-5 rounded-sm border border-line bg-surface p-5" aria-busy={busy}>
+    <h2 className="text-lg font-bold">{course?(ar?'تعديل تفاصيل المقرر':'Edit course details'):t('teaching.courses.newTitle')}</h2>
+    <fieldset disabled={busy} className="flex min-w-0 flex-col gap-5">
+      <Field label={t('teaching.courses.fieldTitle')} htmlFor="course-title"><input id="course-title" className={inputClass} value={title} required maxLength={200} onChange={event=>setTitle(event.target.value)}/></Field>
+      <Field label={t('teaching.courses.fieldLanguage')} htmlFor="course-language"><Select id="course-language" value={language} onValueChange={setLanguage}><option value="ar">{t('teaching.courses.languageAr')}</option><option value="en">{t('teaching.courses.languageEn')}</option></Select></Field>
+      <AudienceFields form={audience} disabled={busy}/>
+    </fieldset>
+    {error&&<p role="alert">{error}</p>}
+    <div className="flex flex-wrap gap-2"><PrimaryButton type="submit" disabled={busy||!title.trim()||!audience.ready}>{busy?t('teaching.common.saving'):course?(ar?'حفظ التغييرات':'Save changes'):t('teaching.common.create')}</PrimaryButton><QuietButton type="button" disabled={busy} onClick={onCancel}>{t('teaching.common.cancel')}</QuietButton></div>
+  </form>
 }

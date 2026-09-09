@@ -1,0 +1,14 @@
+.fields{display:flex;flex-direction:column;gap:24px;min-width:0}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start}
+.field{display:flex;flex-direction:column;gap:8px;min-width:0}
+.field>label{font-size:16px;font-weight:700;line-height:1.5;color:var(--dropdown-ink)}
+.failure{display:flex;gap:12px;align-items:center;flex-wrap:wrap;font-size:14px;line-height:1.6}
+.failure p{margin:0;max-width:70ch}
+.editor{grid-area:audience;max-height:50dvh;overflow:auto;background:var(--dropdown-bg);padding:16px 24px;color:var(--dropdown-ink);border-bottom:1px solid var(--dropdown-line)}
+.editor summary{cursor:pointer;font-weight:700;min-height:44px;display:flex;align-items:center;gap:8px;width:fit-content}
+.editor summary:focus-visible{outline:2px solid var(--dropdown-accent);outline-offset:3px}
+.editor form{max-width:900px;padding-block:16px;display:flex;flex-direction:column;gap:20px}
+.actions{display:flex;flex-wrap:wrap;align-items:center;gap:12px}
+@media(max-width:700px){.pair{grid-template-columns:1fr}.editor{padding:12px 16px}}
+
+.editor[open] summary>svg:last-child{transform:rotate(180deg)}

@@ -1,8 +1,9 @@
-import {Menu,Settings,TriangleAlert,Check,Palette} from 'lucide-react'
+import {ActivityAudience} from '@/features/audience/ActivityAudience'
+import {Menu,Settings,TriangleAlert,Check,Palette,Share2,MessageSquare} from 'lucide-react'
 import {useTranslation} from 'react-i18next'
 import {useEditorText} from './useEditorText'
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 
 import { Button, EmptyState, FailureState, LoadingState, Select } from '@/design'
 import {
@@ -87,6 +88,8 @@ export default function ActivityEditor() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const activityId = Number(id)
+  const [searchParams] = useSearchParams()
+  const requestedQuestion = Number(searchParams.get('question'))
 
   const [data, setData] = useState<Loaded | null>(null)
   /*
@@ -152,8 +155,8 @@ export default function ActivityEditor() {
   useEffect(() => { void reload() }, [reload])
 
   useEffect(() => {
-    if (data && activeId === null && data.questions.length > 0) setActiveId(data.questions[0]!.id)
-  }, [data, activeId])
+    if (data && activeId === null && data.questions.length > 0) setActiveId(data.questions.find(q => q.id === requestedQuestion)?.id ?? data.questions[0]!.id)
+  }, [data, activeId, requestedQuestion])
 
   const activeIdRef = useRef<number | null>(null)
   useLayoutEffect(()=>{dataRef.current=data;activeIdRef.current=activeId},[data,activeId])
@@ -379,11 +382,21 @@ export default function ActivityEditor() {
 
         <Button variant="secondary" disabled={actionBusy||publishing} onClick={()=>setThemesOpen(true)}><Palette size={18} aria-hidden="true"/>{ar?'المظاهر':'Themes'}</Button>
         <Button variant="secondary" onClick={() => void run(t("تعذّر حفظ التعديلات"),async()=>navigate('/teacher/dashboard'))}>{t("خروج")}</Button>
+        <Button variant="quiet" onClick={() => void run(t("تعذّر حفظ التعديلات"),async()=>navigate(`/teacher/feedback?activityId=${activityId}`))}><MessageSquare size={18} aria-hidden="true" />{ar?'الملاحظات':'Feedback'}</Button>
+        {data.activity.visibility === 'published' && <Button variant="secondary" onClick={() => void run(t("تعذّر حفظ التعديلات"),async()=>navigate(`/activities/${activityId}`))}><Share2 size={18} aria-hidden="true" />{ar?'مشاركة':'Share'}</Button>}
         {data.activity.currentVersionId && <Button variant="secondary" onClick={() => navigate(`/teacher/activities/${activityId}/play`)}>{t("شغّل الحصة")}</Button>}
         <Button variant="primary" loading={publishing} onClick={() => void publish()}>
           {data.activity.visibility === 'published' ? t("إعادة النشر") : t("انشر")}
         </Button>
       </header>
+
+      <ActivityAudience activity={data.activity} onSave={async value=>{
+        await questionSave.flushNow();await titleSave.flushNow()
+        const latest=await activities.load(activityId)
+        if(JSON.stringify([latest.activity.categoryId,latest.activity.educationStageIds,latest.activity.countryIds])!==JSON.stringify([data.activity.categoryId,data.activity.educationStageIds,data.activity.countryIds]))throw new Error(ar?'تغيّر الجمهور في جلسة أخرى. أعد فتح النشاط قبل الحفظ.':'The audience changed in another session. Reopen the activity before saving.')
+        const result=await activities.update(activityId,{...value,expectedRevision:latest.activity.revision})
+        changeData(current=>current&&({...current,activity:result.activity}))
+      }}/>
 
       {/* ---- 2. question rail ---- */}
       {(railOpen || propsOpen) && <div className={styles.backdrop}

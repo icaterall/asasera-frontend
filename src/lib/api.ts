@@ -376,7 +376,10 @@ export type WorkplaceOption = ReferenceOption & { code: string }
  * served from the same rows the write path validates against, so a client that
  * invents an option only earns itself a 422.
  */
+export type AudienceSelection={categoryId:number|null;educationStageIds:number[];countryIds:number[]}
+export type CountryOption=ReferenceOption&{iso_code:string;iso_alpha2:string|null;is_arab:boolean}
 export const reference = {
+  countries:(signal?:AbortSignal)=>api.get<{countries:CountryOption[];detectedCountryId:number|null}>(`${API_PREFIX}/countries`,{anonymous:true,signal}),
   educationStages: (signal?: AbortSignal) =>
     api
       .get<{ stages: ReferenceOption[] }>(`${API_PREFIX}/education-stages`, {
@@ -628,6 +631,8 @@ export type Course = {
   materialCount?: number
   createdAt: string
   updatedAt: string
+  educationStageIds:number[]
+  countryIds:number[]
 }
 
 export type MaterialSegment = {
@@ -743,6 +748,8 @@ export const teaching = {
     content_language?: string
     category_id?: number
     education_stage_id?: number
+    education_stage_ids?: number[]
+    country_ids?: number[]
     description?: string
   }) => api.post<{ course: Course }>(`${TEACHING}/courses`, input),
 
@@ -910,6 +917,7 @@ export const teaching = {
     title: string
     course_id?: number
     new_course_title?: string
+    new_course_audience?: AudienceSelection
     material_revision_id?: number
     scope_segments?: number[]
   }) => api.post<{ lesson: Lesson }>(`${TEACHING}/lessons`, input),
@@ -966,6 +974,9 @@ export type ActivityRecord = {
   currentVersionId: number | null
   createdAt: string
   updatedAt: string
+  categoryId:number|null
+  educationStageIds:number[]
+  countryIds:number[]
 }
 
 export type QuestionRecord = {
@@ -1022,8 +1033,11 @@ export const activities = {
 
   create: (input: {
     title: string
-    subjectId: number
-    levelId: number
+    categoryId?:number
+    educationStageIds?:number[]
+    countryIds?:number[]
+    subjectId?: number
+    levelId?: number
     curriculumNodeId?: number | null
     purposeId?: number | null
     theme?: string

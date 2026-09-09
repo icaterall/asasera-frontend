@@ -1,6 +1,6 @@
 import { NavLink, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { BookOpen, ChartNoAxesCombined, Compass, Disc3, FileText, GraduationCap, House, Layers, LifeBuoy } from 'lucide-react'
+import { BookOpen, ChartNoAxesCombined, Compass, Disc3, FileText, GraduationCap, House, Layers, LifeBuoy, MessageSquare } from 'lucide-react'
 import { Logo } from '@/components/ui/Logo'
 
 const linkClass = 'teacher-nav-item rounded-sm'
@@ -20,6 +20,7 @@ export function TeacherSidebarNav({ onNavigate }: { onNavigate?: () => void }) {
     <NavLink to="/teacher/discover" className={linkClass} onClick={onNavigate}><Compass size={20} aria-hidden="true" />{ar ? 'استكشاف الأنشطة' : 'Explore activities'}</NavLink>
     <NavLink to="/teacher/assignments" className={linkClass} onClick={onNavigate}><BookOpen size={20} aria-hidden="true" />{ar ? 'الواجبات والتعلّم الذاتي' : 'Homework & study'}</NavLink>
     <NavLink to="/teacher/reports" className={linkClass} onClick={onNavigate}><ChartNoAxesCombined size={20} aria-hidden="true" />{ar ? 'تقارير الحصص' : 'Class reports'}</NavLink>
+    <NavLink to="/teacher/feedback" className={linkClass} onClick={onNavigate}><MessageSquare size={20} aria-hidden="true" />{ar ? 'الملاحظات والأفكار' : 'Feedback & ideas'}</NavLink>
     <details className="teacher-resource-nav mt-4 border-t border-line pt-3" key={resourceActive ? 'active' : 'other'} open={resourceActive || undefined}>
       <summary className="cursor-pointer rounded-sm px-3 py-3 text-sm font-semibold text-muted focus-visible:outline-3 focus-visible:outline-accent">{ar ? 'الأدوات والموارد' : 'Tools & resources'}</summary>
       <div className="flex flex-col gap-1 pt-1">{resources.map(({ to, Icon, label }) => <NavLink to={to} key={to} className={linkClass} onClick={onNavigate}><Icon size={20} aria-hidden="true" />{label}</NavLink>)}</div>

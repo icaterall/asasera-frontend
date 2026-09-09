@@ -1,3 +1,5 @@
+import {AudienceFields} from '@/features/audience/AudienceFields'
+import {useAudienceForm} from '@/features/audience/useAudienceForm'
 import { Select } from '@/design'
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
@@ -53,6 +55,7 @@ export default function NewLesson() {
   const [title, setTitle] = useState('')
   const [courseId, setCourseId] = useState('')
   const [newCourseTitle, setNewCourseTitle] = useState('')
+  const audience=useAudienceForm()
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -84,7 +87,7 @@ export default function NewLesson() {
 
   async function submit(event: React.FormEvent) {
     event.preventDefault()
-    if (busy) return
+    if (busy||(!courseId&&!audience.ready)) return
     if (path === 'material' && scope.length === 0) {
       setError(t('teaching.create.selectAtLeastOne'))
       return
@@ -94,7 +97,7 @@ export default function NewLesson() {
     try {
       const { lesson } = await teaching.createLesson({
         title: title.trim(),
-        ...(courseId ? { course_id: Number(courseId) } : { new_course_title: newCourseTitle.trim() }),
+        ...(courseId ? { course_id: Number(courseId) } : { new_course_title: newCourseTitle.trim(),new_course_audience:audience.value }),
         ...(path === 'material' && revisionId
           ? { material_revision_id: revisionId, scope_segments: scope }
           : {}),
@@ -109,7 +112,7 @@ export default function NewLesson() {
   }
 
   const canSubmit =
-    title.trim().length > 0 && (courseId !== '' || newCourseTitle.trim().length > 0)
+    title.trim().length > 0 && (courseId !== '' || (newCourseTitle.trim().length > 0&&audience.ready))
 
   if (path === 'choose') {
     return (
@@ -280,6 +283,7 @@ export default function NewLesson() {
                   onChange={(event) => setNewCourseTitle(event.target.value)}
                 />
               </Field>
+              <div className="mt-5"><AudienceFields form={audience} disabled={busy}/></div>
             </div>
           ) : null}
 

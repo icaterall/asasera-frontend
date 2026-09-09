@@ -26,6 +26,8 @@ export function ActivityRows({ items }: { items: ActivityRecord[] }) {
     </div>
     <div className={styles.rowActions}>
       <Link className={styles.smallAction} to={`/teacher/activities/${activity.id}`} aria-label={`${ar ? 'تعديل' : 'Edit'}: ${activity.title}`}>{ar ? 'تعديل' : 'Edit'}</Link>
+      <Link className={styles.smallAction} to={`/teacher/feedback?activityId=${activity.id}`} aria-label={`${ar ? 'الملاحظات' : 'Feedback'}: ${activity.title}`}>{ar ? 'الملاحظات' : 'Feedback'}</Link>
+      {activity.visibility === 'published' && <Link className={styles.smallAction} to={`/activities/${activity.id}`} aria-label={`${ar ? 'مشاركة' : 'Share'}: ${activity.title}`}>{ar ? 'مشاركة' : 'Share'}</Link>}
       {activity.visibility === 'published' && <Link className={styles.playAction} to={`/teacher/activities/${activity.id}/play`} aria-label={`${ar ? 'تشغيل' : 'Play'}: ${activity.title}`}><Play size={16} aria-hidden="true" />{ar ? 'تشغيل' : 'Play'}</Link>}
     </div>
   </li>)}</ul>
