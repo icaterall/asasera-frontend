@@ -69,7 +69,12 @@ describe('shared dropdown interaction with synthetic fields',()=>{
   it('an outside click dismisses without changing the current value',async()=>{
     const user=userEvent.setup();show(<Subject/>)
     const trigger=screen.getByRole('combobox',{name:'Subject'})
-    await user.click(trigger);await user.click(screen.getByRole('button',{name:'Outside'}))
+    await user.click(trigger)
+    // Opening mounts a portal and then moves focus into it. Wait for that
+    // observable ready state before starting a separate outside gesture.
+    await screen.findByRole('listbox')
+    await waitFor(()=>expect(document.activeElement?.getAttribute('role')).toBe('option'))
+    await user.click(screen.getByRole('button',{name:'Outside'}))
     await waitFor(()=>expect(trigger.getAttribute('aria-expanded')).toBe('false'))
     expect(trigger.textContent).toContain('Choose a subject')
   })

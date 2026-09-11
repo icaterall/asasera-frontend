@@ -106,3 +106,9 @@
   .creditSummary dl { grid-template-columns: 1fr; gap: 18px; } .creditSummary dl > div { display: flex; justify-content: space-between; align-items: center; gap: 20px; } .creditSummary dd { margin: 0; font-size: 23px; }
   .accountFacts { gap: 18px 26px; } .pagination { justify-content: center; gap: 10px; }
 }
+.aiSettings { display: grid; gap: 24px; max-width: 800px; }
+.aiSettings .creditForm > p { font-size: 16px; line-height: 1.65; margin: 0; color: var(--muted); }
+.aiSettings .creditForm .aiToggle { display: flex; align-items: center; gap: 12px; }
+.aiToggle input[type="checkbox"] { width: 22px; min-height: 22px; flex: 0 0 22px; accent-color: var(--brand); }
+:global(.dark) .success { background: #193c30; color: #c0f2d5; }
+:global(.dark) .error { background: #4a2531; color: #ffdae1; }

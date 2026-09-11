@@ -8,7 +8,7 @@ export function DeleteAccount(){
  const dialogTitleId=useId()
  const {i18n}=useTranslation(),ar=i18n.language.startsWith('ar'),{signOut}=useAuth(),dialog=useRef<HTMLDialogElement>(null)
  const [password,setPassword]=useState(''),[confirmed,setConfirmed]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState('')
- const remove=async()=>{setBusy(true);setError('');try{await api.post('/api/v1/account/delete',password?{password}:{});for(const store of [localStorage,sessionStorage])for(const key of Object.keys(store))if(key.startsWith('asasera:'))store.removeItem(key);await signOut()}catch(e){setError(e instanceof Error?e.message:(ar?'تعذّر حذف الحساب':'Could not delete account'))}finally{setBusy(false)}}
+ const remove=async()=>{setBusy(true);setError('');try{await api.post('/api/v1/account/delete',password?{password}:{},{reauthentication:true});for(const store of [localStorage,sessionStorage])for(const key of Object.keys(store))if(key.startsWith('asasera:'))store.removeItem(key);await signOut()}catch(e){setError(e instanceof Error?e.message:(ar?'تعذّر حذف الحساب':'Could not delete account'))}finally{setBusy(false)}}
  return <section className="asas" style={{marginTop:32,borderTop:'1px solid var(--line)',paddingTop:24}}>
   <Button variant="quiet" onClick={()=>dialog.current?.showModal()}>{ar?'حذف الحساب':'Delete account'}</Button>
   <dialog aria-labelledby={dialogTitleId} ref={dialog} className={`asas ${styles.leave}`} onCancel={()=>{if(!busy){setPassword('');setConfirmed(false)}}}>

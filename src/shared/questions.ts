@@ -66,9 +66,13 @@ const mcqOption = z.object({
  * options is readable rather than silently truncated. Publication narrows it;
  * see `publishableMcq`.
  */
+// Stored with each question and frozen in its approved version. Missing means standard.
+const pointsMultiplier = z.union([z.literal(0), z.literal(1), z.literal(2)]).optional()
+
 export const mcqPayloadSchema = z
   .object({
     options: z.array(mcqOption).min(2).max(6),
+    pointsMultiplier,
     correct: elementKey,
   })
   .superRefine((value, ctx) => {
@@ -91,7 +95,7 @@ export const mcqPublicSchema = z.object({
  * answer identity — that is how a localisation change silently inverts a
  * question.
  */
-export const tfPayloadSchema = z.object({ correct: z.boolean() })
+export const tfPayloadSchema = z.object({ correct: z.boolean(), pointsMultiplier })
 export type TfPayload = z.infer<typeof tfPayloadSchema>
 
 export const TF_CHOICES = ['true', 'false'] as const
@@ -113,6 +117,7 @@ const orderItem = z.object({ key: elementKey, text: z.string().max(300) })
 export const orderPayloadSchema = z
   .object({
     items: z.array(orderItem).min(2).max(8),
+    pointsMultiplier,
     correct: z.array(elementKey).min(2).max(8),
   })
   .superRefine((value, ctx) => {
@@ -148,6 +153,7 @@ const matchCard = z.object({ key: elementKey, text: z.string().max(300) })
 export const matchPayloadSchema = z
   .object({
     cards: z.array(matchCard).min(2).max(8),
+    pointsMultiplier,
     targets: z.array(matchCard).min(2).max(8),
     map: z.record(elementKey, elementKey),
   })
@@ -203,6 +209,7 @@ const zoneList = z.array(imageZoneSchema).min(1).max(12)
 export const hotspotClickPayloadSchema = z
   .object({
     mode: z.literal('click_zone'),
+    pointsMultiplier,
     imageKey: z.string().min(1).max(500),
     zones: zoneList,
     /** Zone keys that count as correct. More than one is allowed ("click all …"). */
@@ -219,6 +226,7 @@ export const hotspotClickPayloadSchema = z
 export const hotspotCardPayloadSchema = z
   .object({
     mode: z.literal('card_to_zone'),
+    pointsMultiplier,
     imageKey: z.string().min(1).max(500),
     zones: zoneList,
     cards: z.array(matchCard).min(1).max(12),

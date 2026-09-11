@@ -6,8 +6,11 @@ import { snapshotSchema, type SessionSnapshot,type ServerEvents,type ClientEvent
 import { ServerClock } from './clock'
 import type {GameMode} from '@/shared/arcade'
 
-interface LiveState {snapshot:SessionSnapshot|null;connected:boolean;error:string|null;set:(patch:Partial<LiveState>)=>void}
-export const useLiveState=create<LiveState>(set=>({snapshot:null,connected:false,error:null,set:patch=>set(patch)}))
+/** Storage says the run already ended while this client was away (v5 §19 honest interruption, reply code 'session_interrupted'). */
+export interface InterruptedRun {runId:number;endReason:string|null}
+interface LiveState {snapshot:SessionSnapshot|null;connected:boolean;error:string|null;interrupted:InterruptedRun|null;set:(patch:Partial<LiveState>)=>void}
+export const useLiveState=create<LiveState>(set=>({snapshot:null,connected:false,error:null,interrupted:null,set:patch=>set(patch)}))
+class SessionInterrupted extends Error {constructor(){super('session_interrupted')}}
 export const PARTICIPANT_STORAGE='asasera:participant'
 export function storedSeat():{runId:number;resumeToken:string}|null {
   try{const s=JSON.parse(sessionStorage.getItem(PARTICIPANT_STORAGE)??'null');return s&&typeof s.runId==='number'&&typeof s.resumeToken==='string'?s:null}catch{return null}
@@ -39,6 +42,13 @@ export function useSession(options:{role:'host'|'projector'|'player';runId?:numb
       const seat=storedSeat()
       if(seat){await send('player:resume',seat);reply=await emitCommand()}
     }
+    if(!reply.ok&&reply.code==='session_interrupted'){
+      // Not a connection problem: the class ended without us. Show the ending, drop the seat, no reload banner.
+      const runId=typeof input==='object'&&input!==null&&'runId'in input&&typeof input.runId==='number'?input.runId:(options.runId??0)
+      sessionStorage.removeItem(PARTICIPANT_STORAGE)
+      useLiveState.getState().set({interrupted:{runId,endReason:reply.endReason??null},error:null})
+      throw new SessionInterrupted()
+    }
     if(!reply.ok)throw new Error(reply.message)
     if(reply.snapshot)accept(reply.snapshot)
     return reply
@@ -53,11 +63,11 @@ export function useSession(options:{role:'host'|'projector'|'player';runId?:numb
     if(parsed.data.state==='ended')sessionStorage.removeItem(PARTICIPANT_STORAGE)
   }
   useEffect(()=>{
-    useLiveState.getState().set({snapshot:null,error:null,connected:false})
+    useLiveState.getState().set({snapshot:null,error:null,connected:false,interrupted:null})
     const socket=io(import.meta.env.VITE_API_URL||undefined,{autoConnect:false,auth:{accessToken:getAccessToken()},withCredentials:true})
     socketRef.current=socket
     let alive=true
-    const fail=(error:unknown)=>{if(alive)useLiveState.getState().set({error:error instanceof Error?error.message:'Connection failed.'})}
+    const fail=(error:unknown)=>{if(alive&&!(error instanceof SessionInterrupted))useLiveState.getState().set({error:error instanceof Error?error.message:'Connection failed.'})}
     const synchronize=async()=>{
       clock.reset()
       for(let i=0;i<3&&alive;i++){const sent=performance.now();const reply=await send('clock:sync',{});if(reply.serverNow)clock.sync(reply.serverNow,sent,performance.now())}
@@ -84,5 +94,5 @@ export function useSession(options:{role:'host'|'projector'|'player';runId?:numb
     // Session identity, not render-time callbacks, determines connection lifetime.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   },[options.role,options.runId,options.activityId,options.requestId,options.projectorToken,options.gameMode])
-  return {...state,send,clock,exit:()=>{sessionStorage.removeItem(PARTICIPANT_STORAGE);useLiveState.getState().set({snapshot:null,error:null});socketRef.current?.disconnect()}}
+  return {...state,send,clock,exit:()=>{sessionStorage.removeItem(PARTICIPANT_STORAGE);useLiveState.getState().set({snapshot:null,error:null,interrupted:null});socketRef.current?.disconnect()}}
 }

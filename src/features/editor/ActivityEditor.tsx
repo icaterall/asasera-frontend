@@ -1,17 +1,20 @@
+import {FormattedText} from '@/components/formatted-text/FormattedText'
+import {FormattedInput} from './FormattedInput'
+import {QuestionTypePicker} from './QuestionTypePicker'
 import {AccountControl} from '@/components/layout/AccountControl'
 import {LanguageToggle} from '@/components/ui/LanguageToggle'
 import {Logo} from '@/components/ui/Logo'
 import {useAuth} from '@/hooks/useAuth'
 import {ActivityFeedbackModal} from '@/features/community/ActivityFeedbackModal'
-import {acknowledgeQuestion, acknowledgeTitle, draftKey, editorDraftSchema, emptyEditorDraft, hasEditorChanges, readDraft, storeEditorDraft, type EditorDraft} from './session-drafts'
+import {acknowledgeQuestion, acknowledgeTitle, decodeGenerationDraft, draftKey, editorDraftSchema, emptyEditorDraft, hasEditorChanges, readDraft, storeEditorDraft, type EditorDraft, type GenerationDraft} from './session-drafts'
 import {ActivityAudience} from '@/features/audience/ActivityAudience'
-import {Menu,Settings,TriangleAlert,Check,Palette,Share2,MessageSquare,Sparkles} from 'lucide-react'
+import {Menu,Settings,TriangleAlert,Check,Palette,Share2,MessageSquare,Sparkles,Radio,Clock,Library,X,MessageCircleQuestion,Timer,Medal,SlidersHorizontal,Plus} from 'lucide-react'
 import {useTranslation} from 'react-i18next'
 import {useEditorText} from './useEditorText'
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 
-import { Button, EmptyState, FailureState, LoadingState, Select } from '@/design'
+import { Button, Select, EmptyState, FailureState, LoadingState } from '@/design'
 import {
   activities,
   type ActivityRecord,
@@ -22,8 +25,9 @@ import {
 import {errorPairSlots} from '@/shared/error-pairs'
 import {AdvancedCanvas,defaultPayload} from './AdvancedCanvas'
 import {GenerationPanel} from './GenerationPanel'
+import {QuestionSource,SourceMarker,readProvenance} from './SourceChip'
 import {ImageUpload} from './ImageUpload'
-import type {QuestionKindWire} from '@/lib/api'
+import {MediaField} from './MediaPicker'
 import styles from './Editor.module.css'
 import { McqCanvas, TfCanvas, type McqOption } from './McqCanvas'
 import { useAutosave } from './useAutosave'
@@ -34,12 +38,16 @@ import { getActivityTheme } from '../activity-themes/catalog'
 /**
  * The four-region editor — plan §12 (p20), W03.
  *
- *   1 top bar      title · settings · save state in place · exit · publish
+ *   1 top bar      title · settings · save state in place · exit · approve version
  *   2 question rail ordered thumbnails, duplicate/delete, Add and Generate
- *   3 canvas        prompt → media → options, as the pupil sees them
+ *   3 canvas        prompt → media → options → explanation, as the pupil sees them
  *   4 properties    defaults already filled; advanced only if you want it
  *
- * The acceptance criterion is that a teacher can author and publish five
+ * v5 §18: "Approve version" fixes a runnable snapshot without making anything
+ * public; "Share to library" is a separate, quiet act. After approval the two
+ * primary paths are "Start live" and "Assign as homework".
+ *
+ * The acceptance criterion is that a teacher can author and approve five
  * questions WITHOUT opening region 4. Everything region 4 holds is already
  * populated — multiple choice, twenty seconds — so it is a place to change a
  * default, not a place to supply one.
@@ -132,9 +140,22 @@ function ActivityEditorWorkspace() {
   const [activeId, setActiveId] = useState<number | null>(null)
   const [problems, setProblems] = useState<PublicationProblem[]>([])
   const [generationOpen,setGenerationOpen]=useState(false)
+  const [generationReplacement,setGenerationReplacement]=useState(false)
+  const generationOpener=useRef<HTMLElement|null>(null)
+  const generationDrawers=useRef({rail:false,props:false})
   const [generationOpening,setGenerationOpening]=useState(false)
+  /* `?generate=1&draft=…` (from the materials page) pre-fills the AI panel; consumed once. */
+  const [generationDraft,setGenerationDraft]=useState<GenerationDraft|null>(null)
+  const chooseOnMount=useRef(searchParams.get('choose')==='1')
+  const generateOnMount=useRef(searchParams.get('generate')==='1'?(decodeGenerationDraft(searchParams.get('draft'))??{}):null)
   const [themesOpen,setThemesOpen]=useState(false)
+  // The rail shows one of two faces; question properties is the working default.
+  const [asideTab,setAsideTab]=useState<'properties'|'themes'>('properties')
   const [publishing, setPublishing] = useState(false)
+  const [sharing, setSharing] = useState(false)
+  const [shareNotice, setShareNotice] = useState<string | null>(null)
+  /* Questions whose prompt or answer changed while they carry an explanation (v5 §18): a soft reminder, never a block. */
+  const [explanationCheck, setExplanationCheck] = useState<number[]>([])
   /*
    * Editor actions that failed.
    *
@@ -149,8 +170,9 @@ function ActivityEditorWorkspace() {
   const [actionError, setActionError] = useState<string | null>(null)
   const [railOpen, setRailOpen] = useState(false)
   const [chooseHotspot,setChooseHotspot]=useState(false)
-  const [propsOpen, setPropsOpen] = useState(false)
-  const promptRef = useRef<HTMLTextAreaElement>(null)
+  const [propsOpen, setPropsOpen] = useState(()=>matchMedia('(min-width:1025px)').matches)
+  useEffect(()=>{const media=matchMedia('(min-width:1025px)'),change=()=>setPropsOpen(media.matches);media.addEventListener('change',change);return()=>media.removeEventListener('change',change)},[])
+  const promptRef = useRef<HTMLDivElement>(null)
   useEffect(()=>{
     if((!railOpen&&!propsOpen)||!matchMedia('(max-width:1024px)').matches)return
     const previous=document.activeElement as HTMLElement|null
@@ -158,6 +180,7 @@ function ActivityEditorWorkspace() {
     const focusable=()=>Array.from(drawer?.querySelectorAll<HTMLElement>('button:not(:disabled),input:not(:disabled),select:not(:disabled),textarea:not(:disabled),a[href]')??[])
     focusable()[0]?.focus()
     const key=(event:KeyboardEvent)=>{
+      if(event.target instanceof Element&&event.target.closest('dialog[open]'))return
       if(event.key==='Escape'){setRailOpen(false);setPropsOpen(false)}
       if(event.key==='Tab'){const items=focusable(),first=items[0],last=items.at(-1);if(event.shiftKey&&document.activeElement===first){event.preventDefault();last?.focus()}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first?.focus()}}
     }
@@ -197,6 +220,13 @@ function ActivityEditorWorkspace() {
   useEffect(() => {
     if (data && activeId === null && data.questions.length > 0) setActiveId(data.questions.find(q => q.id === requestedQuestion)?.id ?? data.questions[0]!.id)
   }, [data, activeId, requestedQuestion])
+
+  useEffect(() => {
+    if (!data || !generateOnMount.current) return
+    const draft = generateOnMount.current; generateOnMount.current = null
+    setGenerationDraft(draft); setGenerationOpen(true)
+    setSearchParams(previous => { const params = new URLSearchParams(previous); params.delete('generate'); params.delete('draft'); params.delete('choose'); return params }, {replace: true})
+  }, [data, setSearchParams])
 
   const activeIdRef = useRef<number | null>(null)
   useLayoutEffect(()=>{dataRef.current=data;activeIdRef.current=activeId},[data,activeId])
@@ -247,7 +277,11 @@ function ActivityEditorWorkspace() {
     const currentId = activeIdRef.current
     const current = dataRef.current?.questions.find((q) => q.id === currentId)
     if (!current) return
+    // Changing answer content/type must retain the teacher's scoring choice.
+    if(patch.payload&&typeof patch.payload==='object')patch={...patch,payload:{pointsMultiplier:(current.payload as {pointsMultiplier?:number}).pointsMultiplier,...patch.payload}}
     const next = { ...current, ...patch } as QuestionRecord
+    if (('prompt' in patch || 'payload' in patch) && (next.explanation ?? '').trim()) setExplanationCheck(ids => ids.includes(next.id) ? ids : [...ids, next.id])
+    if ('explanation' in patch) setExplanationCheck(ids => ids.filter(id => id !== next.id))
     const slots=errorPairSlots(next.kind,next.payload)
     changeData(current=>current&&({...current,errorPairs:current.errorPairs.filter(pair=>pair.questionId!==next.id||slots.some(s=>s.elementKey===pair.elementKey&&s.wrongTargetKey===pair.wrongTargetKey))}))
     /* Local state moves immediately so typing is not gated on the network;
@@ -265,6 +299,8 @@ function ActivityEditorWorkspace() {
         timeLimitS: next.timeLimitS,
         mediaKey:next.mediaKey,
         confirmZones:patch.confirmZones===true,
+        /* Same key order as questionPatchSchema: the journal compares serialized patches after a zod round-trip. */
+        explanation:next.explanation??null,
         errorPairs:(dataRef.current?.errorPairs??[]).filter(p=>p.questionId===next.id).map(({elementKey,wrongTargetKey,reason})=>({elementKey,wrongTargetKey,reason})),
       },
     }
@@ -294,7 +330,7 @@ function ActivityEditorWorkspace() {
     setRailOpen(false)
   }, [questionSave, recovered, persist, setSearchParams])
 
-  const payload = (active?.payload ?? {}) as { options?: McqOption[]; correct?: string | boolean }
+  const payload = (active?.payload ?? {}) as { options?: McqOption[]; correct?: string | boolean; pointsMultiplier?:0|1|2 }
 
   const setReasonPair = useCallback((elementKey: string, wrongTargetKey:string|null,reason: string) => {
     if (!active) return
@@ -326,11 +362,13 @@ function ActivityEditorWorkspace() {
     }finally{actionInFlight.current=false;setActionBusy(false)}
   }, [questionSave,titleSave,t,recovered,ar])
 
-  const openGeneration = async () => {
+  const openGeneration = async (replacement = false) => {
     if (actionInFlight.current) return
+    generationOpener.current=document.activeElement instanceof HTMLElement?document.activeElement:null
+    generationDrawers.current={rail:railOpen,props:propsOpen}
     setGenerationOpening(true)
     try {
-      await run(t("تعذّر حفظ التعديلات"), async () => {await reload();setGenerationOpen(true)})
+      await run(t("تعذّر حفظ التعديلات"), async () => {await reload();setGenerationReplacement(replacement);setGenerationOpen(true)})
     } finally {setGenerationOpening(false)}
   }
 
@@ -350,16 +388,18 @@ function ActivityEditorWorkspace() {
   }), [activityId, run, questionSave,selectQuestion,t])
 
   const publish = useCallback(async () => {
-    if (recovered) {setActionError(ar ? 'راجع التعديلات المستعادة واحفظها قبل النشر.' : 'Review and save your recovered edits before publishing.'); return}
+    if (recovered) {setActionError(ar ? 'راجع التعديلات المستعادة واحفظها قبل الاعتماد.' : 'Review and save your recovered edits before approving.'); return}
     setPublishing(true)
     setProblems([])
+    setShareNotice(null)
     try {
-      /* Anything still in the debounce window goes first — publishing text the
+      /* Anything still in the debounce window goes first — approving text the
          server has not seen would validate the wrong content. */
       await questionSave.flushNow()
       await titleSave.flushNow()
       const result = await activities.publish(activityId)
       changeData((current) => current && { ...current, activity: result.activity })
+      setExplanationCheck([])
     } catch (error) {
       /* The project's one error envelope: ApiError carries `details`. */
       const detail = (error as { details?: { problems?: PublicationProblem[] } })?.details
@@ -370,7 +410,7 @@ function ActivityEditorWorkspace() {
       } else {
         setProblems([{
           code: 'unknown',
-          message: 'Publishing failed.',
+          message: error instanceof Error ? error.message : 'Approval failed.',
           messageAr: error instanceof Error ? error.message : t("تعذّر النشر."),
         }])
       }
@@ -378,6 +418,20 @@ function ActivityEditorWorkspace() {
       setPublishing(false)
     }
   }, [activityId, questionSave, titleSave,t,recovered,ar])
+
+  /* v5 §18: sharing to the library is separate from approval and needs a shelf (purpose or curriculum unit). */
+  const shareable = !!data && (data.activity.purposeId !== null || data.activity.curriculumNodeId !== null)
+  const toggleShare = useCallback(async () => {
+    if (!data) return
+    setSharing(true); setShareNotice(null); setActionError(null)
+    try {
+      const result = data.activity.visibility === 'published' ? await activities.unpublish(activityId) : await activities.share(activityId)
+      changeData(current => current && { ...current, activity: { ...result.activity, title: current.activity.title } })
+      setShareNotice(result.activity.visibility === 'published' ? (ar ? 'النشاط الآن في المكتبة العامة. النسخة المعتمدة ما زالت قابلة للتشغيل.' : 'The activity is now in the public library. The approved version still runs as before.') : (ar ? 'سُحب النشاط من المكتبة. النسخة المعتمدة محفوظة وما زالت قابلة للتشغيل.' : 'Withdrawn from the library. The approved version is kept and still runs.'))
+    } catch (error) {
+      setActionError(`${ar ? 'تعذّرت مشاركة النشاط' : 'Could not update sharing'}: ${error instanceof Error ? error.message : t("خطأ غير معروف")}`)
+    } finally { setSharing(false) }
+  }, [data, activityId, ar, t])
 
   async function saveRecovered() {
     if (actionInFlight.current) return
@@ -423,7 +477,7 @@ function ActivityEditorWorkspace() {
   const incompleteIds = new Set(problems.map((p) => p.questionId).filter((x): x is number => x != null))
 
   return (
-    <div className={`asas ${styles.shell}`} dir={ar ? 'rtl' : 'ltr'}>
+    <div className={`asas ${styles.shell}`} data-props-open={propsOpen} dir={ar ? 'rtl' : 'ltr'}>
       {feedbackOpen && <ActivityFeedbackModal activityId={activityId} title={data.activity.title} onClose={() => setFeedbackOpen(false)} onReview={async questionId => {
         if (questionId && !data.questions.some(q => q.id === questionId)) throw new Error(ar ? 'هذا السؤال غير موجود في المسودة الحالية.' : 'This question is no longer in the current draft.')
         if (questionId) await selectQuestion(questionId)
@@ -436,13 +490,17 @@ function ActivityEditorWorkspace() {
         baseTitle.current=result.activity.title
         changeData(current=>current&&({...current,activity:result.activity}))
       }}/>}
-      {generationOpen&&<GenerationPanel activity={data.activity} question={active} onClose={()=>setGenerationOpen(false)} onApplied={reload}/>}
+      {generationOpen&&<GenerationPanel startWithChoices={chooseOnMount.current} activity={data.activity} question={active} replacement={generationReplacement} provenance={readProvenance(active)??(!generationReplacement?data.questions.map(readProvenance).find(p=>p?.origin==='file'):null)??null} initialDraft={generationDraft} onClose={()=>{chooseOnMount.current=false;setGenerationOpen(false);setGenerationDraft(null);requestAnimationFrame(()=>{setRailOpen(generationDrawers.current.rail);setPropsOpen(generationDrawers.current.props);requestAnimationFrame(()=>{const trigger=document.querySelector<HTMLElement>(`[data-generation-trigger="${generationReplacement?'replacement':'batch'}"]`);(trigger??generationOpener.current)?.focus()})})}} onApplied={reload}/>}
       {/* ---- 1. top bar ---- */}
       <header className={styles.top}>
         <Link to="/teacher/dashboard" className={styles.brand} aria-label={ar ? 'أساسيرا — لوحة التحكم' : 'Asasera — dashboard'}>
           <Logo />
         </Link>
         <div className={styles.activityIdentity}>
+        {/* The page's only heading: the title beside it is an editable control,
+            so without this the editor exposed no headings at all. Same text, no
+            new copy, hidden from sight only. */}
+        <h1 className={styles.srOnly}>{data.activity.title}</h1>
         <input
           className={styles.titleInput}
           value={data.activity.title}
@@ -466,16 +524,17 @@ function ActivityEditorWorkspace() {
         <div className={styles.editorActions} role="group" aria-label={ar ? 'أدوات النشاط' : 'Activity actions'}>
         <Button variant="quiet" className={styles.drawerToggle} onClick={() => setRailOpen((v) => !v)}
           aria-expanded={railOpen} aria-label={t("الأسئلة")}><Menu size={22} aria-hidden="true"/></Button>
-        <Button variant="quiet" className={styles.drawerToggle} onClick={() => setPropsOpen((v) => !v)}
+        <Button variant="quiet" className={styles.propertiesToggle} data-properties-toggle="" onClick={() => setPropsOpen((v) => !v)}
           aria-expanded={propsOpen} aria-label={t("الخصائص")}><Settings size={22} aria-hidden="true"/></Button>
 
         <Button variant="secondary" disabled={actionBusy||publishing||recovered} onClick={()=>setThemesOpen(true)}><Palette size={18} aria-hidden="true"/>{ar?'المظاهر':'Themes'}</Button>
         <Button variant="secondary" onClick={() => recovered ? navigate('/teacher/dashboard') : void run(t("تعذّر حفظ التعديلات"),async()=>navigate('/teacher/dashboard'))}>{t("خروج")}</Button>
         <Button variant="quiet" onClick={() => setFeedbackOpen(true)}><MessageSquare size={18} aria-hidden="true" />{ar?'الملاحظات':'Feedback'}</Button>
-        {data.activity.visibility === 'published' && <Button variant="secondary" onClick={() => void run(t("تعذّر حفظ التعديلات"),async()=>navigate(`/activities/${activityId}`))}><Share2 size={18} aria-hidden="true" />{ar?'مشاركة':'Share'}</Button>}
-        {data.activity.currentVersionId && <Button variant="secondary" onClick={() => navigate(`/teacher/activities/${activityId}/play`)}>{t("شغّل الحصة")}</Button>}
-        <Button variant="primary" loading={publishing} onClick={() => void publish()}>
-          {data.activity.visibility === 'published' ? t("إعادة النشر") : t("انشر")}
+        {data.activity.currentVersionId && <Button variant="quiet" loading={sharing} disabled={actionBusy||publishing||recovered||(!shareable&&data.activity.visibility!=='published')} title={!shareable&&data.activity.visibility!=='published'?t("للمشاركة في المكتبة، أضف غرضًا تعليميًا أو وحدة منهجية من إعدادات النشاط."):undefined} onClick={() => void toggleShare()}>{data.activity.visibility === 'published' ? <><Share2 size={18} aria-hidden="true" />{t("سحب من المكتبة")}</> : <><Library size={18} aria-hidden="true" />{t("مشاركة في المكتبة")}</>}</Button>}
+        {data.activity.currentVersionId && <Button variant="primary" className={styles.deliveryAction} disabled={publishing} onClick={() => void run(t("تعذّر حفظ التعديلات"),async()=>navigate(`/teacher/activities/${activityId}/play?mode=live`))}><Radio size={18} aria-hidden="true"/>{t("ابدأ حصة مباشرة")}</Button>}
+        {data.activity.currentVersionId && <Button variant="primary" className={styles.deliveryAction} disabled={publishing} onClick={() => void run(t("تعذّر حفظ التعديلات"),async()=>navigate(`/teacher/activities/${activityId}/play?mode=homework`))}><Clock size={18} aria-hidden="true"/>{t("كلّف كواجب")}</Button>}
+        <Button variant={data.activity.currentVersionId ? 'secondary' : 'primary'} loading={publishing} onClick={() => void publish()}>
+          {data.activity.currentVersionId ? t("اعتماد التغييرات") : t("اعتماد النسخة")}
         </Button>
         </div>
       </header>
@@ -509,13 +568,15 @@ function ActivityEditorWorkspace() {
           >
             {incompleteIds.has(question.id) && <span className={styles.thumbFlag} aria-label={t("يحتاج إكمالًا")}><TriangleAlert size={18} aria-hidden="true"/></span>}
             <span className={styles.thumbOrdinal} dir="ltr">{question.ordinal}</span>
-            <span className={styles.thumbPrompt}>{question.prompt || t("سؤال بلا نص")}</span>
+            <span className={styles.thumbPrompt}><FormattedText text={question.prompt || t("سؤال بلا نص")}/></span>
+            {/* Origin at a glance in the rail; the full citation is the chip on the canvas. */}
+            <SourceMarker provenance={readProvenance(question)}/>
           </button>
         ))}
 
         <div className={styles.railActions}>
           <Button variant="primary" full onClick={() => { void addQuestion('mcq') }}>{t("أضف سؤالًا")}</Button>
-          <Button variant="secondary" full className={styles.generateButton} loading={generationOpening} disabled={actionBusy||publishing} icon={<Sparkles size={18} aria-hidden="true"/>} aria-describedby="activity-ai-generation-hint" onClick={()=>void openGeneration()}>{t("توليد بالذكاء الاصطناعي")}</Button>
+          <Button variant="secondary" full data-generation-trigger="batch" className={styles.generateButton} loading={generationOpening} disabled={actionBusy||publishing} icon={<Sparkles size={18} aria-hidden="true"/>} aria-describedby="activity-ai-generation-hint" onClick={()=>void openGeneration()}>{t("توليد بالذكاء الاصطناعي")}</Button>
           <p id="activity-ai-generation-hint" className={styles.generateHint}>{ar?'من موضوع أو من مصادرك المرفوعة.':'From a topic or your uploaded sources.'}</p>
         </div>
       </nav>
@@ -533,10 +594,12 @@ function ActivityEditorWorkspace() {
               <h2 className={styles.problemsTitle}>{actionError}</h2>
             </div>
           )}
+          {shareNotice && <p role="status" className={styles.approvalNote}>{shareNotice}</p>}
+          {data.activity.currentVersionId && !shareable && data.activity.visibility !== 'published' && <p className={styles.approvalNote}>{t("النسخة معتمدة وخاصة بك: شغّلها مباشرة أو كلّف بها كواجب. للمشاركة في المكتبة، أضف غرضًا تعليميًا أو وحدة منهجية من إعدادات النشاط.")}</p>}
 
           {problems.length > 0 && (
             <div className={styles.problems} role="alert">
-              <h2 className={styles.problemsTitle}>{ar?'النشر متوقّف':'Publication blocked'} — {problems.length}</h2>
+              <h2 className={styles.problemsTitle}>{ar?'الاعتماد متوقّف':'Approval blocked'} — {problems.length}</h2>
               <ul className={styles.problemList}>
                 {problems.map((problem, index) => (
                   <li key={index} className={styles.problemItem}>
@@ -560,25 +623,24 @@ function ActivityEditorWorkspace() {
             />
           ) : (
             <>
-              <textarea
-                ref={promptRef}
-                className={styles.promptInput}
-                value={active.prompt}
-                placeholder={t("اكتب السؤال هنا")}
-                aria-label={t("نص السؤال")}
-                onChange={(event) => patchActive({ prompt: event.target.value })}
-              />
+              {/* Where this question came from (v5.1 C4). Above the prompt and always
+                  in the same place, so its absence ("Manual") reads as plainly as a
+                  citation. Keyed by the question so switching questions closes the
+                  viewer instead of showing the previous question's text. */}
+              {readProvenance(active)&&<div className={styles.sourceRow}><QuestionSource key={active.id} provenance={readProvenance(active)}/></div>}
+              <FormattedInput key={`prompt:${active.id}`} inputRef={promptRef} className={styles.promptInput} value={active.prompt} placeholder={t("اكتب السؤال هنا")} label={t("نص السؤال")} onChange={prompt=>patchActive({prompt})}/>
 
-              {active.kind!=='hotspot'&&active.kind!=='mcq'&&<ImageUpload label={ar?'صورة السؤال (اختياري)':'Question image (optional)'} imageKey={active.mediaKey} onImage={mediaKey=>patchActive({mediaKey})} onRemove={()=>patchActive({mediaKey:null})}/>}
-              {['order','match','hotspot'].includes(active.kind)&&<AdvancedCanvas key={active.id} question={active} pairs={data.errorPairs.filter(p=>p.questionId===active.id)} onPatch={patchActive} onPair={setReasonPair}/>}
+
+              {active.kind!=='hotspot'&&active.kind!=='mcq'&&<MediaField key={active.id} label={ar?'صورة السؤال (اختياري)':'Question image (optional)'} imageKey={active.mediaKey} onImage={mediaKey=>patchActive({mediaKey})} onRemove={()=>patchActive({mediaKey:null})}/>}
+              {['order','match','hotspot'].includes(active.kind)&&<AdvancedCanvas key={`advanced:${active.id}`} question={active} pairs={data.errorPairs.filter(p=>p.questionId===active.id)} onPatch={patchActive} onPair={setReasonPair}/>}
               {active.kind === 'mcq' && (
                 <McqCanvas
-                  key={active.id}
+                  key={`mcq:${active.id}`}
                   mediaKey={active.mediaKey}
                   onMediaChange={mediaKey=>patchActive({mediaKey})}
                   options={(payload.options ?? []) as McqOption[]}
                   correct={String(payload.correct ?? '')}
-                  onOptionImage={(key,image)=>patchActive({payload:{...payload,options:(payload.options??[]).map(o=>o.key===key?{...o,image}:o)}})}
+                  onOptionImage={(key,image)=>{if(activeIdRef.current!==active.id)return;const latest=dataRef.current?.questions.find(q=>q.id===active.id)?.payload as typeof payload;patchActive({payload:{...latest,options:(latest?.options??[]).map(o=>o.key===key?{...o,image}:o)}})}}
                   onOptionText={(key, text) => patchActive({
                     payload: {
                       ...payload,
@@ -595,6 +657,27 @@ function ActivityEditorWorkspace() {
                   onCorrect={(value) => patchActive({ payload: { correct: value } })}
                 />
               )}
+
+              {/* v5 §14/§18: why the key is correct. Shown to learners only after the answer window closes. */}
+              <label className={styles.explanationField}>
+                <span className={styles.propLabel}>{t("التفسير (اختياري)")}</span>
+                <textarea
+                  key={`explanation:${active.id}`}
+                  className={styles.explanationInput}
+                  value={active.explanation ?? ''}
+                  maxLength={1000}
+                  rows={2}
+                  /* An empty field shows the placeholder, and `auto` has no value
+                     to read, so an Arabic placeholder was laid out left to right.
+                     Empty follows the interface language; as soon as there is text,
+                     `auto` takes over so an English explanation typed into the
+                     Arabic editor still reads correctly. */
+                  dir={active.explanation ? 'auto' : ar ? 'rtl' : 'ltr'}
+                  placeholder={t("لماذا هذه الإجابة صحيحة؟ يظهر للطلاب بعد انتهاء وقت الإجابة.")}
+                  onChange={(event) => patchActive({ explanation: event.target.value })}
+                />
+                {explanationCheck.includes(active.id) && <span role="status" className={styles.explanationWarning}><TriangleAlert size={16} aria-hidden="true"/>{t("تحقّق من أن التفسير ما زال يطابق السؤال والإجابة.")}</span>}
+              </label>
             </>
           )}
         </div>
@@ -602,47 +685,29 @@ function ActivityEditorWorkspace() {
 
       {/* ---- 4. properties ---- */}
       <aside inert={actionBusy} className={styles.props} data-editor-drawer={propsOpen?"open":"closed"} aria-label={t("خصائص السؤال")}>
-        <Button className={styles.drawerToggle} onClick={()=>setPropsOpen(false)}>{t("أغلق الخصائص")}</Button>
+        <header className={styles.propsHeader}><h2>{asideTab==='themes'?(ar?'المظاهر':'Themes'):t("خصائص السؤال")}</h2><button type="button" aria-label={t("أغلق الخصائص")} onClick={()=>{setPropsOpen(false);document.querySelector<HTMLButtonElement>(`[data-properties-toggle]`)?.focus()}}><X size={26}/></button></header>
+        <div className={styles.asideTabs} role="tablist" aria-label={ar?'لوحة الجانب':'Sidebar panel'}>
+          {([['properties',t("خصائص السؤال"),<SlidersHorizontal size={20} aria-hidden="true"/>],['themes',ar?'المظاهر':'Themes',<Palette size={20} aria-hidden="true"/>]] as const).map(([id,label,icon])=>
+            <button key={id} type="button" role="tab" aria-selected={asideTab===id} onClick={()=>setAsideTab(id)}>{icon}<span>{label}</span></button>)}
+        </div>
+        {asideTab==='themes'
+          ? <ThemesPanel activity={data.activity} disabled={recovered} onOpenPicker={()=>setThemesOpen(true)}/>
+          : <>
         <div className={styles.propGroup}>
-          <label htmlFor="question-kind" className={styles.propLabel}>{t("نوع السؤال")}</label>
-          <Select id="question-kind"
-            className={styles.select}
-            value={active?.kind ?? 'mcq'}
-            disabled={!active}
-            onValueChange={(event) => {
-              const kind = event as QuestionKindWire
-              if(kind==='hotspot'&&!active?.mediaKey){setChooseHotspot(true);return}
-              setChooseHotspot(false);patchActive({ kind, payload:defaultPayload(kind,active?.mediaKey??'') })
-            }}
-          >
-            <option value="mcq">{t("اختيار من متعدد")}</option>
-            <option value="tf">{t("صح / خطأ")}</option>
-            <option value="order">{t("ترتيب العناصر")}</option>
-            <option value="match">{t("مطابقة البطاقات")}</option>
-            <option value="hotspot">{t("مناطق الصورة")}</option>
-          </Select>
+          <label htmlFor="question-kind" className={styles.propLabel}><MessageCircleQuestion size={22}/>{t("نوع السؤال")}</label>
+          <QuestionTypePicker value={active?.kind??'mcq'} disabled={!active} onChange={kind=>{
+            if(kind==='hotspot'&&!active?.mediaKey){setChooseHotspot(true);return}
+            setChooseHotspot(false);patchActive({kind,payload:defaultPayload(kind,active?.mediaKey??'')})
+          }}/>
           {chooseHotspot&&<><p>{t("أضف الصورة أولًا لرسم مناطق الإجابة.")}</p><ImageUpload imageKey={null} onImage={mediaKey=>{patchActive({kind:'hotspot',mediaKey,payload:defaultPayload('hotspot',mediaKey)});setChooseHotspot(false)}}/></>}
-          <span className={styles.propHint}>
-            {t("الافتراضي اختيار من متعدد. لا تحتاج فتح هذه اللوحة لتأليف نشاط ونشره.")}
-          </span>
+
         </div>
 
         <div className={styles.propGroup}>
-          <span className={styles.propLabel}>{t("المؤقّت")}</span>
-          <div className={styles.duration}>
-            <input
-              className={styles.select}
-              type="number"
-              min={5}
-              max={300}
-              dir="ltr"
-              value={active?.timeLimitS ?? 20}
-              disabled={!active}
-              aria-label={t("مدة السؤال بالثواني")}
-              onChange={(event) => patchActive({ timeLimitS: Number(event.target.value) })}
-            />
-            <span className={styles.propHint}>{t("ثانية")}</span>
-          </div>
+          <label htmlFor="question-duration" className={styles.propLabel}><Timer size={22}/>{ar?'الوقت المحدد':'Time limit'}</label>
+          <Select id="question-duration" className={styles.propertySelect} aria-label={t("مدة السؤال بالثواني")} searchable={false} value={active?.timeLimitS??20} disabled={!active} onValueChange={value=>patchActive({timeLimitS:Number(value)})}>
+            {Array.from(new Set([5,10,20,30,60,90,120,180,240,300,active?.timeLimitS??20])).sort((a,b)=>a-b).map(seconds=><option key={seconds} value={seconds}>{ar?`${seconds} ثانية`:`${seconds} seconds`}</option>)}
+          </Select>
           {/* §12: «طبّق على الكل» directly under the duration. */}
           <Button
             variant="quiet"
@@ -658,14 +723,19 @@ function ActivityEditorWorkspace() {
               await reload()
             })}
           >
-            {t("طبّق على الكل")}
+            {ar?'تطبيق على جميع الأسئلة':'Apply to all questions'}
           </Button>
         </div>
 
         <div className={styles.propGroup}>
-          <span className={styles.propLabel}>{t("مظهر الحصة")}</span>
-          <button type="button" className={styles.themeTrigger} disabled={recovered} onClick={()=>{setPropsOpen(false);setThemesOpen(true)}}><ThemeThumbnail key={data.activity.theme} theme={data.activity.theme}/><span>{ar?getActivityTheme(data.activity.theme).ar:getActivityTheme(data.activity.theme).en}<Palette size={18} aria-hidden="true"/></span></button>
+          <label htmlFor="question-points" className={styles.propLabel}><Medal size={22}/>{ar?'النقاط':'Points'}</label>
+          <Select id="question-points" className={styles.propertySelect} aria-label={ar?'النقاط':'Points'} value={payload.pointsMultiplier??1} disabled={!active} onValueChange={value=>patchActive({payload:{...active!.payload as object,pointsMultiplier:Number(value)}})} optionDescriptions={{
+            '1':ar?'امنح الإجابات الصحيحة العدد المعتاد من النقاط.':'Award correct answers with the normal amount of points.',
+            '2':ar?'امنح ضعف النقاط للإجابات الصحيحة.':'Give twice as many points for correct answers.',
+            '0':ar?'خفف المنافسة في هذا السؤال دون احتساب نقاط.':'Lower the stakes of the question and remove points.',
+          }}><option value="1">{ar?'قياسي':'Standard'}</option><option value="2">{ar?'نقاط مضاعفة':'Double points'}</option><option value="0">{ar?'بدون نقاط':'No points'}</option></Select>
         </div>
+
         <div className={styles.propsFooter}>
           {data.activity.currentVersionId&&<Button onClick={()=>void run(t("تعذّر الحفظ"),async()=>navigate(`/teacher/verification?question=${active?.id??0}`))}>{t("اربط سؤال تحقق")}</Button>}
           <div className={styles.thumbActions}><Button disabled={!active||active.ordinal===1} onClick={()=>void run(t("تعذّر ترتيب الأسئلة"),async()=>{if(!active)return;const order=data.questions.map(q=>q.id),index=order.indexOf(active.id);[order[index-1],order[index]]=[order[index]!,order[index-1]!];await activities.reorder(activityId,order);await reload()})}>{t("للأعلى")}</Button><Button disabled={!active||active.ordinal===data.questions.length} onClick={()=>void run(t("تعذّر ترتيب الأسئلة"),async()=>{if(!active)return;const order=data.questions.map(q=>q.id),index=order.indexOf(active.id);[order[index+1],order[index]]=[order[index]!,order[index+1]!];await activities.reorder(activityId,order);await reload()})}>{t("للأسفل")}</Button></div>
@@ -698,7 +768,31 @@ function ActivityEditorWorkspace() {
             {t("حذف السؤال")}
           </Button>
         </div>
+        </>}
       </aside>
     </div>
   )
+}
+
+/* The themes face of the properties rail: the teacher's own themes first, then the catalogue. */
+function ThemesPanel({activity,disabled,onOpenPicker}:{activity:ActivityRecord;disabled:boolean;onOpenPicker:()=>void}){
+  const {i18n}=useTranslation(),ar=i18n.language.startsWith('ar'),t=(a:string,e:string)=>ar?a:e
+  const current=getActivityTheme(activity.theme)
+  return <div className={styles.themesPanel}>
+    <section>
+      <h3>{t('مظاهرك','Your themes')}</h3>
+      <button type="button" className={styles.themeSlot} disabled title={t('غير متاح بعد','Not available yet')}>
+        <Plus size={22} aria-hidden="true"/><span>{t('ارفع مظهرك','Upload your theme')}</span>
+      </button>
+      <p className={styles.themesNote}>{t('رفع مظهر خاص بك قيد الإعداد.','Uploading your own theme is being set up.')}</p>
+    </section>
+    <section>
+      <h3>{t('مظاهر أساسيرا','Asasera themes')}</h3>
+      <button type="button" className={styles.themeCurrent} disabled={disabled} onClick={onOpenPicker}>
+        <ThemeThumbnail key={activity.theme} theme={activity.theme}/>
+        <span>{ar?current.ar:current.en}<Palette size={17} aria-hidden="true"/></span>
+      </button>
+      {disabled&&<p className={styles.themesNote}>{t('احفظ التعديلات المستعادة أولًا لتتمكّن من تغيير المظهر.','Save your recovered edits first to change the theme.')}</p>}
+    </section>
+  </div>
 }

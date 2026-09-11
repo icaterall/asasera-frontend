@@ -83,13 +83,13 @@ export function Hero() {
         <h1 id="landing-title">{copy.title}<br /><span>{copy.titleAccent}</span></h1>
         <p>{copy.intro}</p>
         <div className={styles.heroActions}>
-          <Link to="/register" className={`${styles.action} ${styles.yellowAction}`}>{copy.create}<ArrowRight className={styles.forward} size={20} /></Link>
+          <Link to="/signup/teacher" className={`${styles.action} ${styles.yellowAction}`}>{copy.create}<ArrowRight className={styles.forward} size={20} /></Link>
           <button type="button" className={`${styles.action} ${styles.outlineAction}`} onClick={tryQuiz}><Play size={18} fill="currentColor" />{copy.try}</button>
         </div>
-        <p className={styles.heroNote}>{copy.note} <Link to="/games" className={styles.textAction}>{lang==='ar'?'العب مغامرات أساسيرا':'Play Asasera adventures'}<ArrowRight size={18}/></Link></p>
+        <p className={styles.heroNote}>{copy.note} · <Link to="/games" className="underline">{copy.games}</Link></p>
         <div className={styles.roleLinks}>
-          <Link to="/register">{copy.teacher}<ArrowRight size={15} className={styles.forward} /></Link>
-          <Link to="/register">{copy.student}<ArrowRight size={15} className={styles.forward} /></Link>
+          <Link to="/signup/teacher">{copy.teacher}<ArrowRight size={15} className={styles.forward} /></Link>
+          <Link to="/signup/student">{copy.student}<ArrowRight size={15} className={styles.forward} /></Link>
         </div>
       </div>
       <div className={styles.demoWrap}>
@@ -102,7 +102,7 @@ export function Hero() {
             <p>{copy.correctCount}</p><p>{copy.resultBody}</p>
             <div className={styles.resultActions}>
               <button onClick={replay} className={`${styles.action} ${styles.blueAction}`}><RotateCcw size={18} />{copy.replay}</button>
-              <Link to="/register" className={styles.textAction}>{copy.create}<ArrowRight size={18} className={styles.forward} /></Link>
+              <Link to="/signup/teacher" className={styles.textAction}>{copy.create}<ArrowRight size={18} className={styles.forward} /></Link>
             </div>
           </div> : <>
             <div className={styles.questionPanel}>

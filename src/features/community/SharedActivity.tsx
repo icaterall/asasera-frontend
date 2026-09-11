@@ -1,3 +1,5 @@
+import {FormattedText} from '@/components/formatted-text/FormattedText'
+import {BackLink} from '@/design/BackLink'
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
@@ -39,11 +41,11 @@ function SharedActivityContent({ activityId }: { activityId: number }) {
   const a = data.data, question = a?.questions[Math.min(index, a.questions.length - 1)]
   return <div className={`asas ${styles.page}`}>
     {stopped ? <section className={styles.empty}><Lock size={40} aria-hidden="true" /><h1>{t('أصبح النشاط خاصًا', 'Your activity is now private')}</h1><p>{t('توقّف رابط المشاركة عن عرض النشاط. يمكنك إعادة نشره من المحرّر.', 'The shared link no longer displays this activity. You can publish it again from the editor.')}</p><Link to={`/teacher/activities/${activityId}`}>{t('فتح المحرّر', 'Open editor')}</Link></section> : data.isPending ? <LoadingState label={t('جارٍ فتح النشاط', 'Opening activity')} /> : data.error || !a ? <FailureState title={t('النشاط غير متاح', 'This activity isn’t available')} body={t('قد يكون صاحبه جعله خاصًا أو أزاله.', 'Its creator may have made it private or removed it.')} actions={<><Button onClick={() => void data.refetch()}>{t('إعادة المحاولة', 'Try again')}</Button><Link to={user?.role === 'teacher' ? '/teacher/discover' : '/'}>{t('العودة', 'Go back')}</Link></>} /> : <>
-      <header className={styles.heading}><div><h1 dir="auto">{a.title}</h1><p>{t('بواسطة', 'By')} <bdi>{a.authorName}</bdi> · {a.questionCount} {t('أسئلة', 'questions')} · {t('النسخة', 'Version')} {a.version}</p></div><Link to={user?.role === 'teacher' ? '/teacher/activities' : '/'}>{t('العودة إلى مساحتك', 'Back to your workspace')}</Link></header>
+      <header className={styles.heading}><div><h1 dir="auto">{a.title}</h1><p>{t('بواسطة', 'By')} <bdi>{a.authorName}</bdi> · {a.questionCount} {t('أسئلة', 'questions')} · {t('النسخة', 'Version')} {a.version}</p></div><BackLink to={user?.role === 'teacher' ? '/teacher/activities' : '/'}>{t('العودة إلى مساحتك', 'Back to your workspace')}</BackLink></header>
       <div className={styles.activityLayout}>
         <section className={styles.preview} aria-label={t('معاينة الأسئلة', 'Question preview')}>
           <div className={styles.sectionHeading}><BookOpen size={22} aria-hidden="true" /><h2>{t('جرّب معاينة النشاط', 'Take a look inside')}</h2><span>{Math.min(index + 1, a.questionCount)} / {a.questionCount}</span></div>
-          {question && <><h3 dir="auto" className={styles.questionTitle}>{question.prompt}</h3><QuestionInput key={`${a.versionId}-${question.id}`} question={question} onAnswer={() => {}} preview /></>}
+          {question && <><h3 dir="auto" className={styles.questionTitle}><FormattedText text={question.prompt}/></h3><QuestionInput key={`${a.versionId}-${question.id}`} question={question} onAnswer={() => {}} preview /></>}
           <div className={styles.pagination}><Button disabled={index === 0} onClick={() => setIndex(i => i - 1)}>{t('السابق', 'Previous')}</Button><span>{t('معاينة فقط', 'Preview only')}</span><Button disabled={index >= a.questions.length - 1} onClick={() => setIndex(i => i + 1)}>{t('التالي', 'Next')}</Button></div>
         </section>
         <aside className={styles.sharing}>

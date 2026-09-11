@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict'
 import {it} from 'node:test'
+import {readFileSync} from 'node:fs'
 import {answerDistribution, answerProgress, questionTime} from '../src/features/session/questionPresentation.ts'
 import type {PublicQuestion, Reveal} from '../src/shared/session.ts'
 
@@ -55,4 +56,26 @@ it('advanced questions use correctness counts instead of inventing four answer c
   assert.equal(rows[0].correct,true)
   assert.equal(rows[0].slot,null)
   assert.equal(rows[1].correct,false)
+})
+
+/*
+ * v5 §07/§19 (LIVE-01, UI-04): the player's phone shows the prompt, media and the
+ * option TEXT beside the colour+shape glyph by default. The components are .tsx
+ * (not importable under node:test), so this pins the contract at the source level.
+ */
+const stageSource=readFileSync(new URL('../src/features/session/LiveQuestionStage.tsx',import.meta.url),'utf8')
+const inputSource=readFileSync(new URL('../src/features/session/QuestionInput.tsx',import.meta.url),'utf8')
+it('players read the real prompt during an open question, not a "match the projector" placeholder',()=>{
+  assert.match(stageSource,/<h1 className=\{styles\.prompt\} dir="auto">\{q\.prompt\}<\/h1>/)
+  assert.doesNotMatch(stageSource,/اختر الشكل الصحيح|طابق اللون والشكل/)
+})
+it('the stage never forces shape-only tiles on the player role; projector-only mode is opt-in',()=>{
+  assert.doesNotMatch(stageSource,/classroom=|shapeOnly=|projectorOnly=\{player/)
+  assert.match(inputSource,/projectorOnly=false/)
+  assert.match(inputSource,/shapeOnly=\{projectorOnly\}/)
+  assert.match(inputSource,/data-layout=\{projectorOnly\?'shape':'text'\}/)
+})
+it('option text and media are hidden only in the optional projector-only layout',()=>{
+  assert.match(inputSource,/\{!projectorOnly&&question\.media&&<img data-question-media=""/)
+  assert.match(inputSource,/'image'in o&&o\.image&&!projectorOnly/)
 })

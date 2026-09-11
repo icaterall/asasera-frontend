@@ -21,7 +21,7 @@
 .heroCopy { padding: clamp(24px, 3vw, 40px); align-self: center; min-width: 0; }
 .dashboard .heroCopy h2 { font-size: clamp(28px, 2.65vw, 38px); font-weight: 800; line-height: 1.2; letter-spacing: -.025em; text-wrap: balance; max-width: 16ch; }
 .heroCopy p { color: #e0edff; font-size: 15px; line-height: 1.8; margin-block: 16px 24px; max-width: 43ch; }
-.heroAction { display: inline-flex; align-items: center; justify-content: center; gap: 10px; background: var(--home-yellow); color: #263047; padding: 14px 20px; min-height: 48px; border-radius: 6px; font-weight: 800; font-size: 15px; text-decoration: none; transition: background .18s, transform .18s; }
+.heroAction { display: flex; align-items: center; justify-content: center; gap: 10px; inline-size: 100%; background: var(--home-yellow); color: #263047; padding: 14px 20px; min-height: 48px; border-radius: 6px; font-weight: 800; font-size: 15px; text-decoration: none; transition: background .18s, transform .18s; }
 .heroAction:hover { background: #ffdc69; transform: translateY(-2px); }
 .dashboard .heroAction:focus-visible { outline-color: #fff; }
 .heroArtwork { background: var(--home-art-ground); color: var(--home-blue-ink); min-height: 280px; display: grid; align-content: center; overflow: hidden; }

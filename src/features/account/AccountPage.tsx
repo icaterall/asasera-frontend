@@ -1,3 +1,4 @@
+import {BackLink,TitleRow} from '@/design/BackLink'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, Navigate, useLocation } from 'react-router-dom'
@@ -38,8 +39,7 @@ function Settings({ user, title }: { user: PublicUser; title: string }) {
     onSubmit: async values => { setSaved(false); const result = await auth.updateProfile(values); applyUser(result.user); setSaved(true) },
   })
   return <section className={`asas ${styles.page}`} aria-labelledby="account-heading">
-    <Link className={styles.back} to={homePathFor(user)}>{t('العودة إلى مساحتك', 'Back to your workspace')}</Link>
-    <h1 id="account-heading">{title}</h1>
+<TitleRow><h1 id="account-heading">{title}</h1><BackLink to={homePathFor(user)}>{t('العودة إلى مساحتك', 'Back to your workspace')}</BackLink></TitleRow>
     <p className={styles.lead}>{t('حدّث ملفك الشخصي وأدر الوصول إلى حسابك.', 'Update your profile and manage access to your account.')}</p>
     <section className={styles.section} aria-labelledby="profile-heading">
       <h2 id="profile-heading">{t('الملف الشخصي', 'Profile')}</h2>

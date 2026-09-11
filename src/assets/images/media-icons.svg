@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="144" height="56" viewBox="0 0 144 56" fill="none">
+  <g stroke="#B2B2B2" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Image icon -->
+    <g transform="translate(10,10) rotate(-12 12 12)">
+      <rect x="0" y="0" width="24" height="24" rx="2.8"/>
+      <circle cx="6.5" cy="9" r="2.6" fill="#B2B2B2" stroke="none"/>
+      <path d="M6 18 L11 12.5 L14 15 L18.8 10.6 L18.8 18 Z" fill="#B2B2B2" stroke="none"/>
+    </g>
+
+    <!-- Video icon -->
+    <g transform="translate(58,5)">
+      <rect x="0" y="0" width="28" height="22" rx="2.8"/>
+      <path d="M10 7 L18 11 L10 15 Z" fill="#B2B2B2" stroke="none"/>
+      <rect x="3.5" y="3.5" width="2.5" height="2.5" rx="0.4" fill="#B2B2B2" stroke="none"/>
+      <rect x="9.5" y="3.5" width="2.5" height="2.5" rx="0.4" fill="#B2B2B2" stroke="none"/>
+      <rect x="15.5" y="3.5" width="2.5" height="2.5" rx="0.4" fill="#B2B2B2" stroke="none"/>
+      <rect x="21.5" y="3.5" width="2.5" height="2.5" rx="0.4" fill="#B2B2B2" stroke="none"/>
+      <rect x="3.5" y="16" width="2.5" height="2.5" rx="0.4" fill="#B2B2B2" stroke="none"/>
+      <rect x="9.5" y="16" width="2.5" height="2.5" rx="0.4" fill="#B2B2B2" stroke="none"/>
+      <rect x="15.5" y="16" width="2.5" height="2.5" rx="0.4" fill="#B2B2B2" stroke="none"/>
+      <rect x="21.5" y="16" width="2.5" height="2.5" rx="0.4" fill="#B2B2B2" stroke="none"/>
+    </g>
+
+    <!-- Audio icon -->
+    <g transform="translate(108,11)">
+      <path d="M2 10 L8 10 L16 3 L16 21 L8 14 L2 14 Z"/>
+      <path d="M21 8 C24.5 11.2 24.5 16.8 21 20"/>
+      <path d="M25.5 4 C31 9.2 31 18.8 25.5 24"/>
+    </g>
+
+    <!-- Curved connectors -->
+    <path d="M39 45 C35 39, 31 35, 26 31"/>
+    <path d="M72 43 C72 37, 72 33, 71.8 28"/>
+    <path d="M104 45 C108 39, 112 35, 118 30"/>
+  </g>
+</svg>

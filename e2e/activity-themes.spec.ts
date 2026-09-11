@@ -63,7 +63,7 @@ test('teacher previews every world, cancels, retries failed saves and preserves 
   await capture(page,'picker-desktop-dark');await page.evaluate(()=>document.documentElement.classList.remove('dark'))
   await dialog.getByRole('button',{name:'Use this theme',exact:true}).click();await expect(dialog).toBeHidden()
   await page.reload();await expect(page.locator('main[data-activity-theme]')).toHaveAttribute('data-activity-theme','island')
-  await expect(page.getByRole('textbox',{name:'Question text',exact:true})).toHaveValue('A saved question before choosing a world')
+  await expect(page.getByRole('textbox',{name:'Question text',exact:true})).toHaveText('A saved question before choosing a world')
   await capture(page,'editor-island')
 })
 
@@ -74,18 +74,30 @@ test('a saved theme survives publishing and real host, projector and player play
   await page.setViewportSize({width:1440,height:1000});await page.goto(`/teacher/live/new?activityId=${activity.id}&request=${crypto.randomUUID()}`)
   await expect(page.getByRole('button',{name:'Start class',exact:true})).toBeVisible()
   await expect(page.locator('[data-variant=live]')).toHaveAttribute('data-activity-theme','jungle')
-  const pin=await page.locator('strong[dir=ltr]').innerText()
+  /* The host screen now shows the PIN twice: large in the lobby, and again in the
+     toolbar's join affordance. Read the lobby one and hold the toolbar to it, so the
+     second rendering is checked rather than merely tolerated. */
+  const pin=await page.locator('main strong[dir=ltr]').innerText()
+  expect(pin).toMatch(/^[0-9]{6}$/)
+  await expect(page.getByRole('link',{name:`Join with PIN ${pin}`})).toBeVisible()
   const playerContext=await browser.newContext({baseURL:process.env.PW_BASE_URL??'http://localhost:5173',viewport:{width:390,height:844}})
   await playerContext.addInitScript(()=>{localStorage.setItem('asasera.language','en');localStorage.setItem('i18nextLng','en')})
   try{
     const player=await playerContext.newPage();await player.goto(`/join?pin=${pin}`);await player.getByLabel('Display name',{exact:true}).fill('Theme explorer');await player.getByRole('button',{name:'Join class',exact:true}).click();await expect(player.locator('[data-variant=live]')).toHaveAttribute('data-activity-theme','jungle')
-    const popup=page.waitForEvent('popup');await page.getByRole('button',{name:'Open projector · share that tab',exact:true}).click();const projector=await popup;await projector.setViewportSize({width:1440,height:1000});await expect(projector.locator('[data-variant=live]')).toHaveAttribute('data-activity-theme','jungle')
+    /* Everything but the run actions now sits behind the toolbar's Session options menu. */
+    const options=page.locator('summary[aria-label="Session options"]')
+    await options.click()
+    const popup=page.waitForEvent('popup');await page.getByRole('button',{name:'Open projector',exact:true}).click();const projector=await popup;await projector.setViewportSize({width:1440,height:1000});await expect(projector.locator('[data-variant=live]')).toHaveAttribute('data-activity-theme','jungle')
     await capture(projector,'projector-jungle-lobby');await capture(page,'host-jungle-lobby');await capture(player,'player-jungle-lobby')
+    await options.click()
     await page.getByRole('button',{name:'Pause motion',exact:true}).click();await expect(page.locator('[data-variant=live]')).toHaveAttribute('data-motion','off');await page.getByRole('button',{name:'Resume motion',exact:true}).click()
-    await page.getByRole('button',{name:'Start class',exact:true}).click();await expect(player.getByRole('heading',{name:'Choose your answer',exact:true})).toBeVisible()
+    await page.keyboard.press('Escape')
+    /* The question stage leads with the prompt itself, and the acknowledgement names
+       whether the answer was saved or merely received — see LiveQuestionStage. */
+    await page.getByRole('button',{name:'Start class',exact:true}).click();await expect(player.getByRole('heading',{name:'Which planet is known as the Red Planet?',exact:true})).toBeVisible()
     await capture(projector,'projector-jungle-question');await capture(player,'player-jungle-question')
-    await player.locator('button[class*=answer]').first().click();await expect(player.getByRole('heading',{name:'Answer accepted',exact:true})).toBeVisible()
-    await page.getByRole('button',{name:'Lock and reveal',exact:true}).click();await page.getByRole('button',{name:'Show podium',exact:true}).click();await expect(projector.getByRole('heading',{name:'Well played, everyone',exact:true})).toBeVisible();await capture(projector,'projector-jungle-podium')
+    await player.locator('button[class*=answer]').first().click();await expect(player.getByRole('heading',{name:/You’re in! Answer (saved|received)/})).toBeVisible()
+    await page.getByRole('button',{name:'Reveal answer',exact:true}).click();await page.getByRole('button',{name:'Show podium',exact:true}).click();await expect(projector.getByRole('heading',{name:'Well played, everyone',exact:true})).toBeVisible();await capture(projector,'projector-jungle-podium')
     await page.getByRole('button',{name:'Finish class',exact:true}).click();await expect(page.getByRole('heading',{name:'Class finished',exact:true})).toBeVisible();await projector.close()
   }finally{await playerContext.close()}
 })

@@ -14,7 +14,7 @@
   display: grid;
   grid-template-areas: 'top top top' 'audience audience audience' 'rail canvas props';
   grid-template-rows: auto auto minmax(0,1fr);
-  grid-template-columns: 260px minmax(0, 1fr) 280px;
+  grid-template-columns: 260px minmax(0, 1fr) 320px;
   height: 100dvh;
   background: var(--sunken);
   color: var(--ink);
@@ -28,7 +28,7 @@
    workspace and does not get permanently shrunk. */
 @media (max-width: 1024px) {
   .shell { grid-template-areas: 'top' 'audience' 'canvas'; grid-template-columns: minmax(0, 1fr); }
-  .rail, .props { position: fixed; inset-block: 0; z-index: 10; width: min(320px, 86vw);
+  .rail, .props { position: fixed; inset-block: 0; z-index: 10; width: min(360px, 88vw);
                   transform: translateX(0); box-shadow: 0 0 40px rgba(0,0,0,.25); }
   .rail { inset-inline-start: 0; }
   .props { inset-inline-end: 0; }
@@ -55,6 +55,11 @@
 .brand img { block-size:30px; inline-size:auto; max-inline-size:100%; }
 .brand:focus-visible { outline:var(--focus-ring) solid var(--focus-colour); outline-offset:var(--focus-offset); }
 .activityIdentity { grid-area:identity; display:flex; flex-wrap:wrap; align-items:center; gap:4px 12px; min-width:0; }
+/* The editor's own name for the page. The title is an editable <input>, which is
+   a control, not a heading, so the page had no headings at all and a screen
+   reader's heading list for the editor came back empty. Visually redundant, so
+   it is hidden from sight and not from the accessibility tree. */
+.srOnly { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; border:0; }
 .accountControls { grid-area:account; display:flex; align-items:center; gap:8px; justify-self:end; }
 .languageToggle { min-block-size:44px; flex-shrink:0; }
 .editorActions { grid-area:actions; display:flex; flex-wrap:wrap; justify-content:flex-end; align-items:center; gap:8px; min-width:0; }
@@ -80,8 +85,8 @@
 /* The save state lives HERE and only here (§12: «حالة الحفظ في مكانها»). */
 .saveState { display: inline-flex; align-items: center; gap: var(--s-1); font-size: var(--f-small); color: var(--muted); white-space:normal; flex-wrap:wrap; }
 .saveDirty { color: var(--muted); }
-.saveSaving { color: var(--act); }
-.saveSaved { color: var(--evidence); }
+.saveSaving { color: var(--act-ink); }
+.saveSaved { color: var(--evidence-ink); }
 .saveFailed { color: var(--a1); font-weight: var(--w-bold); }
 
 /* ---- 2. question rail ---- */
@@ -122,10 +127,17 @@
 .canvas { grid-area: canvas; overflow-y: auto; padding: var(--s-5); }
 .canvasInner { max-width: 820px; margin-inline: auto; display: flex; flex-direction: column; gap: var(--s-4); }
 
+/* The question's source chip (v5.1 C4) sits directly above the prompt, in the
+   same column, so it moves with the canvas at every width. A question with no
+   citation renders no chip and no row at all. The chip's own styles — including
+   the text direction of a mixed Arabic title — live in SourceChip.module.css;
+   this only places the row. */
+.sourceRow { display: flex; justify-content: center; }
+
 .promptInput {
   width: 100%;
-  min-height: 88px;
-  padding: var(--s-4);
+  min-height: 56px;
+  padding: var(--s-3) var(--s-4);
   border: 1px solid var(--line); border-radius: var(--r-card);
   background: var(--surface); color: var(--ink);
   font: inherit; font-size: var(--f-title); line-height: var(--lh-title); font-weight: var(--w-bold);
@@ -134,6 +146,8 @@
 .promptInput:focus-visible { outline: var(--focus-ring) solid var(--focus-colour); outline-offset: var(--focus-offset); border-color: var(--act); }
 
 .options { display: grid; gap: var(--s-3); }
+/* Leave room for the floating question tools above the prompt. */
+.canvasInner > [data-formatted-field]:first-child { margin-block-start:15px; }
 @media (min-width: 720px) { .options { grid-template-columns: 1fr 1fr; } }
 
 .optionCell { display: flex; flex-direction: column; gap: var(--s-2); }
@@ -155,13 +169,33 @@
   padding: var(--s-1);
 }
 .optionText::placeholder { color: currentColor; opacity: .65; }
-.optionText:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; border-radius: 2px; }
+.optionText:focus-visible { outline: 0; }
+.optionTile:focus-within { box-shadow: inset 0 -4px 0 #0003, 0 0 0 3px var(--act); }
 
 /* Marking the correct one. A radio, so exactly one can be chosen and a
    keyboard user gets arrow-key selection for free. */
-.correctPick { display: inline-flex; align-items: center; gap: var(--s-1); font-size: var(--f-small); color: var(--muted); cursor: pointer; }
+.correctPick { display: inline-flex; align-self: flex-start; width: fit-content; align-items: center; gap: var(--s-1); padding: 3px 10px 3px 6px; border-radius: 999px; background: var(--surface); font-size: var(--f-small); color: var(--muted); cursor: pointer; }
 .correctPick input { accent-color: var(--act); width: 18px; height: 18px; }
-.isCorrect { color: var(--evidence); font-weight: var(--w-bold); }
+.isCorrect { color: var(--evidence-ink); font-weight: var(--w-bold); }
+
+.answerTile { min-width:0; padding:8px; gap:12px; border-radius:5px; min-height:112px; }
+.answerTile[data-empty=true] { background:var(--surface); color:var(--ink); }
+.answerShape { display:grid; place-items:center; align-self:stretch; flex:0 0 44px; min-height:80px; border-radius:5px; background:var(--tile); color:var(--tileFg); }
+.answerContent { flex:1; min-width:0; display:flex; flex-direction:column; gap:8px; }
+.answerContent .optionImage { max-width:100%; width:100%; max-height:140px; }
+.answerActions { flex:0 0 44px; display:flex; flex-direction:column; align-items:center; gap:6px; }
+.answerImageButton { display:grid; place-items:center; width:44px; height:44px; padding:8px; border:0; border-radius:5px; color:inherit; background:transparent; cursor:pointer; }
+.answerImageButton:hover:not(:disabled) { background:color-mix(in srgb,currentColor 12%,transparent); }
+.answerImageButton:disabled { cursor:wait; }
+.answerImageButton:focus-visible { outline:3px solid currentColor; outline-offset:2px; }
+.correctCircle { position:relative; display:block; flex:none; width:44px; height:44px; cursor:pointer; }
+.correctCircle input { position:absolute; inset:0; width:100%; height:100%; margin:0; opacity:0; cursor:inherit; }
+.correctCircle>span { display:grid; place-items:center; width:100%; height:100%; border:3px solid currentColor; border-radius:50%; pointer-events:none; box-shadow:0 2px 3px #0003; }
+.correctCircle input:checked+span { background:#26890c; color:white; border-color:white; }
+.correctCircle input:focus-visible+span { outline:3px solid var(--act); outline-offset:3px; }
+.correctCircle[data-disabled=true] { opacity:.3; cursor:not-allowed; }
+.answerTile[data-empty=true] .correctCircle { display:none; }
+@media(max-width:600px) { .answerTile { gap:8px; } .answerShape { flex-basis:32px; } .answerShape .optionGlyph { width:24px; height:24px; } }
 
 .tfRow { display: flex; gap: var(--s-3); flex-wrap: wrap; }
 
@@ -188,13 +222,34 @@
 /* «طبّق على الكل» sits directly beside the duration, as §12 requires. */
 .applyAll { font-size: var(--f-small); }
 .propsFooter { margin-top: auto; display: flex; flex-direction: column; gap: var(--s-2); padding-top: var(--s-4); border-top: 1px solid var(--line); }
+.props { padding:0 22px 24px; gap:0; overscroll-behavior:contain; }
+.propsHeader { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:14px 0; border-block-end:1px solid var(--line); }
+.propsHeader h2 { margin:0; font-size:16px; line-height:1.3; font-weight:800; }
+.propsHeader button { display:grid; place-items:center; width:44px; height:44px; flex-shrink:0; border:0; border-radius:5px; background:transparent; color:var(--ink); cursor:pointer; }
+.propsHeader button:hover { background:var(--raised); }
+.propsHeader button:focus-visible { outline:3px solid var(--act); outline-offset:2px; }
+.props .propGroup { padding:13px 0; gap:8px; }
+.props .propGroup:nth-of-type(1) { border-block-end:1px solid var(--line); }
+.props .propLabel { display:flex; align-items:center; gap:7px; font-size:15px; font-weight:700; line-height:1.2; }
+.props .propLabel svg { flex-shrink:0; width:16px; height:16px; }
+.props .propertySelect[data-select-trigger],.props button[data-question-kind] { min-height:40px; padding:7px 11px; line-height:1.3; border:1px solid #aaa; border-radius:5px; font-size:15px; font-weight:500; color:var(--ink); background:var(--surface); }
+.props button[data-question-kind] strong { font-weight:500; }
+.props button[data-question-kind]>svg,.props .propertySelect[data-select-trigger]>svg { width:16px; height:16px; color:var(--ink); stroke-width:2.5; }
+.props .applyAll { align-self:flex-start; justify-content:flex-start; padding:2px 4px; min-height:28px; font-size:13px; font-weight:500; text-decoration:underline; text-underline-offset:3px; color:var(--muted); box-shadow:none; }
+@media(min-width:1025px) {
+  .shell { grid-template-columns:260px minmax(0,1fr) 350px; }
+  .shell[data-props-open=false] { grid-template-columns:260px minmax(0,1fr) 0; }
+  .props[data-editor-drawer=closed] { display:none; }
+  .shell .backdrop { display:none; }
+}
+@media(max-width:600px) { .props { padding-inline:18px; } .propsHeader h2 { font-size:15px; } .props .propLabel { font-size:15px; } }
 
 /* ---- publication problems ---- */
 .problems { border: 1px solid var(--a1); border-radius: var(--r-card); background: var(--raised); padding: var(--s-4); }
 .problemsTitle { margin: 0 0 var(--s-2); font-size: var(--f-heading); color: var(--a1); }
 .problemList { margin: 0; padding-inline-start: var(--s-4); display: flex; flex-direction: column; gap: var(--s-2); }
 .problemItem { line-height: var(--lh-body); }
-.problemJump { background: none; border: 0; padding: 0; color: var(--act); font: inherit; text-decoration: underline; cursor: pointer; }
+.problemJump { background: none; border: 0; padding: 0; color: var(--act-ink); font: inherit; text-decoration: underline; cursor: pointer; }
 .problemJump:focus-visible { outline: var(--focus-ring) solid var(--focus-colour); outline-offset: var(--focus-offset); }
 
 .backdrop { position: fixed; inset: 0; background: var(--overlay); z-index: 9; }
@@ -211,16 +266,16 @@
 .zoneNumbers {display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.zoneNumbers input {direction:ltr}.checkZone {display:inline-flex;gap:8px;margin-inline-end:18px}
 @media(max-width:700px){.matchEditor{grid-template-columns:1fr}.advanced{padding:12px}.editRow{flex-wrap:wrap}.editRow input{flex-basis:55%}.zoneNumbers{grid-template-columns:1fr 1fr}}
 @media(max-width:700px){
-  .saveState{font-size:12px}.canvas{padding:12px}.promptInput{font-size:22px}.props,.rail{width:min(320px,86vw)}
+  .saveState{font-size:12px}.canvas{padding:12px}.promptInput{font-size:15px;min-height:44px}.props,.rail{width:min(360px,88vw)}
 }
 .saveSaved,.isCorrect {color:var(--ink)}.saveSaved{display:inline-flex;align-items:center;gap:4px}
 .uploadLabel {position:relative}.uploadLabel input{position:absolute;inline-size:1px;block-size:1px;opacity:0;overflow:hidden}.uploadLabel:focus-within{outline:3px solid var(--act);outline-offset:3px}
 
 /* Creator reference: compact white rails, pale canvas, rectangular question previews. */
-.shell{grid-template-columns:260px minmax(0,1fr) 280px}
+.shell{grid-template-columns:260px minmax(0,1fr) 320px}
 .top{box-shadow:0 2px 4px #0000001a;z-index:2}.titleInput{border-color:var(--line);font-size:16px}
-.canvas{background:var(--sunken)}.canvasInner{max-width:1080px;min-height:100%;gap:20px}
-.promptInput{border-radius:4px;min-height:80px;text-align:center;font-weight:700;font-size:clamp(24px,2.5vw,36px);box-shadow:0 2px 4px #00000015}
+.canvas{background:var(--sunken)}.canvasInner{max-width:1080px;min-height:100%;gap:10px}
+.promptInput{border-radius:4px;min-height:52px;text-align:center;font-weight:700;font-size:clamp(15px,1.15vw,19px);box-shadow:0 2px 4px #00000015}
 .optionTile{min-height:84px;box-shadow:inset 0 -4px 0 #0003}.optionText{font-size:18px}.optionGlyph{width:32px;height:32px}
 .thumb{min-height:112px;border-radius:4px;border:2px solid var(--line);box-shadow:0 2px 2px #0001}
 .thumbActive{border:3px solid var(--act);background:#e5f2ff}.thumbOrdinal{font-size:14px;font-weight:700}.thumbPrompt{text-align:center;padding:8px 0;min-height:40px}
@@ -235,11 +290,43 @@
 
 .optionImage{max-height:96px;max-width:35%;object-fit:contain;border-radius:4px}.optionImageControls{font-size:14px;margin-block:8px}
 .imageUploadCaption { flex-basis:100%; min-width:0; text-align:center; font-weight:700; overflow-wrap:anywhere; }
-.answerImageToggle { align-self:flex-end; max-width:100%; white-space:normal; text-align:center; line-height:1.4; }
+.answerImageToggle { align-self:flex-end; max-width:100%; white-space:normal; text-align:center; line-height:1.4; background:var(--surface); border-radius:var(--r-control); }
 
 /* Theme art stays quiet during authoring; the gallery previews the live world. */
 .canvas[data-activity-theme] { color:var(--ink); }
 .themeTrigger { width:100%; padding:0; border:1px solid var(--line); border-radius:4px; overflow:hidden; cursor:pointer; color:var(--ink); background:var(--surface); text-align:start; }
 .themeTrigger>span:last-child { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:12px; font:inherit; font-weight:700; }
 .themeTrigger:focus-visible { outline:3px solid var(--act); outline-offset:3px; }
+.themeTrigger:disabled { opacity:.5; cursor:not-allowed; }
 :global(.dark) .canvas[data-activity-theme]:not([data-activity-theme=classic]) .canvasInner { padding:16px; border-radius:4px; background:var(--sunken); }
+
+/* v5 §18 — explanation per question, approval notes, and the two delivery paths. */
+.explanationField { display:flex; flex-direction:column; gap:var(--s-2); }
+/* Loose labels sit straight on the theme artwork, so they carry their own ground. */
+.explanationField>span:first-child { width:fit-content; padding:3px 10px; border-radius:5px; background:var(--surface); }
+.explanationInput { width:100%; min-height:64px; padding:var(--s-3); border:1px solid var(--line); border-radius:var(--r-card); background:var(--surface); color:var(--ink); font:inherit; line-height:var(--lh-body); resize:vertical; }
+.explanationInput:focus-visible { outline:var(--focus-ring) solid var(--focus-colour); outline-offset:var(--focus-offset); border-color:var(--act); }
+.explanationWarning { display:inline-flex; align-items:center; gap:var(--s-1); font-size:var(--f-small); color:var(--a3); font-weight:var(--w-bold); }
+.approvalNote { margin:0; padding:var(--s-3) var(--s-4); border:1px solid var(--line); border-radius:var(--r-card); background:var(--surface); color:var(--muted); line-height:var(--lh-body); }
+.deliveryAction { gap:6px; }
+
+/* Two faces for the rail, chosen by a pair of icons. */
+.asideTabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding-block:10px;border-block-end:1px solid var(--line)}
+.asideTabs button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;min-height:62px;padding:8px 4px;border:1px solid transparent;border-radius:7px;background:transparent;color:var(--ink);font:inherit;font-size:12px;font-weight:700;cursor:pointer;line-height:1.25;text-align:center}
+.asideTabs button:hover{background:var(--raised)}
+.asideTabs button[aria-selected=true]{border-color:var(--act);background:var(--raised);color:var(--act-ink)}
+.asideTabs button:focus-visible{outline:3px solid var(--act);outline-offset:2px}
+.themesPanel{display:flex;flex-direction:column;gap:8px;padding-block:14px}
+.themesPanel h3{margin:0 0 9px;font-size:13px;font-weight:800}
+.themesPanel section{padding-block-end:14px;border-block-end:1px solid var(--line)}
+.themesPanel section:last-child{border-block-end:0}
+.themeSlot{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;width:100%;min-height:104px;border:2px dashed var(--line);border-radius:7px;background:transparent;color:var(--muted);font:inherit;font-size:12px;font-weight:700;cursor:pointer}
+.themeSlot:disabled{opacity:.6;cursor:not-allowed}
+.themeCurrent{width:100%;padding:0;border:1px solid var(--line);border-radius:6px;overflow:hidden;cursor:pointer;color:var(--ink);background:var(--surface);text-align:start}
+.themeCurrent>span:last-child{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 12px;font:inherit;font-size:13px;font-weight:700}
+.themeCurrent:disabled{opacity:.5;cursor:not-allowed}
+.themeCurrent:focus-visible{outline:3px solid var(--act);outline-offset:3px}
+.themesNote{margin:8px 0 0;font-size:12px;line-height:1.5;color:var(--muted)}
+
+/* The properties toggle reads as pressed while its rail is open. */
+.top [data-properties-toggle][aria-expanded=true]{background:var(--raised);border-color:var(--act);color:var(--act-ink)}

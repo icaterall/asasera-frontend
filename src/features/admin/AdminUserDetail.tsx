@@ -1,8 +1,9 @@
+import {BackLink} from '@/design/BackLink'
 import { useEffect, useRef, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { ArrowLeft, History, Wallet } from 'lucide-react'
+import { History, Wallet } from 'lucide-react'
 import { Button, FailureState, LoadingState, Select } from '@/design'
 import { useAuth } from '@/hooks/useAuth'
 import { ApiError } from '@/lib/api'
@@ -17,9 +18,10 @@ export default function AdminUserDetail() {
   const history=useInfiniteQuery({queryKey:['admin-credit-history',actor?.id,id],queryFn:({pageParam})=>administration.history(id,pageParam),initialPageParam:undefined as number|undefined,
     getNextPageParam:page=>page.nextBefore??undefined,retry:1,enabled:!!user.data && user.data.role==='teacher'})
   const date=(value:string|null)=>value?new Date(value).toLocaleString(i18n.language):t('لم يسجل الدخول بعد','Not signed in yet')
-  return <><Link className={styles.back} to="/admin/users"><ArrowLeft size={18} aria-hidden="true"/>{t('كل المستخدمين','All users')}</Link>
+  return <>
+    {!user.data&&<div className={styles.pageHeading}><h1>{t('حساب المستخدم','User account')}</h1><BackLink to="/admin/users">{t('كل المستخدمين','All users')}</BackLink></div>}
     {user.isPending?<LoadingState rows={5}/>:user.error?<FailureState title={t('تعذّر تحميل الحساب','Account couldn’t load')} actions={<Button onClick={()=>void user.refetch()}>{t('إعادة المحاولة','Try again')}</Button>}/>:<>
-      <div className={styles.pageHeading}><div><h1 dir="auto">{user.data.name||t('حساب المستخدم','User account')}</h1><p dir="ltr">{user.data.email||t('بدون بريد','No email')}</p></div><span className={styles.role} data-role={user.data.role}>{accountRoleLabel(user.data.role,i18n.language)}</span></div>
+      <div className={styles.pageHeading}><div><h1 dir="auto">{user.data.name||t('حساب المستخدم','User account')}</h1><p dir="ltr">{user.data.email||t('بدون بريد','No email')}</p></div><span className={styles.role} data-role={user.data.role}>{accountRoleLabel(user.data.role,i18n.language)}</span><BackLink to="/admin/users">{t('كل المستخدمين','All users')}</BackLink></div>
       <dl className={styles.accountFacts}><div><dt>{t('حالة الحساب','Account status')}</dt><dd>{statusLabel(user.data.status,ar)}</dd></div><div><dt>{t('البريد الإلكتروني','Email')}</dt><dd>{user.data.emailVerified?t('تم التحقق','Verified'):t('غير موثّق','Unverified')}</dd></div><div><dt>{t('تاريخ التسجيل','Joined')}</dt><dd>{date(user.data.createdAt)}</dd></div><div><dt>{t('آخر دخول','Last sign-in')}</dt><dd>{date(user.data.lastLoginAt)}</dd></div></dl>
       {user.data.role==='teacher'?<>
         <section className={styles.creditSummary} aria-labelledby="credit-heading"><h2 id="credit-heading"><Wallet size={24} aria-hidden="true"/>{t('رصيد الذكاء الاصطناعي','AI credit')}</h2>

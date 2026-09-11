@@ -31,8 +31,9 @@ export function SectionHeader({
 }) {
   const Heading = level === 1 ? 'h1' : 'h2'
   return (
-    <div className="mb-3 flex items-end justify-between gap-4">
-      <div>
+    <div className="mb-3 flex flex-wrap items-end justify-between gap-4">
+      {/* Wraps under the actions on a 360 px phone instead of squeezing the lead into a sliver. */}
+      <div className="min-w-[14rem] flex-1">
         <Heading className="text-lg font-bold text-fg">{title}</Heading>
         {lead ? <p className="mt-0.5 text-sm text-pretty text-muted">{lead}</p> : null}
       </div>

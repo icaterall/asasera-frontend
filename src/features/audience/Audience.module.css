@@ -4,11 +4,20 @@
 .field>label{font-size:16px;font-weight:700;line-height:1.5;color:var(--dropdown-ink)}
 .failure{display:flex;gap:12px;align-items:center;flex-wrap:wrap;font-size:14px;line-height:1.6}
 .failure p{margin:0;max-width:70ch}
-.editor{grid-area:audience;max-height:50dvh;overflow:auto;background:var(--dropdown-bg);padding:16px 24px;color:var(--dropdown-ink);border-bottom:1px solid var(--dropdown-line)}
-.editor summary{cursor:pointer;font-weight:700;min-height:44px;display:flex;align-items:center;gap:8px;width:fit-content}
+.editor{grid-area:audience;max-height:32dvh;overflow:auto;background:var(--dropdown-bg);padding:5px 24px;color:var(--dropdown-ink);border-bottom:1px solid var(--dropdown-line)}
+.editor summary{cursor:pointer;font-weight:700;min-height:40px;display:flex;align-items:center;gap:10px;width:100%;flex-wrap:wrap}
+.editor summary::-webkit-details-marker{display:none}
+.summaryTitle{flex-shrink:0;font-size:14px}
+/* The chosen audience, readable without opening the panel. */
+.summaryChips{display:flex;align-items:center;gap:6px;flex-wrap:wrap;min-width:0}
+.chip,.chipMore{display:inline-flex;align-items:center;padding:2px 9px;border-radius:4px;background:color-mix(in srgb,var(--surface,#ffffff) 70%,#00000000);color:inherit;font-size:12px;font-weight:600;line-height:1.6;max-width:190px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chipMore{opacity:.7}
+.summaryEmpty{font-size:12px;font-weight:500;opacity:.65}
+.summaryEdit{display:inline-flex;align-items:center;gap:5px;margin-inline-start:auto;flex-shrink:0;font-size:12px;font-weight:700;opacity:.8}
+.editor summary:hover .summaryEdit{opacity:1;text-decoration:underline;text-underline-offset:3px}
 .editor summary:focus-visible{outline:2px solid var(--dropdown-accent);outline-offset:3px}
 .editor form{max-width:900px;padding-block:16px;display:flex;flex-direction:column;gap:20px}
 .actions{display:flex;flex-wrap:wrap;align-items:center;gap:12px}
 @media(max-width:700px){.pair{grid-template-columns:1fr}.editor{padding:12px 16px}}
 
-.editor[open] summary>svg:last-child{transform:rotate(180deg)}
+

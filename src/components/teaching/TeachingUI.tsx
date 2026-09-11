@@ -1,4 +1,4 @@
-import { useEffect, useRef, type ReactNode } from 'react'
+import { useEffect, useId, useRef, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { SectionError } from '@/components/teacher/DashboardCards'
@@ -13,7 +13,21 @@ import type { MaterialSegment } from '@/lib/api'
  * source viewer. Anything used once lives in the page that uses it.
  */
 
-/** One labelled control. The label is a real <label>, always. */
+/**
+ * One labelled control. The label is a real <label>, always — and so is the
+ * description.
+ *
+ * The hint and the error used to be loose paragraphs beside the control: a
+ * sighted user saw "file too large" under the field, while a screen-reader user
+ * on that same field heard the label and nothing else, because nothing tied the
+ * two together. `role="alert"` announces an error once, when it appears; it does
+ * not answer "what is wrong with this field?" asked later, and it says nothing
+ * at all about a hint. The control arrives as `children`, so the wiring is done
+ * on the DOM node rather than through props — no caller has to change.
+ *
+ * Both are prose, so both are --f-small; §5 reserves 12px for labels and
+ * counters, and a limit a teacher must act on is not a counter.
+ */
 export function Field({
   label,
   hint,
@@ -27,15 +41,31 @@ export function Field({
   children: ReactNode
   htmlFor?: string
 }) {
+  const auto = useId()
+  const base = htmlFor ?? auto
+  const hintId = hint ? `${base}-hint` : undefined
+  const errorId = error ? `${base}-error` : undefined
+  const control = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    const field = control.current?.querySelector<HTMLElement>('input, select, textarea, [contenteditable="true"]')
+    if (!field) return
+    const described = [hintId, errorId].filter(Boolean).join(' ')
+    if (described) field.setAttribute('aria-describedby', described)
+    else field.removeAttribute('aria-describedby')
+    if (error) field.setAttribute('aria-invalid', 'true')
+    else field.removeAttribute('aria-invalid')
+  }, [hintId, errorId, error, children])
   return (
     <div className="flex flex-col gap-1.5">
       <label htmlFor={htmlFor} className="text-sm font-semibold text-fg">
         {label}
       </label>
-      {children}
-      {hint ? <p className="text-xs text-muted">{hint}</p> : null}
+      <div ref={control} className="contents">
+        {children}
+      </div>
+      {hint ? <p id={hintId} className="text-sm text-muted">{hint}</p> : null}
       {error ? (
-        <p role="alert" className="text-xs font-medium" style={{ color: 'var(--tc-coral)' }}>
+        <p id={errorId} role="alert" className="text-sm font-medium" style={{ color: 'var(--tc-coral)' }}>
           {error}
         </p>
       ) : null}

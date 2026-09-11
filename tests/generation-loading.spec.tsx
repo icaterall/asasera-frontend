@@ -1,84 +1,65 @@
-import {afterEach, beforeAll, beforeEach, expect, it, vi} from 'vitest'
-import {act, cleanup, fireEvent, render, screen, waitFor} from '@testing-library/react'
+import {afterEach,beforeAll,beforeEach,expect,it,vi} from 'vitest'
+import {cleanup,fireEvent,render,screen,waitFor} from '@testing-library/react'
 import {createInstance} from 'i18next'
 import {I18nextProvider} from 'react-i18next'
-import {QueryClient, QueryClientProvider} from '@tanstack/react-query'
-import {GenerationPanel} from '../src/features/editor/GenerationPanel'
-import {api, type ActivityRecord} from '../src/lib/api'
+import {QueryClient,QueryClientProvider} from '@tanstack/react-query'
+import {GenerationPanel,parsePageRange} from '../src/features/editor/GenerationPanel'
+import {api,ApiError,type ActivityRecord,type QuestionRecord} from '../src/lib/api'
+import en from '../src/i18n/locales/en'
+import ar from '../src/i18n/locales/ar'
+import type {GenerationDraft} from '../src/features/editor/session-drafts'
+const language=createInstance()
+const activity={id:42,authorId:73,title:'Water cycle',revision:1} as ActivityRecord
+const quote={quoteId:'opaque-quote',quoteExpiresAt:'2999-01-01T00:00:00Z',estimateMillicents:60,maxAuthorizedMillicents:100,usableMillicents:900,affordable:true,generationAvailable:true,pricingAvailable:true}
+const material={id:7,title:'Biology.pdf',revisionId:11,sourceKind:'pdf',extractionStatus:'ready'}
+const segments=[{segmentIndex:1,pageIndex:1,text:'Water evaporates when heated.',charCount:29,warning:null},{segmentIndex:2,pageIndex:2,text:'Condensation forms clouds.',charCount:25,warning:null}]
+const candidate={kind:'mcq',prompt:'What forms clouds?',payloadJson:JSON.stringify({options:[{key:'a',text:'Condensation'},{key:'b',text:'Sand'}],correct:'a'}),explanation:'Water vapour condenses.',concept:'',reasons:[],sourceSegments:[]}
+let job={id:90,task:'questions',state:'queued',questionId:null as number|null,origin:'topic',errorCode:null,result:null as null|{candidates:typeof candidate[];appliedIndexes:number[];nextRevision:number}}
+function show(initialDraft:GenerationDraft|null=null,replacement=false){return render(<I18nextProvider i18n={language}><QueryClientProvider client={new QueryClient({defaultOptions:{queries:{retry:false}}})}><GenerationPanel activity={activity} question={replacement?{id:8,revision:2,prompt:'Old question',kind:'mcq'} as QuestionRecord:null} replacement={replacement} initialDraft={initialDraft} onClose={()=>{}} onApplied={async()=>{}}/></QueryClientProvider></I18nextProvider>)}
+async function topic(){if(screen.queryByRole('button',{name:'Topic to quiz'}))fireEvent.click(screen.getByRole('button',{name:'Topic to quiz'}));fireEvent.change(await screen.findByLabelText('Lesson topic'),{target:{value:'The water cycle'}});return await screen.findByRole('button',{name:'Generate 5 questions with AI'})}
+beforeAll(async()=>{await language.init({lng:'en',resources:{en:{translation:en},ar:{translation:ar}}});vi.stubGlobal('ResizeObserver',class{observe(){}unobserve(){}disconnect(){}});vi.stubGlobal('matchMedia',()=>({matches:false,addEventListener(){},removeEventListener(){}}));HTMLDialogElement.prototype.showModal=function(){this.setAttribute('open','')};HTMLDialogElement.prototype.close=function(){this.removeAttribute('open')}})
+beforeEach(async()=>{sessionStorage.clear();await language.changeLanguage('en');job={id:90,task:'questions',state:'queued',questionId:null,origin:'topic',errorCode:null,result:null};vi.spyOn(api,'get').mockImplementation(async path=>{if(path.endsWith('/limits'))return {maxBytes:10000000,acceptedKinds:['pdf','docx','pptx'],acceptedContentTypes:{pdf:'application/pdf'},maxPastedChars:120000,maxPages:100,maxSelectionChars:16000,maxSegmentsPerGeneration:30,maxQuestionsPerGeneration:10};if(path.includes('/materials?'))return {materials:[material],total:1};if(path.endsWith('/revisions/11'))return {revision:{id:11,title:'Biology.pdf',state:'ready',sourceKind:'pdf',locatorKind:'page',unreadableSegments:0,contentLanguage:'en'}};if(path.endsWith('/segments'))return {segments};if(path.includes('/jobs/90/source/'))return {index:1,text:segments[0]!.text};if(path.endsWith('/jobs/90'))return {job};if(path.includes('/activity-generation/activities/'))return {jobs:[]};throw new Error(path)});vi.spyOn(api,'post').mockImplementation(async(path)=>{if(path.endsWith('/quote'))return quote;if(path.endsWith('/jobs'))return {job};if(path.endsWith('/materials/text'))return {material};if(path.endsWith('/apply')){job={...job,result:{...job.result!,appliedIndexes:[0]}};return {added:1,remaining:0}}throw new Error(path)})})
+afterEach(()=>{cleanup();vi.restoreAllMocks()})
+it('keeps only lesson intent and five-question defaults, without label requests or routing controls',async()=>{show();const button=await topic();await waitFor(()=>expect((button as HTMLButtonElement).disabled).toBe(false));const body=vi.mocked(api.post).mock.calls.find(([p])=>p.endsWith('/quote'))![1] as Record<string,unknown>;expect(body).toMatchObject({count:5,kinds:['mcq','tf'],difficulty:'medium',language:'en'});expect(body).not.toHaveProperty('provider');expect(screen.queryByText('Task')).toBeNull();expect(screen.queryByText('Advanced')).toBeNull();expect(screen.queryByText('Ordering')).toBeNull();expect(vi.mocked(api.get).mock.calls.some(([p])=>p.includes('labels'))).toBe(false)})
+it('disables the create button and shows a logo-free spinner while submitting',async()=>{let resolve!:(v:unknown)=>void;const original=vi.mocked(api.post).getMockImplementation()!;vi.mocked(api.post).mockImplementation((p,b)=>p.endsWith('/jobs')?new Promise(r=>{resolve=r}):original(p,b));show();const b=await topic();await waitFor(()=>expect((b as HTMLButtonElement).disabled).toBe(false));fireEvent.click(b);await waitFor(()=>expect((b as HTMLButtonElement).disabled).toBe(true));expect(b.querySelector('[data-button-spinner]')).not.toBeNull();expect(b.querySelector('img')).toBeNull();fireEvent.click(b);expect(vi.mocked(api.post).mock.calls.filter(([p])=>p.endsWith('/jobs'))).toHaveLength(1);resolve({job});await screen.findByText('Preparing your questions…')})
+it('preselects material, selects all readable scope and keeps explicit lesson language in Arabic UI',async()=>{await language.changeLanguage('ar');show({origin:'file',materialRevisionId:11,language:'en'});await waitFor(()=>expect(vi.mocked(api.post).mock.calls.some(([p])=>p.endsWith('/quote'))).toBe(true));const body=vi.mocked(api.post).mock.calls.find(([p])=>p.endsWith('/quote'))![1];expect(body).toMatchObject({origin:'file',materialRevisionId:11,segments:[1,2],language:'en'});expect(screen.getByText('Biology.pdf')).toBeTruthy()})
+it('persists pasted lesson as a material instead of converting it to a topic',async()=>{show();fireEvent.click(screen.getByRole('button',{name:'Topic to quiz'}));fireEvent.click(screen.getByRole('button',{name:'Paste text'}));fireEvent.change(screen.getByLabelText('Lesson text'),{target:{value:'Water evaporates and condenses.'}});fireEvent.click(screen.getByRole('button',{name:'Use this lesson text'}));await waitFor(()=>expect(vi.mocked(api.post).mock.calls.some(([p])=>p.endsWith('/quote'))).toBe(true));expect(vi.mocked(api.post).mock.calls.find(([p])=>p.endsWith('/materials/text'))?.[1]).toMatchObject({text:'Water evaporates and condenses.'});expect(vi.mocked(api.post).mock.calls.find(([p])=>p.endsWith('/quote'))?.[1]).toMatchObject({origin:'file',materialRevisionId:11})})
+it('restores an accepted job without another paid request after closing and reopening',async()=>{const view=show();const b=await topic();await waitFor(()=>expect((b as HTMLButtonElement).disabled).toBe(false));fireEvent.click(b);await screen.findByText('Preparing your questions…');view.unmount();show();await screen.findByText('Preparing your questions…');expect(vi.mocked(api.post).mock.calls.filter(([p])=>p.endsWith('/jobs'))).toHaveLength(1)})
+it('only replaces the identified question after selecting and explicitly confirming',async()=>{job={...job,questionId:8,state:'succeeded',result:{candidates:[candidate],appliedIndexes:[],nextRevision:2}};show(null,true);expect(screen.getByText('Old question')).toBeTruthy();expect(screen.queryByLabelText('Number of questions')).toBeNull();const b=screen.getByRole('button',{name:'Suggest another question'});await waitFor(()=>expect((b as HTMLButtonElement).disabled).toBe(false));fireEvent.click(b);await screen.findByRole('heading',{name:'What forms clouds?'});expect(vi.mocked(api.post).mock.calls.some(([p])=>p.endsWith('/apply'))).toBe(false);fireEvent.click(screen.getByRole('radio'));fireEvent.click(screen.getByRole('button',{name:'Replace question'}));await waitFor(()=>expect(vi.mocked(api.post).mock.calls.some(([p])=>p.endsWith('/apply'))).toBe(true));expect(vi.mocked(api.post).mock.calls.find(([p])=>p.endsWith('/jobs'))?.[1]).toMatchObject({questionId:8,expectedRevision:2,count:1,quoteId:'opaque-quote'})})
+it('parses bounded page ranges',()=>{expect(parsePageRange('1-3, 8')).toEqual([1,2,3,8]);expect(parsePageRange('4-1, 0, 1-9999')).toEqual([])})
+it('uploads a supported file and quotes its readable scope',async()=>{vi.spyOn(api,'postRaw').mockResolvedValue({material});show();fireEvent.click(screen.getByRole('button',{name:'PDF or slides to quiz'}));const input=screen.getByLabelText(/Choose a file/) as HTMLInputElement;await waitFor(()=>expect(input.disabled).toBe(false));fireEvent.change(input,{target:{files:[new File(['%PDF fixture'],'Biology.pdf',{type:'application/pdf'})]}});await waitFor(()=>expect(vi.mocked(api.post).mock.calls.some(([p])=>p.endsWith('/quote'))).toBe(true));expect(api.postRaw).toHaveBeenCalledOnce();expect(vi.mocked(api.post).mock.calls.find(([p])=>p.endsWith('/quote'))?.[1]).toMatchObject({origin:'file',segments:[1,2]})})
+it('does not turn an unreadable file into topic generation',async()=>{const old=vi.mocked(api.get).getMockImplementation()!;vi.mocked(api.get).mockImplementation(p=>p.endsWith('/revisions/11')?Promise.resolve({revision:{id:11,title:'Scan.pdf',state:'failed',unreadableSegments:2}}):old(p));show({origin:'file',materialRevisionId:11});await screen.findByText('This file has no readable lesson text. Choose another file or paste lesson text.');expect(vi.mocked(api.post).mock.calls.some(([p])=>p.endsWith('/quote'))).toBe(false);expect((screen.getByRole('button',{name:'Generate 5 questions with AI'}) as HTMLButtonElement).disabled).toBe(true)})
+it('switching a selected file to pasted text clears the old scope',async()=>{show({origin:'file',materialRevisionId:11});await waitFor(()=>expect(vi.mocked(api.post).mock.calls.some(([p])=>p.endsWith('/quote'))).toBe(true));fireEvent.click(screen.getByRole('button',{name:'Change creation method'}));fireEvent.click(screen.getByRole('button',{name:'Topic to quiz'}));fireEvent.click(screen.getByRole('button',{name:'Paste text'}));expect((screen.getByRole('button',{name:'Generate 5 questions with AI'}) as HTMLButtonElement).disabled).toBe(true);expect(screen.queryByText('Biology.pdf')).toBeNull();expect((screen.getByLabelText('Lesson text') as HTMLTextAreaElement).value).toBe('')})
+it('retries an uncertain submission with the same approved quote and idempotency key',async()=>{const old=vi.mocked(api.post).getMockImplementation()!;let failed=false;vi.mocked(api.post).mockImplementation(async(p,b)=>{if(p.endsWith('/jobs')&&!failed){failed=true;throw new Error('response lost')}return old(p,b)});show();const b=await topic();await waitFor(()=>expect((b as HTMLButtonElement).disabled).toBe(false));fireEvent.click(b);await screen.findByText('This request could not be completed. Please try again.');await waitFor(()=>expect((b as HTMLButtonElement).disabled).toBe(false));fireEvent.click(b);await screen.findByText('Preparing your questions…');const requests=vi.mocked(api.post).mock.calls.filter(([p])=>p.endsWith('/jobs'));expect(requests).toHaveLength(2);expect(requests[0]![1]).toEqual(requests[1]![1])})
+it('does not describe unavailable generation as insufficient credit',async()=>{const old=vi.mocked(api.post).getMockImplementation()!;vi.mocked(api.post).mockImplementation((p,b)=>p.endsWith('/quote')?Promise.resolve({...quote,affordable:false,generationAvailable:false}):old(p,b));show();await topic();await screen.findByText('Question creation is temporarily unavailable. Please try again later.');expect(screen.queryByText('Your available credit does not cover this request. Choose fewer questions or pages.')).toBeNull()})
+it('excludes unreadable flagged segments from the default scope',async()=>{const old=vi.mocked(api.get).getMockImplementation()!;vi.mocked(api.get).mockImplementation(p=>p.endsWith('/segments')?Promise.resolve({segments:[segments[0],{...segments[1],warning:'unreadable'}]}):old(p));show({origin:'file',materialRevisionId:11});await waitFor(()=>expect(vi.mocked(api.post).mock.calls.some(([p])=>p.endsWith('/quote'))).toBe(true));expect(vi.mocked(api.post).mock.calls.find(([p])=>p.endsWith('/quote'))?.[1]).toMatchObject({segments:[1]})})
+it('lets a failed replacement retry without changing the original target',async()=>{job={...job,questionId:8,state:'failed'};show(null,true);const b=screen.getByRole('button',{name:'Suggest another question'});await waitFor(()=>expect((b as HTMLButtonElement).disabled).toBe(false));fireEvent.click(b);await screen.findByText('This request could not be completed. Please try again.');fireEvent.click(screen.getByRole('button',{name:'Try again'}));expect(screen.getByText('Old question')).toBeTruthy();expect(screen.queryByLabelText('Number of questions')).toBeNull();await waitFor(()=>expect(vi.mocked(api.post).mock.calls.filter(([p])=>p.endsWith('/quote'))).toHaveLength(2));expect(vi.mocked(api.post).mock.calls.some(([p])=>p.endsWith('/apply'))).toBe(false)})
+it('locks teaching inputs after an uncertain submission and recovers the exact request after remount',async()=>{const old=vi.mocked(api.post).getMockImplementation()!;let failed=false;vi.mocked(api.post).mockImplementation(async(p,b)=>{if(p.endsWith('/jobs')&&!failed){failed=true;throw new Error('lost response')}return old(p,b)});const view=show();const b=await topic();await waitFor(()=>expect((b as HTMLButtonElement).disabled).toBe(false));fireEvent.click(b);await screen.findByText(/This request is awaiting confirmation/);expect((screen.getByLabelText('Lesson topic').closest('fieldset') as HTMLFieldSetElement).disabled).toBe(true);const first=vi.mocked(api.post).mock.calls.find(([p])=>p.endsWith('/jobs'))![1];view.unmount();show();await screen.findByText(/This request is awaiting confirmation/);fireEvent.click(screen.getByRole('button',{name:'Resume questions'}));await screen.findByText('Preparing your questions…');expect(vi.mocked(api.post).mock.calls.filter(([p])=>p.endsWith('/jobs'))[1]![1]).toEqual(first)})
+it('unlocks teaching inputs after a definite server rejection',async()=>{const old=vi.mocked(api.post).getMockImplementation()!;vi.mocked(api.post).mockImplementation((p,b)=>p.endsWith('/jobs')?Promise.reject(new ApiError(422,'source_scope','Invalid source')):old(p,b));show();const b=await topic();await waitFor(()=>expect((b as HTMLButtonElement).disabled).toBe(false));fireEvent.click(b);await waitFor(()=>expect(vi.mocked(api.post).mock.calls.filter(([p])=>p.endsWith('/jobs'))).toHaveLength(1));await waitFor(()=>expect((screen.getByLabelText('Lesson topic').closest('fieldset') as HTMLFieldSetElement).disabled).toBe(false));expect(screen.queryByText(/This request is awaiting confirmation/)).toBeNull()})
+it('uses the current replacement revision when reopening an unsubmitted draft',async()=>{sessionStorage.setItem('asasera:question-creation:v2:73:42:8',JSON.stringify({origin:'topic',objective:'Earlier prompt',text:'',count:5,language:'en',difficulty:'medium',kinds:['mcq','tf'],revisionId:null,segments:[],jobId:null,requestKey:'earlier-request-key',target:{id:8,revision:1,prompt:'Earlier prompt',kind:'mcq'}}));show(null,true);expect(screen.getByText('Old question')).toBeTruthy();expect(screen.queryByText('Earlier prompt')).toBeNull();await waitFor(()=>expect(vi.mocked(api.post).mock.calls.some(([p])=>p.endsWith('/quote'))).toBe(true));expect(vi.mocked(api.post).mock.calls.find(([p])=>p.endsWith('/quote'))?.[1]).toMatchObject({questionId:8,expectedRevision:2,objective:'Old question'})})
+it('blocks recent-result navigation while a submission outcome is unknown',async()=>{const get=vi.mocked(api.get).getMockImplementation()!,post=vi.mocked(api.post).getMockImplementation()!;vi.mocked(api.get).mockImplementation(p=>p.includes('/activity-generation/activities/')?Promise.resolve({jobs:[{...job,id:91,state:'succeeded'}]}):get(p));vi.mocked(api.post).mockImplementation((p,b)=>p.endsWith('/jobs')?Promise.reject(new Error('lost response')):post(p,b));show();const b=await topic();await waitFor(()=>expect((b as HTMLButtonElement).disabled).toBe(false));fireEvent.click(b);await screen.findByText(/This request is awaiting confirmation/);const recent=screen.getByRole('button',{name:'Resume questions 1',hidden:true}) as HTMLButtonElement;expect(recent.disabled).toBe(true);fireEvent.click(recent);expect(screen.getByLabelText('Lesson topic')).toBeTruthy();expect(vi.mocked(api.get).mock.calls.some(([p])=>p.endsWith('/jobs/91'))).toBe(false)})
 
-const language = createInstance()
-const activity: ActivityRecord = {id: 42, title: 'Fractions', theme: 'classic', revision: 1, currentVersionId: null, visibility: 'private', ownerId: 73, subjectId: null, levelId: null, curriculumNodeId: null, purposeId: 2, createdAt: '', updatedAt: '', categoryId: 1, educationStageIds: [8], countryIds: [1]}
-const quote = {maxAuthorizedMillicents: 100, spendableMillicents: 1000, affordable: true, pricingAvailable: true, providerConfigured: true}
-const job = {id: 90, activityId: 42, task: 'questions', state: 'queued', imageKey: null, questionId: null, settlementComplete: false, origin: 'topic', maxAuthorizedMillicents: 100, settledMillicents: 0, errorCode: null, result: null}
-function deferred<T>() {
-  let resolve!: (value: T) => void, reject!: (reason: Error) => void
-  const promise = new Promise<T>((accept, fail) => {resolve = accept; reject = fail})
-  return {promise, resolve, reject}
-}
-function show() {
-  const client = new QueryClient({defaultOptions: {queries: {retry: false}}})
-  render(<I18nextProvider i18n={language}><QueryClientProvider client={client}><GenerationPanel activity={activity} question={null} onClose={vi.fn()} onApplied={async () => {}}/></QueryClientProvider></I18nextProvider>)
-  fireEvent.change(screen.getByLabelText('What should learners practice?'), {target: {value: 'Compare fractions'}})
-  return client
-}
-beforeAll(async () => {
-  await language.init({lng: 'en', resources: {en: {translation: {}}}})
-  vi.stubGlobal('ResizeObserver', class {observe() {} unobserve() {} disconnect() {}})
-  vi.stubGlobal('matchMedia', vi.fn(() => ({matches: false, addEventListener() {}, removeEventListener() {}})))
-  HTMLDialogElement.prototype.showModal = function () {this.setAttribute('open', '')}
-  HTMLDialogElement.prototype.close = function () {this.removeAttribute('open')}
-})
-beforeEach(() => {
-  vi.spyOn(api, 'get').mockImplementation(async path => {
-    if (path.endsWith('/labels')) return {labels: [], pairs: [], decisions: [], schedule: null}
-    if (path.endsWith('/jobs/90')) return {job}
-    return {jobs: []}
-  })
-})
-afterEach(() => {cleanup(); vi.restoreAllMocks()})
+it('starts with method choices and keeps topic draft when navigating back',async()=>{show();expect(screen.queryByLabelText('Lesson topic')).toBeNull();expect(screen.getByRole('button',{name:'Blank canvas'})).toBeTruthy();expect(vi.mocked(api.post).mock.calls).toHaveLength(0);await topic();fireEvent.click(screen.getByRole('button',{name:'Change creation method'}));expect(screen.queryByLabelText('Lesson topic')).toBeNull();fireEvent.click(screen.getByRole('button',{name:'Topic to quiz'}));expect((screen.getByLabelText('Lesson topic') as HTMLTextAreaElement).value).toBe('The water cycle')})
 
-it('shows loading for cost and generation requests, then for queued/running AI work until candidates arrive', async () => {
-  const cost = deferred<typeof quote>(), generation = deferred<{job: typeof job}>()
-  const post = vi.spyOn(api, 'post').mockImplementation(path => path.endsWith('/quote') ? cost.promise : generation.promise)
-  const client = show()
-  const costButton = screen.getByRole('button', {name: 'Show the cost cap'})
-  fireEvent.click(costButton)
-  expect(costButton.getAttribute('aria-busy')).toBe('true')
-  expect(costButton.querySelector('img')).toBeNull()
-  expect(costButton.querySelector('[data-button-spinner]')).not.toBeNull()
-  await act(async () => {cost.resolve(quote)})
-  const generate = await screen.findByRole('button', {name: 'Generate within this cap'})
-  expect(costButton.getAttribute('aria-busy')).toBeNull()
-  fireEvent.click(generate)
-  expect(generate.getAttribute('aria-busy')).toBe('true')
-  expect(generate.querySelector('img')).toBeNull()
-  expect(generate.querySelector('[data-button-spinner]')).not.toBeNull()
-  expect(generate.hasAttribute('disabled')).toBe(true)
-  fireEvent.click(generate)
-  expect(post).toHaveBeenCalledTimes(2)
-  await act(async () => {generation.resolve({job})})
-  await screen.findByText('Waiting for AI…')
-  expect(screen.getByText('Waiting for AI…').closest('[role="status"]')?.querySelector('img')).not.toBeNull()
-  await waitFor(() => expect(client.isFetching()).toBe(0))
-  await act(async () => {client.setQueryData(['activity-generation-job', 90], {job: {...job, state: 'running'}})})
-  await screen.findByText('AI is preparing your questions…')
-  expect(screen.getByRole('button', {name: 'Cancel and release credit'}).hasAttribute('disabled')).toBe(false)
-  await act(async () => {client.setQueryData(['activity-generation-job', 90], {job: {...job, state: 'succeeded', result: {candidates: [{kind: 'tf', prompt: 'One half equals two quarters?', payloadJson: '{"correct":true}'}], appliedIndexes: [], rejected: 0, nextRevision: 1}}})})
-  await screen.findByText('One half equals two quarters?')
-  expect(screen.queryByText('AI is preparing your questions…')).toBeNull()
-  expect(screen.queryByText('Waiting for AI…')).toBeNull()
+it('requires explicit AI action after selecting extraction, and sends the selected source scope',async()=>{
+ show({origin:'file',materialRevisionId:11});await screen.findByText('Water evaporates when heated.')
+ fireEvent.click(screen.getByRole('radio',{name:'Extract existing questions'}))
+ const button=screen.getByRole('button',{name:'Extract questions with AI'})
+ await waitFor(()=>expect((button as HTMLButtonElement).disabled).toBe(false))
+ expect(vi.mocked(api.post).mock.calls.filter(([p])=>p.endsWith('/jobs'))).toHaveLength(0)
+ fireEvent.click(button);await screen.findByText('Preparing your questions…')
+ expect(vi.mocked(api.post).mock.calls.find(([p])=>p.endsWith('/jobs'))?.[1]).toMatchObject({mode:'extract',origin:'file',segments:[1,2]})
 })
-
-it('releases the busy button after a rejected generation request so the teacher can retry', async () => {
-  const generation = deferred<never>()
-  vi.spyOn(api, 'post').mockImplementation(path => path.endsWith('/quote') ? Promise.resolve(quote) : generation.promise)
-  show()
-  fireEvent.click(screen.getByRole('button', {name: 'Show the cost cap'}))
-  const generate = await screen.findByRole('button', {name: 'Generate within this cap'})
-  fireEvent.click(generate)
-  expect(generate.getAttribute('aria-busy')).toBe('true')
-  await act(async () => {generation.reject(new Error('Generation is unavailable'))})
-  await waitFor(() => expect(generate.getAttribute('aria-busy')).toBeNull())
-  expect(generate.hasAttribute('disabled')).toBe(false)
-  expect(screen.getByRole('alert').textContent).toBe('Generation is unavailable')
+it('adding one question preserves edits on other candidates',async()=>{
+ job={...job,state:'succeeded',result:{candidates:[candidate,{...candidate,prompt:'Second question?'}],appliedIndexes:[],nextRevision:1}}
+ show();const button=await topic();await waitFor(()=>expect((button as HTMLButtonElement).disabled).toBe(false));fireEvent.click(button);await screen.findByRole('article',{name:'Question 2'})
+ const second=screen.getByRole('article',{name:'Question 2'})
+ fireEvent.click(second.querySelector('summary')!)
+ const question=second.querySelector('[contenteditable=true]')!
+ question.querySelector('p')!.textContent='My revised second question?';fireEvent.input(question)
+ await screen.findByRole('heading',{name:'My revised second question?'})
+ fireEvent.click(screen.getAllByRole('button',{name:'Add this question'})[0]!)
+ await screen.findByText('Added')
+ expect(screen.getByRole('heading',{name:'My revised second question?'})).toBeTruthy()
+ expect(vi.mocked(api.post).mock.calls.find(([p])=>p.endsWith('/apply'))?.[1]).toMatchObject({selected:[0]})
 })

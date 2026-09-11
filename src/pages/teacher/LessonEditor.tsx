@@ -7,6 +7,7 @@ import { ActivityRail } from '@/components/editor/ActivityRail'
 import { CandidateDialog } from '@/components/editor/CandidateDialog'
 import { ContextPanel } from '@/components/editor/ContextPanel'
 import { StudentPreview } from '@/components/editor/StudentPreview'
+import { Dialog } from '@/design'
 import { GenerationPanel } from '@/components/teaching/GenerationPanel'
 import {
   PrimaryButton,
@@ -42,6 +43,7 @@ import { ApiError, teaching, type Activity, type ActivityKind, type Lesson } fro
 export default function LessonEditor() {
   const { id } = useParams()
   const { t } = useTranslation()
+  const { t: creationText } = useTranslation('adminAi')
   const toMessage = useApiErrorMessage()
 
   const [lesson, setLesson] = useState<Lesson | null>(null)
@@ -534,35 +536,9 @@ export default function LessonEditor() {
 
       {/* Generation configuration, and the review dialog it opens. Both are
           workspace states, so neither pushes the editor down the page. */}
-      {showGenerate ? (
-        <div
-          className="fixed inset-0 z-[70] flex items-center justify-center p-4"
-          style={{ background: 'color-mix(in oklab, var(--fg) 55%, transparent)' }}
-          onClick={() => setShowGenerate(false)}
-        >
-          <div
-            role="dialog"
-            aria-modal="true"
-            onClick={(event) => event.stopPropagation()}
-            className="max-h-[92dvh] w-[min(760px,95vw)] overflow-y-auto rounded-sm border border-line"
-        style={{ background: 'var(--tc-surface-solid)' }}
-          >
-            <div className="flex items-center justify-between border-b border-line px-5 py-4">
-              <h2 className="text-lg font-bold text-fg">{t('teaching.generation.title')}</h2>
-              <QuietButton onClick={() => setShowGenerate(false)}>
-                {t('teaching.editor.close')}
-              </QuietButton>
-            </div>
-            <GenerationPanel
-              lesson={lesson}
-              onReview={(jobId) => {
-                setShowGenerate(false)
-                setCandidateJob(jobId)
-              }}
-            />
-          </div>
-        </div>
-      ) : null}
+      {showGenerate && <Dialog open title={creationText('legacy')} onClose={()=>setShowGenerate(false)}>
+        <GenerationPanel lesson={lesson} onReview={jobId=>{setShowGenerate(false);setCandidateJob(jobId)}}/>
+      </Dialog>}
 
       {candidateJob !== null ? (
         <CandidateDialog

@@ -1,0 +1,22 @@
+.status{display:flex;align-items:center;gap:14px;width:100%;padding:16px;border:1px solid #9fcce3;border-radius:5px;background:var(--surface,#fff);color:var(--ink,#15334c);text-align:start;min-width:0}
+.icon{flex:0 0 42px;width:42px;height:42px;display:grid;place-items:center;border-radius:50%;background:linear-gradient(135deg,#e2f0ff,#e2f8ee);color:#087b66}
+.icon svg{width:24px;height:24px}.copy{display:grid;gap:5px;min-width:0;flex:1}.copy strong{font-size:14px}.copy small{font-size:12px;color:var(--muted,#526777);line-height:1.5}.filename{overflow:hidden;white-space:nowrap;text-overflow:ellipsis;max-width:100%;font-size:12px}
+.track{height:6px;border-radius:5px;overflow:hidden;background:#dbe9ef;width:100%;margin-top:4px}.fill{height:100%;background:linear-gradient(90deg,#1368ce,#159664);transition:width .18s ease}.checking .fill{width:35%;animation:travel 1.5s ease-in-out infinite alternate}
+.actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:center}.input{position:absolute;width:1px;height:1px;clip-path:inset(50%);overflow:hidden}.error{border-color:#ddaa65}.ready{border-color:#92cbb2}
+@keyframes travel{from{transform:translateX(0)}to{transform:translateX(180%)}}@media(prefers-reduced-motion:reduce){.checking .fill{animation:none;width:65%}.fill{transition:none}}@media(max-width:480px){.status{padding:12px;gap:10px}.icon{flex-basis:34px;width:34px;height:34px}.actions{width:100%}.actions>button{flex:1}}
+.compact { min-width:0; display:flex; flex-direction:column; gap:8px; }
+.compact .actions:has(>input:only-child) { display:none; }
+.compact:has(>.actions:only-child>input:only-child) { display:none; }
+
+.question{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;width:min(100%,420px);min-height:270px;margin:18px auto;padding:24px;border:1px solid transparent;border-radius:5px;background:color-mix(in srgb,var(--surface,#fff) 86%,transparent);color:var(--ink,#27333d);text-align:center;transition:background .15s,border-color .15s}
+.question.dragging{border-color:var(--act,#176bd4);background:var(--surface,#fff)}
+.invitation{display:flex;flex-direction:column;align-items:center;gap:16px}
+.invitation>svg{color:var(--muted,#526777)}
+.invitation strong{font-size:clamp(17px,1.5vw,22px);font-weight:600;line-height:1.35}
+.plus{display:grid;place-items:center;width:58px;height:58px;border:0;border-radius:5px;background:var(--surface,#fff);color:var(--ink,#27333d);box-shadow:0 3px 6px #0002;cursor:pointer}
+.plus:hover{background:var(--raised,#edf4fa)}
+.question>span:first-of-type{font-size:12px;font-weight:500;color:var(--muted,#526777)}
+.dropCopy{margin-top:12px;font-size:14px;line-height:1.6}
+.dropCopy button{border:0;padding:0;background:none;color:inherit;font:inherit;font-weight:700;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.question button:focus-visible{outline:3px solid var(--act,#176bd4);outline-offset:3px}
+@media(max-width:600px){.question{min-height:230px;margin:12px auto;padding:20px 14px;gap:10px}.invitation{gap:12px}.invitation>svg{width:44px;height:44px}.plus{width:48px;height:48px}.dropCopy{margin-top:6px}}

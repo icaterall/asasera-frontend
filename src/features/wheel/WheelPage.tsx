@@ -1,7 +1,6 @@
 import {useEffect,useRef,useState} from 'react'
-import {Link} from 'react-router-dom'
+import {BackLink} from '@/design/BackLink'
 import {useTranslation} from 'react-i18next'
-import {ArrowLeft} from 'lucide-react'
 import {useAuth} from '@/hooks/useAuth'
 import {newWheel,wheelStateSchema,eligibleWheelEntries,wheelIsSpinning,makeWheelSpin,randomWheelIndex,type WheelCommand,type WheelState} from '@/shared/wheel'
 import {RandomWheel} from './RandomWheel'
@@ -39,7 +38,7 @@ function SavedWheel({storageKey}:{storageKey:string}){
   }
   save(next)
  }
- return <div className={`asas ${styles.page}`} dir={ar?'rtl':'ltr'}><Link className={styles.back} to="/teacher/tools"><ArrowLeft size={17}/>{ar?'أدوات المعلم':'Teacher tools'}</Link><RandomWheel key={version} wheel={wheel} clock={clock} onCommand={command} standalone/>
+ return <div className={`asas ${styles.page}`} dir={ar?'rtl':'ltr'}><RandomWheel key={version} wheel={wheel} clock={clock} onCommand={command} standalone headerAction={<BackLink to="/teacher/tools">{ar?'أدوات المعلم':'Teacher tools'}</BackLink>}/>
   <p className={styles.storage}>{stored?(ar?'تُحفظ قائمتك واختياراتك في هذا المتصفح.':'Your list and picks are saved in this browser.'):(ar?'التخزين غير متاح في هذا المتصفح. تعمل العجلة لهذه الزيارة.':'Browser storage is unavailable. The wheel works for this visit.')}
    <button type="button" disabled={!!wheel.spin&&wheelIsSpinning(wheel,now)} onClick={()=>{save({...newWheel('custom'),visible:true});setVersion(v=>v+1)}}>{ar?'مسح القائمة والاختيارات':'Clear list and picks'}</button>
   </p>

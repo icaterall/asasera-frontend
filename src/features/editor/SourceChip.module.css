@@ -1,0 +1,52 @@
+/*
+ * Source chips (v5.1 C4).
+ *
+ * One chip per question, always in the same place above the prompt. The label
+ * is the locator the source actually has — pages, slides or sections — so a
+ * teacher can tell at a glance what a citation points at, and a click opens the
+ * cited text in the same viewer the generation panel already uses.
+ */
+.row { display:flex; flex-wrap:wrap; align-items:center; gap:8px; min-width:0; }
+
+.chip {
+  display:inline-flex; align-items:center; gap:6px;
+  max-width:100%; min-height:32px; padding:4px 10px;
+  border:1px solid var(--line); border-radius:999px;
+  background:var(--surface); color:var(--ink);
+  font:inherit; font-size:var(--f-small); line-height:1.3; text-align:start;
+}
+button.chip { cursor:pointer; transition:border-color var(--t-state) var(--ease), background-color var(--t-state) var(--ease); }
+button.chip:hover { background:var(--raised); border-color:var(--act); }
+button.chip[aria-expanded="true"] { border-color:var(--act); background:var(--raised); }
+.chip:focus-visible { outline:var(--focus-ring) solid var(--focus-colour); outline-offset:var(--focus-offset); }
+.chip svg { flex-shrink:0; }
+.chip[data-source-chip="manual"], .chip[data-source-chip="topic"], .chip[aria-busy="true"] { color:var(--muted); }
+.chip[data-source-chip="unavailable"] { color:var(--muted); border-style:dashed; }
+.chipTitle { min-width:0; max-width:28ch; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.chipSep { color:var(--muted); }
+.srOnly { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); clip-path:inset(50%); white-space:nowrap; }
+
+/* The rail thumbnail's origin marker — static, because the thumbnail is itself a button.
+   --muted at --f-micro measures 4.49:1 on the SELECTED thumbnail's tint, which is
+   under AA; mixing a little --ink into it keeps the quiet register and clears 4.5
+   on the tint, the card and the dark workspace alike. */
+.marker { display:inline-flex; align-items:center; justify-content:center; gap:4px; font-size:var(--f-micro); color:color-mix(in srgb, var(--muted) 78%, var(--ink)); }
+
+/* The viewer. The same declarations GenerationPanel.module.css used for its
+   `.sourceText`, so the two callers look identical. */
+/* Takes the whole row when it wraps under the chip: the cited text is the
+   thing being read, not a decoration beside the button. */
+.sourceText { flex:1 0 100%; text-align:start; white-space:pre-wrap; background:var(--raised); padding:24px; border:1px solid var(--line); border-radius:4px; scroll-margin-top:100px; color:var(--ink); }
+.sourceEntry { margin-block:12px; }
+.sourceEntryLabel { margin:0 0 4px; font-size:var(--f-small); font-weight:700; color:var(--act-ink); }
+.sourceEntry p { margin:0; line-height:1.7; }
+/* "no text" / "unreadable" / "little text" is the one label that tells a teacher a
+   cited page cannot support the question. --a3 is a tile FILL: as type on --raised
+   it measures 2.13:1. --warn-ink is the same amber, written rather than filled. */
+.sourceWarning { color:var(--warn-ink); font-weight:400; }
+.sourceNote { margin:12px 0; font-size:var(--f-small); color:var(--muted); white-space:normal; line-height:1.6; }
+
+@media (max-width:700px) {
+  .sourceText { padding:16px; }
+  .chipTitle { max-width:18ch; }
+}

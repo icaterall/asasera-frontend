@@ -8,6 +8,7 @@ import {filterSelectOptions,groupSelectOptions,selectOptions,type SelectOption} 
 import styles from './Dropdown.module.css'
 
 export interface SelectProps extends AriaAttributes {
+  optionDescriptions?:Record<string,string>
   children:ReactNode
   value?:string|number
   defaultValue?:string|number
@@ -28,7 +29,7 @@ export interface SelectProps extends AriaAttributes {
 }
 
 /** One styled field for every selection; Base UI owns focus, navigation and dismissal. */
-export function Select({children,value,defaultValue,onValueChange,onBlur,id:providedId,name,form,autoComplete,required,disabled,autoFocus,className='',style,title,dir,searchable,...aria}:SelectProps) {
+export function Select({children,optionDescriptions,value,defaultValue,onValueChange,onBlur,id:providedId,name,form,autoComplete,required,disabled,autoFocus,className='',style,title,dir,searchable,...aria}:SelectProps) {
   const generatedId=useId(),id=providedId??generatedId,{i18n}=useTranslation(),ar=i18n.language.startsWith('ar')
   const direction=dir==='ltr'||dir==='rtl'?dir:ar?'rtl':'ltr'
   const options=useMemo(()=>selectOptions(children),[children])
@@ -78,10 +79,10 @@ export function Select({children,value,defaultValue,onValueChange,onBlur,id:prov
   const common={id,name,form,autoComplete,required,disabled:unavailable,open,onOpenChange:toggle}
   const groups=groupSelectOptions(canSearch?filtered:options)
   const caption=selected?.label??placeholder
-  const selectItem=(option:SelectOption)=><BaseSelect.Item key={option.value} value={option.value} label={option.label} data-option-value={option.value} disabled={option.disabled} className={styles.item}>
-    <BaseSelect.ItemText className={styles.itemText} dir="auto">{option.label}</BaseSelect.ItemText><BaseSelect.ItemIndicator className={styles.check}><Check size={18} aria-hidden="true"/></BaseSelect.ItemIndicator>
+  const selectItem=(option:SelectOption)=><BaseSelect.Item key={option.value} value={option.value} label={option.label} data-option-value={option.value} disabled={option.disabled} className={`${styles.item} ${optionDescriptions?styles.descriptiveItem:''}`}>
+    <BaseSelect.ItemText className={styles.itemText} dir="auto">{optionDescriptions?.[option.value]?<><strong>{option.label}</strong><small className={styles.description}>{optionDescriptions[option.value]}</small></>:option.label}</BaseSelect.ItemText><BaseSelect.ItemIndicator className={styles.check}><Check size={18} aria-hidden="true"/></BaseSelect.ItemIndicator>
   </BaseSelect.Item>
-  const comboItem=(option:SelectOption)=><Combobox.Item key={option.value} value={option} data-option-value={option.value} disabled={option.disabled} className={styles.item}>
+  const comboItem=(option:SelectOption)=><Combobox.Item key={option.value} value={option} data-option-value={option.value} disabled={option.disabled} className={`${styles.item} ${optionDescriptions?styles.descriptiveItem:''}`}>
     <span className={styles.itemText} dir="auto">{option.label}</span><Combobox.ItemIndicator className={styles.check}><Check size={18} aria-hidden="true"/></Combobox.ItemIndicator>
   </Combobox.Item>
 
@@ -102,7 +103,7 @@ export function Select({children,value,defaultValue,onValueChange,onBlur,id:prov
     <BaseSelect.Trigger {...triggerProps}><BaseSelect.Value className={styles.value} dir="auto">{caption}</BaseSelect.Value><BaseSelect.Icon className={styles.chevron}><ChevronDown size={18} aria-hidden="true"/></BaseSelect.Icon></BaseSelect.Trigger>
     <BaseSelect.Portal container={container??undefined}>
       <BaseSelect.Positioner sideOffset={8} align="start" alignItemWithTrigger={false} collisionPadding={12} className={styles.positioner} dir={direction}>
-        <BaseSelect.Popup className={styles.popup} onKeyDown={stopEscape}>
+        <BaseSelect.Popup className={styles.popup} data-descriptive={!!optionDescriptions} onKeyDown={stopEscape}>
           <BaseSelect.List className={styles.list} aria-label={aria['aria-label']??label??placeholder}>
             {groups.map((group,index)=>group.label?<BaseSelect.Group key={`${group.label}-${index}`}><BaseSelect.GroupLabel className={styles.groupLabel}>{group.label}</BaseSelect.GroupLabel>{group.options.map(selectItem)}</BaseSelect.Group>:group.options.map(selectItem))}
           </BaseSelect.List>

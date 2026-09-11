@@ -26,19 +26,27 @@ test('teacher authors ordering, matching, and confirmed image zones with durable
   await page.getByRole('button',{name:'أضف سؤالًا',exact:true}).first().click()
   await expect(page.locator('[data-question-thumb]')).toHaveCount(3)
   await expect(page.locator('main')).not.toHaveAttribute('inert','')
-  await selectOption(type,'hotspot')
+  /* «مناطق الصورة» is the one kind that cannot be applied on its own: zones need a picture
+     to be drawn on, so choosing it with no media asks for the image first and the upload is
+     what commits the kind. Assert both halves rather than the immediate commit. */
+  await type.click();await page.locator('[role="option"][data-option-value="hotspot"]:visible').click()
+  await expect(page.getByText('أضف الصورة أولًا لرسم مناطق الإجابة.',{exact:true})).toBeVisible()
+  await expect(type).toHaveAttribute('data-select-value','mcq')
   const image=await sharp({create:{width:640,height:400,channels:3,background:'#8bd3c7'}}).png().toBuffer()
   await page.locator('aside input[type=file]').setInputFiles({name:'synthetic-zones.png',mimeType:'image/png',buffer:image})
+  await expect(type).toHaveAttribute('data-select-value','hotspot',{timeout:20_000})
   await expect(page.getByRole('heading',{name:'مناطق الصورة',exact:true})).toBeVisible({timeout:20_000})
   await page.getByLabel('نص السؤال').fill('اختر المنطقة الأولى')
   await page.getByRole('button',{name:'ارسم حدود المنطقة',exact:true}).click()
   const box=await page.locator('div[class*="zoneEditor"]').boundingBox();expect(box).not.toBeNull()
   await page.mouse.move(box!.x+box!.width*.1,box!.y+box!.height*.1);await page.mouse.down();await page.mouse.move(box!.x+box!.width*.4,box!.y+box!.height*.4);await page.mouse.up()
-  await page.getByRole('button',{name:'انشر',exact:true}).click()
-  await expect(page.getByRole('alert').filter({hasText:'النشر متوقّف'})).toBeVisible()
+  /* Publishing is now called approving: «اعتماد النسخة» for the first version and
+     «اعتماد التغييرات» once one exists, and the blocking panel is «الاعتماد متوقّف». */
+  await page.getByRole('button',{name:'اعتماد النسخة',exact:true}).click()
+  await expect(page.getByRole('alert').filter({hasText:'الاعتماد متوقّف'})).toBeVisible()
   await page.getByRole('button',{name:'راجعت حدود المناطق وأؤكدها',exact:true}).click()
-  await page.getByRole('button',{name:'انشر',exact:true}).click()
-  await expect(page.getByRole('button',{name:'إعادة النشر',exact:true})).toBeVisible()
+  await page.getByRole('button',{name:'اعتماد النسخة',exact:true}).click()
+  await expect(page.getByRole('button',{name:'اعتماد التغييرات',exact:true})).toBeVisible()
   const loaded=await(await page.request.get(`/api/v1/activities/${activity.id}`,{headers})).json()
   expect(loaded.questions.map((q:{kind:string})=>q.kind)).toEqual(['order','match','hotspot'])
   expect(loaded.questions[0].payload.items.map((i:{text:string})=>i.text)).toEqual(['واحد','اثنان','ثلاثة'])

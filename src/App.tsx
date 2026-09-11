@@ -16,6 +16,7 @@ import Landing from '@/pages/Landing'
 import { useAuth } from '@/hooks/useAuth'
 import { homePathFor } from '@/lib/afterAuth'
 const AdminLayout = lazy(() => import('@/features/admin/AdminLayout'))
+const AdminAiSettings = lazy(() => import('@/features/admin/AdminAiSettings'))
 const AdminUsers = lazy(() => import('@/features/admin/AdminUsers'))
 const AdminUserDetail = lazy(() => import('@/features/admin/AdminUserDetail'))
 const StudentLayout = lazy(() => import('@/features/student/StudentLayout'))
@@ -113,6 +114,7 @@ export default function App() {
             <Routes>
               <Route path="admin" element={<AdminLayout/>}>
                 <Route index element={<Navigate to="/admin/users" replace/>}/>
+                <Route path="ai-settings" element={<AdminAiSettings/>}/>
                 <Route path="users" element={<AdminUsers/>}/>
                 <Route path="users/:id" element={<AdminUserDetail/>}/>
               </Route>
@@ -243,7 +245,7 @@ export default function App() {
 
               {/*
                 The editor is OUTSIDE TeacherLayout, deliberately.
-                It owns the whole viewport: a 232px application sidebar sitting
+                It owns the whole viewport: a 280px application sidebar sitting
                 beside a 184px activity rail would spend a fifth of a laptop
                 screen on two navigation columns, and the canvas is the only
                 region whose content is the teacher's actual work. The toolbar

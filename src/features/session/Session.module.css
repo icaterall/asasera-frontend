@@ -12,6 +12,9 @@
 @media(prefers-reduced-motion:reduce){.session *{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 .questionMedia {max-width:100%;max-height:35vh;object-fit:contain;display:block;margin:16px auto}
 .answer img {max-height:160px;max-width:100%;object-fit:contain}
+/* Option images now show on the player's phone by default (text layout); keep them short so four tiles still fit. */
+@media(max-width:700px){.session[data-role=player] .answer img{max-height:96px}}
+/* `.phoneAnswers` styles the OPTIONAL projector-only (shape-only) layout; the default player layout is text. */
 .classSetup,.intervention {color:var(--ink);background:var(--surface);border-radius:8px;padding:16px;margin-block:12px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}.classSetup p{font-size:14px;margin:0}.classSetup label,.classSetup form{display:flex;align-items:center;gap:8px}.classSetup input,.classSetup select{max-width:100%;min-height:44px;padding:8px;border:1px solid var(--line);border-radius:4px;background:var(--surface);color:var(--ink);font:inherit}.intervention p{flex:1 1 60%;font-size:20px;margin:0;line-height:1.5}.intervention button{flex-shrink:0}
 
 /* Kahoot-style stage hierarchy: light question panel above large color tiles. */

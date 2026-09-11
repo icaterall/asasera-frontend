@@ -2,8 +2,31 @@ import {selectOption} from './select-option'
 import {test,expect} from '@playwright/test'
 import {readFileSync} from 'node:fs'
 import {localTeacher} from './local-fixture'
+
+/*
+ * PAID FIXTURE — this journey replays what a REAL provider returned, and there is no
+ * honest way to manufacture it. What it needs, in order:
+ *
+ *  1. `asasera-backend/scripts/v4/evaluate-providers.ts`, run with real provider API
+ *     keys against the local DEVELOPMENT database (it refuses anything but
+ *     NODE_ENV=development, PG_HOST=127.0.0.1, PG_PORT=55432, STORAGE_DRIVER=local).
+ *     It spends money: it submits real question, vision and controlled-failure jobs
+ *     and writes the ids it owns to /tmp/asasera-v4-provider-owned.json.
+ *  2. `asasera-backend/scripts/v4/evaluation-browser-access.ts`, which turns that into
+ *     a password login at /tmp/asasera-evaluation-browser-access.json.
+ *
+ * The account, activity and job ids in that file exist only in the database the
+ * evaluation ran against. A fresh isolated e2e database does not contain them, and
+ * seeding equivalents would defeat the point: the citations, image proposals and
+ * released reserve under test are genuine provider output, not fixtures.
+ */
+const PAID='/tmp/asasera-evaluation-browser-access.json'
+const paidFixture=(()=>{try{return JSON.parse(readFileSync(PAID,'utf8')) as {email:string;password:string;activityId:number}}catch{return null}})()
+
 test('existing live-provider results open citations and image proposals without a new paid request',async({page})=>{
- const fixture=JSON.parse(readFileSync('/tmp/asasera-evaluation-browser-access.json','utf8'))
+ test.skip(!paidFixture,`Requires ${PAID} from the PAID provider evaluation (scripts/v4/evaluate-providers.ts → evaluation-browser-access.ts)`)
+ test.skip(!!process.env.E2E_PG_DATABASE,`The paid evaluation fixture lives in the development database it was produced against; E2E_PG_DATABASE=${process.env.E2E_PG_DATABASE} does not hold jobs 306-308`)
+ const fixture=paidFixture!
  await page.addInitScript(()=>localStorage.setItem('asasera.language','en'))
  const login=await page.request.post('/api/v1/auth/login',{data:{email:fixture.email,password:fixture.password}});expect(login.ok()).toBe(true)
  let submissions=0;page.on('request',r=>{if(r.method()==='POST'&&r.url().endsWith('/activity-generation/jobs'))submissions++})

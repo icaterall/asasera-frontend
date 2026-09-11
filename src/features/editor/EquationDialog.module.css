@@ -1,0 +1,79 @@
+.dialog{width:min(600px,calc(100vw - 24px));max-width:calc(100vw - 24px);max-height:calc(100dvh - 24px);margin:auto;padding:0;border:0;border-radius:5px;background:var(--surface);color:var(--ink);box-shadow:0 18px 48px #0005;overflow:hidden}
+.dialog[open]{display:flex;flex-direction:column}
+.dialog::backdrop{background:#0f182dad}
+.header,.footer{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px 24px;flex-shrink:0}
+.header{border-block-end:1px solid var(--line)}
+.header h2{margin:0;font-size:24px;font-weight:700}
+.dialog button{font:inherit;cursor:pointer;border:1px solid var(--line);border-radius:5px;color:var(--ink);background:var(--surface);min-height:44px}
+.header button{display:grid;place-items:center;width:44px;border:0}
+.dialog button:hover{background:var(--raised)}
+.dialog button:focus-visible{outline:3px solid var(--act);outline-offset:2px}
+.body{padding:20px 24px;overflow-y:auto;min-height:0}
+.help{margin:0 0 16px;line-height:1.6;color:var(--ink);font-size:14px}
+
+.structures{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.structures button{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:8px;padding:10px 4px}
+/* A fixed preview box puts every label on the same line, whatever the formula's height. */
+.preview{display:grid;place-items:center;height:46px;font-size:26px;color:var(--act-ink);line-height:1}
+.structureLabel{font-size:12px;font-weight:700}
+/* overflow-x:auto makes overflow-y compute to auto, so tall formulas grew their own
+   scrollbars — grey bars beside every preview. These are fixed-size, so nothing scrolls. */
+.preview :global(.asasera-equation),.boxGlyph :global(.asasera-equation){overflow:visible;max-width:none}
+
+/* What the empty squares in those previews actually mean. */
+.boxNote{display:flex;align-items:center;gap:10px;margin:14px 0 0;padding:10px 12px;border-radius:5px;background:var(--raised);border-inline-start:3px solid var(--act);font-size:13px;line-height:1.6;color:var(--ink)}
+.boxGlyph{flex:0 0 auto;font-size:19px;color:var(--act-ink);line-height:1}
+
+.fieldWrap{margin-block-start:14px;position:relative;background:var(--surface);border:2px solid var(--act);border-radius:5px;min-height:92px;display:grid;align-items:center}
+.mathfield{min-width:0}
+.mathfield :global(math-field){display:block;width:100%;min-height:88px;padding:16px 12px;border:0;background:transparent;color:var(--ink);font-size:32px;--caret-color:var(--act);--selection-background-color:#1368ce30;--smart-fence-color:var(--muted);--contains-highlight-background-color:#1368ce18;--placeholder-color:var(--act)}
+.mathfield :global(math-field)::part(menu-toggle){display:none}
+/* The on-screen keyboard is for devices without a physical one, so its toggle only appears there. */
+.mathfield :global(math-field)::part(virtual-keyboard-toggle){display:none}
+@media(pointer:coarse){.mathfield :global(math-field)::part(virtual-keyboard-toggle){display:flex}}
+.mathfield :global(math-field):focus-within{outline:0}
+.fieldWrap:focus-within{box-shadow:0 0 0 3px #1368ce25}
+.empty{position:absolute;pointer-events:none;inset-inline:30px;top:36px;color:var(--muted);font-size:14px}
+.fieldWrap:focus-within .empty{opacity:.65}
+
+.symbolRow{display:flex;align-items:center;gap:8px 12px;flex-wrap:wrap;margin-block-start:10px}
+.symbols{display:flex;flex-wrap:wrap;gap:6px}
+.symbols button{min-width:44px;padding:4px 8px;font-size:19px;background:var(--raised);border-color:transparent}
+.symbols button:hover{border-color:var(--act)}
+.clear{margin-inline-start:auto;padding:8px 14px;font-size:13px;font-weight:700;min-height:40px}
+.clear:disabled{opacity:.45;cursor:not-allowed}
+
+.more{margin-block-start:12px}
+.more summary{cursor:pointer;font-size:13px;font-weight:700;color:var(--act-ink);padding:6px 2px;min-height:32px;display:flex;align-items:center;gap:6px;list-style:none}
+.more summary::-webkit-details-marker{display:none}
+/* display:flex drops the native marker, so the disclosure carries its own chevron.
+   Physical borders with an explicit RTL rule: inline-* would rotate the wrong way in Arabic. */
+.more summary::before{content:'';width:7px;height:7px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(-45deg);margin-inline-end:2px;transition:transform .15s ease}
+.more[open] summary::before{transform:rotate(45deg)}
+[dir=rtl] .more summary::before{transform:rotate(135deg)}
+[dir=rtl] .more[open] summary::before{transform:rotate(45deg)}
+@media(prefers-reduced-motion:reduce){.more summary::before{transition:none}}
+.more summary:focus-visible{outline:3px solid var(--act);outline-offset:2px;border-radius:3px}
+.more>div{margin-block-start:8px}
+
+.message{font-size:13px;line-height:1.5;min-height:18px;margin:12px 0 0;color:var(--evidence-ink,#b3261e);font-weight:700}
+.footer{border-block-start:1px solid var(--line);justify-content:flex-end}
+.footer button{padding:10px 24px;font-weight:700}
+.footer .insert{background:var(--act);color:white;border-color:var(--act)}
+.footer .insert:disabled{opacity:.45;cursor:not-allowed}
+
+@media(max-width:600px){
+ .dialog{width:calc(100vw - 16px);max-width:calc(100vw - 16px);max-height:calc(100dvh - 16px)}
+ .header,.footer{padding:12px 16px}
+ .header h2{font-size:20px}
+ .body{padding:16px}
+ .structures{gap:5px}
+ .structures button{padding:8px 2px;gap:6px}
+ .structureLabel{font-size:10px}
+ .preview{height:40px;font-size:22px}
+ .boxNote{font-size:12px;padding:8px 10px}
+ .symbols button{min-width:40px;font-size:17px}
+ .symbolRow{gap:8px}
+ .empty{font-size:12px;inset-inline:20px}
+ .footer button{padding-inline:16px}
+}

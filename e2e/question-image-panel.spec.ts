@@ -1,0 +1,25 @@
+import {test,expect} from '@playwright/test'
+import {localTeacher,isolatedStackOnly} from './local-fixture'
+for(const [width,ar] of [[1440,false],[390,true]] as const)test(`question image panel ${width}`,async({page})=>{
+ isolatedStackOnly();await page.setViewportSize({width,height:1000});const teacher=localTeacher()
+ await page.addInitScript(ar=>localStorage.setItem('asasera.language',ar?'ar':'en'),ar)
+ const login=await page.request.post('/api/v1/auth/login',{data:{email:teacher.email,password:teacher.password}});expect(login.ok()).toBeTruthy()
+ const {accessToken}=await login.json(),headers={authorization:`Bearer ${accessToken}`}
+ const r=await page.request.post('/api/v1/activities',{headers,data:{title:'Question image panel fixture',subjectId:1,levelId:8,purposeId:2}}),{activity}=await r.json()
+ await page.request.post(`/api/v1/activities/${activity.id}/questions`,{headers,data:{kind:'mcq',prompt:'',payload:{options:[{key:'a',text:'One'},{key:'b',text:'Two'},{key:'c',text:''},{key:'d',text:''}],correct:'a'}}})
+ await page.goto(`/teacher/activities/${activity.id}`)
+ const panel=page.locator('[data-question-image] [data-image-upload]'),prompt=page.getByRole('textbox',{name:ar?'نص السؤال':'Question text',exact:true})
+ await expect(panel).toBeVisible();await expect(prompt).toBeVisible()
+ const outer=await page.locator('[data-question-image]').boundingBox(),box=await panel.boundingBox()
+ expect(Math.abs(box!.x+box!.width/2-outer!.x-outer!.width/2)).toBeLessThan(2)
+ expect(await prompt.evaluate(el=>getComputedStyle(el,'::before').justifyContent)).toBe('center')
+ await page.screenshot({path:`/tmp/question-image-panel-${width}.png`})
+ const chooser=page.waitForEvent('filechooser');await panel.getByRole('button',{name:ar?'أضف صورة للسؤال':'Add question image',exact:true}).click()
+ await (await chooser).setFiles({name:'invalid.txt',mimeType:'text/plain',buffer:Buffer.from('invalid')})
+ await expect(panel.getByRole('alert')).toContainText(ar?'اختر صورة':'Choose a valid')
+ await page.route('**/api/v1/activity-media/limits',route=>route.fulfill({status:404,json:{error:{code:'not_found'}}}))
+ const transfer=await page.evaluateHandle(()=>{const data=new DataTransfer();data.items.add(new File(['image bytes'],'picture.png',{type:'image/png'}));return data})
+ await panel.dispatchEvent('drop',{dataTransfer:transfer})
+ await expect(panel.getByRole('alert')).toContainText(ar?'رفع الصور غير متاح مؤقتًا':'Image uploads are temporarily unavailable')
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true)
+})

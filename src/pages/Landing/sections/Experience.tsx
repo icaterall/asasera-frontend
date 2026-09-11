@@ -1,4 +1,4 @@
-import { ArrowRight, Check, CircleHelp, FileText, Image, ListOrdered, MousePointer2, Sparkles, Users } from 'lucide-react'
+import { ArrowRight, Check, CircleHelp, FileText, Sparkles, Users } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import studentPhoto from '@/assets/images/hero-media.jpg'
@@ -11,7 +11,7 @@ export function Experience() {
   const { lang } = useCopy()
   const copy = lang === 'ar' ? experienceAr : experienceEn
   const [step, setStep] = useState(0)
-  const icons = [CircleHelp, Check, ListOrdered, MousePointer2, Image]
+  const icons = [CircleHelp, Check]
 
   return <>
     <section id="how" className={styles.workflow} aria-labelledby="workflow-title">
@@ -22,7 +22,7 @@ export function Experience() {
             {copy.steps.map((item, i) => <button type="button" key={i} onClick={() => setStep(i)} aria-pressed={step === i} aria-controls="workflow-preview" className={styles.step}>
               <span className={styles.stepNumber} aria-hidden="true">{i + 1}</span><span><strong>{item.title}</strong><span>{item.body}</span></span><ArrowRight size={20} className={styles.forward} />
             </button>)}
-            <Link to="/register" className={`${styles.action} ${styles.blueAction}`}>{copy.steps[step]!.action}<ArrowRight size={18} className={styles.forward} /></Link>
+            <Link to="/signup/teacher" className={`${styles.action} ${styles.blueAction}`}>{copy.steps[step]!.action}<ArrowRight size={18} className={styles.forward} /></Link>
           </div>
           <div id="workflow-preview" className={styles.workflowPreview} data-step={step} role="region" aria-label={`${copy.example}: ${copy.steps[step]!.title}`}>
             <div className={styles.previewLabel}><span>{copy.example}</span><span><bdi>{step + 1} / 3</bdi></span></div>
@@ -48,8 +48,8 @@ export function Experience() {
           </div>
         </div>
         <div id="types" className={styles.types}>
-          <div><h3>{copy.typesTitle}</h3><p>{copy.typesBody}</p></div>
-          <ul>{copy.types.map((type, i) => { const Icon = icons[i]!; return <li key={type}><Icon size={20} /><span>{type}</span></li> })}</ul>
+          <div><h3>{copy.typesTitle}</h3><p>{copy.typesBody}</p><p>{copy.typesAlso}</p></div>
+          <ul>{copy.types.map((type, i) => { const Icon = icons[i] ?? CircleHelp; return <li key={type}><Icon size={20} /><span>{type}</span></li> })}</ul>
         </div>
       </div>
     </section>
@@ -58,11 +58,11 @@ export function Experience() {
       <div className={styles.roleGrid}>
         <article className={styles.teacherRole}>
           <div className={styles.teacherArt} aria-hidden="true"><div className={styles.teacherShapes}>{[0, 1, 2, 3].map(i => <span key={i} data-answer={i}><AnswerShape index={i} /></span>)}</div><strong>{copy.teacherArtTitle}</strong><span>{copy.teacherArtBody}</span></div>
-          <div className={styles.roleContent}><h3>{copy.teacherTitle}</h3><p>{copy.teacherBody}</p><Link to="/register" className={`${styles.action} ${styles.blueAction}`}>{copy.teacherAction}<ArrowRight size={18} className={styles.forward} /></Link></div>
+          <div className={styles.roleContent}><h3>{copy.teacherTitle}</h3><p>{copy.teacherBody}</p><Link to="/signup/teacher" className={`${styles.action} ${styles.blueAction}`}>{copy.teacherAction}<ArrowRight size={18} className={styles.forward} /></Link></div>
         </article>
         <article className={styles.studentRole}>
           <div className={styles.studentPhoto}><img src={studentPhoto} width="734" height="882" alt={copy.photoAlt} loading="lazy" /><span>{copy.studentTitle}</span></div>
-          <div className={styles.roleContent}><h3>{copy.student}</h3><p>{copy.studentBody}</p><Link to="/register" className={`${styles.action} ${styles.blueAction}`}>{copy.studentAction}<ArrowRight size={18} className={styles.forward} /></Link></div>
+          <div className={styles.roleContent}><h3>{copy.student}</h3><p>{copy.studentBody}</p><Link to="/signup/student" className={`${styles.action} ${styles.blueAction}`}>{copy.studentAction}<ArrowRight size={18} className={styles.forward} /></Link></div>
         </article>
       </div>
     </div></section>

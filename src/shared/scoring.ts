@@ -228,6 +228,9 @@ export function acceptance(args: {
 /* ---- points ------------------------------------------------------------ */
 
 export interface ScoreInput {
+  /** Teacher-selected multiplier from the server-owned question snapshot. */
+  pointsMultiplier?: 0 | 1 | 2
+
   correct: boolean
   /** Server clock. */
   receivedAt: number
@@ -249,7 +252,8 @@ export interface ScoreInput {
  */
 export function scoreAnswer(input: ScoreInput): number {
   if (!input.correct) return 0
-  if (!input.speedWeighting) return POINTS_CORRECT
+  const multiplier = input.pointsMultiplier === 0 ? 0 : input.pointsMultiplier === 2 ? 2 : 1
+  if (!input.speedWeighting) return POINTS_CORRECT * multiplier
 
   const limit = Math.max(1, input.endsAt - input.questionOpenedAt)
   const compensation = Math.min(Math.max(0, (input.rttMs ?? 0) / 2), MAX_RTT_COMPENSATION_MS)
@@ -257,7 +261,7 @@ export function scoreAnswer(input: ScoreInput): number {
   // produce a negative duration and a multiplier above 1.
   const elapsed = Math.max(0, input.receivedAt - input.questionOpenedAt - compensation)
   const fraction = Math.min(1, elapsed / limit)
-  return Math.round(POINTS_CORRECT * (1 - (1 - SPEED_FLOOR) * fraction))
+  return Math.round(POINTS_CORRECT * (1 - (1 - SPEED_FLOOR) * fraction)) * multiplier
 }
 
 /* ---- ranking ----------------------------------------------------------- */

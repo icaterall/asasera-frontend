@@ -1,3 +1,5 @@
+import en from '../src/i18n/locales/en'
+import ar from '../src/i18n/locales/ar'
 import {afterEach, beforeAll, beforeEach, expect, it, vi} from 'vitest'
 import {act, cleanup, fireEvent, render, screen, waitFor, within} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
@@ -11,7 +13,7 @@ import CreateActivity from '../src/features/editor/CreateActivity'
 import {ActivityAudience} from '../src/features/audience/ActivityAudience'
 import {activities, api, reference, taxonomy, type ActivityRecord, type QuestionRecord} from '../src/lib/api'
 import {community, type InboxItem} from '../src/features/community/api'
-import {acknowledgeQuestion, clearDraft, draftKey, editorDraftSchema, emptyEditorDraft, readDraft, storeEditorDraft, writeDraft} from '../src/features/editor/session-drafts'
+import {acknowledgeQuestion, clearDraft, decodeGenerationDraft, draftKey, editorDraftSchema, emptyEditorDraft, encodeGenerationDraft, readDraft, storeEditorDraft, writeDraft} from '../src/features/editor/session-drafts'
 
 const session = vi.hoisted(() => ({user: {id: 73, name: 'Teacher A', role: 'teacher', email: 'teacher@example.test'}, status: 'authenticated', signOut: vi.fn()}))
 vi.mock('@/hooks/useAuth', () => ({useAuth: () => session}))
@@ -37,6 +39,8 @@ function references() {
 }
 beforeAll(async () => {
   await language.init({lng: 'en', resources: {en: {translation: {brand: {name: 'Asasera'}, common: {language: 'Language', switchToArabic: 'Switch to Arabic', switchToEnglish: 'Switch to English'}}}, ar: {translation: {brand: {name: 'أساسيرا'}, common: {language: 'اللغة', switchToArabic: 'التبديل إلى العربية', switchToEnglish: 'التبديل إلى الإنجليزية'}}}}})
+  language.addResourceBundle('en','translation',{questionCreation:en.questionCreation},true,true)
+  language.addResourceBundle('ar','translation',{questionCreation:ar.questionCreation},true,true)
   Element.prototype.scrollIntoView = vi.fn()
   vi.stubGlobal('ResizeObserver', class {observe() {} unobserve() {} disconnect() {}})
   vi.stubGlobal('matchMedia', vi.fn(() => ({matches: false, addEventListener() {}, removeEventListener() {}})))
@@ -61,12 +65,14 @@ it('shows the branded spinner immediately while preparing the AI dialog and stop
   const trigger = screen.getByRole('button', {name: 'Generate with AI'})
   fireEvent.click(trigger)
   expect(trigger.getAttribute('aria-busy')).toBe('true')
-  expect(trigger.querySelector('img')).not.toBeNull()
+  /* The design-system Button renders its spinner as an inline SVG, not the logo image. */
+  expect(trigger.querySelector('img')).toBeNull()
+  expect(trigger.querySelector('[data-button-spinner]')).not.toBeNull()
   expect(trigger.hasAttribute('disabled')).toBe(true)
   expect(screen.queryByRole('dialog')).toBeNull()
   await waitFor(() => expect(activities.load).toHaveBeenCalledTimes(2))
   await act(async () => {finish(load())})
-  await screen.findByRole('dialog', {name: 'Generate with AI'})
+  await screen.findByRole('dialog', {name: 'How would you like to create questions?'})
   expect(trigger.getAttribute('aria-busy')).toBeNull()
 })
 
@@ -134,7 +140,7 @@ it('warns before recovered edits can replace a changed database revision and nev
   await editor()
   expect((screen.getByLabelText('Question text') as HTMLTextAreaElement).value).toBe('My recovered second question')
   expect(screen.getByText(/saved version has changed/)).toBeTruthy()
-  fireEvent.click(screen.getByRole('button', {name: 'Publish'}))
+  fireEvent.click(screen.getByRole('button', {name: 'Approve version'}))
   expect(publish).not.toHaveBeenCalled(); expect(activities.updateQuestion).not.toHaveBeenCalled()
   fireEvent.click(screen.getByRole('button', {name: 'Use saved version'}))
   await waitFor(() => expect(screen.queryByRole('region', {name: 'Recovered edits'})).toBeNull())
@@ -219,9 +225,9 @@ it('keeps new activity details and multiple audience stages across remounts, ret
   view.unmount(); show(<CreateActivity/>)
   expect((await screen.findByLabelText('Activity name') as HTMLInputElement).value).toBe('My science game')
   const create = vi.spyOn(activities, 'create').mockRejectedValueOnce(new Error('Offline')).mockResolvedValueOnce({activity})
-  await user.click(screen.getByRole('button', {name: 'Continue to questions'})); await screen.findByText('Offline')
+  await user.click(screen.getByRole('button', {name: 'Next'})); await screen.findByText('Offline')
   expect(sessionStorage.getItem(newKey)).toContain('My science game')
-  await user.click(screen.getByRole('button', {name: 'Continue to questions'}))
+  await user.click(screen.getByRole('button', {name: 'Next'}))
   await waitFor(() => expect(sessionStorage.getItem(newKey)).toBeNull())
   expect(create).toHaveBeenLastCalledWith(expect.objectContaining({title: 'My science game', categoryId: 1, educationStageIds: [8, 9], countryIds: [1]}))
 })
@@ -333,4 +339,46 @@ it('switches the editor language without reloading, losing unsaved text or chang
   expect((screen.getByLabelText('Question text') as HTMLTextAreaElement).value).toBe('Keep this question exactly')
   expect(screen.getByRole('banner').closest('[dir]')?.getAttribute('dir')).toBe('ltr')
   expect(activities.load).toHaveBeenCalledOnce()
+})
+
+it('creates an activity from a title alone and carries a chosen material into the editor as a generation draft', async () => {
+  references()
+  const create = vi.spyOn(activities, 'create').mockResolvedValue({activity})
+  show(<CreateActivity/>, '/teacher/activities/new?materialId=7&revisionId=11')
+  fireEvent.change(await screen.findByLabelText('Activity name'), {target: {value: 'From chapter 3'}})
+  expect(screen.getByText('You can add this later; it helps organise your library.')).toBeTruthy()
+  const submit = screen.getByRole('button', {name: 'Next'})
+  await waitFor(() => expect(submit.hasAttribute('disabled')).toBe(false))
+  fireEvent.click(submit)
+  await waitFor(() => expect(create).toHaveBeenCalledWith({title: 'From chapter 3', purposeId: null}))
+  await waitFor(() => expect(screen.getByLabelText('Current URL').textContent).toMatch(/^\/teacher\/activities\/42\?generate=1&choose=1&draft=/))
+  const draft = new URLSearchParams(screen.getByLabelText('Current URL').textContent!.split('?')[1]).get('draft')
+  expect(decodeGenerationDraft(draft)).toMatchObject({origin: 'file', materialRevisionId: 11, task: 'questions'})
+  expect(decodeGenerationDraft('not-base64-json')).toBeNull()
+})
+
+it('opens the AI panel pre-filled from ?generate=1&draft= and quotes without a click, then cleans the URL', async () => {
+  vi.spyOn(api, 'get').mockImplementation(async path => path.endsWith('/labels') ? {labels: [], pairs: [], decisions: [], schedule: null} : path.includes('/teaching/materials') ? {materials: [], total: 0} : {jobs: []})
+  const post = vi.spyOn(api, 'post').mockResolvedValue({estimateMillicents: 1, maxAuthorizedMillicents: 2, spendableMillicents: 3, usableMillicents: 3, allowanceMillicents: 100000, exposureMillicents: 0, affordable: true, pricingAvailable: true, generationAvailable:true, quoteId:'opaque-quote', quoteExpiresAt: '2999-01-01T00:00:00.000Z', grant: {trialMillicents: 100000, claimed: true, eligible: true, reason: null}, delivery: 'd'})
+  show(<ActivityEditor/>, `/teacher/activities/42?generate=1&draft=${encodeGenerationDraft({origin: 'topic', objective: 'Compare fractions', provider: 'gemini', difficulty: 'hard'})}`)
+  await screen.findByRole('dialog', {name: 'Enter a topic'})
+  await waitFor(() => expect(post).toHaveBeenCalledOnce())
+  expect(post.mock.calls[0]![1]).toMatchObject({activityId:42,origin:'topic',objective:'Compare fractions',difficulty:'hard'})
+  expect(post.mock.calls[0]![1]).not.toHaveProperty('provider')
+  await waitFor(() => expect(screen.getByLabelText('Current URL').textContent).toBe('/teacher/activities/42'))
+  await screen.findByRole('button', {name: 'Generate 5 questions with AI'})
+  expect(screen.queryByText(/your choice/)).toBeNull()
+})
+
+it('opens new-quiz choices over the editor before using a supplied AI draft', async () => {
+  vi.spyOn(api, 'get').mockResolvedValue({jobs: []})
+  const post = vi.spyOn(api, 'post').mockResolvedValue({})
+  show(<ActivityEditor/>, `/teacher/activities/42?generate=1&choose=1&draft=${encodeGenerationDraft({origin: 'topic', objective: 'Compare fractions'})}`)
+  await screen.findByRole('dialog', {name: 'How would you like to create questions?'})
+  expect(screen.queryByLabelText('Lesson topic')).toBeNull()
+  expect(post).not.toHaveBeenCalled()
+  await waitFor(() => expect(screen.getByLabelText('Current URL').textContent).toBe('/teacher/activities/42'))
+  fireEvent.click(screen.getByRole('button', {name: 'Blank canvas', exact: true}))
+  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+  expect(post).not.toHaveBeenCalled()
 })

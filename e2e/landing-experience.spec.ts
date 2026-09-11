@@ -28,7 +28,8 @@ test.beforeEach(async ({ page }) => {
 
 test('the photo quiz gives feedback, locks answers, scores and starts a fresh round by keyboard', async ({ page }) => {
   await page.goto('/')
-  await expect(page.getByRole('heading', { level: 1 })).toContainText('A little play.')
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('Upload what you teach.')
+  await expect(page.getByRole('link', { name: 'Create a quiz from your lesson' }).first()).toHaveAttribute('href', '/signup/teacher')
   const quiz = page.locator('#demo')
   await page.getByRole('button', { name: 'Try a quick quiz' }).click()
   await expect(quiz.getByRole('heading')).toBeFocused()
@@ -69,32 +70,38 @@ test('the photo quiz gives feedback, locks answers, scores and starts a fresh ro
 test('the workflow switches from PDF to questions to classroom and keeps real entry links', async ({ page }) => {
   await page.goto('/')
   const how = page.locator('#how')
-  await expect(how.getByRole('region', { name: 'Example preview: Bring your material' })).toContainText('Plant life.pdf')
-  await how.getByRole('button', { name: /Make it a question/ }).click()
-  await expect(how.getByRole('region', { name: 'Example preview: Make it a question' })).toContainText('photosynthesis')
-  await how.getByRole('button', { name: /Bring the room to life/ }).focus()
+  await expect(how.getByRole('region', { name: 'Example preview: Upload what you teach' })).toContainText('Plant life.pdf')
+  await how.getByRole('button', { name: /Generate and review questions/ }).click()
+  await expect(how.getByRole('region', { name: 'Example preview: Generate and review questions' })).toContainText('photosynthesis')
+  await how.getByRole('button', { name: /Run it live or assign homework/ }).focus()
   await page.keyboard.press('Space')
-  await expect(how.getByRole('region', { name: 'Example preview: Bring the room to life' })).toContainText('A7K2M9')
-  await expect(how.getByRole('link', { name: 'Set up your classroom' })).toHaveAttribute('href', '/signup/teacher')
+  await expect(how.getByRole('region', { name: 'Example preview: Run it live or assign homework' })).toContainText('A7K2M9')
+  await expect(how.getByRole('link', { name: 'Run your first session' })).toHaveAttribute('href', '/signup/teacher')
+  await expect(how.locator('#types li')).toHaveText(['Multiple choice', 'True or false'])
+  await expect(how.locator('#types')).toContainText('Also supported: ordering, drag and drop, interactive images.')
   await expect(page.getByRole('link', { name: 'Start learning', exact: true })).toHaveAttribute('href', '/signup/student')
   await page.getByRole('link', { name: 'Start teaching', exact: true }).click()
   await expect(page).toHaveURL(/\/signup\/teacher/)
   await expect(page.getByRole('heading').first()).toBeVisible()
 })
 
-test('join validates and normalizes the code before opening the existing join route', async ({ page }) => {
+test('join validates and normalizes the PIN before opening the existing /join route', async ({ page }) => {
   await page.goto('/')
   const join = page.locator('#join')
-  await join.getByRole('button', { name: 'Join the game' }).click()
-  await expect(join.getByRole('alert')).toContainText('Enter the code')
+  await join.getByRole('button', { name: 'Join the session' }).click()
+  await expect(join.getByRole('alert')).toContainText('Enter the PIN')
   await join.getByRole('textbox').fill('a2')
+  await expect(join.getByRole('textbox')).toHaveValue('2')
   await join.getByRole('button').click()
-  await expect(join.getByRole('alert')).toContainText('six')
-  await join.getByRole('textbox').fill('a2b3c4')
-  await expect(join.getByRole('textbox')).toHaveValue('A2B3C4')
+  await expect(join.getByRole('alert')).toContainText('six digits')
+  // Arabic-Indic digits from an Arabic keyboard normalise to the same PIN.
+  await join.getByRole('textbox').fill('١٢٣٤٥٦')
+  await expect(join.getByRole('textbox')).toHaveValue('123456')
+  await join.getByRole('textbox').fill('12-34 56 78')
+  await expect(join.getByRole('textbox')).toHaveValue('123456')
   await page.route('**/api/**', route => route.fulfill({ status: 404, json: { error: { code: 'not_found' } } }))
   await join.getByRole('button').click()
-  await expect(page).toHaveURL(/\/join\/A2B3C4/)
+  await expect(page).toHaveURL(/\/join\?pin=123456$/)
 })
 
 test('changing language retains quiz progress, switches direction, and keeps theme controls working', async ({ page }) => {
@@ -112,9 +119,14 @@ test('changing language retains quiz progress, switches direction, and keeps the
   await expect(page.locator('#top')).toHaveCSS('background-color', 'rgb(0, 76, 204)')
 })
 
-test('pricing reaches the connected contact form and its validation and submission remain usable', async ({ page }) => {
+test('pricing states the free pilot honestly and reaches the connected contact form', async ({ page }) => {
   await page.goto('/')
-  await page.locator('#pricing').getByRole('link', { name: 'Talk to us' }).first().click()
+  const pricing = page.locator('#pricing')
+  await expect(pricing.getByRole('heading', { level: 2 })).toHaveText('Free during the pilot.')
+  await expect(pricing).toContainText('small trial credit')
+  await expect(pricing.getByRole('link')).toHaveCount(1)
+  await expect(pricing).not.toContainText(/\$|per month|per year/)
+  await pricing.getByRole('link', { name: 'Talk to us' }).click()
   const form = page.getByRole('form', { name: 'Contact form' })
   await form.getByRole('button', { name: 'Send message' }).click()
   await expect(form.getByRole('textbox', { name: 'Name', exact: true })).toBeFocused()

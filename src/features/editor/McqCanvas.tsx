@@ -1,7 +1,12 @@
+import {FormattedInput} from './FormattedInput'
 import {useId,useState} from 'react'
+import {Check,ImagePlus} from 'lucide-react'
 import {useTranslation} from 'react-i18next'
 import {ImageUpload,useImage} from './ImageUpload'
-import {Button,type AnswerSlot} from '@/design'
+import {MediaField} from './MediaPicker'
+import {type AnswerSlot} from '@/design'
+import {ButtonSpinner} from '@/design/ButtonSpinner'
+import {readInline} from './rich-document'
 import styles from './Editor.module.css'
 
 /**
@@ -14,6 +19,9 @@ import styles from './Editor.module.css'
  */
 
 export interface McqOption { key: string; text: string; image?:string }
+export function hasAnswerContent(option:McqOption):boolean {
+  return !!option.image?.trim() || readInline(option.text).some(node=>!!(node.text??node.attrs?.latex??'').trim())
+}
 
 const SLOT_TOKENS: Record<AnswerSlot, { fill: string; fg: string; ar: string; en:string }> = {
   1: { fill: 'var(--a1)', fg: 'var(--on-a1)', ar: 'مثلث', en:'triangle' },
@@ -33,6 +41,7 @@ function Glyph({ slot }: { slot: AnswerSlot }) {
 }
 
 export interface McqCanvasProps {
+  onQuestionImageBusy?:(busy:boolean)=>void
   mediaKey: string | null
   onMediaChange: (key: string | null) => void
   options: McqOption[]
@@ -43,50 +52,49 @@ export interface McqCanvasProps {
 }
 
 export function McqCanvas({
-  mediaKey, onMediaChange, options, correct, onOptionText, onOptionImage, onCorrect,
+  mediaKey, onMediaChange, onQuestionImageBusy, options, correct, onOptionText, onOptionImage, onCorrect,
 }: McqCanvasProps) {
   const {i18n}=useTranslation(),ar=i18n.language.startsWith('ar')
-  const [imageTools,setImageTools]=useState(()=>options.some(option=>!!option.image))
   const optionsId=useId()
+  const [imageBusy,setImageBusy]=useState<Record<string,boolean>>({})
   return (
     <>
-    <ImageUpload label={ar?'صورة السؤال (اختياري)':'Question image (optional)'} imageKey={mediaKey} onImage={onMediaChange} onRemove={()=>onMediaChange(null)} />
-    <Button className={styles.answerImageToggle} variant="quiet" aria-expanded={imageTools} aria-controls={optionsId} onClick={()=>setImageTools(value=>!value)}>
-      {imageTools?(ar?'إخفاء خيارات صور الإجابات':'Hide answer image options'):(ar?'خيارات صور الإجابات':'Answer image options')}
-    </Button>
+    <MediaField onBusyChange={onQuestionImageBusy} label={ar?'صورة السؤال (اختياري)':'Question image (optional)'} imageKey={mediaKey} onImage={onMediaChange} onRemove={()=>onMediaChange(null)}/>
     <div id={optionsId} className={styles.options}>
       {options.map((option, index) => {
         const slot = ((index % 4) + 1) as AnswerSlot
         const token = SLOT_TOKENS[slot]
-        const isCorrect = option.key === correct
+        const hasContent = hasAnswerContent(option)
+        const isCorrect = hasContent && option.key === correct
 
         return (
-          <div key={option.key} className={styles.optionCell}>
+          <div key={option.key} className={styles.optionCell} data-answer-cell="">
             <div
-              className={styles.optionTile}
+              className={`${styles.optionTile} ${styles.answerTile}`}
+              data-empty={!hasContent}
               style={{ ['--tile' as string]: token.fill, ['--tileFg' as string]: token.fg }}
             >
-              <Glyph slot={slot} />
-              {option.image&&<OptionImage imageKey={option.image} text={option.text}/>}
-              <input
-                className={styles.optionText}
-                value={option.text}
-                placeholder={ar?`إجابة ${token.ar}`:`Answer ${token.en}`}
-                aria-label={ar?`نص الخيار ${token.ar}`:`Answer text ${token.en}`}
-                onChange={(event) => onOptionText(option.key, event.target.value)}
-              />
-            </div>
-
-            {imageTools&&<div className={styles.optionImageControls}><ImageUpload imageKey={option.image??null} showPreview={false} onImage={image=>onOptionImage(option.key,image)} onRemove={()=>onOptionImage(option.key,undefined)}/></div>}
-            <label className={`${styles.correctPick} ${isCorrect ? styles.isCorrect : ''}`}>
+              <span className={styles.answerShape}><Glyph slot={slot} /></span>
+              <div className={styles.answerContent}>
+                {option.image&&<OptionImage imageKey={option.image} text={option.text}/>}
+                <FormattedInput className={styles.optionText} value={option.text} maxLength={500} placeholder={option.image?(ar?'نص إضافي (اختياري)':'Text (optional)'):(ar?`أضف إجابة ${index+1}`:`Add answer ${index+1}`)} label={ar?`نص الإجابة ${index+1}`:`Answer ${index+1} text`} onChange={text=>onOptionText(option.key,text)}/>
+              </div>
+              <div className={styles.answerActions}>
+            <label className={styles.correctCircle} data-disabled={!hasContent} title={!hasContent?(ar?'أضف نصًا أو صورة أولًا':'Add text or an image first'):(ar?'الإجابة الصحيحة':'Correct answer')}>
               <input
                 type="radio"
-                name="correct-option"
+                name={`correct-option-${optionsId}`}
+                disabled={!hasContent}
                 checked={isCorrect}
-                onChange={() => onCorrect(option.key)}
+                aria-label={ar?`الإجابة ${index+1} هي الصحيحة`:`Answer ${index+1} is correct`}
+                onChange={() => {if(hasContent)onCorrect(option.key)}}
               />
-              {isCorrect ? (ar?'الإجابة الصحيحة':'Correct answer') : (ar?'اجعلها الصحيحة':'Mark correct')}
+              <span aria-hidden="true">{isCorrect&&<Check strokeWidth={4}/>}</span>
             </label>
+                <button type="button" className={styles.answerImageButton} disabled={imageBusy[option.key]??false} aria-busy={imageBusy[option.key]??false} aria-label={ar?'صورة الإجابة':'Answer image'} title={ar?'إضافة أو استبدال صورة':'Add or replace image'} onClick={event=>event.currentTarget.closest('[data-answer-cell]')?.querySelector<HTMLInputElement>('input[type=file]')?.click()}>{imageBusy[option.key]?<ButtonSpinner/>:<ImagePlus size={24}/>}</button>
+              </div>
+            </div>
+            <ImageUpload compact onBusyChange={busy=>setImageBusy(current=>({...current,[option.key]:busy}))} imageKey={option.image??null} showPreview={false} onImage={image=>onOptionImage(option.key,image)} onRemove={()=>onOptionImage(option.key,undefined)}/>
           </div>
         )
       })}
@@ -122,6 +130,7 @@ export function TfCanvas({ correct, onCorrect }: TfCanvasProps) {
             >
               <Glyph slot={slot as AnswerSlot} />
               <span className={styles.optionText} style={{ fontWeight: 700 }}>{label}</span>
+              <span className={styles.correctCircle}>
               <input
                 type="radio"
                 name="tf-correct"
@@ -129,6 +138,8 @@ export function TfCanvas({ correct, onCorrect }: TfCanvasProps) {
                 onChange={() => onCorrect(value === 'true')}
                 aria-label={ar?`${label} هي الإجابة الصحيحة`:`${label} is correct`}
               />
+              <span aria-hidden="true">{isCorrect&&<Check strokeWidth={4}/>}</span>
+              </span>
             </label>
           )
         })}

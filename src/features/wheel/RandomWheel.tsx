@@ -1,3 +1,4 @@
+import type {ReactNode} from 'react'
 import { Select } from '@/design'
 import {useEffect,useId,useLayoutEffect,useRef,useState} from 'react'
 import {useTranslation} from 'react-i18next'
@@ -6,9 +7,9 @@ import {eligibleWheelEntries,wheelIsSpinning,type WheelState,type WheelCommand,t
 import {useActivityMotion} from '../activity-themes/useActivityMotion'
 import styles from './Wheel.module.css'
 
-type Props={wheel:WheelState;clock:{now:()=>number};onCommand?:(command:WheelCommand)=>Promise<unknown>;connected?:boolean;standalone?:boolean}
+type Props={headerAction?:ReactNode;wheel:WheelState;clock:{now:()=>number};onCommand?:(command:WheelCommand)=>Promise<unknown>;connected?:boolean;standalone?:boolean}
 const colors=[['#004ccc','#fff'],['#ffcf36','#182e48'],['#1b650a','#fff'],['#e21b3c','#fff']] as const
-export function RandomWheel({wheel,clock,onCommand,connected=true,standalone=false}:Props){
+export function RandomWheel({wheel,clock,onCommand,connected=true,standalone=false,headerAction}:Props){
  const {i18n}=useTranslation(),ar=i18n.language.startsWith('ar'),t=(a:string,e:string)=>ar?a:e,motion=useActivityMotion()
  const [now,setNow]=useState(()=>clock.now()),[busy,setBusy]=useState(false),[error,setError]=useState('')
  const [source,setSource]=useState(wheel.source),[list,setList]=useState(()=>wheel.source==='custom'?wheel.entries.map(e=>e.label).join('\n'):''),[settings,setSettings]=useState(standalone&&wheel.entries.length===0)
@@ -24,7 +25,7 @@ export function RandomWheel({wheel,clock,onCommand,connected=true,standalone=fal
  }
  const disabled=busy||spinning||!connected,Heading=standalone?'h1':'h2'
  return <section className={`asas ${styles.panel}`} aria-labelledby={titleId} dir={ar?'rtl':'ltr'} data-random-wheel="" data-wheel-state={spinning?'spinning':winner?'selected':'ready'}>
-  <header className={styles.header}><div><Heading id={titleId}>{t('عجلة الاختيار العشوائي','Random wheel')}</Heading><p>{t('دورة واحدة، وفرصة متساوية لكل اسم أو خيار.','One spin. An equal chance for every entry.')}</p></div>{onCommand&&!standalone&&<button type="button" className={styles.close} disabled={disabled} onClick={()=>void act({action:'close'})}><X size={19}/>{t('العودة للحصة','Back to class')}</button>}</header>
+  <header className={styles.header}><div><Heading id={titleId}>{t('عجلة الاختيار العشوائي','Random wheel')}</Heading><p>{t('دورة واحدة، وفرصة متساوية لكل اسم أو خيار.','One spin. An equal chance for every entry.')}</p></div>{headerAction}{onCommand&&!standalone&&<button type="button" className={styles.close} disabled={disabled} onClick={()=>void act({action:'close'})}><X size={19}/>{t('العودة للحصة','Back to class')}</button>}</header>
   <div className={styles.layout}>
    <div className={styles.game}>
     <div className={styles.wheelFrame} aria-hidden="true">

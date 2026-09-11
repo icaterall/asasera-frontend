@@ -1,5 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query'
-import { useCallback, useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from 'react'
+import { useTranslation } from 'react-i18next'
+import { Button, FailureState } from '@/design'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { isAuthenticationPath, loginStateFor } from '@/lib/afterAuth'
 import { pendingLoginReturn } from '@/lib/loginReturn'
@@ -31,6 +33,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient()
   const [user, setUser] = useState<PublicUser | null>(null)
   const [status, setStatus] = useState<AuthStatus>('loading')
+  const [bootUnavailable, setBootUnavailable] = useState(false)
+  const [retrying, setRetrying] = useState(false)
+  const retryBoot = useRef<() => void>(() => {})
+  const { i18n } = useTranslation()
 
   const accessToken = useSyncExternalStore(subscribeToAccessToken, getAccessToken, () => null)
 
@@ -48,11 +54,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
    * anyone typing anything. This is the only reason a signed-in person stays
    * signed in across F5 while nothing sensitive is in localStorage.
    *
-   * A failure here is the ordinary case, not an error: it means nobody was
-   * signed in. It sets `anonymous` and shows no message.
+   * A rejected cookie means anonymous. A failed connection means we do not
+   * know yet: preserve that distinction and reconnect rather than logging out.
    */
   useEffect(() => {
     let cancelled = false
+    let pending = false, settled = false, attempts = 0
+    let timer: ReturnType<typeof setTimeout> | undefined
 
     /*
      * `refreshSession` and not a bare POST: the backend rotates the refresh
@@ -62,9 +70,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
      * signs the user out — which is exactly the bug the shared single-flight
      * exists to prevent.
      */
-    refreshSession()
+    function recover() {
+      if (cancelled || pending || settled) return
+      clearTimeout(timer)
+      pending = true
+      setRetrying(true)
+      void refreshSession()
       .then((session) => {
         if (cancelled) return
+        settled = true
+        setBootUnavailable(false)
         if (session) {
           setUser(session.user)
           setStatus('authenticated')
@@ -77,12 +92,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       })
       .catch(() => {
         if (cancelled) return
-        setUser(null)
-        setStatus('anonymous')
+        setBootUnavailable(true)
+        timer = setTimeout(recover, Math.min(1000 * 2 ** Math.min(attempts++, 4), 10000))
       })
+      .finally(() => {
+        pending = false
+        if (!cancelled) setRetrying(false)
+      })
+    }
+    retryBoot.current = recover
+    window.addEventListener('online', recover)
+    window.addEventListener('focus', recover)
+    recover()
 
     return () => {
       cancelled = true
+      clearTimeout(timer)
+      retryBoot.current = () => {}
+      window.removeEventListener('online', recover)
+      window.removeEventListener('focus', recover)
     }
   }, [])
 
@@ -172,5 +200,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [status, user, accessToken, signIn, signOut, forgetSession, applyUser],
   )
 
-  return <AuthContext value={value}>{children}</AuthContext>
+  const ar = i18n.language.startsWith('ar')
+  return <AuthContext value={value}>{bootUnavailable && status === 'loading' ?
+    <div className="asas grid min-h-svh place-items-center p-6" dir={ar ? 'rtl' : 'ltr'}>
+      <FailureState title={ar ? 'تعذّر الاتصال بأساسيرا مؤقتًا' : 'Asasera is temporarily unreachable'}
+        body={ar ? 'نحاول استعادة اتصالك. لا تحتاج إلى تسجيل الدخول مجددًا بسبب انقطاع الاتصال.' : 'We’re reconnecting. A connection interruption does not require a new sign-in.'}
+        actions={<Button loading={retrying} onClick={() => retryBoot.current()}>{ar ? 'إعادة الاتصال' : 'Reconnect now'}</Button>}/>
+    </div> : children}</AuthContext>
 }

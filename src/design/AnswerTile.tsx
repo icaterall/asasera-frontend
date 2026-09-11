@@ -1,3 +1,4 @@
+import {FormattedText,plainFormattedText} from '@/components/formatted-text/FormattedText'
 import {Check,X} from 'lucide-react'
 import type { ButtonHTMLAttributes, ReactNode } from 'react'
 
@@ -75,7 +76,8 @@ export function AnswerTile({
    * screen shows only the triangle — which is the same information the room
    * gets from the projector, not less.
    */
-  const accessibleName = shapeOnly ? `${shape}: ${label}` : label
+  const wording = plainFormattedText(label).trim()
+  const accessibleName = wording ? (shapeOnly ? `${shape}: ${wording}` : wording) : `${locale === 'ar' ? 'إجابة بصورة' : 'Image answer'}: ${shape}`
 
   /*
    * State is announced as text, never left to colour. `.correct` also draws an
@@ -102,13 +104,13 @@ export function AnswerTile({
         state === 'pending' ? styles.pending : '',
         className ?? '',
       ].filter(Boolean).join(' ')}
-      aria-label={shapeOnly || stateWord ? `${accessibleName}${stateWord ? `، ${stateWord}` : ''}` : undefined}
+      aria-label={shapeOnly || stateWord || !wording ? `${accessibleName}${stateWord ? `، ${stateWord}` : ''}` : undefined}
       aria-pressed={state === 'selected' ? true : undefined}
       disabled={disabled}
       {...rest}
     >
       <Glyph slot={slot} />
-      {!shapeOnly && <span className={styles.label}>{label}</span>}
+      {!shapeOnly && <span className={styles.label}><FormattedText text={label}/></span>}
       {stateWord && !shapeOnly && state !== 'selected' && state !== 'pending' && (
         <span className={styles.mark}>
           {state === 'correct' ? <Check size={16} aria-hidden="true"/> : <X size={16} aria-hidden="true"/>}

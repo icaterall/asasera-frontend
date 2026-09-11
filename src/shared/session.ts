@@ -29,9 +29,13 @@ export const publicQuestionSchema = z.object({
 })
 export type PublicQuestion = z.infer<typeof publicQuestionSchema>
 const standing = z.object({ participantId: z.string(), name: z.string(), score: z.number(), correctCount: z.number(), rank: z.number(), tied: z.boolean() })
+// v5 §19 "reveal + explanation": the explanation travels ONLY inside the reveal,
+// which the engine builds after the answer window closes. It is never part of
+// publicQuestionSchema or any pre-lock payload.
 export const revealSchema = z.object({
   qIndex: z.number(), correct: z.union([z.string(), z.boolean(), z.array(z.string()), z.record(z.string(), z.string())]),
   distribution: z.array(z.object({ key: z.string(), count: z.number() })), topScores: z.array(standing),
+  explanation: z.string().max(1000).nullable().optional(),
 })
 export type Reveal = z.infer<typeof revealSchema>
 export const snapshotSchema = z.object({
@@ -71,7 +75,14 @@ export const commandSchemas = {
 } as const
 export type CommandName = keyof typeof commandSchemas
 export type CommandInput<K extends CommandName> = z.input<(typeof commandSchemas)[K]>
-export type Reply = { ok: true; snapshot?: SessionSnapshot; resumeToken?: string; participantId?: string; projectorToken?: string; receivedAt?: number; serverNow?: number } | { ok: false; code: string; message: string }
+/**
+ * `persisted` on an answer acknowledgement is true only after the answer row
+ * committed to storage; false means "accepted in memory, written at question
+ * close" (v5 §19: the ACK states the persistence level honestly).
+ * `endReason` accompanies code 'session_interrupted' when a resume finds the
+ * run already ended in storage (for example after a process restart).
+ */
+export type Reply = { ok: true; snapshot?: SessionSnapshot; resumeToken?: string; participantId?: string; projectorToken?: string; receivedAt?: number; persisted?: boolean; persistedAt?: number; serverNow?: number } | { ok: false; code: string; message: string; endReason?: string | null }
 export type ClientEvents = { [K in CommandName]: (input: CommandInput<K>, ack: (reply: Reply) => void) => void }
 export interface ServerEvents {
   'session:snapshot': (snapshot: SessionSnapshot) => void

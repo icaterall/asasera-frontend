@@ -34,6 +34,6 @@ test('account and learner layouts in both directions, desktop and phone',async({
  const teacher=JSON.parse(readFileSync(`${state.directory}/teacher.json`,'utf8'))
  await page.request.post('/api/v1/auth/login',{data:{email:teacher.email,password:teacher.password}})
  await page.setViewportSize({width:1440,height:900});await page.goto(`/teacher/activities/${teacher.activityId}`)
- await expect(page.getByLabel('Question text',{exact:true})).toHaveValue('What is two plus two?')
+ await expect(page.getByLabel('Question text',{exact:true})).toHaveText('What is two plus two?')
  await capture(page,'teacher-editor-desktop-en-dark')
 })

@@ -5,6 +5,7 @@ import { initReactI18next } from 'react-i18next'
 import { DEFAULT_LANGUAGE, SUPPORTED_CODES, resolveLanguage } from './languages'
 import ar from './locales/ar'
 import en from './locales/en'
+import { en as adminAiEn, ar as adminAiAr } from './locales/adminAi'
 
 export const LANGUAGE_STORAGE_KEY = 'asasera.language'
 
@@ -13,8 +14,8 @@ void i18n
   .use(initReactI18next)
   .init({
     resources: {
-      en: { translation: en },
-      ar: { translation: ar },
+      en: { translation: en, adminAi: adminAiEn },
+      ar: { translation: ar, adminAi: adminAiAr },
     },
     fallbackLng: DEFAULT_LANGUAGE,
     supportedLngs: SUPPORTED_CODES,

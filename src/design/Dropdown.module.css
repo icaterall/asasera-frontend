@@ -10,7 +10,7 @@
 .chevron{flex:0 0 auto;color:var(--dropdown-muted);display:flex;align-items:center;transition:transform 140ms ease-out}
 .trigger[data-popup-open] .chevron{transform:rotate(180deg);color:var(--dropdown-accent)}
 .positioner{z-index:1600;isolation:isolate;max-width:calc(100vw - 24px);width:var(--anchor-width);min-width:min(200px,calc(100vw - 24px));outline:none}
-.popup{box-sizing:border-box;overflow:hidden;max-height:var(--available-height);border:0;border-radius:12px;background:var(--dropdown-bg);color:var(--dropdown-ink);box-shadow:var(--dropdown-shadow);font-family:"Montserrat",var(--font-arabic),sans-serif;font-size:16px;font-weight:500;line-height:1.5;text-align:start;transform-origin:var(--transform-origin);transition:opacity 140ms ease-out,transform 140ms cubic-bezier(.16,1,.3,1)}
+.popup{box-sizing:border-box;overflow:hidden;max-height:var(--available-height);border:0;border-radius:12px;background:var(--dropdown-bg);color:var(--dropdown-ink);box-shadow:var(--dropdown-shadow);font-family:"Montserrat",var(--font-arabic),sans-serif;font-size:15px;font-weight:500;line-height:1.5;text-align:start;transform-origin:var(--transform-origin);transition:opacity 140ms ease-out,transform 140ms cubic-bezier(.16,1,.3,1)}
 .popup[data-starting-style],.popup[data-ending-style]{opacity:0;transform:translateY(-4px)}
 .list{margin:0;padding:6px;list-style:none;max-height:min(320px,calc(var(--available-height) - 64px));overflow:auto;overscroll-behavior:contain;scroll-padding-block:6px;scrollbar-width:thin;scrollbar-color:var(--dropdown-line) transparent;outline:none}
 .item{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:44px;padding:10px 12px;border-radius:7px;cursor:pointer;outline:none;user-select:none;scroll-margin-block:6px}
@@ -45,3 +45,9 @@
 .chips button:hover{background:var(--dropdown-hover)}
 .chips button:disabled{opacity:.5;cursor:not-allowed}
 .chips button:focus-visible,.multiActions button:focus-visible{outline:2px solid var(--dropdown-accent);outline-offset:2px}
+.description { display:block; margin-block-start:3px; color:var(--muted,var(--dropdown-muted)); font-size:12.5px; font-weight:500; line-height:1.45; }
+.descriptiveItem { align-items:flex-start; padding:10px 12px; }
+.descriptiveItem strong { font-size:15px; font-weight:700; line-height:1.3; }
+.descriptiveItem .check { padding-block-start:4px; }
+
+.popup[data-descriptive=true] .list { max-height:min(440px,calc(var(--available-height) - 16px)); }

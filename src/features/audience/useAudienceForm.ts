@@ -18,9 +18,12 @@ export function useAudienceForm(initial?:AudienceSelection,onChange?:(value:Audi
   const latest=useRef<AudienceSelection>({categoryId,educationStageIds,countryIds})
   useLayoutEffect(()=>{latest.current={categoryId,educationStageIds,countryIds}},[categoryId,educationStageIds,countryIds])
   const changed=(patch:Partial<AudienceSelection>)=>{latest.current={...latest.current,...patch};onChange?.(latest.current)}
+  const ready=!!refs.data&&refs.data.categories.some(c=>c.id===categoryId)&&educationStageIds.length>0&&educationStageIds.every(id=>refs.data.stages.some(s=>s.id===id))
+  /* v5 §08: the audience is optional at creation. Nothing chosen is fine; a half-chosen audience is not. */
+  const empty=categoryId===null&&educationStageIds.length===0
   return {value:{categoryId,educationStageIds,countryIds},
     setCategoryId:(value:number|null)=>{setCategoryId(value);changed({categoryId:value})},
     setEducationStageIds:(value:number[])=>{setEducationStageIds(value);changed({educationStageIds:value})},
     setCountryIds:(value:number[])=>{setCountryChoice(value);changed({countryIds:value})},refs,countries,
-    ready:!!refs.data&&refs.data.categories.some(c=>c.id===categoryId)&&educationStageIds.length>0&&educationStageIds.every(id=>refs.data.stages.some(s=>s.id===id))}
+    ready,empty,optionalReady:empty||ready}
 }

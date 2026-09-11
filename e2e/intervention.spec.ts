@@ -19,7 +19,7 @@ test('a private teacher decision inserts an approved verification question and r
   await page.goto(`/teacher/live/new?activityId=${source.activity.id}&request=${crypto.randomUUID()}`)
   await expect(page.getByRole('button',{name:'ابدأ الحصة',exact:true})).toBeVisible()
   await selectOption(page.getByLabel('الصف',{exact:true}),String(group.class.id))
-  const pin=await page.locator('strong[dir=ltr]').innerText()
+  const pin=await page.locator('strong[dir=ltr]').first().innerText()
   const contexts=await Promise.all(Array.from({length:3},()=>browser.newContext({baseURL:new URL(page.url()).origin,viewport:{width:390,height:844}})))
   try{
     let leaked=false
@@ -29,8 +29,8 @@ test('a private teacher decision inserts an approved verification question and r
       await p.goto(`/join?pin=${pin}`);await p.getByLabel('اسمك في الحصة').fill(`مشارك ${index+1}`);await p.getByRole('button',{name:'انضم',exact:true}).click();await expect(p.getByText('أنت في الحصة. انتظر إشارة المعلّم.')).toBeVisible()
     }
     await page.getByRole('button',{name:'ابدأ الحصة',exact:true}).click()
-    for(const p of players){await p.getByRole('button',{name:'معيّن: ب',exact:true}).click();await expect(p.getByRole('heading',{name:'تم تسجيل إجابتك'})).toBeVisible()}
-    await page.getByRole('button',{name:'اقفل واكشف الإجابة',exact:true}).click()
+    for(const p of players){await p.getByRole('button',{name:'ب',exact:true}).click();await expect(p.getByRole('heading',{name:/تم (حفظ|تسجيل) إجابتك/})).toBeVisible()}
+    await page.getByRole('button',{name:'اكشف الإجابة',exact:true}).click()
     const card=page.locator('section[class*=intervention]');await expect(card).toContainText('PRIVATE_HYPOTHESIS');await expect(card.getByRole('button')).toHaveCount(2)
     const answerLayout=await page.locator('[class*="answers"] > button').evaluateAll(tiles=>tiles.map(tile=>{
       const label=tile.querySelector('span[class*="label"]')!,glyph=tile.querySelector(':scope > svg')!,mark=tile.querySelector('span[class*="mark"]')!
@@ -43,8 +43,8 @@ test('a private teacher decision inserts an approved verification question and r
     await page.screenshot({path:'../screenshots/v4/teacher-intervention.png',fullPage:true})
     await card.getByRole('button',{name:'عالج الآن',exact:true}).click()
     await expect(page.getByRole('heading',{name:'سؤال التحقق المعتمد',exact:true})).toBeVisible()
-    for(const p of players)await p.getByRole('button',{name:'مثلث: صح',exact:true}).click()
-    await page.getByRole('button',{name:'اقفل واكشف الإجابة',exact:true}).click();await page.getByRole('button',{name:'اعرض المنصة',exact:true}).click();await page.getByRole('button',{name:'أكمل الحصة',exact:true}).click()
+    for(const p of players)await p.getByRole('button',{name:'صح',exact:true}).click()
+    await page.getByRole('button',{name:'اكشف الإجابة',exact:true}).click();await page.getByRole('button',{name:'اعرض المنصة',exact:true}).click();await page.getByRole('button',{name:'أكمل الحصة',exact:true}).click()
     await expect(page.getByRole('heading',{name:'انتهت الحصة',exact:true})).toBeVisible()
     const runId=Number(new URL(page.url()).pathname.split('/').at(-1))
     const response=await page.request.get(`/api/v1/reports/runs/${runId}`,{headers});expect(response.ok(),await response.text()).toBe(true)

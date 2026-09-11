@@ -1,3 +1,4 @@
+import type { GenerationQuote } from '@/shared/generation'
 import type { LearningProfile } from '@/shared/student'
 /**
  * The one place the front end talks to the API.
@@ -136,6 +137,13 @@ type RequestOptions = {
    * user, so a 401 from it is an answer, not an expired token.
    */
   anonymous?: boolean
+  /**
+   * This call re-proves a credential the person typed just now (the password
+   * confirming an irreversible action). A 401 from such an endpoint is its
+   * verdict on THAT credential, not on the session that carried the request,
+   * so it must not end the session — see the 401 handling in `request`.
+   */
+  reauthentication?: boolean
   signal?: AbortSignal
 }
 
@@ -143,6 +151,21 @@ async function send(path: string, options: RequestOptions): Promise<Response> {
   const { method = 'GET', body, rawBody, rawContentType, anonymous = false, signal } = options
 
   const headers: Record<string, string> = { Accept: 'application/json' }
+  /*
+   * The language on screen, told to the server.
+   *
+   * The API negotiates every message, and the locale it stores on a new
+   * account, from `?lang=` or this header (backend `middleware/context.ts`).
+   * The front end sent neither, so the BROWSER's preference decided: a teacher
+   * who had chosen Arabic in the interface got an `en` account and an English
+   * verification email — in an Arabic-first product, on the very first screen.
+   *
+   * `document.documentElement.lang` is what `i18n/index.ts` writes on every
+   * language change, so it is always exactly what the person is reading. The
+   * guard keeps this working where there is no document (unit tests, SSR).
+   */
+  const language = typeof document === 'undefined' ? '' : document.documentElement.lang
+  if (language) headers['Accept-Language'] = language
   if (rawBody !== undefined) headers['Content-Type'] = rawContentType ?? 'application/octet-stream'
   else if (body !== undefined) headers['Content-Type'] = 'application/json'
   if (accessToken && !anonymous) headers.Authorization = `Bearer ${accessToken}`
@@ -193,13 +216,19 @@ async function doRefresh(): Promise<SessionResponse | null> {
       anonymous: true,
       signal: controller.signal,
     })
-    if (!response.ok) return null
+    // Only an explicit authentication rejection means the cookie is gone.
+    // Vite proxy failures and API restarts must not destroy a valid session.
+    if (response.status === 401) { setAccessToken(null); return null }
+    if (!response.ok) throw new ApiError(response.status, 'session_refresh_unavailable', 'Could not reconnect to the server. Please try again.')
     const payload = (await response.json()) as SessionResponse
+    if (!payload.user || typeof payload.accessToken !== 'string' || !payload.accessToken) {
+      throw new Error('Invalid session response')
+    }
     setAccessToken(payload.accessToken)
     return payload
-  } catch {
-    // Offline, DNS, a refused preflight. Not a valid session either way.
-    return null
+  } catch (error) {
+    if (error instanceof ApiError) throw error
+    throw new ApiError(0, 'session_refresh_unavailable', 'Could not reconnect to the server. Please try again.')
   } finally {
     clearTimeout(deadline)
   }
@@ -225,8 +254,27 @@ async function doRefresh(): Promise<SessionResponse | null> {
  * when it settles, so the next refresh after that starts fresh rather than
  * resolving against a stale answer.
  */
+async function coordinatedRefresh(): Promise<SessionResponse | null> {
+  if (typeof navigator === 'undefined' || !navigator.locks) return doRefresh()
+  let started = false
+  try {
+    return await navigator.locks.request('asasera-session-refresh', () => {
+      started = true
+      return doRefresh()
+    })
+  } catch (error) {
+    // Some privacy contexts expose Web Locks but deny their use. Fall back
+    // only if no request started, never retry an uncertain token rotation.
+    if (started) throw error
+    return doRefresh()
+  }
+}
+
 export function refreshSession(): Promise<SessionResponse | null> {
-  refreshInFlight ??= doRefresh().finally(() => {
+  // The promise deduplicates this tab/StrictMode. Web Locks also serialize
+  // other tabs and HMR module instances sharing the same httpOnly cookie.
+  // Each waiter sends its request only after the previous Set-Cookie completes.
+  refreshInFlight ??= coordinatedRefresh().finally(() => {
     refreshInFlight = null
   })
   return refreshInFlight
@@ -267,7 +315,9 @@ async function parse<T>(response: Response): Promise<T> {
  *
  * On a 401 from an authenticated call: refresh once, replay once. If the
  * replay also 401s, or the refresh itself failed, the session is over — the
- * token is cleared and the app is told to route to /login.
+ * token is cleared and the app is told to route to /login. The one exception
+ * is `reauthentication`, where the 401 is about the password in the body
+ * rather than the session, and the error belongs to the caller's form.
  *
  * The replay is issued with `retry: false`, so a second 401 cannot start a
  * second refresh. Together with the anonymous refresh call above, that is two
@@ -294,11 +344,20 @@ async function request<T>(
     throw new ApiError(0, 'network_error', 'Could not reach the server.')
   }
 
-  if (response.status === 401 && retry && !options.anonymous) {
-    if (await refreshSession()) return request<T>(path, options, false)
+  if (response.status === 401 && !options.anonymous) {
+    if (retry && await refreshSession()) return request<T>(path, options, false)
 
-    setAccessToken(null)
-    onSessionLost?.()
+    /*
+     * A re-authentication endpoint answers 401 about the password in THIS
+     * request body — the session that carried it is fine, and was just proven
+     * fine by the refresh above. Ending it here signs a person out for
+     * mistyping the password they were asked to confirm, and replaces the
+     * "Password is incorrect" message with the login screen.
+     */
+    if (!options.reauthentication) {
+      setAccessToken(null)
+      onSessionLost?.()
+    }
   }
 
   return parse<T>(response)
@@ -646,6 +705,7 @@ export type MaterialSegment = {
 }
 
 export type Material = {
+  contentLanguage?: 'ar' | 'en' | null
   id: number
   title: string
   courseId: number | null
@@ -657,9 +717,57 @@ export type Material = {
   extractionError: string | null
   pageCount: number | null
   originalFilename: string | null
+  /** v5 §12: the declared file type, and how many pages/slides the extractor could and could not read. */
+  mimeType?: string | null
+  readableSegments?: number | null
+  unreadableSegments?: number | null
+  extractionStartedAt?: string | null
   createdAt: string
   updatedAt: string
   segments?: MaterialSegment[]
+}
+
+/**
+ * Where a question came from (v5.1 C4). Returned beside each question of
+ * `GET /activities/:id`; absent for a hand-written question. `materialRevisionId`
+ * is null once the cited material was deleted — the citation stays as a record
+ * of origin, and the chip says the source is unavailable.
+ */
+export type QuestionProvenance = {
+  origin: 'file' | 'topic'
+  materialRevisionId: number | null
+  /** 1-based page (PDF), slide (PPTX) or section (DOCX / pasted text) numbers. */
+  segmentIndexes: number[]
+}
+
+/**
+ * One revision, summarised for a citation chip. Owner only: the server answers
+ * 404 for anyone else, including a teacher whose copied question carries the id.
+ * `locatorKind` is the vocabulary a citation uses — a DOCX has no genuine
+ * pagination, so its segments are sections and are never called pages.
+ */
+export type RevisionSummary = {
+  contentLanguage?: 'ar' | 'en' | null
+  id: number
+  materialId: number
+  title: string
+  sourceKind: 'pdf' | 'text' | 'docx' | 'pptx'
+  locatorKind: 'page' | 'slide' | 'section'
+  readableSegments: number
+  unreadableSegments: number
+  state: 'pending' | 'running' | 'ready' | 'failed'
+}
+
+/** Server-declared limits, shown at the point of use (v5 §12). */
+export type MaterialLimits = {
+  maxBytes: number
+  acceptedKinds: ('pdf' | 'docx' | 'pptx')[]
+  acceptedContentTypes: Record<string, string>
+  maxPastedChars: number
+  maxPages: number
+  maxSelectionChars: number
+  maxSegmentsPerGeneration: number
+  maxQuestionsPerGeneration: number
 }
 
 export type ActivityKind = 'explanation' | 'multiple_choice' | 'true_false'
@@ -765,14 +873,14 @@ export const teaching = {
   restoreCourse: (id: number) =>
     api.post<{ course: Course }>(`${TEACHING}/courses/${id}/restore`, {}),
 
-  materialLimits: () =>
-    api.get<{ maxBytes: number; acceptedKinds: string[]; maxPastedChars: number }>(
-      `${TEACHING}/materials/limits`,
-    ),
+  limits: () => api.get<MaterialLimits>(`${TEACHING}/materials/limits`),
 
-  materials: (params: { page?: number; courseId?: number } = {}) =>
+  materialLimits: () => api.get<MaterialLimits>(`${TEACHING}/materials/limits`),
+
+  materials: (params: { page?: number; limit?: number; courseId?: number } = {}) =>
     api.get<{ materials: Material[]; total: number }>(
       `${TEACHING}/materials?page=${params.page ?? 1}` +
+        (params.limit ? `&limit=${Math.min(params.limit, 50)}` : '') +
         (params.courseId ? `&course_id=${params.courseId}` : ''),
     ),
 
@@ -793,6 +901,20 @@ export const teaching = {
       `${TEACHING}/materials/pdf?${search.toString()}`,
       input.file,
       'application/pdf',
+    )
+  },
+
+  /**
+   * PDF, DOCX or PPTX as a raw body (v5 §12). The server validates the bytes
+   * against `contentType` and refuses anything it cannot actually read.
+   */
+  uploadFile: (title: string, filename: string, contentType: string, bytes: Blob, courseId?: number) => {
+    const search = new URLSearchParams({ title, filename })
+    if (courseId) search.set('course_id', String(courseId))
+    return api.postRaw<{ material: Material }>(
+      `${TEACHING}/materials/file?${search.toString()}`,
+      bytes,
+      contentType,
     )
   },
 
@@ -826,6 +948,11 @@ export const teaching = {
       reservedMillicents: number
       spendableMillicents: number
       welcomeGrantClaimed: boolean
+      allowanceMillicents: number
+      exposureMillicents: number
+      usableMillicents: number
+      providerCostMillicents: number
+      trialGrantMillicents: number
     }>(`${TEACHING}/wallet`),
 
   claimWelcomeGrant: () =>
@@ -900,6 +1027,10 @@ export const teaching = {
 
   segments: (revisionId: number) =>
     api.get<{ segments: MaterialSegment[] }>(`${TEACHING}/revisions/${revisionId}/segments`),
+
+  /** The revision behind a question's source chip (v5.1 C4). 404 unless the caller owns the material. */
+  revision: (revisionId: number) =>
+    api.get<{ revision: RevisionSummary }>(`${TEACHING}/revisions/${revisionId}`),
 
   /** The original file, for the source viewer. Authorized server-side. */
   revisionFileUrl: (revisionId: number) => `${TEACHING}/revisions/${revisionId}/file`,
@@ -989,6 +1120,8 @@ export type QuestionRecord = {
   mediaKey: string | null
   timeLimitS: number
   payload: unknown
+  /** Why the key is correct; shown to learners only after the answer window closes (v5 §14). */
+  explanation?: string | null
 }
 
 export type ErrorPairRecord = {
@@ -1067,6 +1200,12 @@ export const activities = {
   duplicateQuestion: (questionId: number) =>
     api.post<{ question: QuestionRecord }>(`${ACTIVITIES}/questions/${questionId}/duplicate`, {}),
 
+  /* v5.1 C3: a private draft copy of the teacher's own activity, from the live
+     draft or the approved snapshot. One `requestId` is one copy however many
+     times it is sent — 201 for the new copy, 200 when replayed. */
+  duplicate: (id: number, input: { source: 'draft' | 'approved'; requestId: string }) =>
+    api.post<{ activity: ActivityRecord }>(`${ACTIVITIES}/${id}/duplicate`, input),
+
   /* Ordered ids, never indices — §12 requires stable keys. */
   reorder: (activityId: number, order: number[]) =>
     api.put<{ questions: QuestionRecord[] }>(`${ACTIVITIES}/${activityId}/order`, { order }),
@@ -1082,4 +1221,160 @@ export const activities = {
 
   unpublish: (id: number) =>
     api.post<{ activity: ActivityRecord }>(`${ACTIVITIES}/${id}/unpublish`, {}),
+
+  /* v5 §18: approval (`publish`) and sharing to the library are separate acts.
+     Sharing needs a shelf — a purpose or a curriculum unit. */
+  share: (id: number) =>
+    api.post<{ activity: ActivityRecord }>(`${ACTIVITIES}/${id}/share`, {}),
+}
+
+/* ------------------------------------------------------------------ *
+ * Reports, exports and follow-up practice (v5 §21)
+ * ------------------------------------------------------------------ */
+
+const REPORTS = `${API_PREFIX}/reports`
+
+export type ReportDistributionEntry = { key: string; count: number; label: string; isCorrect: boolean }
+export type ReportQuestion = {
+  index: number
+  questionId: number
+  kind: QuestionKindWire | null
+  prompt: string
+  explanation: string | null
+  remedial: boolean
+  correctKey: string | null
+  correctLabel: string | null
+  /* Observed answers. Invariant: correct + incorrect === answered. */
+  answered: number
+  correct: number
+  incorrect: number
+  /** Rounded 0–100; null when answered === 0 (render "unavailable", never "0%"). */
+  correctPercent: number | null
+  /*
+   * Understanding — a conservative heuristic from observed answers ONLY (v5.1 C5):
+   * `observed` needs at least two answers; `needsReview` is true when fewer than
+   * half of them were correct. Zero or one answer is `insufficient`: no claim.
+   * Never a judgement of a learner, and never fed by who has not answered.
+   */
+  evidence: 'insufficient' | 'observed'
+  needsReview: boolean
+  /*
+   * Participation — separate from understanding. `notAnswered` is everyone who
+   * joined minus everyone with an answer row for this question; while the run is
+   * open, `notYetAnswered` are attempts still in progress, `unanswered` are rows
+   * that finished (or any row once the run is closed). Denominator: participantCount.
+   */
+  participation: { notAnswered: number; notYetAnswered: number; unanswered: number }
+  distribution: ReportDistributionEntry[]
+}
+export type ReportParticipant = {
+  id: string
+  name: string
+  score: number
+  gamePoints?: number
+  correctCount: number
+  answered: number
+  incorrect: number
+  unanswered: number
+  connected: boolean
+  /** Homework/study: not_started | in_progress | submitted | expired (closed without submitting). Live: participated | disconnected | unanswered. */
+  status: string
+  submittedAt: string | null
+  remedialAnswered: number
+  remedialCorrect: number
+  originalCorrect: number
+}
+export type ReportFollowUp = {
+  id: number
+  practiceActivityId: number
+  title: string
+  approved: boolean
+  runs: number
+  generationJobId: number | null
+  targetQuestionIds: number[]
+  createdAt: string
+}
+export type HostReportRecord = {
+  runId: number
+  title: string
+  mode: string
+  gameMode?: string
+  endReason: string | null
+  open: boolean
+  deadline: string | null
+  questionCount: number
+  plannedQuestionCount: number
+  participantCount: number
+  denominator: 'participants' | 'attempts'
+  /** Participation summary over `participants` (attempt statuses are 0 for a live run). */
+  participation: { total: number; incomplete: number; submitted: number; inProgress: number; notStarted: number; expired: number }
+  participants: ReportParticipant[]
+  questions: ReportQuestion[]
+  pattern: { count: number; reason: string; questionId: number } | null
+  followUps: ReportFollowUp[]
+  followUpOf: { runId: number; sharedParticipants: number; totalParticipants: number } | null
+  closing: { kind: 'review_pattern' | 'participation_gap' | 'completed_review'; count?: number; reason?: string }
+  evidenceNote: string
+}
+/** The generation draft the editor consumes from `?generate=1&draft=<base64url JSON>`. */
+export type PracticeDraft = {
+  activityId: number
+  task: 'questions'
+  origin: 'file'
+  objective: string
+  language: 'ar' | 'en'
+  count: number
+  kinds: string[]
+  difficulty: 'easy' | 'medium' | 'hard'
+  materialRevisionId: number | null
+  segments: number[]
+  questionId: number | null
+  expectedRevision: number
+  sourceRunId: number | null
+}
+export type PracticeQuote = GenerationQuote
+export type PracticeResponse = {
+  practiceActivityId: number
+  followUpId: number
+  title: string
+  draft: PracticeDraft
+  quote: PracticeQuote
+  reusable: { sourceQuestionId: number; targetQuestionId: number; targetVersionId: number; prompt: string }[]
+}
+
+/** base64url without padding, safe inside a query string. */
+export function encodeDraft(draft: PracticeDraft): string {
+  const bytes = new TextEncoder().encode(JSON.stringify(draft))
+  let binary = ''
+  for (const byte of bytes) binary += String.fromCharCode(byte)
+  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
+}
+
+export const reports = {
+  run: (runId: number) => api.get<HostReportRecord>(`${REPORTS}/runs/${runId}`),
+
+  practice: (runId: number, input: { questionIds: number[]; count?: number; language?: 'ar' | 'en'; provider?: 'auto' | 'openai' | 'gemini' }) =>
+    api.post<PracticeResponse>(`${REPORTS}/runs/${runId}/practice`, input),
+
+  /*
+   * A file, not JSON: fetched with the Bearer token and handed back as a Blob
+   * for a temporary <a download>. The server names the file in
+   * Content-Disposition (ASCII fallback plus RFC 5987 UTF-8 title).
+   */
+  download: async (runId: number, format: 'xlsx' | 'csv'): Promise<{ blob: Blob; filename: string }> => {
+    const headers: Record<string, string> = {}
+    if (accessToken) headers.Authorization = `Bearer ${accessToken}`
+    const response = await fetch(`${BASE}${REPORTS}/runs/${runId}/export.${format}?sheet=all`, { headers, credentials: 'include' })
+    if (!response.ok) {
+      const payload = (await response.json().catch(() => null)) as { error?: { code?: string; message?: string } } | null
+      throw new ApiError(response.status, payload?.error?.code ?? 'http_error', payload?.error?.message ?? `Request failed (${response.status}).`)
+    }
+    const disposition = response.headers.get('content-disposition') ?? ''
+    const utf8 = /filename\*=UTF-8''([^;]+)/i.exec(disposition)?.[1]
+    const ascii = /filename="([^"]+)"/i.exec(disposition)?.[1]
+    let filename = `run-${runId}.${format}`
+    if (utf8) { try { filename = decodeURIComponent(utf8) } catch { filename = ascii ?? filename } }
+    else if (ascii) filename = ascii
+    return { blob: await response.blob(), filename }
+  },
 }

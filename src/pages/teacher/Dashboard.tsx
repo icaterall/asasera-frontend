@@ -105,18 +105,19 @@ export default function TeacherDashboard() {
               {t('teacher.hero.body')}
             </p>
             <div className="mt-4 flex flex-wrap gap-3">
-              {/* The real creation journey now, not a guide. */}
+              {/* The v5 workflow: a quiz generated from the teacher's own material.
+                  The legacy lesson builder stays reachable from the cards below. */}
               <Link
-                to="/teacher/lessons/new"
+                to="/teacher/activities/new"
                 className="rounded-sm bg-white px-5 py-2.5 text-sm font-bold text-brand-600 focus-visible:outline-3 focus-visible:outline-white focus-visible:outline-offset-2"
               >
-                {t('teaching.lessons.newLesson')}
+                {t('teacher.hero.createQuiz')}
               </Link>
               <Link
-                to="/teacher/lessons"
+                to="/teacher/materials"
                 className="rounded-sm border border-white/45 px-5 py-2.5 text-sm font-bold text-white hover:bg-white/10 focus-visible:outline-3 focus-visible:outline-white focus-visible:outline-offset-2"
               >
-                {t('teaching.nav.lessons')}
+                {t('teacher.hero.uploadMaterial')}
               </Link>
             </div>
           </div>

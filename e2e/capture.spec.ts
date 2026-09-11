@@ -54,8 +54,8 @@ test('capture editor-authored-1440.png', async ({ page }) => {
   await page.goto(`/teacher/activities/${id}`)
   await page.getByRole('button', { name: 'أضف سؤالًا' }).first().click()
   await page.getByLabel('نص السؤال').fill('ما عاصمة فرنسا؟')
-  for (const [slot, answer] of [['مثلث', 'باريس'], ['معيّن', 'لندن'], ['دائرة', 'برلين'], ['مربع', 'مدريد']]) {
-    await page.getByLabel(`نص الخيار ${slot}`).fill(answer!)
+  for (const [slot, answer] of ['باريس', 'لندن', 'برلين', 'مدريد'].entries()) {
+    await page.getByLabel(`نص الإجابة ${slot + 1}`).fill(answer)
   }
   await expect(page.getByText('محفوظ', { exact: true })).toBeVisible({ timeout: 15_000 })
 

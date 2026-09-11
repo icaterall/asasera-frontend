@@ -1,10 +1,14 @@
+import {execFileSync} from 'node:child_process'
+import {randomUUID} from 'node:crypto'
+import {readFileSync,unlinkSync} from 'node:fs'
+import path from 'node:path'
 import {localTeacher} from './local-fixture'
 import { expect, test, type Page } from '@playwright/test'
 
 /**
  * W03 acceptance, in a browser — §16 p26:
  *   «معلّم يؤلّف نشاطًا من خمسة أسئلة وينشره دون فتح لوحة الخصائص.»
- *   A teacher authors a five-question activity and publishes it WITHOUT
+ *   A teacher authors a five-question activity and approves it WITHOUT
  *   opening the properties panel.
  *
  * The "without" is the point, so this test never touches region 4. If a
@@ -83,9 +87,8 @@ test.describe('the four-region editor', () => {
 
       await page.getByLabel('نص السؤال').fill(question.prompt)
 
-      const slots = ['مثلث', 'معيّن', 'دائرة', 'مربع']
       for (const [slot, answer] of question.answers.entries()) {
-        await page.getByLabel(`نص الخيار ${slots[slot]}`).fill(answer)
+        await page.getByLabel(`نص الإجابة ${slot + 1}`).fill(answer)
       }
 
     }
@@ -102,21 +105,25 @@ test.describe('the four-region editor', () => {
      * `mcq`, all 20 seconds, none of it ever supplied by this test.
      */
     const propertiesRail = page.getByLabel('خصائص السؤال')
-    await expect(propertiesRail.getByLabel('نوع السؤال',{exact:true})).toHaveValue('mcq')
+    /* The type control is the design-system Select (a combobox), which exposes its value as data-select-value. */
+    await expect(propertiesRail.getByLabel('نوع السؤال',{exact:true}).first()).toHaveAttribute('data-question-kind','mcq')
     await expect(propertiesRail.getByLabel('مدة السؤال بالثواني')).toHaveValue('20')
 
-    await page.getByRole('button', { name: 'انشر' }).click()
+    await page.getByRole('button', { name: 'اعتماد النسخة' }).click()
 
-    await expect(page.getByRole('button', { name: 'إعادة النشر' })).toBeVisible({ timeout: 15_000 })
+    await expect(page.getByRole('button', { name: 'اعتماد التغييرات' })).toBeVisible({ timeout: 15_000 })
+    await expect(page.getByRole('button', { name: 'ابدأ حصة مباشرة' })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'كلّف كواجب' })).toBeVisible()
     await expect(page.getByRole('alert')).toHaveCount(0)
 
-    /* And the server agrees — five questions, published, version 1. */
+    /* And the server agrees — five questions, an approved version, still private (v5 §18). */
     const check = await page.request.get(`${API}/activities/${activityId}`, {
       headers: { authorization: `Bearer ${accessToken}` },
     })
     const body = await check.json()
     expect(body.questions).toHaveLength(5)
-    expect(body.activity.visibility).toBe('published')
+    expect(body.activity.currentVersionId).not.toBeNull()
+    expect(body.activity.visibility).toBe('private')
     expect(body.questions.every((q: { timeLimitS: number }) => q.timeLimitS === 20)).toBeTruthy()
   })
 
@@ -129,13 +136,13 @@ test.describe('the four-region editor', () => {
 
     await page.getByRole('button', { name: 'أضف سؤالًا' }).first().click()
     await page.getByLabel('نص السؤال').fill('ما عاصمة فرنسا؟')
-    await page.getByLabel('نص الخيار مثلث').fill('باريس')
-    await page.getByLabel('نص الخيار معيّن').fill('لندن')
-    await page.getByLabel('نص الخيار دائرة').fill('برلين')
+    await page.getByLabel('نص الإجابة 1').fill('باريس')
+    await page.getByLabel('نص الإجابة 2').fill('لندن')
+    await page.getByLabel('نص الإجابة 3').fill('برلين')
     // The fourth answer is deliberately empty.
-    await expect(page.getByLabel('نص الخيار مربع')).toHaveValue('')
+    await expect(page.getByLabel('نص الإجابة 4')).toHaveValue('')
 
-    await page.getByRole('button', { name: 'انشر' }).click()
+    await page.getByRole('button', { name: 'اعتماد النسخة' }).click()
 
     const alert = page.getByRole('alert').first()
     await expect(alert).toBeVisible({ timeout: 15_000 })
@@ -143,7 +150,7 @@ test.describe('the four-region editor', () => {
     await expect(alert).toContainText('opt_d')
 
     // Still a draft.
-    await expect(page.getByRole('button', { name: 'انشر' })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'اعتماد النسخة' })).toBeVisible()
   })
 
   test('the save indicator reaches "saved" only after the server confirms', async ({ page }) => {
@@ -210,5 +217,164 @@ test.describe('the four-region editor', () => {
       headers: { authorization: `Bearer ${accessToken}` },
     })
     expect((await check.json()).questions[0].prompt).toBe('نص لا يجب أن يُفقد')
+  })
+})
+
+/* ---- v5.1 C4: the per-question source chip ------------------------------ */
+
+type CitedQuestion = { id: number; revisionId?: number; segments?: number[]; title?: string }
+type ProvenanceFixture = {
+  email: string; password: string; activityId: number
+  questions: { pdf: CitedQuestion; pptx: CitedQuestion; docx: CitedQuestion; topic: CitedQuestion; manual: CitedQuestion; unavailable: CitedQuestion }
+}
+
+/**
+ * Seeds a teacher whose activity carries one question per kind of citation:
+ * a PDF's pages, a PPTX slide, a DOCX section, a topic, a hand-written
+ * question, and one whose material was deleted after the citation was made.
+ *
+ * Seeded through the backend's own script — same shape as `local-fixture.ts`,
+ * kept here because this scenario needs the materials as well as the account.
+ */
+function seedProvenance(): ProvenanceFixture {
+  const file = `/tmp/asasera-browser-${randomUUID()}.json`
+  const backend = path.resolve(import.meta.dirname, '../../asasera-backend')
+  try {
+    execFileSync(process.execPath, ['--disable-warning=ExperimentalWarning', 'scripts/v4/seed-provenance-browser.ts', file], {
+      cwd: backend,
+      env: { ...process.env, NODE_ENV: 'test', PG_HOST: '127.0.0.1', PG_PORT: '55432', PG_DATABASE: process.env.E2E_PG_DATABASE ?? 'asasera', PG_USER: 'postgres', PG_PASSWORD: 'postgres', PG_SSL: 'disable' },
+      stdio: 'pipe',
+    })
+    return JSON.parse(readFileSync(file, 'utf8'))
+  } finally { try { unlinkSync(file) } catch { /* the script may have failed before writing */ } }
+}
+
+async function signIn(page: Page, email: string, password: string) {
+  const login = await page.request.post(`${API}/auth/login`, { data: { email, password } })
+  expect(login.ok(), `login failed: ${login.status()} ${await login.text()}`).toBeTruthy()
+  return (await login.json()).accessToken as string
+}
+
+test.describe('a question says where it came from', () => {
+  /* The rail order is the seeding order: PDF, PPTX, DOCX, topic, manual, deleted. */
+  const ORDER = ['pdf', 'pptx', 'docx', 'topic', 'manual', 'unavailable'] as const
+  const chip = (page: Page) => page.locator('[data-source-chip]')
+  const select = async (page: Page, kind: (typeof ORDER)[number]) => {
+    await page.locator('[data-question-thumb]').nth(ORDER.indexOf(kind)).click()
+  }
+
+  test('each citation is labelled in the vocabulary its source actually has', async ({ page }) => {
+    const fixture = seedProvenance()
+    await signIn(page, fixture.email, fixture.password)
+
+    await page.goto(`/teacher/activities/${fixture.activityId}`)
+    await expect(page.locator('[data-question-thumb]')).toHaveCount(6, { timeout: 15_000 })
+
+    /* A PDF cites pages, and both cited pages are named. */
+    await select(page, 'pdf')
+    await expect(chip(page)).toHaveAttribute('data-source-chip', 'file', { timeout: 15_000 })
+    await expect(chip(page)).toContainText('صفحة 1، 2')
+    await expect(chip(page)).toContainText(fixture.questions.pdf.title!)
+    /* A real button, named for a screen reader, and reachable from the keyboard. */
+    await expect(chip(page)).toHaveRole('button')
+    await expect(chip(page)).toHaveAttribute('aria-label', new RegExp(`^المصدر: صفحة 1، 2`))
+    await chip(page).focus()
+    await expect(chip(page)).toBeFocused()
+
+    /* A presentation cites slides. */
+    await select(page, 'pptx')
+    await expect(chip(page)).toContainText('شريحة 2', { timeout: 15_000 })
+    await expect(chip(page)).toContainText('Water cycle')
+
+    /*
+     * A DOCX has no genuine pagination, so its citation is a SECTION. This is
+     * the assertion the whole locator vocabulary exists for: calling a Word
+     * document's block "page 3" would be a number the teacher cannot find.
+     */
+    await select(page, 'docx')
+    await expect(chip(page)).toContainText('مقطع', { timeout: 15_000 })
+    await expect(chip(page)).not.toContainText('صفحة')
+
+    /* No file behind it — a topic, not a citation. */
+    await select(page, 'topic')
+    await expect(chip(page)).toHaveAttribute('data-source-chip', 'topic', { timeout: 15_000 })
+    await expect(chip(page)).toContainText('موضوع')
+
+    /* Nothing recorded at all: written by hand. A hand-written question says
+       nothing rather than wearing a label that names no source and opens
+       nothing — so the absence of a chip is the assertion. */
+    await select(page, 'manual')
+    await expect(chip(page)).toHaveCount(0, { timeout: 15_000 })
+
+    /* The material is gone; the citation stays, and says so honestly. */
+    await select(page, 'unavailable')
+    await expect(chip(page)).toHaveAttribute('data-source-chip', 'unavailable', { timeout: 15_000 })
+    await expect(chip(page)).toContainText('المصدر غير متاح')
+
+    /* Nowhere does the editor claim the question was CHECKED against its source. */
+    await expect(page.getByText(/AI verified|تحقّق الذكاء|مُتحقَّق/)).toHaveCount(0)
+  })
+
+  test('the chip opens the cited page, and the citation survives a reload, an edit and approval', async ({ page }) => {
+    const fixture = seedProvenance()
+    const accessToken = await signIn(page, fixture.email, fixture.password)
+
+    /* What the server says pages 1 and 2 of that PDF hold — the panel must show THAT text. */
+    const segments = await page.request.get(`${API}/teaching/revisions/${fixture.questions.pdf.revisionId}/segments`, {
+      headers: { authorization: `Bearer ${accessToken}` },
+    })
+    expect(segments.ok(), `segments: ${segments.status()}`).toBeTruthy()
+    const cited: { segmentIndex: number; text: string }[] = (await segments.json()).segments
+      .filter((s: { segmentIndex: number }) => fixture.questions.pdf.segments!.includes(s.segmentIndex))
+    expect(cited.length).toBe(2)
+
+    await page.goto(`/teacher/activities/${fixture.activityId}`)
+    await expect(page.locator('[data-question-thumb]')).toHaveCount(6, { timeout: 15_000 })
+    await select(page, 'pdf')
+    await expect(chip(page)).toContainText('صفحة 1، 2', { timeout: 15_000 })
+
+    /* Closed until asked. */
+    await expect(page.locator('[data-source-panel]')).toHaveCount(0)
+    await expect(chip(page)).toHaveAttribute('aria-expanded', 'false')
+
+    await chip(page).click()
+    const panel = page.locator('[data-source-panel]')
+    await expect(panel).toBeVisible({ timeout: 15_000 })
+    await expect(chip(page)).toHaveAttribute('aria-expanded', 'true')
+    /* The right pages, named, with the text the server holds for them. */
+    await expect(panel).toContainText('صفحة 1')
+    await expect(panel).toContainText('صفحة 2')
+    for (const segment of cited) {
+      const sample = segment.text.trim().split(/\s+/).slice(0, 6).join(' ')
+      if (sample.length > 8) await expect(panel).toContainText(sample)
+    }
+    /* And it says what a citation is — origin, never a verdict on the answer. */
+    await expect(panel).toContainText('تسجّل الإشارة أصل السؤال فقط')
+
+    /* Closing returns focus to the chip, so the keyboard is never stranded. */
+    await panel.getByRole('button', { name: 'أغلق المصدر' }).click()
+    await expect(panel).toHaveCount(0)
+    await expect(chip(page)).toBeFocused()
+
+    /* Reload: the citation is stored, not a rendering accident. */
+    await page.reload()
+    await expect(page.locator('[data-question-thumb]')).toHaveCount(6, { timeout: 15_000 })
+    await select(page, 'pdf')
+    await expect(chip(page)).toContainText('صفحة 1، 2', { timeout: 15_000 })
+
+    /* Editing the question does not erase where it came from. */
+    await page.getByLabel('نص السؤال').fill('ما الغاز الذي يمتصه النبات أثناء البناء الضوئي؟ (مُراجَع)')
+    await expect(page.getByText('محفوظ', { exact: true })).toBeVisible({ timeout: 15_000 })
+    await expect(chip(page)).toContainText('صفحة 1، 2')
+
+    /* Nor does approving the activity. */
+    await page.getByRole('button', { name: 'اعتماد النسخة' }).click()
+    await expect(page.getByRole('button', { name: 'اعتماد التغييرات' })).toBeVisible({ timeout: 20_000 })
+    await expect(chip(page)).toContainText('صفحة 1، 2')
+
+    /* The server agrees the citation is still attached to the edited question. */
+    const check = await page.request.get(`${API}/activities/${fixture.activityId}`, { headers: { authorization: `Bearer ${accessToken}` } })
+    const question = (await check.json()).questions.find((q: { id: number }) => q.id === fixture.questions.pdf.id)
+    expect(question.provenance).toEqual({ origin: 'file', materialRevisionId: fixture.questions.pdf.revisionId, segmentIndexes: [1, 2] })
   })
 })

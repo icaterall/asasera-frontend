@@ -6,10 +6,14 @@ import { Logo } from '@/components/ui/Logo'
 const linkClass = 'teacher-nav-item rounded-sm'
 export function TeacherSidebarNav({ onNavigate }: { onNavigate?: () => void }) {
   const { t, i18n } = useTranslation(), ar = i18n.language.startsWith('ar'), { pathname } = useLocation()
+  /* The v5 workflow puts the teacher's own work first: activities and
+     materials. Discovery, feedback, the wheel and the legacy lesson/course
+     tools stay reachable under "More" rather than competing with them. */
   const resources = [
+    { to: '/teacher/discover', Icon: Compass, label: ar ? 'استكشاف الأنشطة' : 'Explore activities' },
+    { to: '/teacher/feedback', Icon: MessageSquare, label: ar ? 'الملاحظات والأفكار' : 'Feedback & ideas' },
     { to: '/teacher/wheel', Icon: Disc3, label: ar ? 'العجلة العشوائية' : 'Random wheel' },
     { to: '/teacher/lessons', Icon: BookOpen, label: t('teaching.nav.lessons') },
-    { to: '/teacher/materials', Icon: FileText, label: t('teaching.nav.materials') },
     { to: '/teacher/courses', Icon: GraduationCap, label: t('teaching.nav.courses') },
     { to: '/teacher/tools', Icon: Layers, label: ar ? 'كل الأدوات' : 'All tools' },
   ]
@@ -17,12 +21,11 @@ export function TeacherSidebarNav({ onNavigate }: { onNavigate?: () => void }) {
   return <nav aria-label={t('teacher.nav.label')} className="flex flex-col gap-1 p-3">
     <NavLink to="/teacher/dashboard" end className={linkClass} onClick={onNavigate}><House size={20} aria-hidden="true" />{t('teacher.nav.home')}</NavLink>
     <NavLink to="/teacher/activities" className={linkClass} onClick={onNavigate}><Layers size={20} aria-hidden="true" />{ar ? 'أنشطتي' : 'My activities'}</NavLink>
-    <NavLink to="/teacher/discover" className={linkClass} onClick={onNavigate}><Compass size={20} aria-hidden="true" />{ar ? 'استكشاف الأنشطة' : 'Explore activities'}</NavLink>
+    <NavLink to="/teacher/materials" className={linkClass} onClick={onNavigate}><FileText size={20} aria-hidden="true" />{ar ? 'موادي' : 'My materials'}</NavLink>
     <NavLink to="/teacher/assignments" className={linkClass} onClick={onNavigate}><BookOpen size={20} aria-hidden="true" />{ar ? 'الواجبات والتعلّم الذاتي' : 'Homework & study'}</NavLink>
     <NavLink to="/teacher/reports" className={linkClass} onClick={onNavigate}><ChartNoAxesCombined size={20} aria-hidden="true" />{ar ? 'تقارير الحصص' : 'Class reports'}</NavLink>
-    <NavLink to="/teacher/feedback" className={linkClass} onClick={onNavigate}><MessageSquare size={20} aria-hidden="true" />{ar ? 'الملاحظات والأفكار' : 'Feedback & ideas'}</NavLink>
     <details className="teacher-resource-nav mt-4 border-t border-line pt-3" key={resourceActive ? 'active' : 'other'} open={resourceActive || undefined}>
-      <summary className="cursor-pointer rounded-sm px-3 py-3 text-sm font-semibold text-muted focus-visible:outline-3 focus-visible:outline-accent">{ar ? 'الأدوات والموارد' : 'Tools & resources'}</summary>
+      <summary className="cursor-pointer rounded-sm px-3 py-3 text-sm font-semibold text-muted focus-visible:outline-3 focus-visible:outline-accent">{ar ? 'المزيد' : 'More'}</summary>
       <div className="flex flex-col gap-1 pt-1">{resources.map(({ to, Icon, label }) => <NavLink to={to} key={to} className={linkClass} onClick={onNavigate}><Icon size={20} aria-hidden="true" />{label}</NavLink>)}</div>
     </details>
     <NavLink to="/teacher/guides" className={`${linkClass} mt-4`} onClick={onNavigate}><LifeBuoy size={20} aria-hidden="true" />{ar ? 'المساعدة والأدلة' : 'Help & guides'}</NavLink>

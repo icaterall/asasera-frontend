@@ -2,6 +2,22 @@ import {execFileSync} from 'node:child_process'
 import {readFileSync,unlinkSync} from 'node:fs'
 import {randomUUID} from 'node:crypto'
 import path from 'node:path'
+/**
+ * Refuse to run against anything but a throwaway stack.
+ *
+ * Specs that seed accounts and delete rows must never touch a real database or
+ * the shared development stack a person is using. What matters is the isolation,
+ * not one particular port: the isolated stack moves between releases, so the
+ * guard checks the two properties that actually protect the data — a database
+ * whose name says it is a test database, and a loopback API that is not the
+ * shared dev server on 5173.
+ */
+export function isolatedStackOnly(){
+ const base=process.env.PW_BASE_URL??''
+ if(!process.env.E2E_PG_DATABASE?.includes('test'))throw Error('Set E2E_PG_DATABASE to an isolated test database')
+ if(!/^https?:\/\/127\.0\.0\.1:\d+\/?$/.test(base)||/:5173\/?$/.test(base))throw Error(`Set PW_BASE_URL to an isolated loopback stack, not the shared dev server (got ${base||'nothing'})`)
+}
+
 /** Seed directly in the local development DB with outbound integrations disabled. */
 export function localTeacher():{owner:number;email:string;password:string}{return seedLocal('seed-browser-account.ts')}
 export function localShelf():{owner:number;email:string;password:string;activities:{id:number;title:string}[];emptyLevel:number}{return seedLocal('seed-shelf-browser.ts')}

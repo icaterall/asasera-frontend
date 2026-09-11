@@ -49,8 +49,15 @@
 .stage[data-player=true] .clock{grid-column:2}
 .stage[data-player=true] .input{flex:1}
 .stage[data-player=true] [data-answer-grid]{flex:1}
-.stage[data-player=true]:not([data-revealing=true]) [data-answer-tile]{aspect-ratio:auto;min-height:150px!important}
-.stage[data-player=true]:not([data-revealing=true]) [data-answer-tile]>svg{width:clamp(48px,12vw,100px);height:clamp(48px,12vw,100px)}
+/* Player phone, projector-only (shape) layout: big glyph, wording on the front screen. */
+.stage[data-player=true]:not([data-revealing=true]) [data-layout=shape] [data-answer-tile]{aspect-ratio:auto;min-height:150px!important}
+.stage[data-player=true]:not([data-revealing=true]) [data-layout=shape] [data-answer-tile]>svg{width:clamp(48px,12vw,100px);height:clamp(48px,12vw,100px)}
+/* Player phone, default text layout (v5 §07): option text beside the colour+shape glyph.
+   Text wraps (never clips), ≥18px for Arabic, glyph keeps a fixed size, logical alignment for RTL. */
+.stage[data-player=true] .input [data-question-media]{max-height:22svh}
+.stage[data-player=true]:not([data-revealing=true]) [data-layout=text] [data-answer-tile]{aspect-ratio:auto;min-height:clamp(72px,11svh,120px)!important;padding:14px 16px!important;gap:12px;font-size:clamp(18px,4.5vw,26px);line-height:1.4;text-align:start;justify-content:flex-start}
+.stage[data-player=true]:not([data-revealing=true]) [data-layout=text] [data-answer-tile]>svg{width:clamp(28px,7vw,40px);height:clamp(28px,7vw,40px);flex-shrink:0}
+.stage[data-player=true] [data-layout=text] [data-answer-tile]>span{min-width:0;overflow-wrap:anywhere;white-space:normal}
 .stage[data-player=true]:has(.waiting) .arena{flex:1}
 @media(min-width:1000px){.stage[data-choice=true]:not([data-revealing=true]):has([data-question-media]) .arena{flex:0}.stage[data-choice=true]:has([data-question-media]) .input{flex:1;justify-content:space-between}}
 @media(max-width:800px){
@@ -63,7 +70,11 @@
 @media(max-width:480px){
   .stage{gap:12px}.prompt{font-size:25px;padding:16px}.round{font-size:12px}.arena{grid-template-columns:80px minmax(0,1fr) 72px;gap:8px}.clock [role=timer]{width:72px;height:72px}.stageStatus{font-size:14px}.stageStatus span{padding:8px;line-height:1.5}
   .input [data-answer-tile]{font-size:20px;padding:16px 12px!important;gap:8px;min-height:118px!important}.input [data-answer-tile]>svg{width:24px;height:24px}.input [data-answer-grid]{gap:8px}.stage[data-player=true] .arena{grid-template-columns:minmax(0,1fr) 72px;gap:12px}.stage[data-player=true] .prompt{font-size:24px}
-  .stage[data-player=true]:has(.waiting) .arena{grid-template-columns:1fr}.stage[data-player=true]:has(.waiting) .clock{grid-column:1;justify-self:center;grid-row:1}.results{padding:16px}.resultRow{grid-template-columns:minmax(0,1.3fr) minmax(30px,1fr) 3ch;gap:10px}.resultTrack{height:18px}
+  .stage[data-player=true]:has(.waiting) .arena{grid-template-columns:1fr}.stage[data-player=true]:has(.waiting) .clock{grid-column:1;justify-self:center;grid-row:1}.results{padding:16px}
+  /* ~360px phone: four text tiles stack in one column; each row is a ≥64px touch target that grows with the free height. */
+  .stage[data-player=true]:not([data-revealing=true]) [data-layout=text]{grid-template-columns:minmax(0,1fr);grid-auto-rows:minmax(64px,1fr);gap:8px}
+  .stage[data-player=true]:not([data-revealing=true]) [data-layout=text] [data-answer-tile]{min-height:64px!important;padding:12px 14px!important;gap:10px;font-size:18px}
+  .stage[data-player=true]:not([data-revealing=true]) [data-layout=text] [data-answer-tile]>svg{width:28px;height:28px}.resultRow{grid-template-columns:minmax(0,1.3fr) minmax(30px,1fr) 3ch;gap:10px}.resultTrack{height:18px}
 }
 @media(max-height:600px) and (min-width:801px){.stage{gap:10px}.prompt{font-size:28px;padding:14px 24px}.arena{min-height:72px;gap:16px}.responseCount{padding:6px}.responseCount>svg{display:none}.clock [role=timer]{width:72px;height:72px}.clock [role=timer] strong{font-size:32px}.input [data-answer-tile]{min-height:84px!important;font-size:24px;padding:16px!important}}
 @media(prefers-reduced-motion:reduce){.stage *{animation:none!important;transition:none!important}}

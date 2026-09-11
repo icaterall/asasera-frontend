@@ -2,11 +2,12 @@ import {useState} from 'react'
 import {useAuth} from '@/hooks/useAuth'
 import {useSessionDraft} from '@/features/editor/useSessionDraft'
 import {audienceDraftSchema,draftKey,readDraft} from '@/features/editor/session-drafts'
-import {ChevronDown,Users} from 'lucide-react'
+import {Pencil,Users} from 'lucide-react'
 import {useTranslation} from 'react-i18next'
 import {Button} from '@/design'
 import type {ActivityRecord,AudienceSelection} from '@/lib/api'
 import {AudienceFields} from './AudienceFields'
+import {AudienceSummary} from './AudienceSummary'
 import {useAudienceForm} from './useAudienceForm'
 import styles from './Audience.module.css'
 
@@ -14,7 +15,12 @@ export function ActivityAudience({activity,onSave}:{activity:ActivityRecord;onSa
   const {user}=useAuth()
   const {i18n}=useTranslation(),ar=i18n.language.startsWith('ar'),[open,setOpen]=useState(()=>!!readDraft(draftKey(user?.id,`activity:${activity.id}:audience`),audienceDraftSchema))
   return <details open={open} className={styles.editor} onToggle={event=>setOpen(event.currentTarget.open)}>
-    <summary><Users size={18} aria-hidden="true"/>{ar?'التصنيف والجمهور':'Category & audience'}<ChevronDown size={16} aria-hidden="true"/></summary>
+    <summary>
+      <Users size={16} aria-hidden="true"/>
+      <span className={styles.summaryTitle}>{ar?'التصنيف والجمهور':'Category & audience'}</span>
+      {!open&&<AudienceSummary activity={activity}/>}
+      <span className={styles.summaryEdit}><Pencil size={15} aria-hidden="true"/>{open?(ar?'إغلاق':'Close'):(ar?'تعديل':'Edit')}</span>
+    </summary>
     {open&&<AudienceEditForm activity={activity} onSave={onSave}/>}
   </details>
 }

@@ -110,4 +110,14 @@
   }
 }
 
-.asas{--danger-ink:#b8122f}.dark .asas,.asas.dark{--danger-ink:#ff8b9d}
+/* ---- inks ----------------------------------------------------------------
+ * §5's colours are FILLS: --evidence and --a3 are measured against white type
+ * on top of them, not as type themselves. Used as text on --surface they land
+ * at 4.50:1 and on --raised at 4.02:1 and 2.13:1, i.e. below AA. Each fill that
+ * a screen needs to *write* with therefore gets an ink twin — the same hue,
+ * darkened for the light workspace and lightened for the dark one — exactly as
+ * --danger-ink already does for --a1. Fills are untouched: the answer tiles,
+ * the strips and the badges keep the §5 values.
+ * ------------------------------------------------------------------------- */
+.asas{--danger-ink:#b8122f;--evidence-ink:#1c7009;--warn-ink:#7a5600;--act-ink:var(--act)}
+.dark .asas,.asas.dark{--danger-ink:#ff8b9d;--evidence-ink:#7ed36a;--warn-ink:var(--a3);--act-ink:#7fb0ff}

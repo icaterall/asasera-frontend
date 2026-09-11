@@ -23,4 +23,4 @@
 .stageDemo { background: var(--a2); color: var(--on-a2); border-radius: var(--r-card); padding: var(--s-5); }
 .stageText { font-size: var(--f-stage); line-height: var(--lh-stage); font-weight: var(--w-bold); margin: 0; }
 .fail { color: var(--a1); font-weight: var(--w-bold); }
-.pass { color: var(--evidence); font-weight: var(--w-bold); }
+.pass { color: var(--evidence-ink); font-weight: var(--w-bold); }

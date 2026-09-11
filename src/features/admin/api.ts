@@ -23,3 +23,15 @@ export function creditMillicents(usd:string):number|null {
   const [whole,fraction='']=usd.split('.')
   return Number(whole)*100000+Number(fraction.padEnd(5,'0'))
 }
+
+export type AiPolicy = {version:number;provider:'openai'|'gemini';model:string;enabled:boolean}
+export type AiSettings = {
+  policy:AiPolicy;
+  models:{id:string;provider:AiPolicy['provider'];configured:boolean;structuredOutput:boolean;pricingAvailable:boolean}[];
+  ready:boolean;
+  history:(Omit<AiPolicy,'version'> & {version:number;actorUserId:number|null;createdAt:string})[]
+}
+export const aiAdministration = {
+  get:(signal?:AbortSignal)=>api.get<AiSettings>(`${API_PREFIX}/admin/ai-settings`,{signal}),
+  save:(input:Omit<AiPolicy,'version'> & {expectedVersion:number})=>api.put<AiSettings>(`${API_PREFIX}/admin/ai-settings`,input),
+}

@@ -36,10 +36,25 @@ export default function SessionPage({role}:{role:'host'|'projector'|'player'}) {
   const [audio]=useState(()=>new SessionAudio())
   const [muted,setMuted]=useState(audio.muted),[enabled,setEnabled]=useState(false),[full,setFull]=useState(!!document.fullscreenElement)
   const [pin,setPin]=useState(normalizePin(search.get('pin')??'')),[name,setName]=useState(''),[busy,setBusy]=useState(false),[error,setError]=useState<string|null>(null),[pending,setPending]=useState(false)
+  // Honest ACK level (v5 §19): true only once the server says the answer row committed; false = accepted in memory, written at close.
+  const [persisted,setPersisted]=useState<boolean|null>(null)
   const joinRequest=useRef(crypto.randomUUID()),answerRequest=useRef(crypto.randomUUID()),[qr,setQr]=useState('')
   const previous=useRef<string|null>(null),podiumRef=useRef<HTMLDivElement>(null)
   useEffect(()=>{if(!motion.enabled){podiumRef.current?.getAnimations().forEach(animation=>animation.cancel());confetti.reset()}},[motion.enabled])
   const t=(a:string,e:string)=>ar?a:e
+  // Why the class ended, in the participant's language (activity_runs.end_reason).
+  const endReasonText=(reason:string|null)=>{
+    switch(reason){
+      case 'completed':return t('شكرًا لمشاركتكم.','Thank you for taking part.')
+      case 'cancelled':return t('ألغى المعلّم الحصة قبل أن تبدأ.','Your teacher cancelled the class before it started.')
+      case 'host_ended':return t('أنهى المعلّم الحصة. الإجابات المحفوظة متاحة في التقرير.','Your teacher ended the class. Saved answers remain in the report.')
+      case 'host_disconnected':return t('انقطع اتصال المعلّم فأُغلقت الحصة. الإجابات المحفوظة متاحة في التقرير.','The teacher lost connection, so the class closed. Saved answers remain in the report.')
+      case 'idle_expired':return t('أُغلقت الحصة بعد فترة طويلة دون نشاط. الإجابات المحفوظة متاحة في التقرير.','The class closed after a long pause. Saved answers remain in the report.')
+      case 'server_shutdown':case 'server_interrupted':return t('انقطعت الحصة بسبب إعادة تشغيل الخادم. الإجابات التي حُفظت قبل الانقطاع متاحة في التقرير؛ ولم تُحفظ إجابات السؤال الذي كان مفتوحًا.','The class was interrupted by a server restart. Answers saved before the interruption remain in the report; the open question’s answers were not saved.')
+      default:return t('أُغلقت الحصة. الإجابات المحفوظة متاحة في التقرير.','The session closed. Saved answers remain in the report.')
+    }
+  }
+  const endedScreen=(runId:number,endReason:string|null,interrupted=false)=><main className={styles.center}><h1>{interrupted?t('انقطعت الحصة','Class interrupted'):t('انتهت الحصة','Class finished')}</h1><p>{endReasonText(endReason)}</p>{role==='host'&&<Link className={styles.endLink} to={`/teacher/reports/runs/${runId}`}>{t('افتح تقرير الحصة','Open class report')}</Link>}<Button variant="secondary" onClick={leave}>{t('خروج','Leave')}</Button></main>
   const activate=()=>{setEnabled(audio.unlock());if(s?.state==='lobby')audio.lobby(s.participants.length)}
   const fullscreen=()=>{if(document.fullscreenElement)void document.exitFullscreen().catch(()=>{});else void document.documentElement.requestFullscreen?.().catch(()=>{})}
   const toggleSound=()=>{activate();const next=enabled?!muted:false;audio.setMuted(next);setMuted(next)}
@@ -51,7 +66,7 @@ export default function SessionPage({role}:{role:'host'|'projector'|'player'}) {
     if(previous.current===key)return
     const initial=previous.current===null;previous.current=key
     if(s.state!=='lobby')audio.stopLoop()
-    setPending(false);answerRequest.current=crypto.randomUUID()
+    setPending(false);setPersisted(null);answerRequest.current=crypto.randomUUID()
     if(initial)return
     if(s.state==='question_open')audio.play('question')
     if(s.state==='question_locked')audio.play('lock')
@@ -71,7 +86,7 @@ export default function SessionPage({role}:{role:'host'|'projector'|'player'}) {
   async function answer(payload:AnswerPayload){
     if(!s?.question||s.state!=='question_open'||s.endsAt===null||session.clock.now()>=s.endsAt)return
     audio.play('select');setPending(true);setError(null)
-    try{await session.send('player:answer',{runId:s.runId,qIndex:s.question.qIndex,questionId:s.question.id,requestId:answerRequest.current,payload})}
+    try{const reply=await session.send('player:answer',{runId:s.runId,qIndex:s.question.qIndex,questionId:s.question.id,requestId:answerRequest.current,payload});setPersisted(reply.persisted===true)}
     catch(e){setError(e instanceof Error?e.message:'Answer failed')}finally{setPending(false)}
   }
   const leave=()=>{if(id)sessionStorage.removeItem(`asasera:projector:${id}`);session.exit();if(document.fullscreenElement)void document.exitFullscreen();navigate(role==='player'?'/join':'/teacher/activities')}
@@ -83,7 +98,7 @@ export default function SessionPage({role}:{role:'host'|'projector'|'player'}) {
       onWheel={()=>{if(s)void action(()=>session.send('host:wheel',{runId:s.runId,requestId:crypto.randomUUID(),command:{action:'open'}}))}} onEnd={()=>command('end')}/>
     {(error||session.error)&&<div className={styles.notice} role="alert">{error??session.error}<button type="button" onClick={()=>location.reload()}>{t('إعادة الاتصال','Reconnect')}</button></div>}
     {s?.persistence!=='ready'&&s&&<div className={styles.notice} role="status">{t('جارٍ حفظ النتائج. تبقى إجاباتك محفوظة في هذه الجلسة.','Saving results. Accepted answers remain in this session.')} {s.persistence==='failed'&&role==='host'&&<button onClick={()=>command('reveal')}>{t('أعد الحفظ','Retry save')}</button>}</div>}
-    {!s&&role==='player'?<main className={styles.join}>
+    {!s&&session.interrupted?endedScreen(session.interrupted.runId,session.interrupted.endReason,true):!s&&role==='player'?<main className={styles.join}>
       <h1>{t('الحصة تبدأ بك','Your class starts here')}</h1><p>{t('أدخل رمز الحصة واسمك. لا تحتاج إلى حساب.','Enter the class PIN and your name. No account needed.')}</p>
       <form onSubmit={e=>{e.preventDefault();setEnabled(audio.unlock());void action(async()=>{const reply=await session.send('player:join',{pin,name,requestId:joinRequest.current});if(reply.snapshot&&reply.resumeToken)sessionStorage.setItem(PARTICIPANT_STORAGE,JSON.stringify({runId:reply.snapshot.runId,resumeToken:reply.resumeToken}))})}}>
         <Field label={t('رمز الحصة','Class PIN')} inputMode="numeric" pattern="[0-9]{6}" maxLength={6} value={pin} onChange={e=>setPin(normalizePin(e.target.value))} required dir="ltr"/>
@@ -119,8 +134,8 @@ export default function SessionPage({role}:{role:'host'|'projector'|'player'}) {
         </>}
         {s.gameMode!=='quiz'&&<GameBriefing mode={s.gameMode} ar={ar}/>}
       </main>:s.state==='podium'?<main className={styles.center}><h1>{t('أحسنتم جميعًا','Well played, everyone')}</h1><div ref={podiumRef} className={styles.podium}>{s.gameMode!=='quiz'&&s.gameScores.slice(0,3).map((player,i)=><section className={styles.podiumPlace} key={player.id}><strong>{i+1}</strong><h2>{player.name}</h2><p>{player.points} {t('نقطة لعب','game points')}</p><p>{player.correctCount} {t('إجابات صحيحة','correct answers')}</p></section>)}{s.gameMode==='quiz'&&[...new Set(s.top.map(p=>p.rank))].map(rank=>{const group=s.top.filter(p=>p.rank===rank);return <section key={rank} className={styles.podiumPlace}><strong>{rank}</strong><h2>{group.length>1?t(`${group.length} مشاركًا في تعادل`,`${group.length} participants tied`):group[0]!.name}</h2><p>{group[0]!.score} {t('نقطة','points')}</p>{group.length>1&&<ul className={styles.tiedNames}>{group.map(p=><li key={p.participantId}>{p.name}</li>)}</ul>}</section>})}</div></main>
-      :s.state==='ended'?<main className={styles.center}><h1>{t('انتهت الحصة','Class finished')}</h1><p>{s.endReason==='completed'?t('شكرًا لمشاركتكم.','Thank you for taking part.'):t('أُغلقت الحصة. الإجابات المحفوظة متاحة في التقرير.','The session closed. Saved answers remain in the report.')}</p>{role==='host'&&<Link className={styles.endLink} to={`/teacher/reports/runs/${s.runId}`}>{t('افتح تقرير الحصة','Open class report')}</Link>}<Button variant="secondary" onClick={leave}>{t('خروج','Leave')}</Button></main>
-      :<LiveQuestionStage key={`${s.runId}:${s.question?.qIndex}:${s.question?.id}`} snapshot={s} role={role} clock={session.clock} audio={audio} connected={session.connected} pending={pending} ar={ar} onAnswer={payload=>void answer(payload)}/>}
+      :s.state==='ended'?endedScreen(s.runId,s.endReason)
+      :<LiveQuestionStage key={`${s.runId}:${s.question?.qIndex}:${s.question?.id}`} snapshot={s} role={role} clock={session.clock} audio={audio} connected={session.connected} pending={pending} persisted={persisted} ar={ar} onAnswer={payload=>void answer(payload)}/>}
     </>}
   </ActivityStage>
 }

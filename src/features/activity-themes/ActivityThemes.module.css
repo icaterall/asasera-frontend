@@ -5,9 +5,9 @@
 .scenery[data-loaded=true] { opacity:1; }
 .scenery img { display:block; width:100%; height:100%; object-fit:cover; object-position:center; }
 .veil { position:absolute; inset:0; background:#061324ad; }
-.stage[data-variant=editor] .veil { background:#edf2f7de; }
+.stage[data-variant=editor] .veil { background:transparent; }
 .stage[data-variant=editor][data-activity-theme=classic]>.backdrop { background:var(--sunken,#f2f2f2); }
-:global(.dark) .stage[data-variant=editor] .veil { background:#081627d9; }
+:global(.dark) .stage[data-variant=editor] .veil { background:transparent; }
 .stage[data-activity-theme=classic] .veil { background:transparent; }
 .atmosphere { position:absolute; inset:0; overflow:hidden; }
 .atmosphere i { position:absolute; left:var(--x); bottom:-18px; width:5px; height:5px; border-radius:50%; background:var(--world-accent); opacity:0; animation:worldFloat var(--duration) linear var(--delay) infinite; }

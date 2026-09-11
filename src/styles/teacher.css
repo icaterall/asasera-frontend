@@ -42,7 +42,7 @@
    */
   --tc-banner: 0px;
   --tc-header: 68px;
-  --tc-rail: 232px;
+  --tc-rail: 280px;
 }
 
 /* The shell fills the viewport and scrolls in one place, so the sidebar can be
@@ -91,7 +91,7 @@
  * A navigation item.
  *
  * The active state is a substantial filled block, not a tinted left border:
- * at a glance across a 232px rail, a 3px edge is not a state, it is a
+ * at a glance across a 280px rail, a 3px edge is not a state, it is a
  * rendering artifact.
  */
 .teacher-nav-item {
