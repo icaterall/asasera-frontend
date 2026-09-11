@@ -88,6 +88,7 @@ const ar: typeof en = {
     "estimated": "التقدير",
     "maximum": "الحد الأقصى",
     "available": "المتاح",
+    "aiCredits": "رصيد ذكاء اصطناعي",
     "estimating": "جارٍ تقدير التكلفة…",
     "readyHint": "أضف محتوى الدرس لعرض التكلفة.",
     "retry": "أعد المحاولة",

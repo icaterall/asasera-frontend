@@ -3,6 +3,7 @@ import {Link} from 'react-router-dom'
 import {Disc3, Globe2, LogOut, Maximize, Minimize, Monitor, QrCode, Settings2, Users, Volume2, VolumeX} from 'lucide-react'
 import {MotionControl} from '../activity-themes/ActivityStage'
 import styles from './SessionChrome.module.css'
+import {Logo} from '@/components/ui/Logo'
 
 export function SessionToolbar({role,pin,participants,connected,ar,muted,enabled,full,busy,canWheel,canEnd,onSound,onFullscreen,onLanguage,onLeave,onProjector,onWheel,onEnd}: {
   role:'host'|'projector'|'player';pin?:string;participants:number;connected:boolean;ar:boolean;
@@ -23,7 +24,7 @@ export function SessionToolbar({role,pin,participants,connected,ar,muted,enabled
         <QrCode size={24} aria-hidden="true"/><span><span className={styles.joinLabel}>{t('انضم عبر','Join at')} <b dir="ltr">{location.host}/join</b></span><strong dir="ltr">{pin}</strong></span>
       </a>:<span>{t('هيا نلعب ونتعلّم','Let’s play and learn')}</span>}
     </div>
-    <Link to={role==='player'?'/join':'/teacher/activities'} className={styles.brand}><img src="/asas-logo.png" alt={ar?'أساسيرا':'Asasera'} width="112" height="46"/></Link>
+    <Link to={role==='player'?'/join':'/teacher/activities'} className={styles.brand}><Logo onDark /></Link>
     <div className={styles.tools}>
       {pin&&<span className={styles.participants} aria-label={t(`${participants} مشاركًا`,`${participants} participants`)}><Users size={20} aria-hidden="true"/>{participants}</span>}
       <span className={styles.connection} data-connected={connected} role="status" title={connected?t('متصل','Connected'):t('جارٍ الاتصال…','Reconnecting…')}><span className={styles.srOnly}>{connected?t('متصل','Connected'):t('جارٍ الاتصال…','Reconnecting…')}</span></span>

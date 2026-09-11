@@ -10,7 +10,7 @@ import ar from '../src/i18n/locales/ar'
 import type {GenerationDraft} from '../src/features/editor/session-drafts'
 const language=createInstance()
 const activity={id:42,authorId:73,title:'Water cycle',revision:1} as ActivityRecord
-const quote={quoteId:'opaque-quote',quoteExpiresAt:'2999-01-01T00:00:00Z',estimateMillicents:60,maxAuthorizedMillicents:100,usableMillicents:900,affordable:true,generationAvailable:true,pricingAvailable:true}
+const quote={quoteId:'opaque-quote',quoteExpiresAt:'2999-01-01T00:00:00Z',estimateMillicents:60,maxAuthorizedMillicents:100,estimateAiCredits:60,maxAuthorizedAiCredits:100,usableAiCredits:900,creditPolicyVersion:1,creditUnit:'AI Credits' as const,usableMillicents:900,affordable:true,generationAvailable:true,pricingAvailable:true}
 const material={id:7,title:'Biology.pdf',revisionId:11,sourceKind:'pdf',extractionStatus:'ready'}
 const segments=[{segmentIndex:1,pageIndex:1,text:'Water evaporates when heated.',charCount:29,warning:null},{segmentIndex:2,pageIndex:2,text:'Condensation forms clouds.',charCount:25,warning:null}]
 const candidate={kind:'mcq',prompt:'What forms clouds?',payloadJson:JSON.stringify({options:[{key:'a',text:'Condensation'},{key:'b',text:'Sand'}],correct:'a'}),explanation:'Water vapour condenses.',concept:'',reasons:[],sourceSegments:[]}

@@ -9,13 +9,25 @@ const types=[
  {id:'text',en:'Type answer',ar:'كتابة الإجابة',group:'knowledge'},
  {id:'slider',en:'Slider',ar:'شريط التمرير',group:'knowledge'},
  {id:'hotspot',en:'Pin answer',ar:'تحديد الإجابة',group:'knowledge'},
- {id:'order',en:'Puzzle',ar:'ترتيب',group:'knowledge'},
+ {id:'order',en:'Order',ar:'رتّب',group:'knowledge'},
  {id:'poll',en:'Poll',ar:'استطلاع',group:'opinions'},
  {id:'scale',en:'Scale',ar:'مقياس',group:'opinions'},
  {id:'drop-pin',en:'Drop pin',ar:'وضع دبوس',group:'opinions'},
  {id:'match',en:'Matching',ar:'مطابقة',group:'more'},
 ] as const
 const supported=new Set<string>(['mcq','tf','hotspot','order','match'])
+/**
+ * What this kind of question is called, in one place.
+ *
+ * The rail labels every question by its type, so the name now appears in two
+ * parts of the editor. Read from the same table the picker draws, because a
+ * rail that still said "Puzzle" after the picker was renamed to "Order" would
+ * be two names for one thing on one screen.
+ */
+export function questionTypeName(kind:string,ar:boolean):string{
+  const type=types.find(t=>t.id===kind)
+  return type?(ar?type.ar:type.en):kind
+}
 function TypeIcon({kind}:{kind:string}){
  const Icon=kind==='text'?Type:kind==='slider'?SlidersHorizontal:kind==='hotspot'||kind==='drop-pin'?MapPin:kind==='order'?ListOrdered:kind==='poll'?ChartPie:kind==='scale'?ChartNoAxesColumn:Link2
  return <span className={styles.icon} data-kind={kind} aria-hidden="true">{kind==='mcq'||kind==='tf'?<span className={styles.answerBlocks} data-kind={kind}>{Array.from({length:kind==='tf'?2:4},(_,i)=><i key={i}/>)}</span>:<Icon size={30} strokeWidth={2.3}/>}</span>

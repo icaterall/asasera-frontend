@@ -359,7 +359,7 @@ it('creates an activity from a title alone and carries a chosen material into th
 
 it('opens the AI panel pre-filled from ?generate=1&draft= and quotes without a click, then cleans the URL', async () => {
   vi.spyOn(api, 'get').mockImplementation(async path => path.endsWith('/labels') ? {labels: [], pairs: [], decisions: [], schedule: null} : path.includes('/teaching/materials') ? {materials: [], total: 0} : {jobs: []})
-  const post = vi.spyOn(api, 'post').mockResolvedValue({estimateMillicents: 1, maxAuthorizedMillicents: 2, spendableMillicents: 3, usableMillicents: 3, allowanceMillicents: 100000, exposureMillicents: 0, affordable: true, pricingAvailable: true, generationAvailable:true, quoteId:'opaque-quote', quoteExpiresAt: '2999-01-01T00:00:00.000Z', grant: {trialMillicents: 100000, claimed: true, eligible: true, reason: null}, delivery: 'd'})
+  const post = vi.spyOn(api, 'post').mockResolvedValue({estimateMillicents: 1, maxAuthorizedMillicents: 2, estimateAiCredits:1,maxAuthorizedAiCredits:2,usableAiCredits:3,creditPolicyVersion:1,creditUnit:'AI Credits',spendableMillicents: 3, usableMillicents: 3, allowanceMillicents: 100000, exposureMillicents: 0, affordable: true, pricingAvailable: true, generationAvailable:true, quoteId:'opaque-quote', quoteExpiresAt: '2999-01-01T00:00:00.000Z', grant: {trialMillicents: 100000, trialAiCredits:100000, claimed: true, eligible: true, reason: null}, delivery: 'd'})
   show(<ActivityEditor/>, `/teacher/activities/42?generate=1&draft=${encodeGenerationDraft({origin: 'topic', objective: 'Compare fractions', provider: 'gemini', difficulty: 'hard'})}`)
   await screen.findByRole('dialog', {name: 'Enter a topic'})
   await waitFor(() => expect(post).toHaveBeenCalledOnce())

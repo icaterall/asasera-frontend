@@ -1,4 +1,4 @@
-import { Suspense, lazy } from 'react'
+import { Suspense, lazy, useEffect } from 'react'
 import { LoadingState } from '@/design/LoadingState'
 import { loadingVariantForPath } from '@/design/loadingVariant'
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom'
@@ -15,7 +15,9 @@ import { ThemeProvider } from '@/context/ThemeProvider'
 import Landing from '@/pages/Landing'
 import { useAuth } from '@/hooks/useAuth'
 import { homePathFor } from '@/lib/afterAuth'
+import { recordLandingVisit } from '@/lib/analytics'
 const AdminLayout = lazy(() => import('@/features/admin/AdminLayout'))
+const AdminOverview = lazy(() => import('@/features/admin/AdminOverview'))
 const AdminAiSettings = lazy(() => import('@/features/admin/AdminAiSettings'))
 const AdminUsers = lazy(() => import('@/features/admin/AdminUsers'))
 const AdminUserDetail = lazy(() => import('@/features/admin/AdminUserDetail'))
@@ -92,6 +94,9 @@ function RouteFallback() {
 function HomeEntry() {
   const {status, user} = useAuth()
   const {hash} = useLocation()
+  useEffect(() => {
+    if (status !== 'loading' && !user && !hash) recordLandingVisit()
+  }, [hash, status, user])
   if (status === 'loading') return <RouteFallback />
   return user && !hash ? <Navigate to={homePathFor(user)} replace /> : <Landing />
 }
@@ -113,7 +118,8 @@ export default function App() {
           <Suspense fallback={<RouteFallback />}>
             <Routes>
               <Route path="admin" element={<AdminLayout/>}>
-                <Route index element={<Navigate to="/admin/users" replace/>}/>
+                <Route index element={<Navigate to="/admin/overview" replace/>}/>
+                <Route path="overview" element={<AdminOverview/>}/>
                 <Route path="ai-settings" element={<AdminAiSettings/>}/>
                 <Route path="users" element={<AdminUsers/>}/>
                 <Route path="users/:id" element={<AdminUserDetail/>}/>

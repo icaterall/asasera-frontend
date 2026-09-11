@@ -8,7 +8,7 @@ import {api,reports,encodeDraft,type HostReportRecord,type PracticeResponse,type
 import {Button,LoadingState,FailureState} from '@/design'
 import styles from '../shelf/Workspace.module.css'
 interface AuthorReport{title:string;status:string;totalParticipation?:number;classCount?:number;reuseCount?:number;teacherCount?:number;modifications?:{field:string;editors:number}[];questions:{questionId:number;versionId:number;status:string;answered?:number;correct?:number}[]}
-const usd=(value:number)=>new Intl.NumberFormat('en',{style:'currency',currency:'USD',minimumFractionDigits:2,maximumFractionDigits:5}).format(value/100000)
+const aiCredits=(value:number,locale:string)=>new Intl.NumberFormat(locale,{maximumFractionDigits:0}).format(value)
 /*
  * Two meanings, two badges (v5.1 C5). "Needs review" is an understanding heuristic
  * from observed answers only and always names its sample size; "Insufficient
@@ -73,13 +73,13 @@ export default function Reports({author=false}:{author?:boolean}){
         <h3 style={{marginTop:0}}><bdi>{practice.title}</bdi></h3>
         <p>{t('أُنشئ نشاط تدريب خاص مرتبط بهذه الحصة. راجع التكلفة قبل بدء التوليد:','A private practice activity linked to this run was created. Review the cost before generating:')}</p>
         <ul style={{lineHeight:1.9,paddingInlineStart:24}}>
-          <li>{t('التقدير','Estimate')}: <strong dir="ltr">{usd(practice.quote.estimateMillicents)}</strong></li>
-          <li>{t('الحد الأقصى','Maximum charge')}: <strong dir="ltr">{usd(practice.quote.maxAuthorizedMillicents)}</strong></li>
-          <li>{t('الرصيد القابل للاستخدام','Usable credit')}: <strong dir="ltr">{usd(practice.quote.usableMillicents)}</strong></li>
+          <li>{t('التقدير','Estimate')}: <strong dir="ltr">{aiCredits(practice.quote.estimateAiCredits,i18n.language)} {t('رصيد ذكاء اصطناعي','AI Credits')}</strong></li>
+          <li>{t('الحد الأقصى','Maximum charge')}: <strong dir="ltr">{aiCredits(practice.quote.maxAuthorizedAiCredits,i18n.language)} {t('رصيد ذكاء اصطناعي','AI Credits')}</strong></li>
+          <li>{t('الرصيد القابل للاستخدام','Usable credit')}: <strong dir="ltr">{aiCredits(practice.quote.usableAiCredits,i18n.language)} {t('رصيد ذكاء اصطناعي','AI Credits')}</strong></li>
           <li>{t(`${practice.draft.count} أسئلة من ${practice.draft.segments.length} مقاطع من مصدرك`,`${practice.draft.count} questions from ${practice.draft.segments.length} segments of your source`)}</li>
         </ul>
         <p><small>{t('راجع الأسئلة قبل إضافتها. ستظهر التكلفة المحدّثة في المحرّر قبل الإنشاء.','Review the questions before adding them. The editor shows an updated cost before creation.')}</small></p>
-        {!practice.quote.grant.eligible&&practice.quote.grant.reason==='email_not_verified'&&<p>{t(`أكّد بريدك الإلكتروني لتستلم رصيد التجربة (${usd(practice.quote.grant.trialMillicents)}).`,`Verify your email to receive the trial credit (${usd(practice.quote.grant.trialMillicents)}).`)}</p>}
+        {!practice.quote.grant.eligible&&practice.quote.grant.reason==='email_not_verified'&&<p>{t(`أكّد بريدك الإلكتروني لتستلم رصيد التجربة (${aiCredits(practice.quote.grant.trialAiCredits,i18n.language)} رصيد ذكاء اصطناعي).`,`Verify your email to receive the ${aiCredits(practice.quote.grant.trialAiCredits,i18n.language)} AI Credit trial grant.`)}</p>}
         {!practice.quote.generationAvailable&&<p>{t('خدمة التوليد غير مهيأة في هذه البيئة. يمكنك كتابة أسئلة التدريب يدويًا.','Generation is not configured here. You can write the practice questions manually.')}</p>}
         {!practice.quote.pricingAvailable&&<p>{t('لم تُعتمد أسعار التوليد في هذه البيئة بعد.','Generation pricing is not approved for this environment.')}</p>}
         {practice.quote.pricingAvailable&&practice.quote.generationAvailable&&!practice.quote.affordable&&<p role="status"><strong>{t('رصيد التوليد غير كافٍ.','Not enough generation credit.')}</strong> {t('الأنشطة المحفوظة والحصص والواجبات والتقارير تعمل كما هي، ويمكنك تعديل التدريب يدويًا.','Saved activities, sessions, assignments and reports keep working, and you can edit the practice manually.')}</p>}

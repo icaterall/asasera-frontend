@@ -1,9 +1,11 @@
 import {useEffect,useId,useRef,useState} from 'react'
+import {createPortal} from 'react-dom'
 import {useTranslation} from 'react-i18next'
 import {api,getAccessToken} from '@/lib/api'
 import {Button} from '@/design'
 import {ButtonSpinner} from '@/design/ButtonSpinner'
-import {Check,ShieldCheck,ImageUp,TriangleAlert,Images,Plus} from 'lucide-react'
+import {ConfirmDialog} from '@/components/teaching/TeachingUI'
+import {Check,ShieldCheck,ImageUp,TriangleAlert,Images,Plus,X} from 'lucide-react'
 import ui from './ImageUpload.module.css'
 import styles from './Editor.module.css'
 export const mediaUrl=(path:string)=>(path.startsWith('/api/')?(import.meta.env.VITE_API_URL??'').replace(/\/$/,''):'')+path
@@ -13,12 +15,98 @@ export function useImage(key:string|null){
   return url
 }
 type UploadStatus={status:'UPLOADING'|'PROCESSING'|'APPROVED'|'REJECTED'|'REVIEW_REQUIRED'|'FAILED';stage:string;objectKey?:string;errorCode?:string}
-export function ImageUpload({imageKey,onImage,onRemove,showPreview=true,label,onBusyChange,compact=false,question=false}:{imageKey:string|null;onImage:(key:string)=>void;onRemove?:()=>void;showPreview?:boolean;label?:string;onBusyChange?:(busy:boolean)=>void;compact?:boolean;question?:boolean}){
+/**
+ * How an upload is going, for a caller that draws its own indicator.
+ *
+ * `compact` is HEADLESS: it renders a file input and nothing else. An answer
+ * tile is not a place for a status card with a filename, a paragraph of
+ * reassurance and a Remove button — the tile is the thing the class will see,
+ * and it has room for one thin bar. So the phase is reported out and the
+ * canvas draws it where it belongs.
+ */
+export type UploadState={phase:'idle'|'uploading'|'checking'|'ready'|'error';progress:number;error:string}
+
+/** Holds one upload's reported state, for a caller with a single slot. */
+export function useUploadProgress(){
+  const [state,setState]=useState<UploadState>({phase:'idle',progress:0,error:''})
+  return {state,busy:state.phase==='uploading'||state.phase==='checking',onProgress:setState}
+}
+
+/**
+ * The indicator itself: one bar along the bottom edge of whatever tile
+ * contains it (that tile needs `position:relative`).
+ *
+ * A determinate fill while the bytes go up, an indeterminate sweep while the
+ * server checks the image — the check has no percentage, and inventing one
+ * would be a progress bar that lies.
+ *
+ * On success the bar fills green for a second and then removes itself. The
+ * flash is the point: a bar that vanished the instant the upload finished
+ * would read as the upload having been cancelled rather than having worked.
+ * The timer lives here so every caller gets the same second.
+ */
+export function UploadBar({state,label}:{state:UploadState;label:string}){
+  const [flash,setFlash]=useState(false)
+  useEffect(()=>{
+    if(state.phase!=='ready'){setFlash(false);return}
+    setFlash(true)
+    const timer=setTimeout(()=>setFlash(false),1000)
+    return()=>clearTimeout(timer)
+  },[state.phase])
+  if(state.phase==='idle'||(state.phase==='ready'&&!flash))return null
+  return <>
+    <div className={ui.bar} data-phase={state.phase} role="progressbar" aria-label={label}
+      aria-valuemin={0} aria-valuemax={100} aria-valuenow={state.phase==='uploading'?state.progress:undefined}>
+      <div className={ui.barFill} style={state.phase==='uploading'?{width:`${state.progress}%`}:undefined}/>
+    </div>
+    {/* A rejected or failed image must still say so. The bar alone would leave
+        the teacher waiting for a picture that is never coming. */}
+    {state.phase==='error'&&state.error&&<span className={ui.barError} role="alert">{state.error}</span>}
+  </>
+}
+
+/**
+ * Removing a picture, with a stop in front of it.
+ *
+ * The delete sits ON the image, one click from the text field the teacher is
+ * typing in, and removing is not free: the picture goes, and putting it back
+ * means uploading the file again — there is no library of past uploads to
+ * fetch it from. A misclick that costs a re-upload deserves a question first.
+ *
+ * `ConfirmDialog` rather than `window.confirm`: it moves focus to the heading,
+ * returns it to this button on close, takes Escape as cancel, and never makes
+ * the destructive choice the default.
+ */
+export function ImageRemoveButton({className,onRemove,label}:{className:string;onRemove:()=>void;label:string}){
+  const {i18n}=useTranslation(),ar=i18n.language.startsWith('ar')
+  const [asking,setAsking]=useState(false)
+  return <>
+    <button type="button" className={className} onClick={()=>setAsking(true)} aria-label={label} title={label}><X size={15} aria-hidden="true"/></button>
+    {/* Portalled: this button sits inside a sortable row that takes a transform
+        while dragging, and a transformed ancestor becomes the containing block
+        for `position:fixed` — which would pin the "full screen" overlay to the
+        row instead of the screen. */}
+    {asking&&createPortal(<ConfirmDialog
+      open
+      title={ar?'إزالة هذه الصورة؟':'Remove this image?'}
+      body={<p>{ar?'ستُزال الصورة من هنا، وإعادتها تعني رفعها من جديد.':'The image will be taken off, and putting it back means uploading the file again.'}</p>}
+      confirmLabel={ar?'إزالة الصورة':'Remove image'}
+      onConfirm={()=>{setAsking(false);onRemove()}}
+      onCancel={()=>setAsking(false)}
+    />,document.body)}
+  </>
+}
+
+export function ImageUpload({imageKey,onImage,onRemove,showPreview=true,label,onBusyChange,onProgress,compact=false,question=false}:{imageKey:string|null;onImage:(key:string)=>void;onRemove?:()=>void;showPreview?:boolean;label?:string;onBusyChange?:(busy:boolean)=>void;onProgress?:(state:UploadState)=>void;compact?:boolean;question?:boolean}){
   const {i18n}=useTranslation(),ar=i18n.language.startsWith('ar'),url=useImage(imageKey),labelId=useId(),input=useRef<HTMLInputElement>(null)
   const [phase,setPhase]=useState<'idle'|'uploading'|'checking'|'ready'|'error'>('idle'),[progress,setProgress]=useState(0),[error,setError]=useState(''),[filename,setFilename]=useState(''),[pending,setPending]=useState<number|null>(null)
   const [maxBytes,setMaxBytes]=useState(5*1024*1024),[dragging,setDragging]=useState(false)
   const controller=useRef<AbortController|null>(null),busy=phase==='uploading'||phase==='checking',busyCallback=useRef(onBusyChange);busyCallback.current=onBusyChange
   useEffect(()=>()=>{controller.current?.abort();busyCallback.current?.(false)},[])
+  /* Reported through a ref so a caller that passes an inline function does not
+     re-fire this effect on every render. */
+  const progressCallback=useRef(onProgress);progressCallback.current=onProgress
+  useEffect(()=>{progressCallback.current?.({phase,progress,error})},[phase,progress,error])
   function uploadBytes(file:File,grant:{uploadUrl:string;local:boolean},signal:AbortSignal){return new Promise<void>((resolve,reject)=>{
     const xhr=new XMLHttpRequest(),abort=()=>xhr.abort();xhr.open('PUT',mediaUrl(grant.uploadUrl));xhr.timeout=90000;xhr.setRequestHeader('Content-Type',file.type)
     if(grant.local)xhr.setRequestHeader('Authorization',`Bearer ${getAccessToken()}`)
@@ -73,7 +161,7 @@ export function ImageUpload({imageKey,onImage,onRemove,showPreview=true,label,on
         so there the caption is still the only thing naming the control. */}
     {label&&!question&&<span id={labelId} className={styles.imageUploadCaption}>{label}</span>}
     {showPreview&&url&&<img src={url} alt={ar?'الصورة المرفقة':'Attached image'} className={styles.editorImage}/>}
-    {phase!=='idle'&&<div className={`${ui.status} ${phase==='checking'?ui.checking:''} ${phase==='error'?ui.error:''} ${phase==='ready'?ui.ready:''}`}>
+    {!compact&&phase!=='idle'&&<div className={`${ui.status} ${phase==='checking'?ui.checking:''} ${phase==='error'?ui.error:''} ${phase==='ready'?ui.ready:''}`}>
       <span className={ui.icon}>{busy?<ButtonSpinner/>:phase==='ready'?<Check/>:<TriangleAlert/>}</span>
       <div className={ui.copy}><strong role="status" aria-live="polite">{heading}{phase==='uploading'&&<bdi> {progress}%</bdi>}</strong><span className={ui.filename} dir="auto">{filename}</span>
       {busy&&<><small>{phase==='uploading'?(ar?'سيتم التحقق منها بعد اكتمال الرفع.':'We’ll check it once the upload finishes.'):(ar?'يمكنك متابعة تحرير بقية السؤال.':'You can keep editing the rest of your question.')}</small><div className={ui.track} role="progressbar" aria-label={heading} aria-valuemin={0} aria-valuemax={100} aria-valuenow={phase==='uploading'?progress:undefined}><div className={ui.fill} style={phase==='uploading'?{width:`${progress}%`}:undefined}/></div></>}
@@ -84,7 +172,7 @@ export function ImageUpload({imageKey,onImage,onRemove,showPreview=true,label,on
       {!compact&&(!question||!!imageKey||busy)&&<Button disabled={busy} loading={busy} icon={<ImageUp size={18}/>} onClick={()=>input.current?.click()}>{busy?heading:imageKey?(ar?'استبدل الصورة':'Replace image'):(ar?'أضف صورة':'Add an image')}</Button>}
       <input ref={input} className={ui.input} type="file" aria-label={ar?'اختر صورة':'Choose image'} accept="image/png,image/jpeg,image/webp" disabled={busy} tabIndex={-1} onChange={e=>{const file=e.target.files?.[0];if(file)void run(file);e.target.value=''}}/>
       {pending&&phase==='error'&&<Button icon={<ShieldCheck size={18}/>} onClick={()=>void run()}>{ar?'تحقق مرة أخرى':'Check again'}</Button>}
-      {imageKey&&onRemove&&<Button disabled={busy} variant="quiet" onClick={()=>{onRemove();setPhase('idle')}}>{ar?'إزالة الصورة':'Remove image'}</Button>}
+      {!compact&&imageKey&&onRemove&&<Button disabled={busy} variant="quiet" onClick={()=>{onRemove();setPhase('idle')}}>{ar?'إزالة الصورة':'Remove image'}</Button>}
     </div>
   </section>
 }

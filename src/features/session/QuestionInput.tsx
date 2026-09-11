@@ -1,21 +1,38 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { DndContext,PointerSensor,TouchSensor,KeyboardSensor,useSensor,useSensors,useDraggable,useDroppable,type DragEndEvent } from '@dnd-kit/core'
 import { SortableContext,useSortable,verticalListSortingStrategy,sortableKeyboardCoordinates,arrayMove } from '@dnd-kit/sortable'
 import { ArrowUp,ArrowDown,GripVertical,Check } from 'lucide-react'
+import { FormattedText,plainFormattedText } from '@/components/formatted-text/FormattedText'
 import { useTranslation } from 'react-i18next'
 import { AnswerTile,Button,type AnswerSlot } from '@/design'
 import type { PublicQuestion } from '@/shared/session'
-import type { AnswerPayload } from '@/shared/questions'
+import type { AnswerPayload,OrderEvidence } from '@/shared/questions'
 import {mediaUrl} from '@/features/editor/ImageUpload'
 import styles from './Session.module.css'
 
-function SortItem({id,text,index,count,move,disabled}:{id:string;text:string;index:number;count:number;move:(n:number)=>void;disabled:boolean}) {
+/**
+ * One draggable row.
+ *
+ * The grip is the only drag activator, and the arrows do the same job without
+ * one — a learner on a phone whose drag competes with the page scroll, and a
+ * learner on a keyboard, both need a way through that is not "drag better".
+ * The row text is rendered formatted, so an equation inside a step stays an
+ * equation and keeps its own direction inside Arabic wording.
+ */
+function SortItem({id,text,image,index,count,move,disabled}:{id:string;text:string;image?:string|undefined;index:number;count:number;move:(n:number)=>void;disabled:boolean}) {
   const d=useSortable({id,disabled})
-  return <li ref={d.setNodeRef} className={styles.orderItem} style={{transform:d.transform?`translate3d(${d.transform.x}px,${d.transform.y}px,0)`:undefined}}>
-    <button type="button" {...d.attributes} {...d.listeners} className={styles.grip} aria-label={`Move / حرّك ${text}`} disabled={disabled}><GripVertical size={20}/></button>
-    <span>{index+1}. {text}</span>
-    <button type="button" aria-label={`Move up / للأعلى ${text}`} disabled={disabled||index===0} onClick={()=>move(-1)}><ArrowUp size={20}/></button>
-    <button type="button" aria-label={`Move down / للأسفل ${text}`} disabled={disabled||index===count-1} onClick={()=>move(1)}><ArrowDown size={20}/></button>
+  const spoken=plainFormattedText(text).trim()||`${index+1}`
+  return <li ref={d.setNodeRef} className={styles.orderItem} data-order-item="" data-dragging={d.isDragging||undefined}
+    style={{transform:d.transform?`translate3d(0,${d.transform.y}px,0)`:undefined,transition:d.transition}}>
+    <button type="button" ref={d.setActivatorNodeRef} {...d.attributes} {...d.listeners} className={styles.grip} aria-label={`Reorder / أعد ترتيب ${spoken}`} disabled={disabled}><GripVertical size={20}/></button>
+    <span className={styles.orderRank} aria-hidden="true">{index+1}</span>
+    {/* An item may BE the picture — ordering four photographs of a process is
+        the same skill as ordering four sentences. The alt falls back to the
+        position, so a picture-only item still has a name to drag by. */}
+    {image&&<img className={styles.orderImage} src={image} alt={spoken}/>}
+    <span dir="auto"><FormattedText text={text}/></span>
+    <button type="button" aria-label={`Move up / للأعلى ${spoken}`} disabled={disabled||index===0} onClick={()=>move(-1)}><ArrowUp size={20}/></button>
+    <button type="button" aria-label={`Move down / للأسفل ${spoken}`} disabled={disabled||index===count-1} onClick={()=>move(1)}><ArrowDown size={20}/></button>
   </li>
 }
 function CardChoice({id,text,selected,placed,onClick,disabled}:{id:string;text:string;selected:boolean;placed:boolean;onClick:()=>void;disabled:boolean}) {
@@ -42,6 +59,38 @@ export function QuestionInput({question,onAnswer,disabled=false,projectorOnly=fa
 }) {
   const {i18n}=useTranslation(),ar=i18n.language.startsWith('ar'),p=question.payload
   const [sequence,setSequence]=useState(p.kind==='order'?p.items.map(i=>i.key):[])
+  /*
+   * ORDERING EVIDENCE (brief §4). What the learner was shown, what they moved
+   * and how long they took — recorded because the submitted sequence alone
+   * cannot tell a confident ordering from a rescued one.
+   *
+   * Deliberately coarse: one entry per committed reorder, no coordinates, no
+   * per-move clock. Every call site keys this component by question, so these
+   * refs are per question without needing to be reset.
+   */
+  const shown=useRef(p.kind==='order'?p.items.map(i=>i.key):[])
+  const openedAt=useRef(Date.now())
+  const moves=useRef<OrderEvidence['moves']>([])
+  const reorder=(from:number,to:number)=>{
+    if(from<0||to<0||from===to||from>=sequence.length||to>=sequence.length)return
+    const item=sequence[from]
+    if(item===undefined)return
+    /* Recorded here rather than inside the updater: React invokes an updater
+       twice in development, and an evidence log that counts a move twice is
+       worse than no log. */
+    if(moves.current.length<60)moves.current.push({item,from,to})
+    setSequence(current=>arrayMove(current,from,to))
+  }
+  const orderEvidence=():OrderEvidence=>({
+    shown:shown.current,
+    moves:moves.current,
+    durationMs:Math.min(3_600_000,Math.max(0,Date.now()-openedAt.current)),
+    /* The live engine answers a mistake by INSERTING a follow-up question, which
+       arrives here as its own question. So a resubmission of this one does not
+       exist yet and claiming otherwise would put a number in the evidence that
+       nothing measured. */
+    attempt:1,
+  })
   const [selected,setSelected]=useState<string|null>(null)
   const [pairs,setPairs]=useState<Record<string,string>>({})
   const [picks,setPicks]=useState<string[]>([])
@@ -59,15 +108,15 @@ export function QuestionInput({question,onAnswer,disabled=false,projectorOnly=fa
   const dragEnd=(event:DragEndEvent)=>{
     if(!event.over||disabled)return
     const from=String(event.active.id),to=String(event.over.id)
-    if(p.kind==='order')setSequence(current=>arrayMove(current,current.indexOf(from),current.indexOf(to)))
+    if(p.kind==='order')reorder(sequence.indexOf(from),sequence.indexOf(to))
     else pair(from,to)
   }
   return <DndContext sensors={sensors} onDragEnd={dragEnd}>
     {(p.kind==='order'||p.kind==='match')&&question.media&&<img className={styles.questionMedia} src={mediaUrl(question.media)} alt={question.prompt}/>}
-    {p.kind==='order'&&<><p>{ar?'رتّب العناصر. يمكنك السحب أو استخدام زري الأعلى والأسفل.':'Put the items in order. Drag or use the up and down buttons.'}</p>
+    {p.kind==='order'&&<><p>{ar?'رتّب العناصر بالترتيب الصحيح. اسحب أو استخدم زري الأعلى والأسفل.':'Put the items in the correct order. Drag, or use the up and down buttons.'}</p>
       <SortableContext items={displaySequence} strategy={verticalListSortingStrategy}><ol className={styles.orderList}>{displaySequence.map((key,index)=><SortItem key={key} id={key} index={index} count={sequence.length} text={p.items.find(i=>i.key===key)!.text} disabled={disabled||preview}
-        move={direction=>setSequence(current=>arrayMove(current,index,index+direction))}/>)}</ol></SortableContext>
-      {!preview&&<Button variant="primary" disabled={disabled} onClick={()=>onAnswer({kind:'order',sequence})}>{ar?'أرسل الترتيب':'Submit order'}</Button>}</>}
+        image={p.items.find(i=>i.key===key)?.image} move={direction=>reorder(index,index+direction)}/>)}</ol></SortableContext>
+      {!preview&&<Button variant="primary" disabled={disabled} onClick={()=>onAnswer({kind:'order',sequence,evidence:orderEvidence()})}>{ar?'تحقق':'Check'}</Button>}</>}
     {(p.kind==='match'||(p.kind==='hotspot'&&p.mode==='card_to_zone'))&&<>
       <p>{ar?'اختر بطاقة ثم هدفها، أو اسحبها. يمكنك تغيير اختياراتك قبل الإرسال.':'Choose a card, then its target, or drag it. You can change placements before submitting.'}</p>
       <div className={styles.cards}>{p.cards.map(c=><CardChoice key={c.key} id={c.key} text={c.text} selected={selected===c.key} placed={!!pairs[c.key]} onClick={()=>setSelected(c.key)} disabled={disabled||preview}/>)}</div>

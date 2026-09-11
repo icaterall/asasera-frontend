@@ -5,6 +5,7 @@ import {useTranslation} from 'react-i18next'
 import {AudioLines,CirclePlay,Film,ImageIcon,Link2,Mic,Plus,Sparkles,Upload,X} from 'lucide-react'
 import {teaching} from '@/lib/api'
 import {ImageUpload,useImage} from './ImageUpload'
+import {ConfirmDialog} from '@/components/teaching/TeachingUI'
 import mediaIcons from '@/assets/images/media-icons.svg'
 import styles from './MediaPicker.module.css'
 
@@ -26,6 +27,7 @@ export function MediaField({imageKey,onImage,onRemove,onBusyChange,label}:{
 }){
   const {i18n}=useTranslation(),ar=i18n.language.startsWith('ar'),t=(a:string,e:string)=>ar?a:e
   const [open,setOpen]=useState(false),[over,setOver]=useState(false),[dropped,setDropped]=useState<File|null>(null)
+  const [removing,setRemoving]=useState(false)
   const url=useImage(imageKey)
   return <div className={styles.field} data-question-image="">
     {imageKey&&url
@@ -33,7 +35,9 @@ export function MediaField({imageKey,onImage,onRemove,onBusyChange,label}:{
           <img src={url} alt={t('الصورة المرفقة','Attached image')}/>
           <div className={styles.previewActions}>
             <button type="button" onClick={()=>setOpen(true)}>{t('استبدل الصورة','Replace image')}</button>
-            <button type="button" onClick={onRemove}>{t('إزالة الصورة','Remove image')}</button>
+            {/* Removing costs a re-upload — there is no library of past uploads
+                to fetch the picture back from — so it asks first. */}
+            <button type="button" onClick={()=>setRemoving(true)}>{t('إزالة الصورة','Remove image')}</button>
           </div>
         </div>
       : <button type="button" className={styles.zone} aria-label={label}
@@ -48,6 +52,14 @@ export function MediaField({imageKey,onImage,onRemove,onBusyChange,label}:{
           <span className={styles.zoneHint}>{t('ارفع ملفًا أو اسحبه إلى هنا','Upload file or drag here to upload')}</span>
         </button>}
     {open&&<MediaPickerDialog dropped={dropped} onClose={()=>{setOpen(false);setDropped(null)}} onImage={key=>{onImage(key);setOpen(false);setDropped(null)}} onBusyChange={onBusyChange}/>}
+    {removing&&createPortal(<ConfirmDialog
+      open
+      title={t('إزالة هذه الصورة؟','Remove this image?')}
+      body={<p>{t('ستُزال الصورة من هنا، وإعادتها تعني رفعها من جديد.','The image will be taken off, and putting it back means uploading the file again.')}</p>}
+      confirmLabel={t('إزالة الصورة','Remove image')}
+      onConfirm={()=>{setRemoving(false);onRemove()}}
+      onCancel={()=>setRemoving(false)}
+    />,document.body)}
   </div>
 }
 
@@ -95,7 +107,7 @@ function MediaPickerDialog({dropped,onClose,onImage,onBusyChange}:{dropped:File|
     </header>
     <div className={styles.body}>
       <nav className={styles.nav} aria-label={t('مصادر الوسائط','Media sources')}>
-        {groups.map(({heading,Heading,items})=><div key={heading}>
+        {groups.map(({heading,Heading,items})=><div key={heading} className={styles.navSection}>
           <p className={styles.navGroup}><Heading size={16} aria-hidden="true"/>{heading}</p>
           {items.map(({id,Icon,label,ready})=><button key={id} type="button" aria-current={panel===id} onClick={()=>setPanel(id)}>
             <Icon size={16} aria-hidden="true"/>{label}

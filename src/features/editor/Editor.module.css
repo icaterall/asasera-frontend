@@ -186,11 +186,15 @@
 .correctPick input { accent-color: var(--act); width: 18px; height: 18px; }
 .isCorrect { color: var(--evidence-ink); font-weight: var(--w-bold); }
 
-.answerTile { min-width:0; padding:8px; gap:12px; border-radius:5px; min-height:112px; }
+.answerTile { position:relative; min-width:0; padding:8px; gap:12px; border-radius:5px; min-height:112px; }
 .answerTile[data-empty=true] { background:var(--surface); color:var(--ink); }
 .answerShape { display:grid; place-items:center; align-self:center; flex:0 0 44px; min-height:30px; border-radius:5px; background:var(--tile); color:var(--tileFg); }
 .answerContent { flex:1; min-width:0; display:flex; flex-direction:column; gap:8px; }
 .answerContent .optionImage { max-width:100%; width:100%; max-height:140px; }
+.optionImageWrap { position:relative; display:block; line-height:0; }
+.optionImageRemove { position:absolute; inset-block-start:4px; inset-inline-end:4px; display:grid; place-items:center; width:24px; height:24px; padding:0; border:0; border-radius:4px; background:#000000a6; color:#fff; cursor:pointer; }
+.optionImageRemove:hover { background:#000000d1; }
+.optionImageRemove:focus-visible { outline:2px solid #fff; outline-offset:1px; }
 .answerActions { flex:0 0 44px; display:flex; flex-direction:column; align-items:center; gap:6px; }
 .answerImageButton { display:grid; place-items:center; width:44px; height:44px; padding:8px; border:0; border-radius:5px; color:inherit; background:transparent; cursor:pointer; }
 .answerImageButton:hover:not(:disabled) { background:color-mix(in srgb,currentColor 12%,transparent); }
@@ -233,9 +237,11 @@
 .props { padding:0 22px 24px; gap:0; overscroll-behavior:contain; }
 .propsHeader { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:14px 0; border-block-end:1px solid var(--line); }
 .propsHeader h2 { margin:0; font-size:16px; line-height:1.3; font-weight:800; }
-.propsHeader button { display:grid; place-items:center; width:44px; height:44px; flex-shrink:0; border:0; border-radius:5px; background:transparent; color:var(--ink); cursor:pointer; }
-.propsHeader button:hover { background:var(--raised); }
-.propsHeader button:focus-visible { outline:3px solid var(--act); outline-offset:2px; }
+.propsFold { display:grid; place-items:center; width:44px; height:44px; flex-shrink:0; border:0; border-radius:5px; background:transparent; color:var(--ink); cursor:pointer; }
+.propsFold:hover { background:var(--raised); }
+.propsFold:focus-visible { outline:3px solid var(--act); outline-offset:2px; }
+/* Props sit on the inline-end edge; flip the panel icons in RTL so fold points outward. */
+:global([dir="rtl"]) .propsFoldIcon { transform: scaleX(-1); }
 .props .propGroup { padding:13px 0; gap:8px; }
 .props .propGroup:nth-of-type(1) { border-block-end:1px solid var(--line); }
 .props .propLabel { display:flex; align-items:center; gap:7px; font-size:15px; font-weight:700; line-height:1.2; }
@@ -246,8 +252,22 @@
 .props .applyAll { align-self:flex-start; justify-content:flex-start; padding:2px 4px; min-height:28px; font-size:13px; font-weight:500; text-decoration:underline; text-underline-offset:3px; color:var(--muted); box-shadow:none; }
 @media(min-width:1025px) {
   .shell { grid-template-columns:260px minmax(0,1fr) 350px; }
-  .shell[data-props-open=false] { grid-template-columns:260px minmax(0,1fr) 0; }
-  .props[data-editor-drawer=closed] { display:none; }
+  .shell[data-props-open=false] { grid-template-columns:260px minmax(0,1fr) 48px; }
+  .props[data-editor-drawer=closed] {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 8px 0;
+    overflow: hidden;
+  }
+  .props[data-editor-drawer=closed] > :not(.propsHeader) { display: none; }
+  .props[data-editor-drawer=closed] .propsHeader {
+    flex-direction: column;
+    justify-content: flex-start;
+    border-block-end: 0;
+    padding: 4px 0;
+  }
+  .props[data-editor-drawer=closed] .propsHeader h2 { display: none; }
   .shell .backdrop { display:none; }
 }
 @media(max-width:600px) { .props { padding-inline:18px; } .propsHeader h2 { font-size:15px; } .props .propLabel { font-size:15px; } }
@@ -371,3 +391,13 @@
 .thumbBars>span[data-correct]::before{background:#26890c;border-color:#26890c}
 .thumbFlag{display:inline-grid;place-items:center;margin-inline-start:auto;color:var(--a3)}
 @media(max-width:1024px){.thumbRow{grid-template-columns:30px minmax(0,1fr)}}
+
+/* One indicator for every action that goes through run(): duplicate, delete, reorder,
+   apply-to-all, theme save, publish. Non-blocking, so the canvas stays readable. */
+.busyBar{position:fixed;inset-block-start:0;inset-inline:0;z-index:60;height:3px;overflow:hidden;background:#1368ce26;pointer-events:none}
+.busyBar>span{display:block;width:40%;height:100%;border-radius:999px;background:var(--act);animation:editorBusy 1.05s ease-in-out infinite}
+@keyframes editorBusy{0%{transform:translateX(-100%)}100%{transform:translateX(350%)}}
+@media(prefers-reduced-motion:reduce){.busyBar>span{width:100%;animation:none;opacity:.65}}
+
+/* Reserve room for the floating question tools below the mobile audience row. */
+@media(max-width:700px){.canvasInner > [data-formatted-field]:first-child{margin-block-start:52px}}

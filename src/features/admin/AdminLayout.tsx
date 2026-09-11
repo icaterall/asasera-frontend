@@ -1,7 +1,7 @@
 import {BackLink,TitleRow} from '@/design/BackLink'
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { ShieldCheck, Users, UserRound, Settings2 } from 'lucide-react'
+import { ShieldCheck, Users, UserRound, Settings2, ChartNoAxesCombined } from 'lucide-react'
 import { Logo } from '@/components/ui/Logo'
 import { LanguageToggle } from '@/components/ui/LanguageToggle'
 import { AccountControl } from '@/components/layout/AccountControl'
@@ -27,6 +27,7 @@ export default function AdminLayout() {
   </main></div>
   return <div className={`asas ${styles.shell}`} dir={ar?'rtl':'ltr'}>{header}<div className={styles.workspace}>
     <aside className={styles.sidebar}><nav aria-label={t('قائمة الإدارة','Admin navigation')}>
+      <NavLink to="/admin/overview" className={({isActive})=>isActive?styles.active:undefined}><ChartNoAxesCombined size={21} aria-hidden="true"/>{t('نظرة عامة','Overview')}</NavLink>
       <NavLink to="/admin/users" className={({isActive})=>isActive?styles.active:undefined}><Users size={21} aria-hidden="true"/>{t('المستخدمون والأرصدة','Users & credit')}</NavLink>
       <NavLink to="/admin/ai-settings" className={({isActive})=>isActive?styles.active:undefined}><Settings2 size={21} aria-hidden="true"/>{t('إعدادات الذكاء الاصطناعي','AI settings')}</NavLink>
       <Link to="/account"><UserRound size={21} aria-hidden="true"/>{t('حسابي','My account')}</Link>

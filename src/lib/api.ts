@@ -953,6 +953,13 @@ export const teaching = {
       usableMillicents: number
       providerCostMillicents: number
       trialGrantMillicents: number
+      creditPolicyVersion: number
+      creditUnit: 'AI Credits'
+      balanceAiCredits: number
+      reservedAiCredits: number
+      spendableAiCredits: number
+      usableAiCredits: number
+      trialGrantAiCredits: number
     }>(`${TEACHING}/wallet`),
 
   claimWelcomeGrant: () =>
@@ -1026,7 +1033,14 @@ export const teaching = {
     api.get<{ jobs: GenerationJob[] }>(`${TEACHING}/generation/jobs/open`),
 
   segments: (revisionId: number) =>
-    api.get<{ segments: MaterialSegment[] }>(`${TEACHING}/revisions/${revisionId}/segments`),
+    /* `previewToken` addresses the page pictures: an <img> cannot carry a
+       bearer header, so the picture route is signed-token authorised and the
+       token is minted by this request, which already proves ownership. */
+    api.get<{ segments: MaterialSegment[]; previewToken?: string }>(`${TEACHING}/revisions/${revisionId}/segments`),
+
+  /** Where to draw one page of a source. Rasterised on demand; no model reads it. */
+  pageImage: (revisionId: number, pageIndex: number, token: string) =>
+    `${TEACHING}/revisions/${revisionId}/pages/${pageIndex}/preview?token=${encodeURIComponent(token)}`,
 
   /** The revision behind a question's source chip (v5.1 C4). 404 unless the caller owns the material. */
   revision: (revisionId: number) =>

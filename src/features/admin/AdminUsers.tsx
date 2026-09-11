@@ -6,7 +6,7 @@ import { Search, Users, Wallet } from 'lucide-react'
 import { Button, FailureState, LoadingState, Select } from '@/design'
 import { useAuth } from '@/hooks/useAuth'
 import { accountRoleLabel } from '@/lib/accountRole'
-import { administration, creditUsd } from './api'
+import { administration, aiCredits } from './api'
 import styles from './Admin.module.css'
 
 export default function AdminUsers() {
@@ -28,7 +28,7 @@ export default function AdminUsers() {
         <tbody>{result.data.users.map(person=><tr key={person.id}>
           <td><strong dir="auto">{person.name||t('بدون اسم','No name yet')}</strong><span dir="ltr">{person.email||t('بدون بريد','No email')}</span></td>
           <td><span className={styles.role} data-role={person.role}>{accountRoleLabel(person.role,i18n.language)}</span><small>{statusLabel(person.status,ar)} · {person.emailVerified?t('بريد موثّق','Email verified'):t('بريد غير موثّق','Email unverified')}</small></td>
-          <td className={styles.money}>{person.role==='teacher'?creditUsd(person.spendableMillicents,i18n.language):'—'}</td>
+          <td className={styles.money}>{person.role==='teacher'?`${aiCredits(person.spendableAiCredits,i18n.language)} ${t('رصيد ذكاء اصطناعي','AI Credits')}`:'—'}</td>
           <td><Link className={styles.rowLink} to={`/admin/users/${person.id}`}><Wallet size={17} aria-hidden="true"/>{person.role==='teacher'?t('إدارة الرصيد','Manage credit'):t('عرض الحساب','View account')}</Link></td>
         </tr>)}</tbody>
       </table></div>}

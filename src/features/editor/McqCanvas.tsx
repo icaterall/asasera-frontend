@@ -2,10 +2,9 @@ import {FormattedInput} from './FormattedInput'
 import {useId,useState} from 'react'
 import {Check,ImagePlus,Plus,Trash2} from 'lucide-react'
 import {useTranslation} from 'react-i18next'
-import {ImageUpload,useImage} from './ImageUpload'
+import {ImageRemoveButton,ImageUpload,UploadBar,useImage,type UploadState} from './ImageUpload'
 import {MediaField} from './MediaPicker'
 import {Button,type AnswerSlot} from '@/design'
-import {ButtonSpinner} from '@/design/ButtonSpinner'
 import {readInline} from './rich-document'
 import styles from './Editor.module.css'
 
@@ -23,7 +22,7 @@ export function hasAnswerContent(option:McqOption):boolean {
   return !!option.image?.trim() || readInline(option.text).some(node=>!!(node.text??node.attrs?.latex??'').trim())
 }
 
-const SLOT_TOKENS: Record<AnswerSlot, { fill: string; fg: string; ar: string; en:string }> = {
+export const SLOT_TOKENS: Record<AnswerSlot, { fill: string; fg: string; ar: string; en:string }> = {
   1: { fill: 'var(--a1)', fg: 'var(--on-a1)', ar: 'مثلث', en:'triangle' },
   2: { fill: 'var(--a2)', fg: 'var(--on-a2)', ar: 'معيّن', en:'diamond' },
   3: { fill: 'var(--a3)', fg: 'var(--on-a3)', ar: 'دائرة', en:'circle' },
@@ -32,7 +31,7 @@ const SLOT_TOKENS: Record<AnswerSlot, { fill: string; fg: string; ar: string; en
   6: { fill: 'var(--a6)', fg: 'var(--on-a6)', ar: 'مثلث مقلوب', en:'inverted triangle' },
 }
 
-function Glyph({ slot }: { slot: AnswerSlot }) {
+export function Glyph({ slot }: { slot: AnswerSlot }) {
   const p = { className: styles.optionGlyph, viewBox: '0 0 24 24', 'aria-hidden': true as const }
   switch (slot) {
     case 1: return <svg {...p}><path d="M12 3 22 21H2Z" /></svg>
@@ -64,7 +63,8 @@ export function McqCanvas({
 }: McqCanvasProps) {
   const {i18n}=useTranslation(),ar=i18n.language.startsWith('ar')
   const optionsId=useId()
-  const [imageBusy,setImageBusy]=useState<Record<string,boolean>>({})
+  const [uploads,setUploads]=useState<Record<string,UploadState>>({})
+  const busyFor=(key:string)=>uploads[key]?.phase==='uploading'||uploads[key]?.phase==='checking'
   return (
     <>
     <MediaField onBusyChange={onQuestionImageBusy} label={ar?'صورة السؤال (اختياري)':'Question image (optional)'} imageKey={mediaKey} onImage={onMediaChange} onRemove={()=>onMediaChange(null)}/>
@@ -89,7 +89,8 @@ export function McqCanvas({
                   onClick={()=>onRemoveOption(option.key)}><Trash2 size={17} aria-hidden="true"/></button>}
               </span>
               <div className={styles.answerContent}>
-                {option.image&&<OptionImage imageKey={option.image} text={option.text}/>}
+                {option.image&&<OptionImage imageKey={option.image} text={option.text}
+                  onRemove={()=>onOptionImage(option.key,undefined)} label={ar?'احذف صورة الإجابة':'Remove answer image'}/>}
                 <FormattedInput className={styles.optionText} value={option.text} maxLength={500} placeholder={option.image?(ar?'نص إضافي (اختياري)':'Text (optional)'):(ar?`أضف إجابة ${index+1}`:`Add answer ${index+1}`)} label={ar?`نص الإجابة ${index+1}`:`Answer ${index+1} text`} onChange={text=>onOptionText(option.key,text)}/>
               </div>
               <div className={styles.answerActions}>
@@ -104,10 +105,15 @@ export function McqCanvas({
               />
               <span aria-hidden="true">{isCorrect&&<Check strokeWidth={4}/>}</span>
             </label>
-                <button type="button" className={styles.answerImageButton} disabled={imageBusy[option.key]??false} aria-busy={imageBusy[option.key]??false} aria-label={ar?'صورة الإجابة':'Answer image'} title={ar?'إضافة أو استبدال صورة':'Add or replace image'} onClick={event=>event.currentTarget.closest('[data-answer-cell]')?.querySelector<HTMLInputElement>('input[type=file]')?.click()}>{imageBusy[option.key]?<ButtonSpinner/>:<ImagePlus size={24}/>}</button>
+                <button type="button" className={styles.answerImageButton} disabled={busyFor(option.key)} aria-busy={busyFor(option.key)} aria-label={ar?'صورة الإجابة':'Answer image'} title={ar?'إضافة أو استبدال صورة':'Add or replace image'} onClick={event=>event.currentTarget.closest('[data-answer-cell]')?.querySelector<HTMLInputElement>('input[type=file]')?.click()}><ImagePlus size={24}/></button>
               </div>
+              {/* One thin bar along the tile's own bottom edge — no status card
+                  inside an answer the class is going to read. */}
+              <UploadBar state={uploads[option.key]??{phase:'idle',progress:0,error:''}} label={ar?'رفع الصورة':'Image upload'}/>
             </div>
-            <ImageUpload compact onBusyChange={busy=>setImageBusy(current=>({...current,[option.key]:busy}))} imageKey={option.image??null} showPreview={false} onImage={image=>onOptionImage(option.key,image)} onRemove={()=>onOptionImage(option.key,undefined)}/>
+            {/* Headless — the file input only. The tile draws the indicator, and
+                the picture carries its own delete. */}
+            <ImageUpload compact onProgress={state=>setUploads(current=>({...current,[option.key]:state}))} imageKey={option.image??null} showPreview={false} onImage={image=>onOptionImage(option.key,image)}/>
           </div>
         )
       })}
@@ -169,4 +175,19 @@ export function TfCanvas({ correct, onCorrect }: TfCanvasProps) {
   )
 }
 
-function OptionImage({imageKey,text}:{imageKey:string;text:string}){const url=useImage(imageKey);return url?<img className={styles.optionImage} src={url} alt={text}/>:null}
+/**
+ * The picture, with its own delete over it.
+ *
+ * Deleting the PICTURE and deleting the ANSWER are different acts with
+ * different consequences, so they are different controls in different places:
+ * this one sits on the image it removes, and the answer's own bin stays under
+ * the shape.
+ */
+export function OptionImage({imageKey,text,onRemove,label}:{imageKey:string;text:string;onRemove:()=>void;label:string}){
+  const url=useImage(imageKey)
+  if(!url)return null
+  return <span className={styles.optionImageWrap}>
+    <img className={styles.optionImage} src={url} alt={text}/>
+    <ImageRemoveButton className={styles.optionImageRemove} onRemove={onRemove} label={label}/>
+  </span>
+}

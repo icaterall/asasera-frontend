@@ -11,9 +11,12 @@ import {
   type HotspotPayload,
   type MatchPayload,
   type McqPayload,
+  type OrderConstraint,
   type OrderPayload,
   type QuestionKind,
   type TfPayload,
+  impliedOrderConstraints,
+  orderRelationKey,
   tfChoiceToBoolean,
 } from './questions.ts'
 
@@ -92,6 +95,25 @@ export function markTf(payload: TfPayload, answer: Extract<AnswerPayload, { kind
  * Ordering. The submitted sequence must be a permutation of exactly the item
  * keys — missing, extra and repeated are all rejected rather than scored as a
  * near miss, because a partial sequence is not an ordering.
+ *
+ * WHAT IS RECORDED, AND WHY IT IS TWO THINGS.
+ *
+ * A wrong ordering is marked in two registers at once:
+ *
+ *   position      item X ended up in slot N.   `wrongTargetKey` = "2"
+ *   relationship  X was placed after Y.        `wrongTargetKey` = "after:Y"
+ *
+ * Position is what this function has always recorded and what every error
+ * pair written so far is keyed by, so it is unchanged. Relationship is the
+ * addition: it is what survives a shuffle and what a teacher can act on.
+ * "Item 3 was in slot 2" describes the answer sheet; "they saved the record
+ * before validating the input" describes the misunderstanding, and stays true
+ * whether that step is second of four or fifth of nine.
+ *
+ * In `partial` mode only relationships are recorded. Position carries no
+ * meaning there — an ordering the teacher declared free is not a mistake, and
+ * emitting it would let a diagnosis be built on evidence the content does not
+ * support (§5).
  */
 export function markOrder(payload: OrderPayload, answer: Extract<AnswerPayload, { kind: 'order' }>): MarkResult {
   const expected = payload.correct
@@ -108,11 +130,50 @@ export function markOrder(payload: OrderPayload, answer: Extract<AnswerPayload, 
     if (!allowed.has(key)) return invalid(`sequence names unknown item "${key}"`)
   }
 
-  const wrongElements: MarkResult['wrongElements'] = []
-  for (let i = 0; i < expected.length; i += 1) {
-    if (got[i] !== expected[i]) wrongElements.push({ elementKey: got[i]!, wrongTargetKey: String(i) })
+  const mode = payload.mode ?? 'exact'
+  const at = new Map(got.map((key, index) => [key, index]))
+  const violated = (constraints: readonly OrderConstraint[]) =>
+    constraints.filter((c) => {
+      const before = at.get(c.before)
+      const after = at.get(c.after)
+      return before !== undefined && after !== undefined && before > after
+    })
+  const asRelationships = (constraints: readonly OrderConstraint[]): MarkResult['wrongElements'] =>
+    constraints.map((c) => ({ elementKey: c.before, wrongTargetKey: orderRelationKey(c.after) }))
+
+  if (mode === 'partial') {
+    const broken = violated(payload.constraints ?? [])
+    return { correct: broken.length === 0, wrongElements: asRelationships(broken) }
   }
-  return { correct: wrongElements.length === 0, wrongElements }
+
+  /*
+   * Exact and flexible differ only in how many sequences count as right.
+   * Exact is flexible with no alternates, so there is one code path and no
+   * second implementation of "is this sequence correct" to drift.
+   */
+  const accepted = mode === 'flexible' ? [expected, ...(payload.alternates ?? [])] : [expected]
+  const matches = (sequence: readonly string[]) => got.every((key, index) => key === sequence[index])
+  if (accepted.some(matches)) return { correct: true, wrongElements: [] }
+
+  /*
+   * Against which of several accepted sequences is a wrong answer reported?
+   *
+   * The CLOSEST one — most items already in the right slot. Reporting against
+   * whichever happened to be listed first would describe a learner as having
+   * made a different, larger mistake than the one they made, and that
+   * description is what a teacher reads and what an intervention counts.
+   */
+  const reference = accepted.reduce((best, candidate) => {
+    const score = (sequence: readonly string[]) => got.filter((key, index) => key === sequence[index]).length
+    return score(candidate) > score(best) ? candidate : best
+  }, accepted[0]!)
+
+  const wrongElements: MarkResult['wrongElements'] = []
+  for (let i = 0; i < reference.length; i += 1) {
+    if (got[i] !== reference[i]) wrongElements.push({ elementKey: got[i]!, wrongTargetKey: String(i) })
+  }
+  wrongElements.push(...asRelationships(violated(impliedOrderConstraints(reference))))
+  return { correct: false, wrongElements }
 }
 
 /**

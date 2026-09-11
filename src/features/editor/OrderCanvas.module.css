@@ -1,0 +1,95 @@
+/* The Order canvas.
+   Media on one side, the ordered rows on the other — the reference layout. An
+   ordering reads top to bottom, so the rows are one column however wide the
+   canvas gets, and the media sits beside them rather than above. */
+
+.canvas { display: grid; grid-template-columns: minmax(0, 420px) minmax(0, 1fr); gap: 22px; align-items: stretch; }
+@media (max-width: 900px) { .canvas { grid-template-columns: 1fr; } }
+
+/* MediaField draws a fixed 4:2 box, which is right above a grid of options and
+   wrong beside a tall column of rows. Reached through the data attribute the
+   field puts on its own root, so this override stays inside this canvas. */
+.media { min-width: 0; }
+.media [data-question-image] { height: 100%; }
+.media [data-question-image] > button { width: 100%; height: 100%; min-height: 320px; aspect-ratio: auto; margin-inline: 0; }
+
+.column { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.hint { margin: 0; font-size: var(--f-small); color: var(--muted); }
+
+.list { display: flex; flex-direction: column; gap: 10px; list-style: none; margin: 0; padding: 0; }
+
+.row { display: flex; align-items: stretch; gap: 8px; }
+.row[data-dragging=true] { position: relative; z-index: 2; }
+.row[data-dragging=true] .lead, .row[data-dragging=true] .body { box-shadow: 0 10px 24px #0004; }
+
+/* The shape block is its own coloured square beside the answer, not a badge
+   inside it — and it keeps its colour when the answer is still empty, which is
+   what makes an unfilled row read as a waiting slot rather than a blank box. */
+.lead {
+  flex: 0 0 68px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+  padding: 8px 0;
+  border-radius: 5px;
+  background: var(--tile); color: var(--tileFg);
+  box-shadow: var(--press);
+}
+.leadGlyph { width: 30px; height: 30px; fill: currentColor; }
+
+.body {
+  position: relative;
+  flex: 1 1 auto; min-width: 0;
+  display: flex; align-items: center; gap: 10px;
+  min-height: 92px; padding: 8px 10px;
+  border-radius: 5px;
+  background: var(--tile); color: var(--tileFg);
+  box-shadow: var(--press);
+}
+.body[data-empty=true] { background: var(--surface); color: var(--ink); box-shadow: none; }
+.body:focus-within { box-shadow: inset 0 -4px 0 #0003, 0 0 0 3px var(--act); }
+
+.text { flex: 1 1 auto; min-width: 0; font-size: 18px; }
+.thumbWrap { position: relative; flex: 0 0 auto; line-height: 0; }
+.thumb { width: 148px; max-width: 100%; height: 84px; object-fit: cover; border-radius: 3px; display: block; }
+.thumbRemove {
+  position: absolute; inset-block-start: 4px; inset-inline-end: 4px;
+  display: grid; place-items: center; width: 24px; height: 24px; padding: 0;
+  border: 0; border-radius: 4px; background: #000000a6; color: #fff; cursor: pointer;
+}
+.thumbRemove:hover { background: #000000d1; }
+.thumbRemove:focus-visible { outline: 2px solid #fff; outline-offset: 1px; }
+@media (max-width: 700px) { .thumb { width: 96px; height: 64px; } }
+
+.handle {
+  display: grid; place-items: center;
+  flex: 0 0 auto; width: 44px; min-height: 44px; padding: 0;
+  border: 0; border-radius: 5px;
+  background: transparent; color: inherit;
+  cursor: grab; touch-action: none;
+}
+.handle:active { cursor: grabbing; }
+.handle:hover { background: color-mix(in srgb, currentColor 12%, transparent); }
+.handle:focus-visible { outline: 3px solid currentColor; outline-offset: 2px; }
+
+.nudges { display: flex; flex-direction: column; flex: 0 0 auto; }
+.nudge {
+  display: grid; place-items: center;
+  width: 30px; height: 24px; padding: 0;
+  border: 0; border-radius: 4px;
+  background: transparent; color: inherit; cursor: pointer;
+}
+.nudge:hover:not(:disabled) { background: color-mix(in srgb, currentColor 12%, transparent); }
+.nudge:disabled { opacity: .3; cursor: default; }
+.nudge:focus-visible { outline: 2px solid currentColor; outline-offset: 1px; }
+
+/* ---- advanced settings ---- */
+
+.advanced { margin-block-start: 14px; border-radius: var(--r-control); background: var(--surface); }
+.advanced > summary { padding: 10px 14px; font-weight: var(--w-bold); cursor: pointer; list-style-position: inside; }
+.advanced > div { display: flex; flex-direction: column; gap: 12px; padding: 0 14px 14px; }
+.advanced label { display: flex; flex-direction: column; gap: 6px; font-size: var(--f-small); }
+.modeNote { margin: 0; font-size: var(--f-small); color: var(--muted); }
+
+.rules { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.rule { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.rule select { min-width: 0; flex: 1 1 140px; }
+.rule > span { font-size: var(--f-small); color: var(--muted); }

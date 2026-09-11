@@ -1,9 +1,9 @@
 import {useRef,useState} from 'react'
 import {useTranslation} from 'react-i18next'
-import {ArrowUp,ArrowDown,Plus,Trash2} from 'lucide-react'
+import {Trash2} from 'lucide-react'
 import {Button, Select } from '@/design'
 import type {QuestionRecord,ErrorPairRecord,QuestionKindWire} from '@/lib/api'
-import {parsePayload,type OrderPayload,type MatchPayload,type HotspotPayload,type ImageZone} from '@/shared/questions'
+import {parsePayload,type MatchPayload,type HotspotPayload,type ImageZone} from '@/shared/questions'
 import {errorPairSlots} from '@/shared/error-pairs'
 import {ImageUpload,useImage} from './ImageUpload'
 import styles from './Editor.module.css'
@@ -11,19 +11,9 @@ const key=(prefix:string)=>`${prefix}_${crypto.randomUUID().replace(/-/g,'').sli
 export function defaultPayload(kind:QuestionKindWire,imageKey=''){
   if(kind==='mcq')return {options:['a','b','c','d'].map(k=>({key:`opt_${k}`,text:''})),correct:'opt_a'}
   if(kind==='tf')return {correct:true}
-  if(kind==='order')return {items:[{key:'item_a',text:''},{key:'item_b',text:''}],correct:['item_a','item_b']}
+  if(kind==='order')return {items:[{key:'item_a',text:''},{key:'item_b',text:''},{key:'item_c',text:''}],correct:['item_a','item_b','item_c']}
   if(kind==='match')return {cards:[{key:'card_a',text:''},{key:'card_b',text:''}],targets:[{key:'target_a',text:''},{key:'target_b',text:''}],map:{card_a:'target_a',card_b:'target_b'}}
   return {mode:'click_zone',imageKey,zones:[{key:'zone_a',x:.08,y:.1,w:.35,h:.35},{key:'zone_b',x:.57,y:.1,w:.35,h:.35}],correct:['zone_a']}
-}
-function OrderEditor({p,onChange}:{p:OrderPayload;onChange:(p:OrderPayload)=>void}){
-  const {i18n}=useTranslation(),ar=i18n.language.startsWith('ar')
-  const move=(index:number,step:number)=>{const correct=[...p.correct];[correct[index],correct[index+step]]=[correct[index+step]!,correct[index]!];onChange({...p,correct})}
-  return <section className={styles.advanced}><h2>{ar?'الترتيب الصحيح':'Correct order'}</h2><p>{ar?'اكتب العناصر بترتيبها الصحيح. يخلطها النظام عند العرض.':'Write the items in their correct order. They will be shuffled during play.'}</p>
-    {p.correct.map((id,index)=><div className={styles.editRow} key={id}><strong>{index+1}</strong><input aria-label={`${ar?'العنصر':'Item'} ${index+1}`} value={p.items.find(i=>i.key===id)!.text} onChange={e=>onChange({...p,items:p.items.map(i=>i.key===id?{...i,text:e.target.value}:i)})}/>
-      <Button aria-label={ar?'حرّك للأعلى':'Move up'} disabled={index===0} onClick={()=>move(index,-1)}><ArrowUp size={18}/></Button><Button aria-label={ar?'حرّك للأسفل':'Move down'} disabled={index===p.correct.length-1} onClick={()=>move(index,1)}><ArrowDown size={18}/></Button>
-      <Button variant="quiet" aria-label={ar?'احذف العنصر':'Delete item'} disabled={p.items.length<=2} onClick={()=>onChange({...p,items:p.items.filter(i=>i.key!==id),correct:p.correct.filter(k=>k!==id)})}><Trash2 size={18}/></Button></div>)}
-    <Button disabled={p.items.length>=8} onClick={()=>{const id=key('item');onChange({items:[...p.items,{key:id,text:''}],correct:[...p.correct,id]})}}><Plus size={18}/>{ar?'أضف عنصرًا':'Add item'}</Button>
-  </section>
 }
 function MatchEditor({p,onChange}:{p:MatchPayload;onChange:(p:MatchPayload)=>void}){
   const {i18n}=useTranslation(),ar=i18n.language.startsWith('ar')
@@ -56,7 +46,6 @@ export function AdvancedCanvas({question,pairs,onPatch,onPair}:{question:Questio
   if(!parsed.success)return <p role="alert">{ar?'تعذّر قراءة السؤال':'Could not read this question'}</p>
   const p=parsed.data,slots=errorPairSlots(question.kind,p),chosen=slots.find(s=>`${s.elementKey}:${s.wrongTargetKey}`===slot)??slots[0]
   return <>
-    {'items'in p&&<OrderEditor p={p} onChange={payload=>onPatch({payload})}/>}
     {'targets'in p&&<MatchEditor p={p} onChange={payload=>onPatch({payload})}/>}
     {'zones'in p&&<HotspotEditor p={p} onChange={payload=>onPatch({payload,mediaKey:payload.imageKey})} onConfirm={()=>onPatch({confirmZones:true})}/>}
     {chosen&&<details className={styles.advanced}><summary>{ar?'سبب متوقع لخطأ محدد (اختياري)':'A possible reason for a specific mistake (optional)'}</summary><p>{ar?'سجّل تفسيرًا يساعد المعلّم على المراجعة، دون الجزم بسبب خطأ الطالب.':'Record a possibility to support teacher review, without claiming to diagnose a learner.'}</p><Select aria-label={ar?'الخطأ المتوقع':'Possible mistake'} value={`${chosen.elementKey}:${chosen.wrongTargetKey}`} onValueChange={e=>setSlot(e)}>{slots.map(s=><option key={`${s.elementKey}:${s.wrongTargetKey}`} value={`${s.elementKey}:${s.wrongTargetKey}`}>{s.label}</option>)}</Select><textarea aria-label={ar?'سبب الخطأ المتوقع':'Possible reason'} value={pairs.find(x=>x.elementKey===chosen.elementKey&&x.wrongTargetKey===chosen.wrongTargetKey)?.reason??''} onChange={e=>onPair(chosen.elementKey,chosen.wrongTargetKey,e.target.value)}/></details>}

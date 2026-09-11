@@ -47,10 +47,11 @@ export const generationApplySchema=z.object({selected:z.array(z.number().int().m
 /** What the client sees before it pays: the estimate, the ceiling it authorises, and the teacher's usable credit. */
 export const generationQuoteSchema=z.object({
  estimateMillicents:z.number().int().nonnegative(),maxAuthorizedMillicents:z.number().int().nonnegative(),
+ estimateAiCredits:z.number().int().nonnegative(),maxAuthorizedAiCredits:z.number().int().nonnegative(),usableAiCredits:z.number().int().nonnegative(),creditPolicyVersion:z.number().int().positive(),creditUnit:z.literal('AI Credits'),
  spendableMillicents:z.number().int(),usableMillicents:z.number().int(),allowanceMillicents:z.number().int(),exposureMillicents:z.number().int(),
  affordable:z.boolean(),pricingAvailable:z.boolean(),generationAvailable:z.boolean(),
  quoteId:z.uuid(),quoteExpiresAt:z.string(),
- grant:z.object({trialMillicents:z.number().int(),claimed:z.boolean(),eligible:z.boolean(),reason:z.string().nullable()}),
+ grant:z.object({trialMillicents:z.number().int(),trialAiCredits:z.number().int().nonnegative(),claimed:z.boolean(),eligible:z.boolean(),reason:z.string().nullable()}),
  delivery:z.string(),
 })
 export type GenerationQuote=z.infer<typeof generationQuoteSchema>

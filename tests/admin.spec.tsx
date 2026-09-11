@@ -16,7 +16,8 @@ vi.mock('@/hooks/useAuth',()=>({useAuth:()=>auth}))
 vi.mock('@/hooks/useAuthOptions',()=>({useAuthOptions:()=>({google:true})}))
 const language=createInstance()
 const person:AdminUser={id:25,name:'Test teacher',email:'teacher@example.test',role:'teacher',status:'active',locale:'en',emailVerified:true,
-  createdAt:'2026-09-09T10:00:00Z',lastLoginAt:null,balanceMillicents:50000,reservedMillicents:20000,spendableMillicents:30000,welcomeGrantClaimed:true}
+  createdAt:'2026-09-09T10:00:00Z',lastLoginAt:null,balanceMillicents:50000,reservedMillicents:20000,spendableMillicents:30000,welcomeGrantClaimed:true,
+  creditPolicyVersion:1,creditUnit:'AI Credits',balanceAiCredits:50000,reservedAiCredits:20000,spendableAiCredits:30000}
 function show(node:React.ReactNode) {
   const client=new QueryClient({defaultOptions:{queries:{retry:false,gcTime:0}}})
   render(<I18nextProvider i18n={language}><QueryClientProvider client={client}><MemoryRouter initialEntries={['/admin/users/25']}>{node}</MemoryRouter></QueryClientProvider></I18nextProvider>)
@@ -46,7 +47,7 @@ it('shows real users and searches on submit with the correct filters',async()=>{
   const get=vi.spyOn(administration,'users').mockResolvedValue({users:[person],total:1,page:1,limit:25})
   show(<AdminUsers/>);await screen.findByText(person.email!)
   expect(screen.getByRole('link',{name:'Manage credit'}).getAttribute('href')).toBe('/admin/users/25')
-  expect(screen.getByText('$0.30')).toBeTruthy()
+  expect(screen.getByText('30,000 AI Credits')).toBeTruthy()
   fireEvent.change(screen.getByLabelText('Search by name or email'),{target:{value:'teacher@example.test'}})
   fireEvent.click(screen.getByRole('button',{name:'Search'}))
   await waitFor(()=>expect(get).toHaveBeenLastCalledWith('teacher@example.test','',1,expect.any(AbortSignal)))
@@ -54,7 +55,7 @@ it('shows real users and searches on submit with the correct filters',async()=>{
 it('requires review, prevents double submission, and retries an uncertain result with the same key',async()=>{
   let reject!:(error:Error)=>void
   const pending=new Promise<never>((_,fail)=>{reject=fail})
-  const adjust=vi.spyOn(administration,'adjust').mockReturnValueOnce(pending).mockResolvedValue({adjustmentId:10,balanceMillicents:100000,replayed:true})
+  const adjust=vi.spyOn(administration,'adjust').mockReturnValueOnce(pending).mockResolvedValue({adjustmentId:10,balanceMillicents:100000,balanceAiCredits:100000,replayed:true})
   show(<CreditForm person={person}/>)
   fireEvent.change(screen.getByLabelText('Reason for adjustment'),{target:{value:'Additional preparation credit'}})
   fireEvent.click(screen.getByRole('button',{name:'Review adjustment'}))
@@ -64,7 +65,7 @@ it('requires review, prevents double submission, and retries an uncertain result
   fireEvent.click(confirm);fireEvent.click(confirm)
   expect(confirm.getAttribute('aria-busy')).toBe('true');expect(adjust).toHaveBeenCalledTimes(1)
   const original=adjust.mock.calls[0]![1]
-  expect(original).toMatchObject({direction:'add',amountUsd:'0.50',reason:'Additional preparation credit'})
+  expect(original).toMatchObject({direction:'add',amountAiCredits:50000,reason:'Additional preparation credit'})
   await act(async()=>reject(new Error('Connection interrupted')))
   expect(screen.getByRole('button',{name:'Edit details'}).hasAttribute('disabled')).toBe(true)
   fireEvent.click(screen.getByRole('button',{name:'Retry same adjustment'}))
@@ -74,31 +75,31 @@ it('requires review, prevents double submission, and retries an uncertain result
 it('rejects invalid credit amounts before sending an adjustment',()=>{
   const adjust=vi.spyOn(administration,'adjust')
   show(<CreditForm person={person}/>)
-  fireEvent.change(screen.getByLabelText('Amount in USD'),{target:{value:'-0.50'}})
+  fireEvent.change(screen.getByLabelText('AI Credits'),{target:{value:'-50000'}})
   fireEvent.change(screen.getByLabelText('Reason for adjustment'),{target:{value:'Reason'}})
-  fireEvent.submit(screen.getByLabelText('Amount in USD').closest('form')!)
+  fireEvent.submit(screen.getByLabelText('AI Credits').closest('form')!)
   expect(screen.getByRole('alert').textContent).toMatch(/greater than zero/)
   expect(adjust).not.toHaveBeenCalled()
 })
-it('can remove exactly seven cents of available credit while retaining reservations and restoring keyboard focus',async()=>{
+it('can remove available AI Credits while retaining reservations and restoring keyboard focus',async()=>{
   const user=userEvent.setup()
-  show(<CreditForm person={{...person,balanceMillicents:12000,reservedMillicents:5000,spendableMillicents:7000}}/>)
+  show(<CreditForm person={{...person,balanceMillicents:12000,reservedMillicents:5000,spendableMillicents:7000,balanceAiCredits:12000,reservedAiCredits:5000,spendableAiCredits:7000}}/>)
   await user.click(screen.getByRole('combobox',{name:'Action'}))
   await user.click(await screen.findByRole('option',{name:'Remove credit'}))
-  fireEvent.change(screen.getByLabelText('Amount in USD'),{target:{value:'0.07'}})
+  fireEvent.change(screen.getByLabelText('AI Credits'),{target:{value:'7000'}})
   fireEvent.change(screen.getByLabelText('Reason for adjustment'),{target:{value:'Correction of credit'}})
   await user.click(screen.getByRole('button',{name:'Review adjustment'}))
   expect(screen.queryByRole('alert')).toBeNull()
   expect(document.activeElement).toBe(screen.getByRole('heading',{name:'Review adjustment'}))
-  expect(screen.getByText('$0.05')).toBeTruthy()
+  expect(screen.getByText('5,000 AI Credits')).toBeTruthy()
   await user.click(screen.getByRole('button',{name:'Edit details'}))
-  expect(document.activeElement).toBe(screen.getByLabelText('Amount in USD'))
+  expect(document.activeElement).toBe(screen.getByLabelText('AI Credits'))
   expect(creditMillicents('0.07')).toBe(7000)
   expect(creditMillicents('0.00001')).toBe(1)
 })
 it('shows the credit history with the administrator and reason',async()=>{
   vi.spyOn(administration,'user').mockResolvedValue(person)
-  vi.spyOn(administration,'history').mockResolvedValue({entries:[{id:20,kind:'adjustment',amountMillicents:50000,reason:'Additional preparation credit',createdAt:person.createdAt,actorEmail:'owner@example.test',balanceAfterMillicents:50000}],nextBefore:null})
+  vi.spyOn(administration,'history').mockResolvedValue({entries:[{id:20,kind:'adjustment',amountMillicents:50000,amountAiCredits:50000,reason:'Additional preparation credit',createdAt:person.createdAt,actorEmail:'owner@example.test',balanceAfterMillicents:50000,balanceAfterAiCredits:50000}],nextBefore:null})
   show(<Routes><Route path="/admin/users/:id" element={<AdminUserDetail/>}/></Routes>)
   await screen.findByText('Additional preparation credit')
   expect(screen.getByText('owner@example.test')).toBeTruthy()
@@ -109,7 +110,7 @@ it('does not provide credit adjustments for a student',async()=>{
   const history=vi.spyOn(administration,'history')
   show(<Routes><Route path="/admin/users/:id" element={<AdminUserDetail/>}/></Routes>)
   await screen.findByText(/This is not an instructor account/)
-  expect(screen.queryByLabelText('Amount in USD')).toBeNull();expect(history).not.toHaveBeenCalled()
+  expect(screen.queryByLabelText('AI Credits')).toBeNull();expect(history).not.toHaveBeenCalled()
 })
 it('renders the credit form in Arabic and uses role-aware return destinations',async()=>{
   await language.changeLanguage('ar');show(<CreditForm person={person}/>)

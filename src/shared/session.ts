@@ -14,11 +14,14 @@ export const sessionStateSchema = z.enum(['lobby', 'question_open', 'question_lo
 export type SessionState = z.infer<typeof sessionStateSchema>
 const key = z.string().max(32)
 const item = z.object({ key, text: z.string().max(500) })
+/* An item a learner can be shown as a picture. The value is a resolved URL,
+   put there by `publicQuestion`; the stored object key never leaves the server. */
+const mediaItem = item.extend({ image: z.string().max(500).optional() })
 // Explicit allowlists. Neither a stored payload nor an error pair can enter a snapshot.
 export const publicPayloadSchema = z.discriminatedUnion('kind', [
   z.object({ kind: z.literal('mcq'), ...mcqPublicSchema.shape }),
   z.object({ kind: z.literal('tf'), options: z.array(item) }),
-  z.object({ kind: z.literal('order'), items: z.array(item) }),
+  z.object({ kind: z.literal('order'), items: z.array(mediaItem) }),
   z.object({ kind: z.literal('match'), cards: z.array(item), targets: z.array(item) }),
   z.object({ kind: z.literal('hotspot'), mode: z.enum(['click_zone', 'card_to_zone']), zones: z.array(imageZoneSchema), cards: z.array(item) }),
 ])

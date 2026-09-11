@@ -24,7 +24,9 @@ for(const [width,ar] of [[1440,false],[390,true]] as const)test(`question proper
  await page.reload();if(width<1025)await toggle.click()
  await expect(panel.locator('#question-points')).toHaveText(ar?'نقاط مضاعفة':'Double points')
  await expect(panel.locator('#question-duration')).toHaveText(ar?'30 ثانية':'30 seconds')
- await panel.getByRole('button',{name:ar?'أغلق الخصائص':'Close properties',exact:true}).click();await expect(panel).toBeHidden();await toggle.click();await expect(panel).toBeVisible()
+ await panel.getByRole('button',{name:ar?'طيّ الخصائص':'Fold properties',exact:true}).click()
+ if(width<1025){await expect(panel).toBeHidden();await toggle.click();await expect(panel).toBeVisible()}
+ else{await expect(panel).toHaveAttribute('data-editor-drawer','closed');await panel.getByRole('button',{name:ar?'فتح الخصائص':'Unfold properties',exact:true}).click();await expect(panel).toHaveAttribute('data-editor-drawer','open')}
  await panel.locator('#question-points').click();await page.getByRole('option',{name:ar?/بدون نقاط/:/No points/}).click()
  await expect.poll(async()=>{const r=await page.request.get(`/api/v1/activities/${activity.id}`,{headers});return (await r.json()).questions[0].payload.pointsMultiplier}).toBe(0)
  expect(errors).toEqual([])

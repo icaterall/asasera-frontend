@@ -4,9 +4,18 @@
 .track{height:6px;border-radius:5px;overflow:hidden;background:#dbe9ef;width:100%;margin-top:4px}.fill{height:100%;background:linear-gradient(90deg,#1368ce,#159664);transition:width .18s ease}.checking .fill{width:35%;animation:travel 1.5s ease-in-out infinite alternate}
 .actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:center}.input{position:absolute;width:1px;height:1px;clip-path:inset(50%);overflow:hidden}.error{border-color:#ddaa65}.ready{border-color:#92cbb2}
 @keyframes travel{from{transform:translateX(0)}to{transform:translateX(180%)}}@media(prefers-reduced-motion:reduce){.checking .fill{animation:none;width:65%}.fill{transition:none}}@media(max-width:480px){.status{padding:12px;gap:10px}.icon{flex-basis:34px;width:34px;height:34px}.actions{width:100%}.actions>button{flex:1}}
-.compact { min-width:0; display:flex; flex-direction:column; gap:8px; }
-.compact .actions:has(>input:only-child) { display:none; }
-.compact:has(>.actions:only-child>input:only-child) { display:none; }
+/* Headless: the file input only, opened by a button in the tile. The caller
+   draws the indicator with UploadBar. */
+.compact { display:none; }
+
+/* The indicator, pinned to the bottom edge of the tile that contains it. */
+.bar { position:absolute; inset-inline:0; bottom:0; height:5px; border-end-start-radius:5px; border-end-end-radius:5px; background:#00000033; overflow:hidden; pointer-events:none; }
+.barFill { height:100%; width:0; background:currentColor; opacity:.9; transition:width .18s ease; }
+.bar[data-phase=checking] .barFill { width:35%; animation:travel 1.5s ease-in-out infinite alternate; }
+.bar[data-phase=ready] .barFill { width:100%; background:#26890c; opacity:1; }
+.bar[data-phase=error] .barFill { width:100%; background:#c0392b; opacity:1; }
+.barError { position:absolute; inset-inline:8px; bottom:10px; padding:3px 7px; border-radius:4px; background:#000000a8; color:#fff; font-size:12px; line-height:1.4; }
+@media(prefers-reduced-motion:reduce){ .bar[data-phase=checking] .barFill { animation:none; width:65%; } .barFill { transition:none; } }
 
 .question{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;width:min(100%,420px);min-height:270px;margin:18px auto;padding:24px;border:1px solid transparent;border-radius:5px;background:color-mix(in srgb,var(--surface,#fff) 86%,transparent);color:var(--ink,#27333d);text-align:center;transition:background .15s,border-color .15s}
 .question.dragging{border-color:var(--act,#176bd4);background:var(--surface,#fff)}

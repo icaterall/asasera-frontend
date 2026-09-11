@@ -83,6 +83,7 @@ const en = {
     "estimated": "Estimated",
     "maximum": "Maximum",
     "available": "Available",
+    "aiCredits": "AI Credits",
     "estimating": "Estimating cost…",
     "readyHint": "Add your lesson content to see the cost.",
     "retry": "Try again",

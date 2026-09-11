@@ -105,20 +105,72 @@ export const booleanToTfChoice = (value: boolean): 'true' | 'false' => (value ? 
 
 /* ---- ordering ---------------------------------------------------------- */
 
-/* Empty while drafting; required at publication. See mcqOption above. */
-const orderItem = z.object({ key: elementKey, text: z.string().max(300) })
+/*
+ * Empty while drafting; required at publication. See mcqOption above.
+ *
+ * An item may be a PICTURE rather than words — ordering four photographs of a
+ * process, or four diagrams, is the same skill as ordering four sentences, and
+ * for a learner who is still building the language it is a fairer test of it.
+ * So `image` is carried here on the same terms as an MCQ option's: optional in
+ * storage, and at publication an item needs text or an image, not both.
+ */
+const orderItem = z.object({ key: elementKey, text: z.string().max(300), image: z.string().max(500).optional() })
+
+/**
+ * How an ordering is judged.
+ *
+ *   exact     one complete sequence is correct.
+ *   flexible  several complete sequences are correct.
+ *   partial   only the declared dependencies matter; anything they leave
+ *             unconstrained is free.
+ *
+ * ABSENT MEANS EXACT. Every question written before these modes existed
+ * carries no `mode`, and must keep marking identically — a stored question
+ * whose meaning changes because the schema grew is a silent regression across
+ * every past run and report.
+ */
+export const ORDER_MODES = ['exact', 'flexible', 'partial'] as const
+export const orderModeSchema = z.enum(ORDER_MODES)
+export type OrderMode = (typeof ORDER_MODES)[number]
+
+/**
+ * One dependency: `before` must appear somewhere earlier than `after`.
+ *
+ * A dependency is a RELATIONSHIP, not a position. That is the whole point —
+ * "validate before save" is true whether validation is step 1 of 4 or step 3
+ * of 9, and a learner who has that relationship right has understood
+ * something that a position check cannot see.
+ *
+ * No misconception code here. A diagnosis lives in `error_pairs`, which
+ * already has `reason` and `misconception_id` and is already frozen into the
+ * published version. Carrying a second copy in the payload would be a
+ * parallel system that can disagree with the first.
+ */
+const orderConstraint = z.object({ before: elementKey, after: elementKey })
+export type OrderConstraint = z.infer<typeof orderConstraint>
 
 /**
  * `correct` is the logical order. §12: «الترتيب يُخزَّن منطقيًا ويُعرض حسب
  * الاتجاه» — stored logically, displayed by direction. "First" means first
  * logically, and it is drawn on the right in Arabic and the left in English.
  * Nothing reverses the stored array because the UI direction changed.
+ *
+ * `correct` stays REQUIRED in every mode. It is the sequence the teacher
+ * actually typed, it is what the reveal shows the class, and in `partial` it
+ * is the reference the dependencies are checked against for consistency. A
+ * mode that had no reference sequence would leave the reveal with nothing to
+ * display.
  */
 export const orderPayloadSchema = z
   .object({
     items: z.array(orderItem).min(2).max(8),
     pointsMultiplier,
     correct: z.array(elementKey).min(2).max(8),
+    mode: orderModeSchema.optional(),
+    /** `flexible` only: further complete sequences accepted besides `correct`. */
+    alternates: z.array(z.array(elementKey).min(2).max(8)).max(8).optional(),
+    /** `partial` only: the dependencies that decide correctness. */
+    constraints: z.array(orderConstraint).max(32).optional(),
   })
   .superRefine((value, ctx) => {
     uniqueKeys(value.items, ctx, 'item')
@@ -135,8 +187,131 @@ export const orderPayloadSchema = z
         ctx.addIssue({ code: 'custom', path: ['correct'], message: `correct order names unknown item "${key}"` })
       }
     }
+
+    const mode = value.mode ?? 'exact'
+
+    /*
+     * An alternate is a COMPLETE sequence, held to the same rules as `correct`.
+     * A three-of-four "alternate" would be accepted by marking as a full
+     * answer and quietly ignore the missing item.
+     */
+    value.alternates?.forEach((sequence, index) => {
+      const path = ['alternates', index] as (string | number)[]
+      if (new Set(sequence).size !== sequence.length) {
+        ctx.addIssue({ code: 'custom', path, message: 'an alternate sequence repeats a key' })
+      }
+      if (sequence.length !== value.items.length) {
+        ctx.addIssue({ code: 'custom', path, message: 'an alternate sequence must list every item exactly once' })
+      }
+      for (const key of sequence) {
+        if (!itemKeys.has(key)) ctx.addIssue({ code: 'custom', path, message: `an alternate sequence names unknown item "${key}"` })
+      }
+      if (sequence.length === value.correct.length && sequence.every((key, i) => key === value.correct[i])) {
+        ctx.addIssue({ code: 'custom', path, message: 'an alternate sequence repeats the correct order' })
+      }
+    })
+
+    const seenConstraints = new Set<string>()
+    for (const [index, constraint] of (value.constraints ?? []).entries()) {
+      const path = ['constraints', index] as (string | number)[]
+      if (!itemKeys.has(constraint.before)) ctx.addIssue({ code: 'custom', path, message: `constraint names unknown item "${constraint.before}"` })
+      if (!itemKeys.has(constraint.after)) ctx.addIssue({ code: 'custom', path, message: `constraint names unknown item "${constraint.after}"` })
+      if (constraint.before === constraint.after) ctx.addIssue({ code: 'custom', path, message: 'a constraint cannot order an item against itself' })
+      const id = `${constraint.before}>${constraint.after}`
+      if (seenConstraints.has(id)) ctx.addIssue({ code: 'custom', path, message: 'duplicate constraint' })
+      seenConstraints.add(id)
+    }
+
+    /*
+     * INTERNAL CONSISTENCY (§9). The dependencies must be satisfiable, and the
+     * sequence the teacher typed must satisfy them. Both failures produce the
+     * same symptom in a classroom — every learner marked wrong, with no way to
+     * be right — and neither is visible by reading the list.
+     *
+     * Contradictory dependencies show up as a cycle; `correct` is checked by
+     * simply reading positions off it.
+     */
+    if (mode === 'partial') {
+      const position = new Map(value.correct.map((key, index) => [key, index]))
+      for (const [index, constraint] of (value.constraints ?? []).entries()) {
+        const before = position.get(constraint.before)
+        const after = position.get(constraint.after)
+        if (before !== undefined && after !== undefined && before > after) {
+          ctx.addIssue({
+            code: 'custom',
+            path: ['constraints', index],
+            message: `constraint "${constraint.before} before ${constraint.after}" contradicts the order written above it`,
+          })
+        }
+      }
+      if (orderConstraintCycle(value.constraints ?? [])) {
+        ctx.addIssue({ code: 'custom', path: ['constraints'], message: 'these constraints contradict each other — no order can satisfy them all' })
+      }
+    }
   })
 export type OrderPayload = z.infer<typeof orderPayloadSchema>
+
+/**
+ * Whether a set of dependencies contains a cycle — A before B before A.
+ *
+ * Iterative depth-first search with an explicit stack. Eight items is small,
+ * but a recursive walk over attacker-supplied edges is a stack overflow
+ * waiting to happen, and this runs on the server against submitted content.
+ */
+export function orderConstraintCycle(constraints: readonly OrderConstraint[]): boolean {
+  const edges = new Map<string, string[]>()
+  for (const { before, after } of constraints) edges.set(before, [...(edges.get(before) ?? []), after])
+  const done = new Set<string>()
+  const onPath = new Set<string>()
+  for (const root of edges.keys()) {
+    if (done.has(root)) continue
+    const stack: Array<{ node: string; step: number }> = [{ node: root, step: 0 }]
+    onPath.add(root)
+    while (stack.length) {
+      const frame = stack[stack.length - 1]!
+      const next = (edges.get(frame.node) ?? [])[frame.step]
+      if (next === undefined) {
+        onPath.delete(frame.node)
+        done.add(frame.node)
+        stack.pop()
+        continue
+      }
+      frame.step += 1
+      if (onPath.has(next)) return true
+      if (done.has(next)) continue
+      onPath.add(next)
+      stack.push({ node: next, step: 0 })
+    }
+  }
+  return false
+}
+
+/**
+ * The dependencies an ordering actually asserts, in the modes that do not
+ * declare them.
+ *
+ * ADJACENT PAIRS ONLY. A four-item sequence implies six "x before y" facts,
+ * and a learner who reverses the whole list violates all six — which reads as
+ * six separate misunderstandings rather than one. Adjacent pairs give at most
+ * n−1 relationships, and for the case that matters (two neighbouring steps
+ * swapped) it yields exactly one: the relationship the learner actually got
+ * wrong.
+ */
+export function impliedOrderConstraints(sequence: readonly string[]): OrderConstraint[] {
+  return sequence.slice(0, -1).map((before, index) => ({ before, after: sequence[index + 1]! }))
+}
+
+/**
+ * How a violated dependency is addressed in `error_pairs` and `wrongElements`.
+ *
+ * Positions are recorded as a bare index (`"2"`), so prefixing with `after:`
+ * keeps the two families of order evidence in one column without either being
+ * mistaken for the other.
+ */
+export const ORDER_RELATION_PREFIX = 'after:'
+export const orderRelationKey = (after: string): string => `${ORDER_RELATION_PREFIX}${after}`
+export const readOrderRelationKey = (wrongTargetKey: string | null): string | null =>
+  wrongTargetKey?.startsWith(ORDER_RELATION_PREFIX) ? wrongTargetKey.slice(ORDER_RELATION_PREFIX.length) : null
 
 /* ---- matching ---------------------------------------------------------- */
 
@@ -285,10 +460,39 @@ export function parsePayload(kind: QuestionKind, payload: unknown) {
  */
 export const HOTSPOT_CLICK_SOURCE = '*'
 
+/**
+ * What a learner DID while ordering, as opposed to what they ended up with.
+ *
+ * §4: a submitted sequence is worth more than a boolean, and the route to it
+ * is worth more again — a learner who dragged one card once and a learner who
+ * rearranged all six twice can hand in the same wrong answer for very
+ * different reasons.
+ *
+ * DELIBERATELY COARSE. `moves` are committed reorders, not pointer samples:
+ * one entry per item that changed place, capped, with no coordinates and no
+ * timestamps per move. That is enough to tell a confident ordering from a
+ * hesitant one, and it is not a recording of a child using a screen.
+ *
+ * There is no submission timestamp here. The server writes `received_at` on
+ * the row; a clock the learner's device controls is not evidence.
+ */
+export const orderEvidenceSchema = z.object({
+  /** The randomised order this learner was shown — different for each of them. */
+  shown: z.array(elementKey).max(8),
+  moves: z
+    .array(z.object({ item: elementKey, from: z.number().int().min(0).max(7), to: z.number().int().min(0).max(7) }))
+    .max(60),
+  /** Milliseconds from the question appearing to the learner pressing Check. */
+  durationMs: z.number().int().min(0).max(3_600_000),
+  /** 1 for the first go; 2+ after a targeted hint sent them back in. */
+  attempt: z.number().int().min(1).max(10),
+})
+export type OrderEvidence = z.infer<typeof orderEvidenceSchema>
+
 export const answerPayloadSchema = z.discriminatedUnion('kind', [
   z.object({ kind: z.literal('mcq'), choice: elementKey }),
   z.object({ kind: z.literal('tf'), choice: tfChoiceSchema }),
-  z.object({ kind: z.literal('order'), sequence: z.array(elementKey).min(1).max(8) }),
+  z.object({ kind: z.literal('order'), sequence: z.array(elementKey).min(1).max(8), evidence: orderEvidenceSchema.optional() }),
   z.object({ kind: z.literal('match'), pairs: z.array(z.tuple([elementKey, elementKey])).min(1).max(8) }),
   z.object({
     kind: z.literal('hotspot'),

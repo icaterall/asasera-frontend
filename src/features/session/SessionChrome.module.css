@@ -4,7 +4,7 @@
 .joinAddress a>svg{flex-shrink:0}.joinAddress a>span{display:flex;gap:12px;align-items:center;flex-wrap:wrap;min-width:0}
 .joinAddress strong{font-size:28px;line-height:1.2;letter-spacing:.02em;font-weight:800;font-variant-numeric:tabular-nums}
 .joinLabel{display:flex;flex-direction:column;font-size:12px;color:#d3e5ff;min-width:0;overflow-wrap:anywhere}.joinLabel b{font-size:14px;color:#fff;font-weight:600}
-.brand{display:flex;align-items:center}.brand img{display:block;width:112px;height:46px;object-fit:contain;background:#fff;padding:5px 8px;border-radius:4px}
+.brand{display:flex;align-items:center}.brand img{display:block;width:150px;height:46px;object-fit:contain}
 .tools{display:flex;align-items:center;justify-self:end;gap:8px;min-width:0}
 .tools>button,.settings>summary{display:grid;place-items:center;min-width:44px;min-height:44px;border:0;background:transparent;color:#fff;border-radius:4px;cursor:pointer;padding:10px}
 .tools>button:hover,.settings>summary:hover{background:#ffffff20}

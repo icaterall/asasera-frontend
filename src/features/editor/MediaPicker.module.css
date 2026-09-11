@@ -24,8 +24,8 @@
 .header button{display:grid;place-items:center;width:40px;height:40px;border:0}
 .dialog button:hover{background:var(--raised)}
 .dialog button:focus-visible{outline:3px solid var(--act);outline-offset:2px}
-.body{display:grid;grid-template-columns:210px minmax(0,1fr);flex:1;min-height:0}
-.nav{display:flex;flex-direction:column;gap:2px;padding:14px 10px;overflow-y:auto;border-inline-end:1px solid var(--line);background:var(--raised);min-width:0}
+.body{display:grid;grid-template-columns:260px minmax(0,1fr);flex:1;min-height:0}
+.nav{display:flex;flex-direction:column;gap:10px;padding:14px 10px;overflow-y:auto;border-inline-end:1px solid var(--line);background:var(--raised);min-width:0}
 .nav button{display:flex;align-items:center;gap:9px;justify-content:flex-start;padding:9px 12px;border:0;border-radius:7px;background:transparent;font-size:14px;font-weight:700;text-align:start;min-height:42px}
 .nav button[aria-current=true]{background:var(--act);color:#fff}
 .nav button[aria-current=true]:hover{background:var(--act)}
@@ -48,7 +48,11 @@
 @media(max-width:700px){
  .dialog{width:calc(100vw - 12px);height:calc(100dvh - 12px)}
  .body{grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr)}
- .nav{flex-direction:row;border-inline-end:0;border-block-end:1px solid var(--line);padding:8px}
+ /* The column becomes a strip. Each card keeps its own width and the strip
+    scrolls, rather than the last section being sliced off at the edge with
+    nothing to say it continues. */
+ .nav{flex-direction:row;border-inline-end:0;border-block-end:1px solid var(--line);padding:8px;gap:8px;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x proximity;overscroll-behavior-x:contain}
+ .navSection{flex:0 0 auto;min-inline-size:168px;scroll-snap-align:start}
  .nav button{flex:1;justify-content:center}
  .zone{min-height:170px}
  .zone img{width:104px;height:41px}
@@ -56,9 +60,17 @@
 }
 
 /* Grouped sources: a heading per media type, its options beneath. */
-.navGroup{display:flex;align-items:center;gap:8px;padding:12px 12px 5px;font-size:12px;font-weight:800;color:var(--muted);text-transform:none}
-.navGroup:first-child{padding-block-start:2px}
-.nav button{padding-inline-start:22px}
+/* Three sources, three cards. The nav read as one long list: a group heading
+   was muted 12px text sitting in the same column as the items, so "Video"
+   looked like a disabled choice rather than the start of a section. Each group
+   now sits on its own surface with a hairline under its heading, which is what
+   makes the sections scannable — no new colour, no new radius, and the indent
+   the items used to need is given back to the label, which Arabic needs. */
+.navSection{display:flex;flex-direction:column;gap:2px;padding:6px;background:var(--surface);border:1px solid var(--line);border-radius:5px}
+.navGroup{display:flex;align-items:center;gap:8px;padding:6px 8px 8px;margin-block-end:2px;border-block-end:1px solid var(--line);font-size:12px;font-weight:800;color:var(--muted);text-transform:none}
+/* The only accent in the column, so the eye finds the section before the items. */
+.navGroup svg{color:var(--act)}
+.nav button{padding-inline-start:12px}
 .soon{margin-inline-start:auto;padding:1px 7px;border-radius:999px;background:var(--line);color:var(--muted);font-size:10px;font-weight:800}
 .nav button[aria-current=true] .soon{background:#ffffff2e;color:#fff}
 
