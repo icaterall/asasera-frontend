@@ -16,8 +16,10 @@
   
   --a1: #e21b3c;    /* triangle */
   --a2: #1368ce;    /* diamond  */
-  --a3: #d89e00;    /* circle   */
+  --a3: #b06f12;    /* circle   */
   --a4: #26890c;    /* square   */
+  --a5: #0f9b8e;    /* pentagon */
+  --a6: #7b3ff2;    /* inverted triangle */
 
   
   --ink: #333333;    --muted: #6e6e6e;
@@ -45,8 +47,10 @@
   --on-evidence: #ffffff;   
   --on-a1:       #ffffff;   
   --on-a2:       #ffffff;   
-  --on-a3:       #141821;   
+  --on-a3:       #ffffff;
   --on-a4:       #ffffff;   
+  --on-a5:       #ffffff;
+  --on-a6:       #ffffff;
 
   /* Surfaces the plan implies but does not name. */
   --raised:  #f2f2f2;

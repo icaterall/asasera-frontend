@@ -33,7 +33,7 @@ export function answerDistribution(question: PublicQuestion, reveal: Reveal, par
     return {
       ...item,
       label: payload.kind === 'mcq' ? option?.text ?? item.key : labels[item.key] ?? item.key,
-      slot: index >= 0 ? index % 4 + 1 : null,
+      slot: index >= 0 ? Math.min(index, 5) + 1 : null,
       correct: options ? String(reveal.correct) === item.key : item.key === 'correct',
       fraction: participants > 0 ? Math.min(1, item.count / participants) : 0,
     }

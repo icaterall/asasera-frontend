@@ -66,6 +66,8 @@
 .s2 { --tile-fill: var(--a2); --tile-fg: var(--on-a2); }
 .s3 { --tile-fill: var(--a3); --tile-fg: var(--on-a3); }
 .s4 { --tile-fill: var(--a4); --tile-fg: var(--on-a4); }
+.s5 { --tile-fill: var(--a5); --tile-fg: var(--on-a5); }
+.s6 { --tile-fill: var(--a6); --tile-fg: var(--on-a6); }
 
 .glyph {
   flex: 0 0 auto;

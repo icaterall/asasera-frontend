@@ -5,7 +5,7 @@ import type { ButtonHTMLAttributes, ReactNode } from 'react'
 import styles from './AnswerTile.module.css'
 
 /**
- * One of the four answer slots — plan §4 #3, §5, §8.
+ * One of the answer slots — plan §4 #3, §5, §8.
  *
  * The slot index is the ONLY input that picks appearance. Colour and shape
  * travel together by construction, so the same slot is the same red triangle
@@ -13,7 +13,7 @@ import styles from './AnswerTile.module.css'
  * deliberately no `colour` prop and no `shape` prop.
  */
 
-export const ANSWER_SLOTS = [1, 2, 3, 4] as const
+export const ANSWER_SLOTS = [1, 2, 3, 4, 5, 6] as const
 export type AnswerSlot = (typeof ANSWER_SLOTS)[number]
 
 /** Shape names in both languages, for the accessible name. */
@@ -22,10 +22,12 @@ const SHAPE_NAMES: Record<AnswerSlot, { ar: string; en: string }> = {
   2: { ar: 'معيّن', en: 'diamond' },
   3: { ar: 'دائرة', en: 'circle' },
   4: { ar: 'مربع', en: 'square' },
+  5: { ar: 'خماسي', en: 'pentagon' },
+  6: { ar: 'مثلث مقلوب', en: 'inverted triangle' },
 }
 
 const SLOT_CLASS: Record<AnswerSlot, string> = {
-  1: styles.s1!, 2: styles.s2!, 3: styles.s3!, 4: styles.s4!,
+  1: styles.s1!, 2: styles.s2!, 3: styles.s3!, 4: styles.s4!, 5: styles.s5!, 6: styles.s6!,
 }
 
 /*
@@ -39,6 +41,8 @@ function Glyph({ slot }: { slot: AnswerSlot }) {
     case 2: return <svg {...common}><path d="M12 2 22 12 12 22 2 12Z" /></svg>
     case 3: return <svg {...common}><circle cx="12" cy="12" r="10" /></svg>
     case 4: return <svg {...common}><rect x="2.5" y="2.5" width="19" height="19" rx="1" /></svg>
+    case 5: return <svg {...common}><path d="M12 2.5 22 9.8l-3.8 11.7H5.8L2 9.8Z" /></svg>
+    case 6: return <svg {...common}><path d="M12 21 2 3h20Z" /></svg>
   }
 }
 

@@ -8,7 +8,7 @@ import {useAuth} from '@/hooks/useAuth'
 import {ActivityFeedbackModal} from '@/features/community/ActivityFeedbackModal'
 import {acknowledgeQuestion, acknowledgeTitle, decodeGenerationDraft, draftKey, editorDraftSchema, emptyEditorDraft, hasEditorChanges, readDraft, storeEditorDraft, type EditorDraft, type GenerationDraft} from './session-drafts'
 import {ActivityAudience} from '@/features/audience/ActivityAudience'
-import {Menu,Settings,TriangleAlert,Check,Palette,Share2,MessageSquare,Sparkles,Radio,Clock,Library,X,MessageCircleQuestion,Timer,Medal,SlidersHorizontal,Plus} from 'lucide-react'
+import {Menu,Settings,TriangleAlert,Check,Palette,Share2,MessageSquare,Sparkles,Radio,Clock,Library,X,MessageCircleQuestion,Timer,Medal,SlidersHorizontal,Plus,ArrowUp,ArrowDown,Copy,Trash2} from 'lucide-react'
 import {useTranslation} from 'react-i18next'
 import {useEditorText} from './useEditorText'
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
@@ -29,7 +29,7 @@ import {QuestionSource,SourceMarker,readProvenance} from './SourceChip'
 import {ImageUpload} from './ImageUpload'
 import {MediaField} from './MediaPicker'
 import styles from './Editor.module.css'
-import { McqCanvas, TfCanvas, type McqOption } from './McqCanvas'
+import { McqCanvas, TfCanvas, MIN_OPTIONS, MAX_OPTIONS, type McqOption } from './McqCanvas'
 import { useAutosave } from './useAutosave'
 import { ThemePicker } from '../activity-themes/ThemePicker'
 import { ActivityStage, ThemeThumbnail } from '../activity-themes/ActivityStage'
@@ -553,26 +553,51 @@ function ActivityEditorWorkspace() {
 
       <nav inert={actionBusy} className={styles.rail} data-editor-drawer={railOpen?"open":"closed"} aria-label={t("أسئلة النشاط")}>
         <Button className={styles.drawerToggle} onClick={()=>setRailOpen(false)}>{t("أغلق قائمة الأسئلة")}</Button>
-        {data.questions.map((question) => (
-          <button
-            key={question.id}
-            type="button"
-            data-question-thumb=""
-            className={[
-              styles.thumb,
-              question.id === activeId ? styles.thumbActive : '',
-              incompleteIds.has(question.id) ? styles.thumbIncomplete : '',
-            ].filter(Boolean).join(' ')}
-            aria-current={question.id === activeId ? 'true' : undefined}
-            onClick={() => { void selectQuestion(question.id).catch(error => setActionError(error instanceof Error ? error.message : t("تعذّر حفظ السؤال"))) }}
-          >
-            {incompleteIds.has(question.id) && <span className={styles.thumbFlag} aria-label={t("يحتاج إكمالًا")}><TriangleAlert size={18} aria-hidden="true"/></span>}
-            <span className={styles.thumbOrdinal} dir="ltr">{question.ordinal}</span>
-            <span className={styles.thumbPrompt}><FormattedText text={question.prompt || t("سؤال بلا نص")}/></span>
-            {/* Origin at a glance in the rail; the full citation is the chip on the canvas. */}
-            <SourceMarker provenance={readProvenance(question)}/>
-          </button>
-        ))}
+        {data.questions.map((question) => {
+          const isActive = question.id === activeId
+          const answers = (question.payload as {options?:{key:string}[];correct?:string}|null) ?? {}
+          const slots = answers.options?.length ? answers.options : [{key:'a'},{key:'b'},{key:'c'},{key:'d'}]
+          return (
+          <div key={question.id} className={styles.thumbRow} data-active={isActive||undefined}>
+            <div className={styles.thumbSide}>
+              {isActive&&<>
+                <button type="button" aria-label={t("تكرار السؤال")} title={t("تكرار السؤال")} disabled={actionBusy}
+                  onClick={() => void run(t("تعذّر تكرار السؤال"), async () => {
+                    if (!active) return
+                    const { question: made } = await activities.duplicateQuestion(active.id)
+                    await reload(); await selectQuestion(made.id)
+                  })}><Copy size={18} aria-hidden="true"/></button>
+                <button type="button" aria-label={t("حذف السؤال")} title={t("حذف السؤال")} disabled={actionBusy}
+                  onClick={() => void run(t("تعذّر حذف السؤال"), async () => {
+                    if (!active) return
+                    await activities.deleteQuestion(active.id)
+                    const questions = {...journal.current.questions}; delete questions[active.id]
+                    persist({...journal.current, questions, activeQuestionId: null})
+                    setActiveId(null); await reload()
+                  })}><Trash2 size={18} aria-hidden="true"/></button>
+              </>}
+            </div>
+            <div className={styles.thumbMain}>
+              <p className={styles.thumbHead}>
+                <span>{ar?`سؤال رقم ${question.ordinal}`:`Question ${question.ordinal}`}</span>
+                {incompleteIds.has(question.id) && <span className={styles.thumbFlag} title={t("يحتاج إكمالًا")}><TriangleAlert size={15} aria-hidden="true"/></span>}
+              </p>
+              <button
+                type="button"
+                data-question-thumb=""
+                className={[styles.thumb, isActive ? styles.thumbActive : '', incompleteIds.has(question.id) ? styles.thumbIncomplete : ''].filter(Boolean).join(' ')}
+                aria-current={isActive ? 'true' : undefined}
+                onClick={() => { void selectQuestion(question.id).catch(error => setActionError(error instanceof Error ? error.message : t("تعذّر حفظ السؤال"))) }}
+              >
+                <span className={styles.thumbPrompt}><FormattedText text={question.prompt || t("سؤال بلا نص")}/></span>
+                <span className={styles.thumbBars} aria-hidden="true">
+                  {slots.map(o=><span key={o.key} data-correct={answers.correct&&o.key===answers.correct?'':undefined}/>)}
+                </span>
+                <SourceMarker provenance={readProvenance(question)}/>
+              </button>
+            </div>
+          </div>
+        )})}
 
         <div className={styles.railActions}>
           <Button variant="primary" full onClick={() => { void addQuestion('mcq') }}>{t("أضف سؤالًا")}</Button>
@@ -648,6 +673,20 @@ function ActivityEditorWorkspace() {
                     },
                   })}
                   onCorrect={(key) => patchActive({ payload: { ...payload, correct: key } })}
+                  onAddOption={()=>{
+                    const options=(payload.options??[]) as McqOption[]
+                    if(options.length>=MAX_OPTIONS)return
+                    patchActive({payload:{...payload,options:[...options,{key:`opt_${crypto.randomUUID().replace(/-/g,'').slice(0,12)}`,text:''}]}})
+                  }}
+                  onRemoveOption={(key)=>{
+                    const options=(payload.options??[]) as McqOption[]
+                    if(options.length<=MIN_OPTIONS)return
+                    const left=options.filter(o=>o.key!==key)
+                    // Removing the marked answer would leave the question with no key, so it moves
+                    // to the first remaining answer that actually has something in it.
+                    const correct=payload.correct===key?(left.find(o=>o.text.trim()||o.image)?.key??''):payload.correct
+                    patchActive({payload:{...payload,options:left,correct}})
+                  }}
                 />
               )}
 
@@ -738,7 +777,7 @@ function ActivityEditorWorkspace() {
 
         <div className={styles.propsFooter}>
           {data.activity.currentVersionId&&<Button onClick={()=>void run(t("تعذّر الحفظ"),async()=>navigate(`/teacher/verification?question=${active?.id??0}`))}>{t("اربط سؤال تحقق")}</Button>}
-          <div className={styles.thumbActions}><Button disabled={!active||active.ordinal===1} onClick={()=>void run(t("تعذّر ترتيب الأسئلة"),async()=>{if(!active)return;const order=data.questions.map(q=>q.id),index=order.indexOf(active.id);[order[index-1],order[index]]=[order[index]!,order[index-1]!];await activities.reorder(activityId,order);await reload()})}>{t("للأعلى")}</Button><Button disabled={!active||active.ordinal===data.questions.length} onClick={()=>void run(t("تعذّر ترتيب الأسئلة"),async()=>{if(!active)return;const order=data.questions.map(q=>q.id),index=order.indexOf(active.id);[order[index+1],order[index]]=[order[index]!,order[index+1]!];await activities.reorder(activityId,order);await reload()})}>{t("للأسفل")}</Button></div>
+          {(!!active&&data.questions.length>1)&&<div className={styles.thumbActions}>{active.ordinal>1&&<Button icon={<ArrowUp size={17}/>} onClick={()=>void run(t("تعذّر ترتيب الأسئلة"),async()=>{if(!active)return;const order=data.questions.map(q=>q.id),index=order.indexOf(active.id);[order[index-1],order[index]]=[order[index]!,order[index-1]!];await activities.reorder(activityId,order);await reload()})}>{t("للأعلى")}</Button>}{active.ordinal<data.questions.length&&<Button icon={<ArrowDown size={17}/>} onClick={()=>void run(t("تعذّر ترتيب الأسئلة"),async()=>{if(!active)return;const order=data.questions.map(q=>q.id),index=order.indexOf(active.id);[order[index+1],order[index]]=[order[index]!,order[index+1]!];await activities.reorder(activityId,order);await reload()})}>{t("للأسفل")}</Button>}</div>}
           <Button
             variant="secondary"
             full

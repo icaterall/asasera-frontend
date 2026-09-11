@@ -1,10 +1,10 @@
 import {FormattedInput} from './FormattedInput'
 import {useId,useState} from 'react'
-import {Check,ImagePlus} from 'lucide-react'
+import {Check,ImagePlus,Plus,Trash2} from 'lucide-react'
 import {useTranslation} from 'react-i18next'
 import {ImageUpload,useImage} from './ImageUpload'
 import {MediaField} from './MediaPicker'
-import {type AnswerSlot} from '@/design'
+import {Button,type AnswerSlot} from '@/design'
 import {ButtonSpinner} from '@/design/ButtonSpinner'
 import {readInline} from './rich-document'
 import styles from './Editor.module.css'
@@ -28,6 +28,8 @@ const SLOT_TOKENS: Record<AnswerSlot, { fill: string; fg: string; ar: string; en
   2: { fill: 'var(--a2)', fg: 'var(--on-a2)', ar: 'معيّن', en:'diamond' },
   3: { fill: 'var(--a3)', fg: 'var(--on-a3)', ar: 'دائرة', en:'circle' },
   4: { fill: 'var(--a4)', fg: 'var(--on-a4)', ar: 'مربع', en:'square' },
+  5: { fill: 'var(--a5)', fg: 'var(--on-a5)', ar: 'خماسي', en:'pentagon' },
+  6: { fill: 'var(--a6)', fg: 'var(--on-a6)', ar: 'مثلث مقلوب', en:'inverted triangle' },
 }
 
 function Glyph({ slot }: { slot: AnswerSlot }) {
@@ -37,8 +39,12 @@ function Glyph({ slot }: { slot: AnswerSlot }) {
     case 2: return <svg {...p}><path d="M12 2 22 12 12 22 2 12Z" /></svg>
     case 3: return <svg {...p}><circle cx="12" cy="12" r="10" /></svg>
     case 4: return <svg {...p}><rect x="2.5" y="2.5" width="19" height="19" rx="1" /></svg>
+    case 5: return <svg {...p}><path d="M12 2.5 22 9.8l-3.8 11.7H5.8L2 9.8Z" /></svg>
+    case 6: return <svg {...p}><path d="M12 21 2 3h20Z" /></svg>
   }
 }
+
+export const MIN_OPTIONS=2, MAX_OPTIONS=6, DEFAULT_OPTIONS=4
 
 export interface McqCanvasProps {
   onQuestionImageBusy?:(busy:boolean)=>void
@@ -49,10 +55,12 @@ export interface McqCanvasProps {
   onOptionImage:(key:string,image:string|undefined)=>void
   onOptionText: (key: string, text: string) => void
   onCorrect: (key: string) => void
+  onAddOption?: () => void
+  onRemoveOption?: (key: string) => void
 }
 
 export function McqCanvas({
-  mediaKey, onMediaChange, onQuestionImageBusy, options, correct, onOptionText, onOptionImage, onCorrect,
+  mediaKey, onMediaChange, onQuestionImageBusy, options, correct, onOptionText, onOptionImage, onCorrect, onAddOption, onRemoveOption,
 }: McqCanvasProps) {
   const {i18n}=useTranslation(),ar=i18n.language.startsWith('ar')
   const optionsId=useId()
@@ -62,7 +70,7 @@ export function McqCanvas({
     <MediaField onBusyChange={onQuestionImageBusy} label={ar?'صورة السؤال (اختياري)':'Question image (optional)'} imageKey={mediaKey} onImage={onMediaChange} onRemove={()=>onMediaChange(null)}/>
     <div id={optionsId} className={styles.options}>
       {options.map((option, index) => {
-        const slot = ((index % 4) + 1) as AnswerSlot
+        const slot = (Math.min(index, 5) + 1) as AnswerSlot
         const token = SLOT_TOKENS[slot]
         const hasContent = hasAnswerContent(option)
         const isCorrect = hasContent && option.key === correct
@@ -74,7 +82,12 @@ export function McqCanvas({
               data-empty={!hasContent}
               style={{ ['--tile' as string]: token.fill, ['--tileFg' as string]: token.fg }}
             >
-              <span className={styles.answerShape}><Glyph slot={slot} /></span>
+              <span className={styles.answerLead}>
+                <span className={styles.answerShape}><Glyph slot={slot} /></span>
+                {onRemoveOption&&options.length>MIN_OPTIONS&&<button type="button" className={styles.answerRemove}
+                  aria-label={ar?`احذف الإجابة ${index+1}`:`Remove answer ${index+1}`} title={ar?'احذف هذه الإجابة':'Remove this answer'}
+                  onClick={()=>onRemoveOption(option.key)}><Trash2 size={17} aria-hidden="true"/></button>}
+              </span>
               <div className={styles.answerContent}>
                 {option.image&&<OptionImage imageKey={option.image} text={option.text}/>}
                 <FormattedInput className={styles.optionText} value={option.text} maxLength={500} placeholder={option.image?(ar?'نص إضافي (اختياري)':'Text (optional)'):(ar?`أضف إجابة ${index+1}`:`Add answer ${index+1}`)} label={ar?`نص الإجابة ${index+1}`:`Answer ${index+1} text`} onChange={text=>onOptionText(option.key,text)}/>
@@ -99,6 +112,14 @@ export function McqCanvas({
         )
       })}
     </div>
+    {(onAddOption||onRemoveOption)&&<div className={styles.answerCount}>
+      {onAddOption&&options.length<MAX_OPTIONS&&<Button variant="secondary" icon={<Plus size={17}/>} onClick={onAddOption}>
+        {ar?'أضف إجابة أخرى':'Add more answers'}
+      </Button>}
+      {onRemoveOption&&options.length>DEFAULT_OPTIONS&&<Button variant="quiet" onClick={()=>{
+        for(const extra of options.slice(DEFAULT_OPTIONS))onRemoveOption(extra.key)
+      }}>{ar?'أزل الإجابات الإضافية':'Remove additional answers'}</Button>}
+    </div>}
     </>
   )
 }

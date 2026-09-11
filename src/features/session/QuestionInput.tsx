@@ -47,7 +47,7 @@ export function QuestionInput({question,onAnswer,disabled=false,projectorOnly=fa
   const [picks,setPicks]=useState<string[]>([])
   const sensors=useSensors(useSensor(PointerSensor,{activationConstraint:{distance:8}}),useSensor(TouchSensor,{activationConstraint:{delay:180,tolerance:8}}),useSensor(KeyboardSensor,{coordinateGetter:sortableKeyboardCoordinates}))
   if(p.kind==='mcq'||p.kind==='tf')return <>{!projectorOnly&&question.media&&<img data-question-media="" className={styles.questionMedia} src={mediaUrl(question.media)} alt={question.prompt}/>}<div data-answer-grid="" data-layout={projectorOnly?'shape':'text'} className={`${styles.answers} ${projectorOnly?styles.phoneAnswers:''}`}>
-    {p.options.map((o,i)=><AnswerTile key={o.key} slot={(i%4+1)as AnswerSlot} label={p.kind==='tf'?(o.key==='true'?(ar?'صح':'True'):(ar?'خطأ':'False')):o.text}
+    {p.options.map((o,i)=><AnswerTile key={o.key} slot={(Math.min(i,5)+1)as AnswerSlot} label={p.kind==='tf'?(o.key==='true'?(ar?'صح':'True'):(ar?'خطأ':'False')):o.text}
       trailing={'image'in o&&o.image&&!projectorOnly?<img src={mediaUrl(o.image)} alt={o.text}/>:undefined}
       locale={ar?'ar':'en'} shapeOnly={projectorOnly} className={styles.answer} data-answer-tile="" disabled={disabled&&!preview} aria-disabled={preview||undefined} tabIndex={preview?-1:undefined}
       state={revealed!==undefined?(String(revealed)===o.key?'correct':'incorrect'):selected===o.key?'selected':'idle'}

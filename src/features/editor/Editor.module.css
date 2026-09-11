@@ -53,6 +53,14 @@
 }
 .brand { grid-area: brand; display:inline-flex; align-items:center; inline-size:116px; min-block-size:44px; border-radius:var(--r-control); }
 .brand img { block-size:30px; inline-size:auto; max-inline-size:100%; }
+/* 45px from tablet up. The width has to grow with it: the artwork is far wider
+   than it is tall, so a fixed 116px box would clamp the width and pull the
+   height straight back down to 30px. The phone keeps the compact mark, where
+   the top bar has the least room. */
+@media (min-width:768px) {
+  .brand { inline-size:auto; }
+  .brand img { block-size:45px; }
+}
 .brand:focus-visible { outline:var(--focus-ring) solid var(--focus-colour); outline-offset:var(--focus-offset); }
 .activityIdentity { grid-area:identity; display:flex; flex-wrap:wrap; align-items:center; gap:4px 12px; min-width:0; }
 /* The editor's own name for the page. The title is an editable <input>, which is
@@ -180,7 +188,7 @@
 
 .answerTile { min-width:0; padding:8px; gap:12px; border-radius:5px; min-height:112px; }
 .answerTile[data-empty=true] { background:var(--surface); color:var(--ink); }
-.answerShape { display:grid; place-items:center; align-self:stretch; flex:0 0 44px; min-height:80px; border-radius:5px; background:var(--tile); color:var(--tileFg); }
+.answerShape { display:grid; place-items:center; align-self:center; flex:0 0 44px; min-height:30px; border-radius:5px; background:var(--tile); color:var(--tileFg); }
 .answerContent { flex:1; min-width:0; display:flex; flex-direction:column; gap:8px; }
 .answerContent .optionImage { max-width:100%; width:100%; max-height:140px; }
 .answerActions { flex:0 0 44px; display:flex; flex-direction:column; align-items:center; gap:6px; }
@@ -277,16 +285,16 @@
 .canvas{background:var(--sunken)}.canvasInner{max-width:1080px;min-height:100%;gap:10px}
 .promptInput{border-radius:4px;min-height:52px;text-align:center;font-weight:700;font-size:clamp(15px,1.15vw,19px);box-shadow:0 2px 4px #00000015}
 .optionTile{min-height:84px;box-shadow:inset 0 -4px 0 #0003}.optionText{font-size:18px}.optionGlyph{width:32px;height:32px}
-.thumb{min-height:112px;border-radius:4px;border:2px solid var(--line);box-shadow:0 2px 2px #0001}
-.thumbActive{border:3px solid var(--act);background:#e5f2ff}.thumbOrdinal{font-size:14px;font-weight:700}.thumbPrompt{text-align:center;padding:8px 0;min-height:40px}
-.thumb::after{content:"";display:block;height:18px;background:linear-gradient(90deg,var(--a1) 0 24%,transparent 24% 26%,var(--a2) 26% 49%,transparent 49% 51%,var(--a3) 51% 74%,transparent 74% 76%,var(--a4) 76%);border-radius:2px}
+
+.thumbOrdinal{font-size:14px;font-weight:700}
+
 .imageUpload{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:center;border:2px dashed var(--line);background:var(--surface);border-radius:4px;padding:20px;min-height:180px}
 .imageUpload:has(.editorImage){border:0;padding:8px}.editorImage{max-height:280px;object-fit:contain}
 .uploadLabel{cursor:pointer;padding:14px 20px;background:var(--surface);border:1px solid var(--line);border-radius:4px;font-weight:700;box-shadow:0 2px 0 #0002}
 .railActions{position:sticky;bottom:0;background:var(--surface);padding-block:12px}
 @media(max-width:1024px){.shell{grid-template-columns:minmax(0,1fr)}}
 @media(max-width:700px){.canvasInner{gap:16px}.imageUpload{min-height:130px}.optionTile{min-height:72px}.top .titleInput{max-width:none}}
-:global(.dark) .thumbActive{background:#183452}
+
 
 .optionImage{max-height:96px;max-width:35%;object-fit:contain;border-radius:4px}.optionImageControls{font-size:14px;margin-block:8px}
 .imageUploadCaption { flex-basis:100%; min-width:0; text-align:center; font-weight:700; overflow-wrap:anywhere; }
@@ -330,3 +338,36 @@
 
 /* The properties toggle reads as pressed while its rail is open. */
 .top [data-properties-toggle][aria-expanded=true]{background:var(--raised);border-color:var(--act);color:var(--act-ink)}
+
+/* Answer count controls, and the per-answer remove. */
+.answerCount{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-block-start:4px}
+.answerLead{display:flex;flex-direction:column;align-items:center;gap:6px;flex:0 0 auto}
+.answerRemove{display:grid;place-items:center;width:32px;height:32px;padding:0;border:0;border-radius:6px;background:transparent;color:currentColor;cursor:pointer;opacity:.85}
+.answerRemove:hover{background:#0003;opacity:1}
+.answerRemove:focus-visible{outline:2px solid currentColor;outline-offset:2px}
+
+/* ---- question rail thumbnails ---- */
+/* A miniature of the question: prompt, timer, media slot and one bar per answer,
+   with the marked answer dotted. The row highlights, not just the card. */
+.thumbRow{display:grid;grid-template-columns:34px minmax(0,1fr);align-items:start;gap:6px;padding:8px 6px 10px;border-radius:7px}
+.thumbRow[data-active]{background:#e8f1fd}
+:global(.dark) .thumbRow[data-active]{background:#16304d}
+.thumbSide{display:flex;flex-direction:column;gap:6px;align-items:center;padding-block-start:30px}
+.thumbSide button{display:grid;place-items:center;width:30px;height:30px;border:0;border-radius:6px;background:transparent;color:var(--muted);cursor:pointer}
+.thumbSide button:hover{background:var(--surface);color:var(--ink)}
+.thumbSide button:focus-visible{outline:2px solid var(--act);outline-offset:1px}
+.thumbSide button:disabled{opacity:.4;cursor:not-allowed}
+.thumbHead{display:flex;align-items:center;gap:7px;margin:0 0 5px;padding-inline-start:2px;font-size:13px;font-weight:800;color:var(--ink)}
+.thumbMain{min-width:0}
+
+.thumb{display:flex;flex-direction:column;gap:8px;width:100%;min-height:0;padding:10px;border:2px solid transparent;border-radius:8px;background:var(--raised);color:var(--ink);cursor:pointer;text-align:start;position:relative}
+.thumb:hover{background:var(--surface)}
+.thumbActive{border-color:var(--act);background:var(--surface)}
+.thumbPrompt{display:-webkit-box;-webkit-line-clamp:1;line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;font-size:13px;font-weight:700;line-height:1.35;color:var(--ink)}
+.thumbBars{display:grid;grid-template-columns:1fr 1fr;gap:5px 7px}
+.thumbBars>span{display:flex;align-items:center;gap:5px;min-width:0}
+.thumbBars>span::before{content:"";flex:0 0 auto;width:10px;height:10px;border:1.5px solid var(--line);border-radius:50%;background:var(--surface)}
+.thumbBars>span::after{content:"";flex:1 1 auto;min-width:0;height:8px;border-radius:999px;background:var(--line)}
+.thumbBars>span[data-correct]::before{background:#26890c;border-color:#26890c}
+.thumbFlag{display:inline-grid;place-items:center;margin-inline-start:auto;color:var(--a3)}
+@media(max-width:1024px){.thumbRow{grid-template-columns:30px minmax(0,1fr)}}
