@@ -4,15 +4,30 @@ on:
   push:
     branches:
       - main
+  # Added so the OIDC cutover run can be started by hand once, and afterwards
+  # to re-deploy main without inventing an empty commit. The push trigger is
+  # unchanged.
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
+    # `id-token: write` is what lets the runner mint the OIDC token that is
+    # exchanged for the deploy role. `contents: read` is the checkout right
+    # this job already needed. Declaring the block narrows every other scope to
+    # none, which matters more here than in the backend: this repository is
+    # public, so the job's GITHUB_TOKEN should be able to write nothing.
+    permissions:
+      contents: read
+      id-token: write
+
     env:
-      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      AWS_REGION: ${{ secrets.AWS_REGION }}
+      # No static AWS key pair. The OIDC step below exports the frontend deploy
+      # role's temporary credentials into the environment instead. This
+      # workflow syncs no Kubernetes Secret, so unlike the backend there is no
+      # runtime credential that could be confused with the deploy session.
+      AWS_REGION: ${{ vars.AWS_REGION }}
 
       EKS_CLUSTER_NAME: pickpickgo-eks
       ECR_REPOSITORY: asasera-new-frontend
@@ -42,12 +57,17 @@ jobs:
       # ---------------------------------------------------------
       # 4. AWS authentication
       # ---------------------------------------------------------
-      - name: Configure AWS credentials
+      # OIDC, not a stored key pair. A role of its own, not the backend's: this
+      # one can push to asasera-new-frontend and read the cluster description,
+      # and its Kubernetes rights are narrower still -- no Secrets, no Jobs,
+      # nothing cluster-scoped. Trust is pinned to this repository on
+      # refs/heads/main using GitHub's immutable owner and repository ids.
+      - name: Configure AWS credentials via OIDC
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+          role-session-name: asasera-frontend-${{ github.run_id }}
 
       # ---------------------------------------------------------
       # 5. Login to Amazon ECR

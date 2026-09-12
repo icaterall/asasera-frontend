@@ -229,7 +229,12 @@ const CONTRACTS: Record<string, (loaded: Loaded) => void> = {
  * Manifests deliberately left unchecked, each with the reason. Empty on
  * purpose — an entry here is a decision someone has to write down.
  */
-const EXCLUSIONS: Record<string, string> = {}
+const EXCLUSIONS: Record<string, string> = {
+  'github-deploy-rbac.yaml':
+    'RBAC for this repository\'s GitHub Actions deploy identity. The deploy workflow never applies ' +
+    'it — a deploy that could rewrite its own permissions would not be a boundary — so there is no ' +
+    'workflow/manifest contract to check. A cluster admin applies it once.',
+}
 
 function main(): void {
   for (const required of [manifestDir, nginxConfPath, workflowPath]) {

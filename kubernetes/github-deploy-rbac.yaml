@@ -1,0 +1,70 @@
+# Kubernetes permissions for the frontend's GitHub Actions deploy identity.
+#
+# The IAM role `asasera-frontend-github-deploy` is mapped into the cluster by an
+# EKS access entry that carries NO AWS access policy and one Kubernetes group,
+# `asasera-frontend-deploy`. AWS grants nothing: this file is the whole of what
+# the frontend deploy can do, and every rule traces to a command in
+# `.github/workflows/main.yml`.
+#
+# Deliberately smaller than the backend's equivalent. The frontend deploy has
+# no migration Job, syncs no Secret and never reads nodes, so it gets no
+# `jobs`, no `secrets` and nothing cluster-scoped at all.
+#
+# Not applied by the deploy workflow. A cluster admin applies it once; a deploy
+# that could rewrite its own permissions would not be a boundary. `check:k8s`
+# carries it as a reviewed exclusion for that reason.
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: asasera-frontend-deploy
+  namespace: default
+rules:
+  # `kubectl apply -f kubernetes/frontend-deployment.yaml` (get + create/patch),
+  # `kubectl rollout status deployment/asasera-frontend-deployment`
+  # (get + list + watch) and the `-o jsonpath` image assertion.
+  - apiGroups: ['apps']
+    resources: ['deployments']
+    verbs: ['get', 'list', 'watch', 'create', 'patch', 'update']
+
+  # The table `kubectl describe deployment` prints on a failed rollout.
+  - apiGroups: ['apps']
+    resources: ['replicasets']
+    verbs: ['get', 'list']
+
+  # `kubectl get pods -l app=asasera-frontend-app`, `describe pods -l …`, and
+  # resolving pod names before reading logs.
+  - apiGroups: ['']
+    resources: ['pods']
+    verbs: ['get', 'list']
+
+  # `kubectl logs <pod> -c asasera-frontend-container --tail=200`.
+  - apiGroups: ['']
+    resources: ['pods/log']
+    verbs: ['get']
+
+  # frontend-deployment.yaml holds a Service as well as a Deployment, so the
+  # same `kubectl apply` writes it.
+  - apiGroups: ['']
+    resources: ['services']
+    verbs: ['get', 'create', 'patch', 'update']
+
+  # `kubectl get events --sort-by=.lastTimestamp`, and the event tables the
+  # `describe` calls print.
+  - apiGroups: ['']
+    resources: ['events']
+    verbs: ['get', 'list']
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: asasera-frontend-deploy
+  namespace: default
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: asasera-frontend-deploy
+subjects:
+  - apiGroup: rbac.authorization.k8s.io
+    kind: Group
+    name: asasera-frontend-deploy
