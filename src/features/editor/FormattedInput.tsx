@@ -8,7 +8,7 @@ import SuperscriptMark from '@tiptap/extension-superscript'
 import {Plugin} from '@tiptap/pm/state'
 import {Bold,Italic,Subscript,Superscript,Omega,FunctionSquare} from 'lucide-react'
 import katex from 'katex'
-import {readDocument,writeDocument} from './rich-document'
+import {readDocument,readInline,writeDocument} from './rich-document'
 import {authoringDirection} from '../../lib/textDirection'
 import styles from './FormattedInput.module.css'
 import 'katex/dist/katex.min.css'
@@ -32,6 +32,17 @@ const Equation=Node.create<{onEdit:(selection:EquationSelection)=>void}>({
 export function FormattedInput({value,onChange,label,placeholder,className,maxLength=2000,inputRef,disabled=false}:{value:string;onChange:(text:string)=>void;label:string;placeholder?:string;className?:string;maxLength?:number;inputRef?:RefObject<HTMLDivElement|null>;disabled?:boolean}){
  const {i18n}=useTranslation(),ar=i18n.language.startsWith('ar')
  const direction=authoringDirection(value,ar)
+ /*
+  * Whether the placeholder shows is decided by the VALUE, not by the shape of
+  * the editor's DOM.
+  *
+  * It used to be a CSS guess — «one paragraph whose only child is a <br>» —
+  * which is what an empty ProseMirror looks like today. Anything that leaves a
+  * second editor node in this field, or renders an empty document differently,
+  * then paints "Type your question here" across a question that has text in it.
+  * The prop is the one thing that cannot be wrong about whether there are words.
+  */
+ const empty=!readInline(value).some(node=>!!(node.text??node.attrs?.latex??'').trim())
  const [panel,setPanel]=useState<'symbols'|null>(null),[equation,setEquation]=useState<EquationSelection|null>(null),[error,setError]=useState('')
  const latest=useRef({onChange,maxLength,ar});latest.current={onChange,maxLength,ar}
  const lastValue=useRef(value)
@@ -63,7 +74,7 @@ export function FormattedInput({value,onChange,label,placeholder,className,maxLe
  }
  function openEquation(){if(!editor)return;const {from,to,$from}=editor.state.selection,node=$from.nodeAfter;setPanel(null);setEquation(node?.type.name==='equation'?{from,to:from+node.nodeSize,latex:node.attrs.latex}:{from,to,latex:''})}
  const controls=[{Icon:Bold,en:'Bold',ar:'عريض',mark:'bold'},{Icon:Italic,en:'Italic',ar:'مائل',mark:'italic'},{Icon:Subscript,en:'Subscript',ar:'نص سفلي',mark:'subscript'},{Icon:Superscript,en:'Superscript',ar:'نص علوي',mark:'superscript'}]
- return <div className={styles.field} data-formatted-field="" data-plain={!className} data-tools-open={panel!==null||equation!==null} data-size={maxLength===2000?'question':'answer'}>
+ return <div className={styles.field} data-formatted-field="" data-empty={empty||undefined} data-plain={!className} data-tools-open={panel!==null||equation!==null} data-size={maxLength===2000?'question':'answer'}>
   <div className={styles.tools}>
    <div className={styles.toolbar} role="toolbar" aria-label={ar?'تنسيق النص':'Text formatting'} onMouseDown={event=>event.preventDefault()}>
    {controls.map(({Icon,en,ar:arabic,mark})=><button key={en} type="button" disabled={disabled} title={ar?arabic:en} aria-label={ar?arabic:en} aria-pressed={editor?.isActive(mark)??false} onClick={()=>format(mark)}><Icon size={18}/></button>)}

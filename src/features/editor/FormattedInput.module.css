@@ -11,7 +11,7 @@
 .editor{width:100%;min-height:64px;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.6;font-family:inherit;cursor:text}
 .field[data-plain=true] .editor{padding:12px;border:1px solid var(--line);border-radius:5px;background:var(--surface);color:var(--ink)}
 .editor p{margin:0!important;line-height:inherit!important;font-size:inherit!important;color:inherit!important}
-.editor:has(>p:only-child>br:only-child)::before{content:attr(data-placeholder);float:inline-start;height:0;pointer-events:none;opacity:.65}
+.field[data-empty] .editor::before{content:attr(data-placeholder);float:inline-start;height:0;pointer-events:none;opacity:.65}
 .editor strong{font-weight:900}.editor em{font-style:italic}.editor sub{vertical-align:sub;font-size:.75em;line-height:0}.editor sup{vertical-align:super;font-size:.75em;line-height:0}
 .editor :global(.asasera-equation){display:inline-block;vertical-align:middle;cursor:pointer;padding:2px 4px;max-width:100%;overflow-x:auto}
 .editor :global(.ProseMirror-selectednode){outline:2px solid currentColor;border-radius:3px}
@@ -22,4 +22,4 @@
 .field[data-size=question] .editor{min-height:1.5em}
 
 .field[data-size=question] .editor{position:relative;text-align:center}
-.field[data-size=question] .editor:has(>p:only-child>br:only-child)::before{float:none;position:absolute;inset:0;height:auto;display:flex;align-items:center;justify-content:center;padding:8px 12px;text-align:center;white-space:normal}
+.field[data-size=question][data-empty] .editor::before{float:none;position:absolute;inset:0;height:auto;display:flex;align-items:center;justify-content:center;padding:8px 12px;text-align:center;white-space:normal}

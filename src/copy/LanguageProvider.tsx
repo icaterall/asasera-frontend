@@ -13,7 +13,7 @@ const TABLES = { ar: landingAr, en: landingEn } as const
  *
  * The language itself is *not* stored here. i18next already owns it for this
  * app: it persists the choice to `localStorage` under `asasera.language`,
- * defaults to Arabic on a first visit, and — via the `languageChanged`
+ * uses the browser/device language on a first visit, and — via the `languageChanged`
  * listener in src/i18n/index.ts — writes `lang` and `dir` onto <html>.
  * Duplicating that state in a second provider would give the document two
  * writers for one attribute, and they would disagree the moment either the

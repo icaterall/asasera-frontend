@@ -26,7 +26,7 @@ export function LoadingMark({ size = 'medium' }: { size?: 'small' | 'medium' | '
     }
   }, [])
 
-  return <span ref={ref} className={`${styles.mark} ${styles[size]}`} aria-hidden="true">
+  return <span ref={ref} data-loading-mark="" className={`${styles.mark} ${styles[size]}`} aria-hidden="true">
     <span className={styles.core}>
       <img className={styles.logo} src={logo} width="384" height="384" alt="" draggable={false} decoding="async" />
     </span>

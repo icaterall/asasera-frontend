@@ -16,10 +16,7 @@ export type LanguageMeta = {
   intlLocale: string
 }
 
-/**
- * Arabic is listed first because this product is Arabic-first: it is the
- * default a new visitor gets, and the leading segment in the language switch.
- */
+/** Arabic remains first in the chooser; first-visit language comes from the device. */
 export const LANGUAGES: readonly LanguageMeta[] = [
   {
     code: 'ar',
@@ -37,7 +34,8 @@ export const LANGUAGES: readonly LanguageMeta[] = [
   },
 ] as const
 
-export const DEFAULT_LANGUAGE = 'ar'
+/** Use English when the browser/device does not prefer Arabic. */
+export const DEFAULT_LANGUAGE = 'en'
 
 export const SUPPORTED_CODES = LANGUAGES.map((l) => l.code)
 
@@ -47,4 +45,14 @@ export function resolveLanguage(code: string | undefined): LanguageMeta {
   const fallback =
     LANGUAGES.find((l) => l.code === DEFAULT_LANGUAGE) ?? LANGUAGES[0]
   return LANGUAGES.find((l) => l.code === base) ?? fallback
+}
+
+/**
+ * The first browser/device preference decides the first visit. Only Arabic
+ * maps to the RTL interface; every other locale uses the English interface.
+ */
+export function languageFromBrowser(code: string | undefined): LanguageMeta {
+  return (code ?? '').trim().toLowerCase().startsWith('ar')
+    ? LANGUAGES[0]!
+    : LANGUAGES.find((language) => language.code === 'en')!
 }

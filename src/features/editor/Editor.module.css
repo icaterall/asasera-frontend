@@ -20,6 +20,17 @@
   color: var(--ink);
 }
 .recovery { padding: 16px; margin-block-end: 16px; border: 1px solid var(--brand); border-radius: 12px; background: var(--surface); color: var(--ink); }
+
+/* Louder than .recovery on purpose: this one reports work that has just been
+   destroyed, and the way back is only useful if it is seen. It needs its own
+   opaque card because it sits on the activity theme's wallpaper, where text
+   with no surface behind it is unreadable. */
+.typeUndo { display:flex; flex-direction:column; align-items:center; gap:12px; padding:16px 20px; margin-block-end:16px; border:2px solid var(--act); border-radius:12px; background:var(--surface); color:var(--ink); box-shadow:0 6px 18px #0f182d2e; text-align:center; }
+.typeUndo p { margin:0; max-width:62ch; font-size:15px; line-height:1.5; }
+.typeUndo p strong { font-weight:var(--w-bold); }
+/* Both choices together, centred — the way back and the way on are one decision. */
+.typeUndo > div { display:flex; justify-content:center; gap:10px; flex-wrap:wrap; }
+@media(max-width:700px){ .typeUndo { padding:14px; } .typeUndo > div { width:100%; } .typeUndo > div > button { flex:1 1 auto; } }
 .recovery p { margin-block: 0 12px; }
 .recovery > div { display: flex; flex-wrap: wrap; gap: 8px; }
 
@@ -132,8 +143,13 @@
 .generateHint { margin:0; padding-inline:4px; color:var(--muted); font-size:var(--f-small); line-height:1.5; text-align:center; }
 
 /* ---- 3. canvas — the primary workspace ---- */
-.canvas { grid-area: canvas; overflow-y: auto; padding: var(--s-5); }
-.canvasInner { max-width: 820px; margin-inline: auto; display: flex; flex-direction: column; gap: var(--s-4); }
+/* A column: the question's content grows, the action footer sits under it and
+   is pinned to the bottom. No bottom padding — the footer supplies that space
+   itself, which is what lets it reach the true bottom edge of the canvas.
+   --canvas-pad is published so the footer can bleed back out over the side
+   padding whatever the breakpoint sets it to. */
+.canvas { grid-area: canvas; overflow-y: auto; --canvas-pad: var(--s-5); display: flex; flex-direction: column; padding: var(--canvas-pad) var(--canvas-pad) 0; }
+.canvasInner { width: 100%; max-width: 820px; flex: 1 0 auto; margin-inline: auto; display: flex; flex-direction: column; gap: var(--s-4); }
 
 /* The question's source chip (v5.1 C4) sits directly above the prompt, in the
    same column, so it moves with the canvas at every width. A question with no
@@ -235,7 +251,12 @@
 .applyAll { font-size: var(--f-small); }
 .propsFooter { margin-top: auto; display: flex; flex-direction: column; gap: var(--s-2); padding-top: var(--s-4); border-top: 1px solid var(--line); }
 .props { padding:0 22px 24px; gap:0; overscroll-behavior:contain; }
-.propsHeader { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:14px 0; border-block-end:1px solid var(--line); }
+/* The panel scrolls, so a header in the normal flow takes the fold button out
+   of reach as soon as a teacher scrolls down the properties. Sticky keeps the
+   handle on the panel's edge at every scroll position, which is the only place
+   it is useful. The background is not decoration: without it the scrolling
+   content shows through the header. */
+.propsHeader { position:sticky; inset-block-start:0; z-index:2; display:flex; align-items:center; justify-content:space-between; gap:8px; padding:14px 0; background:var(--surface); border-block-end:1px solid var(--line); }
 .propsHeader h2 { margin:0; font-size:16px; line-height:1.3; font-weight:800; }
 .propsFold { display:grid; place-items:center; width:44px; height:44px; flex-shrink:0; border:0; border-radius:5px; background:transparent; color:var(--ink); cursor:pointer; }
 .propsFold:hover { background:var(--raised); }
@@ -253,6 +274,13 @@
 @media(min-width:1025px) {
   .shell { grid-template-columns:260px minmax(0,1fr) 350px; }
   .shell[data-props-open=false] { grid-template-columns:260px minmax(0,1fr) 48px; }
+  /* The column widens when the panel folds, but the question is capped and
+     centred, so on a wide screen folding only moved the question sideways and
+     looked like nothing happened. Folding raises the cap, so the space the
+     panel gave up actually reaches the question. The cap is raised rather than
+     removed: an unbounded line length on a very wide screen is harder to read,
+     not easier. */
+  .shell[data-props-open=false] .canvasInner { max-width:min(1320px,100%); }
   .props[data-editor-drawer=closed] {
     display: flex;
     flex-direction: column;
@@ -290,11 +318,11 @@
 .imageUpload {display:flex;align-items:center;gap:12px;flex-wrap:wrap}.editorImage {max-width:100%;max-height:280px;object-fit:contain;width:100%;background:var(--raised);border-radius:8px}
 .uploadLabel {display:inline-flex;align-items:center;min-height:44px;padding:8px 14px;border:1px solid var(--line);border-radius:4px;cursor:pointer;font-weight:700;background:var(--surface);color:var(--ink)}.uploadLabel input {max-width:170px;margin-inline-start:12px}
 .zoneTools {display:flex;gap:8px;flex-wrap:wrap;align-items:end}.zoneTools label {display:flex;gap:8px;align-items:center}
-.zoneEditor {position:relative;line-height:0;user-select:none;background:var(--raised)}.zoneEditor img {display:block;width:100%;height:auto;pointer-events:none}.zoneEditor svg {position:absolute;inset:0;width:100%;height:100%;pointer-events:none}.zoneEditor rect {fill:#ffffff33;stroke:#222;stroke-width:.4;stroke-dasharray:1}.zoneEditor .activeZone {stroke:#0045D8;stroke-width:.8;stroke-dasharray:none}.zoneEditor text {font:5px sans-serif;fill:#111;stroke:white;stroke-width:.25;paint-order:stroke}
+.zoneEditor {position:relative;line-height:0;user-select:none;background:var(--raised)}.zoneEditor img {display:block;width:100%;height:auto;pointer-events:none}.zoneEditor svg {position:absolute;inset:0;width:100%;height:100%;pointer-events:none}.zoneEditor rect,.zoneEditor ellipse,.zoneEditor polygon {fill:#ffffff33;stroke:#222;stroke-width:.4;stroke-dasharray:1}.zoneEditor .activeZone {stroke:#0045D8;stroke-width:.8;stroke-dasharray:none}.zoneEditor text {font:5px sans-serif;fill:#111;stroke:white;stroke-width:.25;paint-order:stroke}
 .zoneNumbers {display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.zoneNumbers input {direction:ltr}.checkZone {display:inline-flex;gap:8px;margin-inline-end:18px}
 @media(max-width:700px){.matchEditor{grid-template-columns:1fr}.advanced{padding:12px}.editRow{flex-wrap:wrap}.editRow input{flex-basis:55%}.zoneNumbers{grid-template-columns:1fr 1fr}}
 @media(max-width:700px){
-  .saveState{font-size:12px}.canvas{padding:12px}.promptInput{font-size:15px;min-height:44px}.props,.rail{width:min(360px,88vw)}
+  .saveState{font-size:12px}.canvas{--canvas-pad:12px}.promptInput{font-size:15px;min-height:44px}.props,.rail{width:min(360px,88vw)}
 }
 .saveSaved,.isCorrect {color:var(--ink)}.saveSaved{display:inline-flex;align-items:center;gap:4px}
 .uploadLabel {position:relative}.uploadLabel input{position:absolute;inline-size:1px;block-size:1px;opacity:0;overflow:hidden}.uploadLabel:focus-within{outline:3px solid var(--act);outline-offset:3px}
@@ -302,7 +330,7 @@
 /* Creator reference: compact white rails, pale canvas, rectangular question previews. */
 .shell{grid-template-columns:260px minmax(0,1fr) 320px}
 .top{box-shadow:0 2px 4px #0000001a;z-index:2}.titleInput{border-color:var(--line);font-size:16px}
-.canvas{background:var(--sunken)}.canvasInner{max-width:1080px;min-height:100%;gap:10px}
+.canvas{background:var(--sunken)}.canvasInner{max-width:1080px;gap:10px}
 .promptInput{border-radius:4px;min-height:52px;text-align:center;font-weight:700;font-size:clamp(15px,1.15vw,19px);box-shadow:0 2px 4px #00000015}
 .optionTile{min-height:84px;box-shadow:inset 0 -4px 0 #0003}.optionText{font-size:18px}.optionGlyph{width:32px;height:32px}
 
@@ -334,7 +362,12 @@
 .explanationField>span:first-child { width:fit-content; padding:3px 10px; border-radius:5px; background:var(--surface); }
 .explanationInput { width:100%; min-height:64px; padding:var(--s-3); border:1px solid var(--line); border-radius:var(--r-card); background:var(--surface); color:var(--ink); font:inherit; line-height:var(--lh-body); resize:vertical; }
 .explanationInput:focus-visible { outline:var(--focus-ring) solid var(--focus-colour); outline-offset:var(--focus-offset); border-color:var(--act); }
-.explanationWarning { display:inline-flex; align-items:center; gap:var(--s-1); font-size:var(--f-small); color:var(--a3); font-weight:var(--w-bold); }
+/* A chip with its own surface: this sits on the activity theme's wallpaper,
+   where coloured text on nothing is unreadable. The amber stays in the border
+   and the icon; the words take --ink, which carries full contrast on the tint
+   in both light and dark — orange on a pale orange would not. */
+.explanationWarning { display:inline-flex; align-items:center; gap:var(--s-1); align-self:flex-start; margin-block-start:6px; padding:7px 12px; border:1px solid color-mix(in srgb, var(--a3) 45%, transparent); border-radius:8px; background:color-mix(in srgb, var(--a3) 12%, var(--surface)); color:var(--ink); font-size:var(--f-small); font-weight:var(--w-bold); line-height:1.45; }
+.explanationWarning > svg { flex:0 0 auto; color:var(--a3); }
 .approvalNote { margin:0; padding:var(--s-3) var(--s-4); border:1px solid var(--line); border-radius:var(--r-card); background:var(--surface); color:var(--muted); line-height:var(--lh-body); }
 .deliveryAction { gap:6px; }
 
@@ -401,3 +434,159 @@
 
 /* Reserve room for the floating question tools below the mobile audience row. */
 @media(max-width:700px){.canvasInner > [data-formatted-field]:first-child{margin-block-start:52px}}
+
+
+/* The zone editor's picture, with its replace control on it. A click on the
+   picture itself starts drawing a zone, so this cannot be that click. */
+.zoneStage { position: relative; }
+.zoneReplace { position: absolute; z-index: 2; inset-block-start: 8px; inset-inline-end: 8px; display: grid; place-items: center; width: 34px; height: 34px; padding: 0; border: 0; border-radius: 6px; background: #000000a6; color: #fff; cursor: pointer; }
+.zoneReplace:hover { background: #000000d1; }
+.zoneReplace:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+
+/* The question's footer — see questionActionControls in ActivityEditor.
+
+   Never in the properties panel: folding a panel of SETTINGS must not take away
+   the way to save or undo. It runs the full width of the canvas and stays flush
+   against the bottom edge — white all the way down, no strip of wallpaper
+   beneath it — so it reads as a footer rather than a card floating on the
+   artwork, and sticky so a long question never scrolls Save out of reach. */
+.questionActions { position: sticky; inset-block-end: 0; z-index: 3; flex: 0 0 auto; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-block-start: var(--s-3); margin-inline: calc(-1 * var(--canvas-pad)); padding: 12px var(--canvas-pad); background: var(--surface); border-block-start: 1px solid var(--line); box-shadow: 0 -4px 16px #0f182d1f; }
+.questionActions > button { min-height: 44px; font-size: 14px; font-weight: var(--w-bold); justify-content: center; }
+/* Save takes the room; verification is the occasional one, pushed to the end. */
+.questionActions .saveNowButton { flex: 1 1 150px; max-width: 420px; }
+/* Verification is the evidence control — it is what turns "they got it right"
+   into "they proved it" — so it carries --evidence rather than the action blue.
+   Tinted, not filled: on this bar Save is the thing you press, and a second
+   solid button beside it would argue with that. */
+.questionActions .verifyAction {
+  margin-inline-start: auto; padding-inline: 14px;
+  border: 1px solid color-mix(in srgb, var(--evidence) 38%, transparent);
+  border-radius: var(--r-control);
+  background: color-mix(in srgb, var(--evidence) 8%, var(--surface));
+  color: var(--evidence); box-shadow: none;
+}
+/* (0,4,0) — enough to clear .quiet:hover:not(:disabled) at (0,3,0), which
+   otherwise strips the fill back to transparent on hover. */
+.questionActions .verifyAction:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--evidence) 17%, var(--surface));
+  border-color: var(--evidence);
+}
+.questionActions .verifyAction:active:not(:disabled) { background: color-mix(in srgb, var(--evidence) 24%, var(--surface)); }
+.questionActions .verifyAction svg { color: inherit; }
+/* #26890c has too little contrast on a dark surface to read as text. */
+:global(.dark) .questionActions .verifyAction { color: #79d357; border-color: #79d35759; background: #79d3571f; }
+:global(.dark) .questionActions .verifyAction:hover:not(:disabled) { background: #79d35733; border-color: #79d357; }
+
+/* Save asks for attention only while there is something to save; clean, it
+   steps back rather than shouting at a teacher with nothing to do. */
+.saveNowButton:not(:disabled) { background: var(--act); border-color: var(--act); color: #fff; box-shadow: 0 2px 8px #0f182d2e; }
+.saveNowButton:not(:disabled):hover { background: var(--act-press); border-color: var(--act-press); }
+.questionActions[data-unsaved] .saveNowButton:not(:disabled) { box-shadow: 0 2px 8px #0f182d2e, 0 0 0 3px color-mix(in srgb, var(--act) 28%, transparent); }
+
+.undoButton:not(:disabled) { background: var(--surface); border: 1px solid var(--line); color: var(--ink); }
+.undoButton:not(:disabled):hover { background: var(--raised); border-color: var(--muted); }
+.questionActions > button:disabled { opacity: .42; }
+@media (prefers-reduced-motion: no-preference) { .saveNowButton { transition: background .15s ease, box-shadow .2s ease; } }
+
+/* ============================================================================
+ * THE PHONE
+ *
+ * Not the four-region grid shrunk — a different shape. Below 700px the editor
+ * is one screen with one bar along the bottom, and everything that used to
+ * crowd the top now lives behind it.
+ *
+ * What was wrong: the top bar stacked into three rows and its nine buttons
+ * wrapped onto four more, so roughly half a 375px viewport was chrome before a
+ * single question appeared. Both rails opened as 88vw slivers, each with its
+ * own close button and its own mental model. The audience band took another
+ * slice. The workspace — the thing being worked on — got what was left.
+ *
+ * What it is now: top bar keeps the title, the save state and Publish. One
+ * bottom bar carries Questions, Save, Settings and More. The rails open as
+ * full-width sheets from that bar. Everything else is in More.
+ *
+ * Placed last in the file on purpose: these override the ≤1024px drawer rules
+ * above, which are a tablet layout and stay one.
+ * ========================================================================= */
+@media (max-width:700px) {
+  .shell { grid-template-areas:'top' 'canvas' 'phonebar'; grid-template-rows:auto minmax(0,1fr) auto; }
+
+  /* ---- top bar: one row, and only what cannot move ---- */
+  .top { grid-template-columns:minmax(0,1fr) auto; grid-template-areas:'identity actions'; gap:8px; padding:8px 12px; min-height:52px; }
+  /* The brand and the account menu are navigation, not editing. They are in
+     More, with the way out. */
+  .brand, .accountControls { display:none; }
+  .activityIdentity { flex-wrap:nowrap; align-items:center; gap:8px; }
+  .titleInput { font-size:16px; font-weight:var(--w-bold); padding:6px 8px; }
+  /* The save state is a word at this size, not a sentence. The bottom bar
+     carries the unsaved dot as well, so this is confirmation rather than the
+     only notice. */
+  .saveState { flex-shrink:0; font-size:11px; max-inline-size:84px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+  /* The 52px reserve above this breakpoint made room under the mobile audience
+     row for floating tools. The audience row is not on the phone any more, so
+     the reservation is just a gap at the top of the screen with the least
+     height to spare. */
+  .canvasInner > [data-formatted-field]:first-child { margin-block-start:0; }
+  .editorActions { flex-wrap:nowrap; justify-content:flex-end; gap:6px; }
+  .editorActions > button { min-height:40px; padding-inline:14px; font-size:14px; white-space:nowrap; }
+  /* Replaced by the bottom bar, which is where a thumb already is. */
+  .editorActions .drawerToggle, .editorActions .propertiesToggle { display:none; }
+
+  /* ---- the bar ----
+     A grid row, not a fixed overlay: 100dvh arithmetic still holds, and it
+     cannot cover the thing it sits under. */
+  .phoneBar { grid-area:phonebar; z-index:8; display:grid; grid-auto-flow:column; grid-auto-columns:1fr;
+              background:var(--surface); border-block-start:1px solid var(--line); box-shadow:0 -2px 10px #0f182d14;
+              padding-block-end:env(safe-area-inset-bottom); }
+  .phoneBar button { position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px;
+                     min-block-size:58px; padding:8px 4px; border:0; background:transparent; color:var(--muted);
+                     font:inherit; font-size:11px; font-weight:var(--w-bold); line-height:1.2; cursor:pointer; }
+  .phoneBar button span { display:block; max-inline-size:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .phoneBar button[data-active] { color:var(--act); }
+  /* The open sheet is marked on its own button, so the bar says where you are. */
+  .phoneBar button[data-active]::before { content:''; position:absolute; inset-block-start:0; inset-inline:18%; block-size:3px; border-radius:0 0 3px 3px; background:var(--act); }
+  .phoneBar button:disabled { opacity:.4; cursor:default; }
+  .phoneBar button:focus-visible { outline:var(--focus-ring) solid var(--focus-colour); outline-offset:-3px; }
+  /* Unsaved work is the one thing the bar reports rather than just offers. */
+  .phoneBar button[data-unsaved]:not(:disabled) { color:var(--act); }
+  .phoneBar button[data-unsaved]:not(:disabled)::after { content:''; position:absolute; inset-block-start:9px; inset-inline-end:calc(50% - 18px); inline-size:8px; block-size:8px; border-radius:50%; background:var(--act); }
+  .phoneBar b { position:absolute; inset-block-start:6px; inset-inline-end:calc(50% - 20px); min-inline-size:16px; padding:0 4px; border-radius:9px; background:var(--raised); color:var(--muted); font-size:10px; font-weight:var(--w-bold); line-height:16px; }
+
+  /* ---- rails become sheets ----
+     A phone is narrow; an 88vw drawer with a shadow down one edge is a tablet
+     idea. Full width from the bottom is where the hand already is, and the
+     question list finally has room for two lines of prompt. */
+  .rail, .props { inset-block:auto 0; inset-inline:0; inline-size:auto; max-block-size:min(78dvh,660px);
+                  border-radius:14px 14px 0 0; border-inline:0; border-block-start:1px solid var(--line);
+                  box-shadow:0 -14px 44px rgb(0 0 0 / 28%); padding-block-end:calc(16px + env(safe-area-inset-bottom)); }
+  .rail { padding-inline:14px; }
+  .rail > .drawerToggle { position:sticky; inset-block-start:0; z-index:2; inline-size:100%; min-block-size:46px; margin-block-end:4px; background:var(--surface); }
+  .thumbPrompt { -webkit-line-clamp:2; line-clamp:2; }
+  .props { padding-inline:16px; }
+
+  /* ---- More ---- */
+  .moreSheet { position:fixed; inset-block:auto 0; inset-inline:0; z-index:10; display:flex; flex-direction:column;
+               max-block-size:min(86dvh,760px); border-radius:14px 14px 0 0; background:var(--surface); color:var(--ink);
+               box-shadow:0 -14px 44px rgb(0 0 0 / 28%); }
+  .moreSheet > header { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 16px; border-block-end:1px solid var(--line); }
+  .moreSheet > header h2 { margin:0; font-size:16px; }
+  .moreSheet > header button { display:grid; place-items:center; min-inline-size:44px; min-block-size:44px; border:0; border-radius:var(--r-control); background:transparent; color:var(--ink); cursor:pointer; }
+  .moreBody { overflow-y:auto; overscroll-behavior:contain; padding:14px 16px calc(20px + env(safe-area-inset-bottom)); }
+  .moreBody h3 { margin:0 0 8px; font-size:13px; font-weight:var(--w-bold); color:var(--muted); text-transform:none; }
+  .moreQuestion, .moreActivity { padding-block-end:16px; margin-block-end:16px; border-block-end:1px solid var(--line); }
+  /* Full-width rows: a sheet is a list of choices, not a toolbar. */
+  .moreQuestion, .moreSheet .editorActions { display:flex; flex-direction:column; align-items:stretch; gap:8px; }
+  .moreQuestion > button, .moreSheet .editorActions > button { inline-size:100%; min-block-size:48px; justify-content:flex-start; gap:10px; padding-inline:14px; font-size:15px; white-space:normal; text-align:start; }
+  /* Publish stays in the top bar; the sheet must not offer a second one. */
+  .moreSheet .drawerToggle, .moreSheet .propertiesToggle { display:none; }
+  /* The audience editor is a <details> from another module — reached by element,
+     and freed from the height cap it needs when it is a band in the grid. */
+  .moreBody > details { max-block-size:none; padding-inline:0; border:0; background:transparent; color:inherit; }
+  .moreAccount { display:flex; align-items:center; gap:10px; padding-block-start:16px; border-block-start:1px solid var(--line); }
+
+  /* The question's own footer is now the bottom bar's job — Save is there, and
+     Undo and verification are one tap away in More. Two stacked bars on a
+     375px screen is chrome arguing with itself. */
+  .questionActions { display:none; }
+}

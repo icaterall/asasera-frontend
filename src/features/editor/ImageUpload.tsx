@@ -97,7 +97,7 @@ export function ImageRemoveButton({className,onRemove,label}:{className:string;o
   </>
 }
 
-export function ImageUpload({imageKey,onImage,onRemove,showPreview=true,label,onBusyChange,onProgress,compact=false,question=false}:{imageKey:string|null;onImage:(key:string)=>void;onRemove?:()=>void;showPreview?:boolean;label?:string;onBusyChange?:(busy:boolean)=>void;onProgress?:(state:UploadState)=>void;compact?:boolean;question?:boolean}){
+export function ImageUpload({imageKey,onImage,onRemove,showPreview=true,label,onBusyChange,onProgress,compact=false,question=false,sourceFile=null}:{imageKey:string|null;onImage:(key:string)=>void;onRemove?:()=>void;showPreview?:boolean;label?:string;onBusyChange?:(busy:boolean)=>void;onProgress?:(state:UploadState)=>void;compact?:boolean;question?:boolean;sourceFile?:File|null}){
   const {i18n}=useTranslation(),ar=i18n.language.startsWith('ar'),url=useImage(imageKey),labelId=useId(),input=useRef<HTMLInputElement>(null)
   const [phase,setPhase]=useState<'idle'|'uploading'|'checking'|'ready'|'error'>('idle'),[progress,setProgress]=useState(0),[error,setError]=useState(''),[filename,setFilename]=useState(''),[pending,setPending]=useState<number|null>(null)
   const [maxBytes,setMaxBytes]=useState(5*1024*1024),[dragging,setDragging]=useState(false)
@@ -148,6 +148,9 @@ export function ImageUpload({imageKey,onImage,onRemove,showPreview=true,label,on
     }catch(e){if(control.signal.aborted)return;const code=e instanceof Error?e.message:'';setPhase('error');setError(code==='pipeline_unavailable'?(ar?'رفع الصور غير متاح مؤقتًا. يرجى المحاولة بعد تحديث الخدمة.':'Image uploads are temporarily unavailable while the service is being updated.'):code==='invalid_image'?(ar?`اختر صورة PNG أو JPEG أو WebP سليمة بحجم أقصى ${limitBytes/1024/1024} MB.`:`Choose a valid PNG, JPEG or WebP image up to ${limitBytes/1024/1024} MB.`):code==='rejected'?(ar?'هذه الصورة غير مناسبة للاستخدام التعليمي. اختر صورة أخرى.':'This image is not suitable for classroom use. Choose another image.'):code==='review'?(ar?'تحتاج هذه الصورة إلى مراجعة، ولا يمكن استخدامها حاليًا. اختر صورة أخرى.':'This image needs review and cannot be used yet. Choose another image.'):code==='upload_failed'?(ar?'تعذّر رفع الصورة. تحقق من الاتصال ثم أعد المحاولة.':'Upload interrupted. Check your connection and choose the image again.'):code==='check_failed'?(ar?'تعذّر إكمال فحص الصورة. حاول مرة أخرى لاحقًا.':'We could not complete the image check. Please try again later.'):(ar?'لم يكتمل التحقق بعد. يمكنك المتابعة والتحقق مرة أخرى.':'Checking has not finished. You can keep editing and check again.'))
     }finally{controller.current=null;onBusyChange?.(false)}
   }
+  // A retouched bitmap uses the same validation, moderation and immutable
+  // upload pipeline as a file picked from disk. A new File is an explicit save.
+  useEffect(()=>{if(sourceFile)void run(sourceFile)},[sourceFile])
   const heading=phase==='uploading'?(ar?'جارٍ رفع الصورة…':'Uploading image…'):phase==='checking'?(ar?'جارٍ التحقق من الصورة…':'Checking your image…'):phase==='ready'?(ar?'الصورة جاهزة':'Image ready'):(ar?'الصورة غير جاهزة':'Image not ready')
   return <section className={compact?ui.compact:question?`${ui.question} ${dragging?ui.dragging:''}`:styles.imageUpload}
     onDragOver={question?e=>{e.preventDefault();if(!busy)setDragging(true)}:undefined}

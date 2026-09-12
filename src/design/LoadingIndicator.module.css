@@ -36,7 +36,6 @@
   inline-size: 100%;
   block-size: 100%;
   transform-origin: center;
-  animation: orbit 2.4s linear infinite;
   animation-play-state: var(--loader-play-state, running);
 }
 
@@ -61,11 +60,24 @@
 .inline { justify-content: flex-start; gap: 10px; }
 .label { max-inline-size: 38ch; font-size: 14px; font-weight: 500; line-height: 1.6; overflow-wrap: anywhere; }
 
+/*
+ * Held above the theme stage's motion switch.
+ *
+ * `ActivityThemes.module.css` turns off decoration inside a stage with
+ * `.stage[data-motion=off] * { animation: none !important }` — a (0,2,0)
+ * selector that also caught this, so a loader rendered on the editor canvas
+ * sat still. A spinner that does not spin says "stuck", which is the opposite
+ * of what it is there to say. The attribute takes this to (0,3,0) so it wins
+ * wherever it is mounted, and reduced-motion below is raised to match.
+ */
+.mark[data-loading-mark] .orbit { animation: orbit 2.4s linear infinite !important; }
+
 @keyframes orbit { to { transform: rotate(360deg); } }
 
 @media (prefers-reduced-motion: reduce) {
-  /* Keep the logo, segmented ring, dots and readable status without rotation. */
-  .orbit { animation: none; }
+  /* Keep the logo, segmented ring, dots and readable status without rotation.
+     Matches the specificity above so a stated preference still wins. */
+  .mark[data-loading-mark] .orbit { animation: none !important; }
 }
 
 @media (forced-colors: active) {

@@ -1,6 +1,6 @@
 import {FormattedText} from '@/components/formatted-text/FormattedText'
 import {FormattedInput} from './FormattedInput'
-import {QuestionTypePicker,questionTypeName} from './QuestionTypePicker'
+import {QuestionTypeDialog,QuestionTypePicker,questionTypeName} from './QuestionTypePicker'
 import {ButtonSpinner} from '@/design/ButtonSpinner'
 import {AccountControl} from '@/components/layout/AccountControl'
 import {LanguageToggle} from '@/components/ui/LanguageToggle'
@@ -9,13 +9,15 @@ import {useAuth} from '@/hooks/useAuth'
 import {ActivityFeedbackModal} from '@/features/community/ActivityFeedbackModal'
 import {acknowledgeQuestion, acknowledgeTitle, decodeGenerationDraft, draftKey, editorDraftSchema, emptyEditorDraft, hasEditorChanges, readDraft, storeEditorDraft, type EditorDraft, type GenerationDraft} from './session-drafts'
 import {ActivityAudience} from '@/features/audience/ActivityAudience'
-import {Menu,Settings,TriangleAlert,Check,Palette,Share2,MessageSquare,Sparkles,Radio,Clock,Library,PanelRightClose,PanelRightOpen,MessageCircleQuestion,Timer,Medal,SlidersHorizontal,Plus,ArrowUp,ArrowDown,Copy,Trash2,Undo2} from 'lucide-react'
+import {Menu,Settings,TriangleAlert,Check,Palette,Share2,MessageSquare,Sparkles,Radio,Clock,Library,PanelRightClose,PanelRightOpen,MessageCircleQuestion,Timer,Medal,SlidersHorizontal,Plus,ArrowUp,ArrowDown,Copy,Trash2,Undo2,Save,ShieldCheck,ListOrdered,MoreHorizontal,X} from 'lucide-react'
 import {useTranslation} from 'react-i18next'
 import {useEditorText} from './useEditorText'
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 
 import { Button, Select, EmptyState, FailureState, LoadingState } from '@/design'
+import {createPortal} from 'react-dom'
+import {ConfirmDialog} from '@/components/teaching/TeachingUI'
 import {
   activities,
   type ActivityRecord,
@@ -28,11 +30,12 @@ import {errorPairSlots} from '@/shared/error-pairs'
 import {AdvancedCanvas,defaultPayload} from './AdvancedCanvas'
 import {GenerationPanel} from './GenerationPanel'
 import {QuestionSource,SourceMarker,readProvenance} from './SourceChip'
-import {ImageUpload} from './ImageUpload'
 import {MediaField} from './MediaPicker'
+import {ImageQuestionEntry} from './ImageCreator'
 import styles from './Editor.module.css'
 import { McqCanvas, TfCanvas, MIN_OPTIONS, MAX_OPTIONS, type McqOption } from './McqCanvas'
 import { OrderCanvas } from './OrderCanvas'
+import { VerificationDialog } from './VerificationDialog'
 import type { OrderPayload } from '@/shared/questions'
 import { useAutosave } from './useAutosave'
 import { ThemePicker } from '../activity-themes/ThemePicker'
@@ -186,6 +189,11 @@ function ActivityEditorWorkspace() {
   const [actionError, setActionError] = useState<string | null>(null)
   const [railOpen, setRailOpen] = useState(false)
   const [chooseHotspot,setChooseHotspot]=useState(false)
+  const [addingType,setAddingType]=useState(false)
+  /* Deleting a question takes its answers and any reasons written against them
+     with it, and there is no undo for it the way there is for a type change. */
+  const [deleting,setDeleting]=useState(false)
+  const [verifying,setVerifying]=useState(false)
   /*
    * Changing a question's type REPLACES its answers — every kind stores a
    * different payload, so there is nothing to carry across. That is a
@@ -198,6 +206,13 @@ function ActivityEditorWorkspace() {
    * the reasons written against them would be a half-undo.
    */
   const [typeUndo,setTypeUndo]=useState<{questionId:number;kind:QuestionKindWire;payload:unknown;mediaKey:string|null;pairs:ErrorPairRecord[];from:string;to:string;replaced:number}|null>(null)
+  /* One breakpoint, one source of truth. The phone chrome is a different shape
+     rather than the same shape squeezed, so it has to exist in the markup —
+     CSS alone cannot move a button from a top bar into a sheet. */
+  const [phone, setPhone] = useState(()=>matchMedia('(max-width:700px)').matches)
+  useEffect(()=>{const media=matchMedia('(max-width:700px)'),change=()=>setPhone(media.matches);media.addEventListener('change',change);return()=>media.removeEventListener('change',change)},[])
+  const [moreOpen, setMoreOpen] = useState(false)
+  useEffect(()=>{if(!phone)setMoreOpen(false)},[phone])
   const [propsOpen, setPropsOpen] = useState(()=>matchMedia('(min-width:1025px)').matches)
   useEffect(()=>{const media=matchMedia('(min-width:1025px)'),change=()=>setPropsOpen(media.matches);media.addEventListener('change',change);return()=>media.removeEventListener('change',change)},[])
   const promptRef = useRef<HTMLDivElement>(null)
@@ -268,6 +283,30 @@ function ActivityEditorWorkspace() {
    * The whole active question is the unit. Field-level saves would multiply
    * the out-of-order problem by the number of fields for no benefit — the
    * request is small either way. */
+  /**
+   * Which question is waiting to have its answer areas confirmed.
+   *
+   * Confirmation is a one-shot flag on a patch, but the autosave COALESCES:
+   * `change()` replaces whatever is queued and waits 900ms. Any other edit in
+   * that window — nudging a zone, typing a label, the re-render the confirm
+   * button itself causes — replaced the queued patch with one carrying
+   * `confirmZones:false`, and the confirmation was dropped without a trace
+   * while the button still said it had been sent. Held here until a save
+   * actually lands, so it survives being coalesced.
+   */
+  const confirmZonesFor = useRef<number | null>(null)
+
+  /**
+   * The open question as it stood when it was opened, or when it was last saved
+   * on purpose. What Undo puts back.
+   *
+   * Autosave means "the last saved state" is usually a second ago, so an undo
+   * defined against it would almost always do nothing. A teacher who asks to
+   * undo means the edits they have just been making, and this is the mark those
+   * edits are measured from.
+   */
+  const questionBaseline = useRef<{ id: number; question: QuestionRecord } | null>(null)
+
   const questionSave = useAutosave<{ id: number; patch: Record<string, unknown> }>({
     save: async ({ id: questionId, patch }) => {
       const current=dataRef.current?.questions.find(q=>q.id===questionId)
@@ -276,6 +315,7 @@ function ActivityEditorWorkspace() {
         ...current,
         questions: current.questions.map((q) => (q.id === question.id ? {...q,revision:question.revision} : q)),
       }))
+      if (patch.confirmZones === true && confirmZonesFor.current === questionId) confirmZonesFor.current = null
       persist(acknowledgeQuestion(readDraft(recoveryKey, editorDraftSchema) ?? journal.current, questionId, patch, question.revision))
     },
   })
@@ -305,6 +345,8 @@ function ActivityEditorWorkspace() {
   useEffect(()=>{setTypeUndo(null)},[activeId])
 
 
+  const patchActiveRef = useRef<((patch: Record<string, unknown>) => void) | null>(null)
+
   const patchActive = useCallback((patch: Record<string, unknown>) => {
     /* Read through the refs, never the render-time closure — see dataRef. */
     const currentId = activeIdRef.current
@@ -323,6 +365,7 @@ function ActivityEditorWorkspace() {
       ...current,
       questions: current.questions.map((q) => (q.id === next.id ? next : q)),
     }))
+    if (patch.confirmZones === true) confirmZonesFor.current = next.id
     const edit = {
       id: next.id,
       patch: {
@@ -331,7 +374,7 @@ function ActivityEditorWorkspace() {
         payload: next.payload as Record<string, unknown>,
         timeLimitS: next.timeLimitS,
         mediaKey:next.mediaKey,
-        confirmZones:patch.confirmZones===true,
+        confirmZones:confirmZonesFor.current===next.id,
         /* Same key order as questionPatchSchema: the journal compares serialized patches after a zod round-trip. */
         explanation:next.explanation??null,
         errorPairs:(dataRef.current?.errorPairs??[]).filter(p=>p.questionId===next.id).map(({elementKey,wrongTargetKey,reason})=>({elementKey,wrongTargetKey,reason})),
@@ -354,8 +397,8 @@ function ActivityEditorWorkspace() {
    * Awaiting the flush also means the switch is ordered: question 1's save is
    * in flight before question 2's first keystroke can queue anything.
    */
-  const selectQuestion = useCallback(async (nextId: number | null) => {
-    if (!recovered) await questionSave.flushNow()
+  const selectQuestion = useCallback(async (nextId: number | null, {flushed=false}: {flushed?: boolean} = {}) => {
+    if (!recovered && !flushed) await questionSave.flushNow()
     setActiveId(nextId)
     activeIdRef.current = nextId
     persist({...journal.current, activeQuestionId: nextId})
@@ -382,6 +425,8 @@ function ActivityEditorWorkspace() {
     patchActive({})
   }, [active,patchActive])
 
+  patchActiveRef.current = patchActive
+
   /** Puts back the type, the answers and the reasons, in one edit. */
   const undoTypeChange=useCallback(()=>{
     if(!typeUndo||activeIdRef.current!==typeUndo.questionId)return
@@ -391,22 +436,98 @@ function ActivityEditorWorkspace() {
   },[changeData,patchActive,typeUndo])
 
   /** Wraps an editor action so a failure is reported rather than swallowed. */
-  const run = useCallback(async (what: string, action: () => Promise<void>) => {
+  /**
+   * `block` decides whether the editor goes inert for the duration.
+   *
+   * It should for anything that rearranges or removes what is on screen —
+   * reordering, deleting, publishing — where an edit landing mid-flight would
+   * be applied to a list that is about to change. Adding a question changes
+   * nothing that already exists, so freezing the canvas there buys nothing and
+   * is the whole of the lag the teacher feels when they press Add.
+   */
+  const run = useCallback(async (what: string, action: () => Promise<void>, {block=true}: {block?: boolean} = {}) => {
     if(actionInFlight.current)return
-    actionInFlight.current=true;setActionBusy(true);setActionError(null)
+    actionInFlight.current=true;if(block)setActionBusy(true);setActionError(null)
     try {
       if (recovered) throw new Error(ar ? 'راجع التعديلات المستعادة واحفظها أولًا.' : 'Review and save your recovered edits first.')
       await questionSave.flushNow();await titleSave.flushNow()
       await action()
     } catch (error) {
       setActionError(`${what}: ${error instanceof Error ? error.message : t("خطأ غير معروف")}`)
-    }finally{actionInFlight.current=false;setActionBusy(false)}
+    }finally{actionInFlight.current=false;if(block)setActionBusy(false)}
   }, [questionSave,titleSave,t,recovered,ar])
   /** run(), plus a key so the button that started it can show its own spinner. */
   const runWith = useCallback((key: string, what: string, action: () => Promise<void>) => {
     setPending(key)
     void run(what, action).finally(() => setPending(null))
   }, [run])
+
+  /**
+   * Moves the open question one place, from wherever the teacher asked.
+   *
+   * Read through the refs rather than the render closure, for the same reason
+   * `patchActive` does: reordering awaits the server, and the list it computes
+   * the new order from must be the current one, not the one this render saw.
+   */
+  const moveActive = useCallback((step: -1 | 1) => {
+    runWith(step < 0 ? 'moveUp' : 'moveDown', t("تعذّر ترتيب الأسئلة"), async () => {
+      const current = dataRef.current
+      const open = current?.questions.find(q => q.id === activeIdRef.current)
+      if (!current || !open) return
+      const order = current.questions.map(q => q.id)
+      const index = order.indexOf(open.id), target = index + step
+      if (index < 0 || target < 0 || target >= order.length) return
+      ;[order[target], order[index]] = [order[index]!, order[target]!]
+      await activities.reorder(activityId, order)
+      await reload()
+    })
+  }, [runWith, t, activityId, reload])
+
+  const deleteActive = useCallback(() => {
+    setDeleting(false)
+    runWith('delete', t("تعذّر حذف السؤال"), async () => {
+      const id = activeIdRef.current
+      if (!id) return
+      await activities.deleteQuestion(id)
+      const questions = {...journal.current.questions}; delete questions[id]
+      persist({...journal.current, questions, activeQuestionId: null})
+      setActiveId(null)
+      await reload()
+    })
+  }, [runWith, t, persist, reload])
+
+  /* First render of a question is its baseline; later renders are its edits. */
+  useEffect(() => {
+    if (!active) { questionBaseline.current = null; return }
+    if (questionBaseline.current?.id !== active.id) questionBaseline.current = {id: active.id, question: active}
+  }, [active])
+
+  const editedFields = (q: QuestionRecord) => JSON.stringify([q.kind, q.prompt, q.payload, q.mediaKey, q.timeLimitS, q.explanation ?? null])
+  const questionEdited = !!active && !!questionBaseline.current && questionBaseline.current.id === active.id
+    && editedFields(questionBaseline.current.question) !== editedFields(active)
+
+  /** Saves everything queued, now, and makes this the state Undo returns to. */
+  const saveNow = useCallback(() => {
+    setPending('save')
+    void (async () => {
+      try {
+        await questionSave.flushNow()
+        await titleSave.flushNow()
+        const open = dataRef.current?.questions.find(q => q.id === activeIdRef.current)
+        if (open) questionBaseline.current = {id: open.id, question: open}
+      } catch (error) {
+        setActionError(`${t("تعذّر الحفظ")}: ${error instanceof Error ? error.message : ''}`)
+      } finally { setPending(null) }
+    })()
+  }, [questionSave, titleSave, t])
+
+  /** Puts the open question back the way it was, through the same save path. */
+  const undoQuestion = useCallback(() => {
+    const baseline = questionBaseline.current
+    if (!baseline || baseline.id !== activeIdRef.current) return
+    const {kind, prompt, payload, mediaKey, timeLimitS, explanation} = baseline.question
+    patchActiveRef.current?.({kind, prompt, payload, mediaKey, timeLimitS, explanation: explanation ?? null})
+  }, [])
 
   const openGeneration = async (replacement = false) => {
     if (actionInFlight.current) return
@@ -418,20 +539,30 @@ function ActivityEditorWorkspace() {
     } finally {setGenerationOpening(false)}
   }
 
-  const addQuestion = useCallback((kind: 'mcq' | 'tf') => run(t("تعذّرت إضافة السؤال"), async () => {
-    /* The question being left may have an unsaved edit queued. */
-    await questionSave.flushNow()
-    const { question } = await activities.addQuestion(activityId, {
-      kind,
-      prompt: '',
-      payload: kind === 'mcq' ? DEFAULT_MCQ() : { correct: true },
-    })
-    changeData((current) => current && { ...current, questions: [...current.questions, question] })
-    await selectQuestion(question.id)
-    setRailOpen(false)
-    /* Focus lands on the prompt, because that is the next thing to type. */
-    requestAnimationFrame(() => promptRef.current?.focus())
-  }), [activityId, run, questionSave,selectQuestion,t])
+  const addQuestion = useCallback((kind: QuestionKindWire) => {
+    setPending('add')
+    /*
+     * A pin question cannot be stored without its picture (`imageKey` is
+     * min(1)), so it is created as a quiz and the canvas asks for the image;
+     * the moment one arrives it becomes a hotspot. Same path as switching type.
+     */
+    const wanted = kind === 'hotspot' ? 'mcq' : kind
+    void run(t("تعذّرت إضافة السؤال"), async () => {
+      /* `run` has already flushed; `selectQuestion` is told so rather than
+         awaiting a third no-op round trip before the new question opens. */
+      const { question } = await activities.addQuestion(activityId, {
+        kind: wanted,
+        prompt: '',
+        payload: wanted === 'mcq' ? DEFAULT_MCQ() : defaultPayload(wanted),
+      })
+      changeData((current) => current && { ...current, questions: [...current.questions, question] })
+      await selectQuestion(question.id, {flushed: true})
+      setChooseHotspot(kind === 'hotspot')
+      setRailOpen(false)
+      /* Focus lands on the prompt, because that is the next thing to type. */
+      requestAnimationFrame(() => promptRef.current?.focus())
+    }, {block: false}).finally(() => setPending(null))
+  }, [activityId, run, changeData, selectQuestion, t])
 
   const publish = useCallback(async () => {
     if (recovered) {setActionError(ar ? 'راجع التعديلات المستعادة واحفظها قبل الاعتماد.' : 'Review and save your recovered edits before approving.'); return}
@@ -532,6 +663,63 @@ function ActivityEditorWorkspace() {
 
   const incompleteIds = new Set(problems.map((p) => p.questionId).filter((x): x is number => x != null))
 
+  /*
+   * Save, Undo and Link verification — one definition, one home.
+   *
+   * They act on the teacher's work, not on settings, so they never live in the
+   * properties panel: folding a panel of SETTINGS must not take away the way to
+   * save or undo. They sit in the question's own footer instead, sticky to the
+   * bottom of the canvas, where no fold can reach them and there is only ever
+   * one Save on screen.
+   */
+  const questionActionControls = active ? (
+    <>
+      <Button variant="secondary" className={styles.saveNowButton} loading={pending==='save'}
+        disabled={!questionSave.unsaved&&!titleSave.unsaved&&pending!=='save'}
+        icon={<Save size={18} aria-hidden="true"/>}
+        onClick={saveNow}>{ar?'حفظ':'Save'}</Button>
+      <Button variant="quiet" className={styles.undoButton} disabled={!questionEdited}
+        icon={<Undo2 size={18} aria-hidden="true"/>}
+        title={ar?'أعد السؤال إلى ما كان عليه':'Put this question back the way it was'}
+        onClick={undoQuestion}>{ar?'تراجع':'Undo'}</Button>
+      {data.activity.currentVersionId&&<Button variant="quiet" className={styles.verifyAction} icon={<ShieldCheck size={18} aria-hidden="true"/>} onClick={()=>setVerifying(true)}>{t("اربط سؤال تحقق")}</Button>}
+    </>
+  ) : null
+  const actionsUnsaved = (questionSave.unsaved||titleSave.unsaved)||undefined
+
+  const audienceEditor = (<ActivityAudience activity={data.activity} onSave={async value=>{
+        await questionSave.flushNow();await titleSave.flushNow()
+        const latest=await activities.load(activityId)
+        if(JSON.stringify([latest.activity.categoryId,latest.activity.educationStageIds,latest.activity.countryIds])!==JSON.stringify([data.activity.categoryId,data.activity.educationStageIds,data.activity.countryIds]))throw new Error(ar?'تغيّر الجمهور في جلسة أخرى. أعد فتح النشاط قبل الحفظ.':'The audience changed in another session. Reopen the activity before saving.')
+        const result=await activities.update(activityId,{...value,expectedRevision:latest.activity.revision})
+        changeData(current=>current&&({...current,activity:{...result.activity,title:current.activity.title}}))
+  }}/>)
+
+  /*
+   * The activity's own actions — themes, sharing, delivery, feedback, the way
+   * out. On a wide screen they line the top bar. On a phone nine buttons in a
+   * top bar is not a top bar, it is a wall: they wrapped onto four rows and ate
+   * half the viewport before a single question was visible. So the SAME buttons
+   * move into a sheet, reached from one control, and the top bar keeps only the
+   * title, the save state and Publish — the one act everything else builds to.
+   */
+  const activityActions = (
+    <>
+        <Button variant="secondary" disabled={actionBusy||publishing||recovered} onClick={()=>setThemesOpen(true)}><Palette size={18} aria-hidden="true"/>{ar?'المظاهر':'Themes'}</Button>
+        <Button variant="secondary" onClick={() => recovered ? navigate('/teacher/dashboard') : void run(t("تعذّر حفظ التعديلات"),async()=>navigate('/teacher/dashboard'))}>{t("خروج")}</Button>
+        <Button variant="quiet" onClick={() => setFeedbackOpen(true)}><MessageSquare size={18} aria-hidden="true" />{ar?'الملاحظات':'Feedback'}</Button>
+        {data.activity.currentVersionId && <Button variant="quiet" loading={sharing} disabled={actionBusy||publishing||recovered} title={!shareable&&data.activity.visibility!=='published'?t("للمشاركة في المكتبة، أضف غرضًا تعليميًا أو وحدة منهجية من إعدادات النشاط."):undefined} onClick={() => {
+          /* A disabled button with a tooltip tells a mouse user why and nobody
+             else. Pressable, it can answer the question at the moment it is
+             asked — and open the place the answer lives. */
+          if(!shareable&&data.activity.visibility!=='published'){setShareNotice(t("للمشاركة في المكتبة، أضف غرضًا تعليميًا أو وحدة منهجية من إعدادات النشاط."));setPropsOpen(true);return}
+          void toggleShare()
+        }}>{data.activity.visibility === 'published' ? <><Share2 size={18} aria-hidden="true" />{t("سحب من المكتبة")}</> : <><Library size={18} aria-hidden="true" />{t("مشاركة في المكتبة")}</>}</Button>}
+        {data.activity.currentVersionId && <Button variant="primary" className={styles.deliveryAction} disabled={publishing} loading={pending==='playLive'} onClick={() => runWith('playLive',t("تعذّر حفظ التعديلات"),async()=>navigate(`/teacher/activities/${activityId}/play?mode=live`))}><Radio size={18} aria-hidden="true"/>{t("ابدأ حصة مباشرة")}</Button>}
+        {data.activity.currentVersionId && <Button variant="primary" className={styles.deliveryAction} disabled={publishing} loading={pending==='playHomework'} onClick={() => runWith('playHomework',t("تعذّر حفظ التعديلات"),async()=>navigate(`/teacher/activities/${activityId}/play?mode=homework`))}><Clock size={18} aria-hidden="true"/>{t("كلّف كواجب")}</Button>}
+    </>
+  )
+
   return (
     <div className={`asas ${styles.shell}`} data-props-open={propsOpen} dir={ar ? 'rtl' : 'ltr'}>
       {(actionBusy||publishing)&&<div className={styles.busyBar} role="status" aria-live="polite"
@@ -574,6 +762,7 @@ function ActivityEditorWorkspace() {
 
         <SaveIndicator state={['failed','saving','dirty'].includes(questionSave.state.status)?questionSave.state:titleSave.state.status==='idle'?questionSave.state:titleSave.state} />
 
+
         </div>
         <div className={styles.accountControls}>
           <LanguageToggle className={styles.languageToggle} />
@@ -585,25 +774,36 @@ function ActivityEditorWorkspace() {
         <Button variant="quiet" className={styles.propertiesToggle} data-properties-toggle="" onClick={() => setPropsOpen((v) => !v)}
           aria-expanded={propsOpen} aria-label={t("الخصائص")}><Settings size={22} aria-hidden="true"/></Button>
 
-        <Button variant="secondary" disabled={actionBusy||publishing||recovered} onClick={()=>setThemesOpen(true)}><Palette size={18} aria-hidden="true"/>{ar?'المظاهر':'Themes'}</Button>
-        <Button variant="secondary" onClick={() => recovered ? navigate('/teacher/dashboard') : void run(t("تعذّر حفظ التعديلات"),async()=>navigate('/teacher/dashboard'))}>{t("خروج")}</Button>
-        <Button variant="quiet" onClick={() => setFeedbackOpen(true)}><MessageSquare size={18} aria-hidden="true" />{ar?'الملاحظات':'Feedback'}</Button>
-        {data.activity.currentVersionId && <Button variant="quiet" loading={sharing} disabled={actionBusy||publishing||recovered||(!shareable&&data.activity.visibility!=='published')} title={!shareable&&data.activity.visibility!=='published'?t("للمشاركة في المكتبة، أضف غرضًا تعليميًا أو وحدة منهجية من إعدادات النشاط."):undefined} onClick={() => void toggleShare()}>{data.activity.visibility === 'published' ? <><Share2 size={18} aria-hidden="true" />{t("سحب من المكتبة")}</> : <><Library size={18} aria-hidden="true" />{t("مشاركة في المكتبة")}</>}</Button>}
-        {data.activity.currentVersionId && <Button variant="primary" className={styles.deliveryAction} disabled={publishing} loading={pending==='playLive'} onClick={() => runWith('playLive',t("تعذّر حفظ التعديلات"),async()=>navigate(`/teacher/activities/${activityId}/play?mode=live`))}><Radio size={18} aria-hidden="true"/>{t("ابدأ حصة مباشرة")}</Button>}
-        {data.activity.currentVersionId && <Button variant="primary" className={styles.deliveryAction} disabled={publishing} loading={pending==='playHomework'} onClick={() => runWith('playHomework',t("تعذّر حفظ التعديلات"),async()=>navigate(`/teacher/activities/${activityId}/play?mode=homework`))}><Clock size={18} aria-hidden="true"/>{t("كلّف كواجب")}</Button>}
+        {!phone&&activityActions}
         <Button variant={data.activity.currentVersionId ? 'secondary' : 'primary'} loading={publishing} onClick={() => void publish()}>
           {data.activity.currentVersionId ? t("اعتماد التغييرات") : t("اعتماد النسخة")}
         </Button>
         </div>
       </header>
 
-      <ActivityAudience activity={data.activity} onSave={async value=>{
-        await questionSave.flushNow();await titleSave.flushNow()
-        const latest=await activities.load(activityId)
-        if(JSON.stringify([latest.activity.categoryId,latest.activity.educationStageIds,latest.activity.countryIds])!==JSON.stringify([data.activity.categoryId,data.activity.educationStageIds,data.activity.countryIds]))throw new Error(ar?'تغيّر الجمهور في جلسة أخرى. أعد فتح النشاط قبل الحفظ.':'The audience changed in another session. Reopen the activity before saving.')
-        const result=await activities.update(activityId,{...value,expectedRevision:latest.activity.revision})
-        changeData(current=>current&&({...current,activity:{...result.activity,title:current.activity.title}}))
-      }}/>
+      {!phone&&audienceEditor}
+
+      {deleting&&active&&createPortal(<ConfirmDialog
+        open
+        title={ar?'حذف هذا السؤال؟':'Delete this question?'}
+        body={<p>{ar
+          ? `سيُحذف السؤال ${active.ordinal} وإجاباته من هذا النشاط. لا يمكن التراجع عن هذا.`
+          : `Question ${active.ordinal} and its answers will be removed from this activity. This cannot be undone.`}</p>}
+        confirmLabel={ar?'احذف السؤال':'Delete question'}
+        busy={pending==='delete'}
+        onConfirm={deleteActive}
+        onCancel={()=>setDeleting(false)}
+      />,document.body)}
+
+      {verifying&&active&&<VerificationDialog activityId={activityId} questionId={active.id} revision={active.revision} kind={active.kind} payload={active.payload}
+        pairs={data.errorPairs.filter(p=>p.questionId===active.id)}
+        onPair={setReasonPair} onApplied={()=>reload().then(()=>undefined)} onClose={()=>setVerifying(false)}/>}
+
+      {addingType&&<QuestionTypeDialog
+        side="start"
+        heading={ar?'ما نوع السؤال الجديد؟':'What kind of question?'}
+        onChange={kind=>addQuestion(kind)}
+        onClose={()=>setAddingType(false)}/>}
 
       {/* ---- 2. question rail ---- */}
       {(railOpen || propsOpen) && <div className={styles.backdrop}
@@ -619,6 +819,14 @@ function ActivityEditorWorkspace() {
           <div key={question.id} className={styles.thumbRow} data-active={isActive||undefined}>
             <div className={styles.thumbSide}>
               {isActive&&<>
+                {data.questions.length>1&&<>
+                  <button type="button" aria-label={ar?'انقل السؤال للأعلى':'Move question up'} title={ar?'انقل السؤال للأعلى':'Move question up'}
+                    disabled={actionBusy||question.ordinal<=1} aria-busy={pending==='moveUp'}
+                    onClick={()=>moveActive(-1)}>{pending==='moveUp'?<ButtonSpinner/>:<ArrowUp size={18} aria-hidden="true"/>}</button>
+                  <button type="button" aria-label={ar?'انقل السؤال للأسفل':'Move question down'} title={ar?'انقل السؤال للأسفل':'Move question down'}
+                    disabled={actionBusy||question.ordinal>=data.questions.length} aria-busy={pending==='moveDown'}
+                    onClick={()=>moveActive(1)}>{pending==='moveDown'?<ButtonSpinner/>:<ArrowDown size={18} aria-hidden="true"/>}</button>
+                </>}
                 <button type="button" aria-label={t("تكرار السؤال")} title={t("تكرار السؤال")} disabled={actionBusy}
                   aria-busy={pending==='duplicate'}
                   onClick={() => {runWith('duplicate',t("تعذّر تكرار السؤال"), async () => {
@@ -628,13 +836,7 @@ function ActivityEditorWorkspace() {
                   })}}>{pending==='duplicate'?<ButtonSpinner/>:<Copy size={18} aria-hidden="true"/>}</button>
                 <button type="button" aria-label={t("حذف السؤال")} title={t("حذف السؤال")} disabled={actionBusy}
                   aria-busy={pending==='delete'}
-                  onClick={() => {runWith('delete',t("تعذّر حذف السؤال"), async () => {
-                    if (!active) return
-                    await activities.deleteQuestion(active.id)
-                    const questions = {...journal.current.questions}; delete questions[active.id]
-                    persist({...journal.current, questions, activeQuestionId: null})
-                    setActiveId(null); await reload()
-                  })}}>{pending==='delete'?<ButtonSpinner/>:<Trash2 size={18} aria-hidden="true"/>}</button>
+                  onClick={() => setDeleting(true)}>{pending==='delete'?<ButtonSpinner/>:<Trash2 size={18} aria-hidden="true"/>}</button>
               </>}
             </div>
             <div className={styles.thumbMain}>
@@ -663,7 +865,10 @@ function ActivityEditorWorkspace() {
         )})}
 
         <div className={styles.railActions}>
-          <Button variant="primary" full onClick={() => { void addQuestion('mcq') }}>{t("أضف سؤالًا")}</Button>
+          {/* The type is the first decision — a new question is not a quiz until
+              the teacher says so — so Add opens the same chooser the properties
+              rail uses rather than assuming one. */}
+          <Button variant="primary" full loading={pending==='add'} disabled={actionBusy} onClick={() => setAddingType(true)}>{t("أضف سؤالًا")}</Button>
           <Button variant="secondary" full data-generation-trigger="batch" className={styles.generateButton} loading={generationOpening} disabled={actionBusy||publishing} icon={<Sparkles size={18} aria-hidden="true"/>} aria-describedby="activity-ai-generation-hint" onClick={()=>void openGeneration()}>{t("توليد بالذكاء الاصطناعي")}</Button>
           <p id="activity-ai-generation-hint" className={styles.generateHint}>{ar?'من موضوع أو من مصادرك المرفوعة.':'From a topic or your uploaded sources.'}</p>
         </div>
@@ -680,14 +885,17 @@ function ActivityEditorWorkspace() {
               and the teacher is looking here, at the answers that just vanished. */}
           {typeUndo && <section className={styles.typeUndo} aria-label={ar?'تراجع عن تغيير النوع':'Undo type change'}>
             <p role="status">
-              <strong>{ar?`تغيّر نوع السؤال من «${typeUndo.from}» إلى «${typeUndo.to}».`:`Question type changed from “${typeUndo.from}” to “${typeUndo.to}”.`}</strong>
+              <strong>{ar?`تغيّر نوع السؤال إلى «${typeUndo.to}».`:`Question type changed to “${typeUndo.to}”.`}</strong>
               {typeUndo.replaced>0&&<> {ar?`استُبدلت إجاباتك الـ${typeUndo.replaced}.`:`Your ${typeUndo.replaced} answers were replaced.`}</>}
             </p>
             <div>
               <Button variant="primary" icon={<Undo2 size={18} aria-hidden="true"/>} onClick={undoTypeChange}>
                 {ar?`استرجع «${typeUndo.from}»`:`Undo — restore “${typeUndo.from}”`}
               </Button>
-              <Button variant="quiet" onClick={()=>setTypeUndo(null)}>{ar?'احتفظ بالنوع الجديد':'Keep the new type'}</Button>
+              {/* A real bordered button, not the ghost variant: this is one of two
+                  choices standing side by side, and a transparent one reads as a
+                  hint next to the other rather than an option beside it. */}
+              <Button variant="secondary" icon={<Check size={18} aria-hidden="true"/>} onClick={()=>setTypeUndo(null)}>{ar?'احتفظ بالنوع الجديد':'Keep the new type'}</Button>
             </div>
           </section>}
           {storageError && <p role="alert" className={styles.recovery}>{ar ? 'تعذّر الاحتفاظ بنسخة استرداد. أبقِ الصفحة مفتوحة حتى يكتمل الحفظ.' : 'This browser could not keep a recovery copy. Keep this page open until saving finishes.'}</p>}
@@ -697,7 +905,6 @@ function ActivityEditorWorkspace() {
             </div>
           )}
           {shareNotice && <p role="status" className={styles.approvalNote}>{shareNotice}</p>}
-          {data.activity.currentVersionId && !shareable && data.activity.visibility !== 'published' && <p className={styles.approvalNote}>{t("النسخة معتمدة وخاصة بك: شغّلها مباشرة أو كلّف بها كواجب. للمشاركة في المكتبة، أضف غرضًا تعليميًا أو وحدة منهجية من إعدادات النشاط.")}</p>}
 
           {problems.length > 0 && (
             <div className={styles.problems} role="alert">
@@ -721,7 +928,7 @@ function ActivityEditorWorkspace() {
             <EmptyState
               title={t("لا أسئلة بعد")}
               body={t("أضف سؤالًا لتبدأ. النوع والمؤقّت مضبوطان مسبقًا.")}
-              actions={<Button variant="primary" onClick={() => { void addQuestion('mcq') }}>{t("أضف سؤالًا")}</Button>}
+              actions={<Button variant="primary" loading={pending==='add'} onClick={() => setAddingType(true)}>{t("أضف سؤالًا")}</Button>}
             />
           ) : (
             <>
@@ -733,14 +940,25 @@ function ActivityEditorWorkspace() {
               <FormattedInput key={`prompt:${active.id}`} inputRef={promptRef} className={styles.promptInput} value={active.prompt} placeholder={t("اكتب السؤال هنا")} label={t("نص السؤال")} onChange={prompt=>patchActive({prompt})}/>
 
 
+              {/*
+                A pin question cannot exist without its picture — `imageKey` is
+                `min(1)` in the stored schema — so choosing "Pin answer" asks for
+                the image first and the question only becomes a hotspot once one
+                arrives. That waiting state belongs on the canvas, where the
+                teacher is looking, rather than in the properties rail.
+              */}
+              {chooseHotspot&&<ImageQuestionEntry activityId={activityId} questionId={active.id} onPrepare={()=>questionSave.flushNow()}
+                  onImage={mediaKey=>{patchActive({kind:'hotspot',mediaKey,payload:defaultPayload('hotspot',mediaKey)});setChooseHotspot(false)}}
+                  />}
+
               {/* Order and MCQ each carry their own media field, placed where that
                   canvas wants it. Everything else still gets the shared one. */}
-              {active.kind!=='hotspot'&&active.kind!=='mcq'&&active.kind!=='order'&&<MediaField key={active.id} label={ar?'أضف وسائط (اختياري)':'Find and insert media (Optional)'} imageKey={active.mediaKey} onImage={mediaKey=>patchActive({mediaKey})} onRemove={()=>patchActive({mediaKey:null})}/>}
-              {active.kind==='order'&&<OrderCanvas key={`order:${active.id}`} payload={payload as unknown as OrderPayload} mediaKey={active.mediaKey}
+              {!chooseHotspot&&active.kind!=='hotspot'&&active.kind!=='mcq'&&active.kind!=='order'&&<MediaField key={active.id} label={ar?'أضف وسائط (اختياري)':'Find and insert media (Optional)'} imageKey={active.mediaKey} onImage={mediaKey=>patchActive({mediaKey})} onRemove={()=>patchActive({mediaKey:null})}/>}
+              {!chooseHotspot&&active.kind==='order'&&<OrderCanvas key={`order:${active.id}`} payload={payload as unknown as OrderPayload} mediaKey={active.mediaKey}
                 onMediaChange={mediaKey=>patchActive({mediaKey})}
                 onChange={next=>patchActive({payload:next})}/>}
-              {['order','match','hotspot'].includes(active.kind)&&<AdvancedCanvas key={`advanced:${active.id}`} question={active} pairs={data.errorPairs.filter(p=>p.questionId===active.id)} onPatch={patchActive} onPair={setReasonPair}/>}
-              {active.kind === 'mcq' && (
+              {!chooseHotspot&&['order','match','hotspot'].includes(active.kind)&&<AdvancedCanvas key={`advanced:${active.id}`} activityId={activityId} question={active} onPatch={patchActive} onPrepare={async()=>{await questionSave.flushNow();const current=dataRef.current?.questions.find(q=>q.id===active.id);if(!current)throw Error('Question unavailable');return current}} onApplied={reload}/>}
+              {!chooseHotspot && active.kind === 'mcq' && (
                 <McqCanvas
                   key={`mcq:${active.id}`}
                   mediaKey={active.mediaKey}
@@ -802,6 +1020,13 @@ function ActivityEditorWorkspace() {
             </>
           )}
         </div>
+        {/* Outside the question column on purpose: a sibling of the canvas's
+            content, so it is pinned to the bottom of the canvas itself rather
+            than to wherever the column happens to end. See
+            questionActionControls above. */}
+        {questionActionControls&&<div className={styles.questionActions} data-unsaved={actionsUnsaved}>
+          {questionActionControls}
+        </div>}
       </ActivityStage>
 
       {/* ---- 4. properties ---- */}
@@ -839,7 +1064,6 @@ function ActivityEditorWorkspace() {
             })
             patchActive({kind,payload:defaultPayload(kind,active?.mediaKey??'')})
           }}/>
-          {chooseHotspot&&<><p>{t("أضف الصورة أولًا لرسم مناطق الإجابة.")}</p><ImageUpload imageKey={null} onImage={mediaKey=>{patchActive({kind:'hotspot',mediaKey,payload:defaultPayload('hotspot',mediaKey)});setChooseHotspot(false)}}/></>}
 
         </div>
 
@@ -878,8 +1102,7 @@ function ActivityEditorWorkspace() {
         </div>
 
         <div className={styles.propsFooter}>
-          {data.activity.currentVersionId&&<Button loading={pending==='verify'} onClick={()=>runWith('verify',t("تعذّر الحفظ"),async()=>navigate(`/teacher/verification?question=${active?.id??0}`))}>{t("اربط سؤال تحقق")}</Button>}
-          {(!!active&&data.questions.length>1)&&<div className={styles.thumbActions}>{active.ordinal>1&&<Button loading={pending==='moveUp'} icon={<ArrowUp size={17}/>} onClick={()=>runWith('moveUp',t("تعذّر ترتيب الأسئلة"),async()=>{if(!active)return;const order=data.questions.map(q=>q.id),index=order.indexOf(active.id);[order[index-1],order[index]]=[order[index]!,order[index-1]!];await activities.reorder(activityId,order);await reload()})}>{t("للأعلى")}</Button>}{active.ordinal<data.questions.length&&<Button loading={pending==='moveDown'} icon={<ArrowDown size={17}/>} onClick={()=>runWith('moveDown',t("تعذّر ترتيب الأسئلة"),async()=>{if(!active)return;const order=data.questions.map(q=>q.id),index=order.indexOf(active.id);[order[index+1],order[index]]=[order[index]!,order[index+1]!];await activities.reorder(activityId,order);await reload()})}>{t("للأسفل")}</Button>}</div>}
+          {(!!active&&data.questions.length>1)&&<div className={styles.thumbActions}>{active.ordinal>1&&<Button loading={pending==='moveUp'} icon={<ArrowUp size={17}/>} onClick={()=>moveActive(-1)}>{t("للأعلى")}</Button>}{active.ordinal<data.questions.length&&<Button loading={pending==='moveDown'} icon={<ArrowDown size={17}/>} onClick={()=>moveActive(1)}>{t("للأسفل")}</Button>}</div>}
           <Button
             variant="secondary"
             full
@@ -899,20 +1122,73 @@ function ActivityEditorWorkspace() {
             full
             disabled={!active}
             loading={pending==='delete'}
-            onClick={() => runWith('delete', t("تعذّر حذف السؤال"), async () => {
-              if (!active) return
-              await activities.deleteQuestion(active.id)
-              const questions = {...journal.current.questions}; delete questions[active.id]
-              persist({...journal.current, questions, activeQuestionId: null})
-              setActiveId(null)
-              await reload()
-            })}
+            onClick={() => setDeleting(true)}
           >
             {t("حذف السؤال")}
           </Button>
         </div>
         </>}
       </aside>
+
+      {/* ---- 5. the phone's own chrome ----
+        *
+        * A phone does not get the four-region grid shrunk; it gets a shape that
+        * suits it. One bar along the bottom, where a thumb reaches: the list of
+        * questions, Save, the settings, and everything else. The two rails open
+        * as full-width sheets from here rather than as 88vw slivers with their
+        * own close buttons, and the bar is a grid row rather than a fixed
+        * overlay, so 100dvh arithmetic still holds and nothing hides the
+        * question's own footer.
+        */}
+      {phone&&<nav className={styles.phoneBar} aria-label={ar?'أدوات المحرر':'Editor tools'}>
+        <button type="button" data-active={railOpen||undefined} aria-expanded={railOpen}
+          onClick={()=>{setPropsOpen(false);setMoreOpen(false);setRailOpen(v=>!v)}}>
+          <ListOrdered size={21} aria-hidden="true"/><span>{ar?'الأسئلة':'Questions'}</span>
+          <b aria-hidden="true">{data.questions.length}</b>
+        </button>
+        <button type="button" data-unsaved={actionsUnsaved} disabled={!active||(!questionSave.unsaved&&!titleSave.unsaved&&pending!=='save')}
+          onClick={saveNow}>
+          <Save size={21} aria-hidden="true"/><span>{ar?'حفظ':'Save'}</span>
+        </button>
+        <button type="button" data-active={propsOpen||undefined} aria-expanded={propsOpen} disabled={!active}
+          onClick={()=>{setRailOpen(false);setMoreOpen(false);setPropsOpen(v=>!v)}}>
+          <SlidersHorizontal size={21} aria-hidden="true"/><span>{ar?'الخصائص':'Settings'}</span>
+        </button>
+        <button type="button" data-active={moreOpen||undefined} aria-expanded={moreOpen}
+          onClick={()=>{setRailOpen(false);setPropsOpen(false);setMoreOpen(v=>!v)}}>
+          <MoreHorizontal size={21} aria-hidden="true"/><span>{ar?'المزيد':'More'}</span>
+        </button>
+      </nav>}
+
+      {phone&&moreOpen&&<>
+        <div className={styles.backdrop} onClick={()=>setMoreOpen(false)}/>
+        <section className={styles.moreSheet} aria-label={ar?'المزيد':'More'}>
+          <header>
+            <h2>{ar?'المزيد':'More'}</h2>
+            <button type="button" aria-label={ar?'إغلاق':'Close'} onClick={()=>setMoreOpen(false)}><X size={22}/></button>
+          </header>
+          <div className={styles.moreBody}>
+            {active&&<div className={styles.moreQuestion}>
+              <h3>{ar?'هذا السؤال':'This question'}</h3>
+              <Button variant="quiet" className={styles.undoButton} disabled={!questionEdited}
+                icon={<Undo2 size={18} aria-hidden="true"/>}
+                onClick={()=>{undoQuestion();setMoreOpen(false)}}>{ar?'تراجع':'Undo'}</Button>
+              {data.activity.currentVersionId&&<Button variant="quiet" className={styles.verifyAction}
+                icon={<ShieldCheck size={18} aria-hidden="true"/>}
+                onClick={()=>{setMoreOpen(false);setVerifying(true)}}>{t("اربط سؤال تحقق")}</Button>}
+            </div>}
+            <div className={styles.moreActivity}>
+              <h3>{ar?'هذا النشاط':'This activity'}</h3>
+              <div className={styles.editorActions} role="group" aria-label={ar?'أدوات النشاط':'Activity actions'}>{activityActions}</div>
+            </div>
+            {audienceEditor}
+            <div className={styles.moreAccount}>
+              <LanguageToggle className={styles.languageToggle}/>
+              <AccountControl/>
+            </div>
+          </div>
+        </section>
+      </>}
     </div>
   )
 }

@@ -7,4 +7,5 @@
  */
 export * from './taxonomy.ts'
 export * from './questions.ts'
+export * from './zones.ts'
 export * from './scoring.ts'

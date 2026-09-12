@@ -4,8 +4,7 @@ import {useQuery} from '@tanstack/react-query'
 import {useTranslation} from 'react-i18next'
 import {AudioLines,CirclePlay,Film,ImageIcon,Link2,Mic,Plus,Sparkles,Upload,X} from 'lucide-react'
 import {teaching} from '@/lib/api'
-import {ImageUpload,useImage} from './ImageUpload'
-import {ConfirmDialog} from '@/components/teaching/TeachingUI'
+import {ImageRemoveButton,ImageUpload,useImage} from './ImageUpload'
 import mediaIcons from '@/assets/images/media-icons.svg'
 import styles from './MediaPicker.module.css'
 
@@ -27,18 +26,21 @@ export function MediaField({imageKey,onImage,onRemove,onBusyChange,label}:{
 }){
   const {i18n}=useTranslation(),ar=i18n.language.startsWith('ar'),t=(a:string,e:string)=>ar?a:e
   const [open,setOpen]=useState(false),[over,setOver]=useState(false),[dropped,setDropped]=useState<File|null>(null)
-  const [removing,setRemoving]=useState(false)
   const url=useImage(imageKey)
   return <div className={styles.field} data-question-image="">
     {imageKey&&url
-      ? <div className={styles.preview}>
-          <img src={url} alt={t('الصورة المرفقة','Attached image')}/>
-          <div className={styles.previewActions}>
-            <button type="button" onClick={()=>setOpen(true)}>{t('استبدل الصورة','Replace image')}</button>
-            {/* Removing costs a re-upload — there is no library of past uploads
-                to fetch the picture back from — so it asks first. */}
-            <button type="button" onClick={()=>setRemoving(true)}>{t('إزالة الصورة','Remove image')}</button>
-          </div>
+      ? /*
+         * The picture, and nothing framing it. The image itself is the replace
+         * control and the bin sits on it, the same two gestures a choice's
+         * picture already has — a row of worded buttons under a box said the
+         * same thing at three times the size.
+         */
+        <div className={styles.preview}>
+          <button type="button" className={styles.previewImage} onClick={()=>setOpen(true)}
+            aria-label={t('استبدل الصورة','Replace image')} title={t('استبدل الصورة','Replace image')}>
+            <img src={url} alt={t('الصورة المرفقة','Attached image')}/>
+          </button>
+          <ImageRemoveButton className={styles.previewRemove} onRemove={onRemove} label={t('إزالة الصورة','Remove image')}/>
         </div>
       : <button type="button" className={styles.zone} aria-label={label}
           onClick={()=>{setDropped(null);setOpen(true)}}
@@ -52,14 +54,6 @@ export function MediaField({imageKey,onImage,onRemove,onBusyChange,label}:{
           <span className={styles.zoneHint}>{t('ارفع ملفًا أو اسحبه إلى هنا','Upload file or drag here to upload')}</span>
         </button>}
     {open&&<MediaPickerDialog dropped={dropped} onClose={()=>{setOpen(false);setDropped(null)}} onImage={key=>{onImage(key);setOpen(false);setDropped(null)}} onBusyChange={onBusyChange}/>}
-    {removing&&createPortal(<ConfirmDialog
-      open
-      title={t('إزالة هذه الصورة؟','Remove this image?')}
-      body={<p>{t('ستُزال الصورة من هنا، وإعادتها تعني رفعها من جديد.','The image will be taken off, and putting it back means uploading the file again.')}</p>}
-      confirmLabel={t('إزالة الصورة','Remove image')}
-      onConfirm={()=>{setRemoving(false);onRemove()}}
-      onCancel={()=>setRemoving(false)}
-    />,document.body)}
   </div>
 }
 

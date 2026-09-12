@@ -20,7 +20,7 @@ export type UseAuthCopy = {
  *
  * Reads the active language from i18next rather than holding its own, for the
  * same reason `LanguageProvider` does: i18next already persists the choice,
- * defaults to Arabic and writes `lang`/`dir` onto <html> from its own event
+ * uses the browser/device language and writes `lang`/`dir` onto <html> from its own event
  * bus. A second owner of that state would disagree with the first the moment
  * the header toggle ran, and the visible symptom is a page whose direction no
  * longer matches its text.

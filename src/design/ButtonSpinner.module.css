@@ -6,11 +6,14 @@
   vertical-align: middle;
   color: inherit;
   transform-origin: center;
-  animation: spin 800ms linear infinite;
 }
+
+/* Same reason as LoadingIndicator: a stage with decoration switched off must
+   not stop the indicator that says work is in progress. */
+.spinner[data-button-spinner] { animation: spin 800ms linear infinite !important; }
 
 @keyframes spin { to { transform: rotate(360deg); } }
 
 @media (prefers-reduced-motion: reduce) {
-  .spinner { animation: none; }
+  .spinner[data-button-spinner] { animation: none !important; }
 }

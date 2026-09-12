@@ -1,18 +1,40 @@
 import i18n from 'i18next'
-import LanguageDetector from 'i18next-browser-languagedetector'
 import { initReactI18next } from 'react-i18next'
 
-import { DEFAULT_LANGUAGE, SUPPORTED_CODES, resolveLanguage } from './languages'
+import { DEFAULT_LANGUAGE, SUPPORTED_CODES, languageFromBrowser, resolveLanguage } from './languages'
 import ar from './locales/ar'
 import en from './locales/en'
 import { en as adminAiEn, ar as adminAiAr } from './locales/adminAi'
 
 export const LANGUAGE_STORAGE_KEY = 'asasera.language'
 
+/* Ignore an old or malformed stored value so browser detection can still make
+   the first-visit choice. The language picker only writes `ar` or `en`. */
+function savedLanguage(): string | undefined {
+  try {
+    const stored = localStorage.getItem(LANGUAGE_STORAGE_KEY)
+    if (!stored) return undefined
+    const code = stored.trim().toLowerCase().split('-')[0]
+    if (code === 'ar' || code === 'en') return code
+    localStorage.removeItem(LANGUAGE_STORAGE_KEY)
+  } catch {
+    // Storage can be unavailable in private or embedded browser contexts.
+  }
+  return undefined
+}
+
+function deviceLanguage(): string | undefined {
+  if (typeof navigator === 'undefined') return undefined
+  return navigator.languages?.[0] ?? navigator.language
+}
+
+const initialLanguage = savedLanguage() ?? languageFromBrowser(deviceLanguage()).code
+let languageReady = false
+
 void i18n
-  .use(LanguageDetector)
   .use(initReactI18next)
   .init({
+    lng: initialLanguage,
     resources: {
       en: { translation: en, adminAi: adminAiEn },
       ar: { translation: ar, adminAi: adminAiAr },
@@ -21,19 +43,13 @@ void i18n
     supportedLngs: SUPPORTED_CODES,
     // Collapse `ar-SA`, `ar-EG` … onto the `ar` bundle.
     load: 'languageOnly',
-    detection: {
-      // Arabic-first: `navigator` is deliberately absent. A returning visitor's
-      // stored choice wins; everyone else gets the document's own language,
-      // which index.html sets to Arabic — not whatever locale their browser
-      // happens to report.
-      order: ['localStorage', 'htmlTag'],
-      caches: ['localStorage'],
-      lookupLocalStorage: LANGUAGE_STORAGE_KEY,
-    },
     interpolation: {
       // React already escapes interpolated values.
       escapeValue: false,
     },
+  })
+  .then(() => {
+    languageReady = true
   })
 
 /**
@@ -49,7 +65,17 @@ function applyDocumentLanguage(code: string) {
   root.dir = dir
 }
 
-applyDocumentLanguage(i18n.resolvedLanguage ?? DEFAULT_LANGUAGE)
-i18n.on('languageChanged', applyDocumentLanguage)
+applyDocumentLanguage(initialLanguage)
+i18n.on('languageChanged', (code) => {
+  applyDocumentLanguage(code)
+  // Initial device detection is not a user preference. Every later change —
+  // including language controls outside the main header — is remembered.
+  if (!languageReady) return
+  try {
+    localStorage.setItem(LANGUAGE_STORAGE_KEY, resolveLanguage(code).code)
+  } catch {
+    // The active session still changes language if storage is unavailable.
+  }
+})
 
 export default i18n

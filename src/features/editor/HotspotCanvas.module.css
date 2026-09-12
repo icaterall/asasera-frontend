@@ -1,0 +1,162 @@
+.workspace { position:relative; inline-size:100%; min-inline-size:0; color:var(--ink); background:var(--surface); border:1px solid var(--line); border-radius:var(--r-card); }
+.workspaceHeader { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:20px; }
+.workspaceHeader h2,.dialogHeader h2 { margin:0; font-size:1.125rem; line-height:1.5; font-weight:700; }
+.workspaceHeader p,.dialogHeader p { margin:4px 0 0; color:var(--muted); font-size:.875rem; line-height:1.65; }
+.workspaceHeader button { flex-shrink:0; }
+.toolbar { display:flex; flex-wrap:wrap; align-items:center; gap:10px 20px; padding:12px 20px; border-block:1px solid var(--line); background:var(--raised); }
+.toolGroup { display:flex; flex-wrap:wrap; gap:6px; align-items:center; }
+/* Each half says what it acts on: one changes the picture, the other chooses
+   how you mark it. Without that they read as one row of seven buttons. */
+.toolLabel { font-size:.6875rem; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:var(--muted); margin-inline-end:2px; }
+
+/* The three modes are one choice, so they are drawn as one control: joined,
+   sharing a border, with the active one filled. */
+.modeGroup { gap:0; padding:3px; border:1px solid var(--line); border-radius:8px; background:var(--surface); }
+.modeGroup .toolLabel { padding-inline:8px 6px; }
+.modeGroup button { border-radius:6px!important; border-color:transparent!important; background:transparent; }
+.modeGroup button:not([aria-pressed=true]):hover:not(:disabled) { background:var(--raised); }
+.toolbar button,.paintTools button { min-block-size:40px; padding-inline:12px; font-size:.8125rem; }
+.toolbar button[aria-pressed=true],.paintTools button[aria-pressed=true] { background:var(--act); color:var(--on-act); }
+/* The design system's `.quiet:hover:not(:disabled)` scores (0,3,0) and this
+   selector only (0,2,1), so hovering the ACTIVE tool used to replace its accent
+   fill with the plain hover grey — the pressed state appeared to vanish under
+   the cursor. These win, and give the active tool a real hover of its own. */
+.toolbar button[aria-pressed=true]:hover:not(:disabled),.paintTools button[aria-pressed=true]:hover:not(:disabled) { background:var(--act-press); color:var(--on-act); }
+/* The answers column carries the mode select, a row per area with its delete and
+   correct-answer controls, and two full-width actions. At 210-260px those wrap
+   awkwardly, and Arabic labels need more room than English ones, so the column
+   is wider. The canvas still takes every remaining pixel. */
+.workbench { display:grid; grid-template-columns:minmax(0,1fr) minmax(260px,320px); }
+.pictureColumn { min-inline-size:0; padding:16px; }
+.canvasHint { margin:0 0 12px; font-size:.8125rem; line-height:1.65; color:var(--muted); }
+.imageStage,.proposalImage { position:relative; inline-size:100%; background:var(--sunken); border-radius:var(--r-control); isolation:isolate; }
+.imageStage>img,.proposalImage>img { display:block; inline-size:100%; block-size:auto; border-radius:inherit; }
+.imageLoading { min-block-size:300px; display:grid; place-items:center; align-content:center; gap:10px; color:var(--muted); font-size:.875rem; }
+/* Over the whole editor, inside its own rounded border. */
+.workspaceLoading { position:absolute; inset:0; z-index:4; display:grid; place-items:center; border-radius:inherit; background:color-mix(in srgb, var(--surface) 80%, transparent); }
+.workspaceBody { min-block-size:320px; }
+.zoneEditor,.proposalImage svg { position:absolute; inset:0; inline-size:100%; block-size:100%; overflow:visible; touch-action:none; }
+.zoneEditor[data-tool=rect],.zoneEditor[data-tool=circle] { cursor:crosshair; }
+/* Drawing mode, said on the picture.
+   The shade sits between the image and the areas — dimming what you are about
+   to draw ON while the areas you have already placed stay bright above it, so
+   the picture reads as a surface to mark rather than content to study. It is
+   inert: every pointer event still reaches the SVG underneath the cursor. */
+.imageStage[data-tool=rect]::after,.imageStage[data-tool=circle]::after {
+  content:''; position:absolute; inset:0; z-index:1; pointer-events:none;
+  border-radius:inherit;
+  background:color-mix(in srgb, var(--sunken) 46%, transparent);
+  box-shadow:inset 0 0 0 2px color-mix(in srgb, var(--act) 65%, transparent);
+}
+.zoneEditor { z-index:2; }
+.zone rect,.zone ellipse,.zone polygon { fill:rgb(255 255 255 / 10%); stroke:rgb(20 27 38 / 72%); stroke-width:1.25px; stroke-dasharray:5 3; vector-effect:non-scaling-stroke; cursor:move; }
+/* Selection should identify the area, not paint a second large tile over the picture. */
+.activeZone rect:not(.resizeHandle),.activeZone ellipse,.activeZone polygon { fill:rgb(19 104 206 / 4%); stroke:var(--act); stroke-width:2px; stroke-dasharray:none; vector-effect:non-scaling-stroke; cursor:move; }
+.zoneNumber { fill:#fff; stroke:#141821; stroke-width:.65px; paint-order:stroke; font:bold 3px Montserrat,sans-serif; text-anchor:middle; dominant-baseline:middle; pointer-events:none; }
+.zoneBadge { position:absolute; transform:translate(-50%,-50%); display:grid; place-items:center; inline-size:24px; block-size:24px; border:2px solid #fff; border-radius:var(--r-control); background:var(--ink); color:var(--surface); font:700 12px Montserrat,sans-serif; pointer-events:none; }
+.zoneBadge[data-selected=true] { background:var(--act); color:var(--on-act); }
+.activeZone .resizeHandle { fill:var(--act); stroke:#fff; stroke-width:1px; vector-effect:non-scaling-stroke; cursor:nwse-resize; }
+/* SVG elements with a button role receive Chrome's large automatic focus ring
+   after a mouse click. The zone's own stroke is the visible selection state. */
+.zoneEditor [data-zone]:focus { outline:none!important; }
+.zoneEditor [data-zone]:focus-visible { outline:none!important; stroke:var(--act); stroke-width:2.5px; stroke-dasharray:none; }
+.precision { margin-block-start:16px; font-size:.8125rem; }
+.precision summary { cursor:pointer; padding-block:8px; font-weight:700; }
+.precision>label { display:grid; gap:4px; margin-block:8px; }
+.coordinates { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; }
+.coordinates label { display:grid; gap:6px; }
+.coordinates input,.answers input:not([type=checkbox]),.creatorPrompt { inline-size:100%; min-inline-size:0; border:1px solid var(--line); border-radius:var(--r-control); background:var(--surface); color:var(--ink); padding:10px; font:inherit; }
+.coordinates input { block-size:40px; padding:8px; }
+.answers { min-inline-size:0; padding:20px 10px; border-inline-start:1px solid var(--line); background:var(--raised); }
+.answersHeading { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-block-end:14px; }
+.answersHeading h3 { font-size:1rem; margin:0; }
+.answersHeading>span { font-size:.8125rem; color:var(--muted); font-variant-numeric:tabular-nums; }
+.answerMode { display:grid; gap:6px; font-size:.8125rem; margin-block-end:16px; }
+.answerList { list-style:none; margin:0 0 16px; padding:0; display:grid; gap:0; }
+.answerList>li { padding-block:12px; border-block-start:1px solid var(--line); }
+.answerList>li:first-child { border-block-start:0; padding-block-start:0; }
+.answerRow { display:flex; gap:8px; align-items:center; margin-block-end:6px; }
+.answerRow>strong { font-size:.8125rem; flex:1; }
+.answerRow>button:last-child { min-block-size:36px; padding-inline:8px; }
+.answerNumber { display:inline-flex; flex:none; align-items:center; justify-content:center; inline-size:32px; min-block-size:32px; border:1px solid var(--line); border-radius:var(--r-control); background:var(--surface); color:var(--ink); font:700 .875rem Montserrat,sans-serif; }
+.answerNumber[aria-pressed=true] { background:var(--act); color:var(--on-act); border-color:var(--act); }
+.answerNumber[aria-pressed=true]:hover:not(:disabled) { background:var(--act-press); color:var(--on-act); border-color:var(--act-press); }
+.answerList input:not([type=checkbox]) { font-size:.875rem; margin-block:3px; }
+.correctCheck { display:flex; align-items:center; gap:8px; padding-block:8px; font-size:.875rem; }
+.correctCheck input,.proposalList input { inline-size:18px; block-size:18px; accent-color:var(--act); }
+.answerHint { margin:12px 0 0; color:var(--muted); font-size:.8125rem; line-height:1.65; }
+.workspaceFooter { display:flex; align-items:center; justify-content:space-between; gap:16px; border-block-start:1px solid var(--line); padding:16px 20px; }
+.workspaceFooter p { margin:0; color:var(--muted); font-size:.8125rem; line-height:1.65; max-inline-size:48ch; }
+/* The preview's two actions come from two different components — Submit is
+   rendered by QuestionInput, Try again by this canvas — so no element wraps
+   just those two. Wrapping flex does the grouping instead: every other child
+   claims a whole line, which leaves the buttons to fall onto a line of their
+   own, side by side; `order` keeps them together when the feedback line
+   appears between them after a submit. */
+.preview { padding:20px; display:flex; flex-wrap:wrap; align-items:center; gap:12px; }
+.preview>* { flex:1 0 100%; order:0; }
+.preview>p { color:var(--muted); font-size:.875rem; line-height:1.65; }
+.preview>button { flex:0 1 auto; order:1; min-block-size:46px; padding-inline:20px; font-size:15px; font-weight:var(--w-bold); border-radius:var(--r-control); }
+/* Submit is the act; Try again only undoes a rehearsal, so it stays quieter. */
+.preview>button:first-of-type { flex:1 1 220px; max-inline-size:340px; }
+/* [disabled] as well as :disabled purely for weight — .btn:disabled in the Button module is (0,2,0) and would otherwise keep the half-opacity blue, which reads as a button that failed rather than one still waiting. */
+.preview>button[disabled]:disabled { opacity:1; background:var(--raised); border-color:var(--line); color:var(--muted); box-shadow:none; cursor:not-allowed; }
+.preview>p[role=status] { order:2; flex:1 0 100%; margin:0; }
+.retouchDialog,.suggestionsDialog,.creatorDialog { position:fixed; margin:auto; inline-size:min(1100px,calc(100vw - 32px)); max-inline-size:none; max-block-size:calc(100dvh - 32px); padding:0; border:0; border-radius:var(--r-card); background:var(--surface); color:var(--ink); overflow:auto; box-shadow:0 16px 64px rgb(0 0 0 / 22%); }
+.suggestionsDialog,.creatorDialog { inline-size:min(850px,calc(100vw - 32px)); }
+.retouchDialog::backdrop,.suggestionsDialog::backdrop,.creatorDialog::backdrop { background:var(--overlay); }
+.dialogHeader { display:flex; align-items:flex-start; gap:20px; justify-content:space-between; padding:20px 24px; border-block-end:1px solid var(--line); }
+.dialogHeader>div { min-inline-size:0; }
+.dialogHeader p { max-inline-size:70ch; }
+.dialogHeader>button { flex-shrink:0; min-block-size:40px; padding-inline:10px; }
+.paintTools { margin:0; border:0; display:flex; gap:10px; flex-wrap:wrap; align-items:center; padding:12px 24px; background:var(--raised); }
+.colourControl { display:flex; align-items:center; gap:8px; font-size:.75rem; }
+.colourControl input { inline-size:36px; block-size:36px; background:var(--surface); border:1px solid var(--line); border-radius:var(--r-control); padding:2px; cursor:pointer; }
+.brushSize { display:flex; flex-wrap:wrap; align-items:center; gap:8px; font-size:.8125rem; }
+.brushSize input { inline-size:100px; accent-color:var(--act); }
+.brushSize output { min-inline-size:42px; font-variant-numeric:tabular-nums; direction:ltr; }
+.paintStage { position:relative; background:var(--sunken); padding:16px; min-block-size:150px; text-align:center; overflow:auto; }
+.paintCanvas { display:block; max-inline-size:100%; max-block-size:60dvh; inline-size:auto; block-size:auto; margin-inline:auto; touch-action:none; cursor:crosshair; }
+.paintCanvas:focus-visible { outline:3px solid var(--focus-colour); outline-offset:3px; }
+.dialogFooter { display:flex; align-items:center; justify-content:flex-end; flex-wrap:wrap; gap:12px; padding:16px 24px; border-block-start:1px solid var(--line); }
+.dialogFooter p { flex:1; min-inline-size:180px; margin:0; font-size:.8125rem; line-height:1.65; color:var(--muted); }
+.error { color:var(--danger-ink); padding:12px 24px; margin:0; font-size:.875rem; line-height:1.65; }
+.suggestionsBody { padding:20px 24px; }
+.suggestionsBody>p,.suggestionsBody>div>p { font-size:.875rem; line-height:1.65; }
+.proposalImage { max-inline-size:600px; margin-inline:auto; }
+.proposalList { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+.proposalList label { display:flex; align-items:center; gap:10px; padding:8px; border-block-end:1px solid var(--line); font-size:.875rem; }
+.proposalList label>span:last-child { overflow-wrap:anywhere; }
+.blocking { position:absolute; inset:0; z-index:5; display:grid; place-items:center; background:color-mix(in srgb,var(--surface) 92%,transparent); min-block-size:200px; }
+.imageEntry { inline-size:100%; background:var(--surface); border:2px dashed var(--line); border-radius:var(--r-card); padding:40px 24px; display:grid; justify-items:center; gap:16px; text-align:center; }
+.imageEntry>svg { color:var(--act); }
+.imageEntry h2 { margin:0; font-size:1.125rem; }
+.imageEntry p { max-inline-size:50ch; margin:0; color:var(--muted); font-size:.875rem; line-height:1.7; }
+.entryActions { display:flex; flex-wrap:wrap; justify-content:center; gap:12px; }
+.creatorBody { padding:24px; display:grid; gap:16px; }
+.creatorPrompt { min-block-size:120px; resize:vertical; line-height:1.65; }
+.creatorBody label { display:grid; gap:8px; font-size:.875rem; font-weight:700; }
+.creatorBody .reviewCheck { display:flex; align-items:flex-start; gap:10px; font-weight:400; line-height:1.65; }
+.reviewCheck input { flex:none; inline-size:18px; block-size:18px; margin-block-start:3px; accent-color:var(--act); }
+.creatorBody img { max-inline-size:100%; max-block-size:50dvh; margin-inline:auto; border-radius:var(--r-control); }
+.creatorBody p { margin:0; font-size:.875rem; line-height:1.65; }
+@media(max-width:1100px) { .workbench { grid-template-columns:minmax(0,1fr); } .answers { border-inline-start:0; border-block-start:1px solid var(--line); } .answerList { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); column-gap:20px; } .answerList>li:first-child { padding-block-start:12px; border-block-start:1px solid var(--line); } }
+@media(max-width:600px) { .workspaceHeader { align-items:flex-start; flex-direction:column; padding:16px; } .toolbar { padding:12px; justify-content:flex-start; } .toolbar>button { inline-size:100%; } .pictureColumn { padding:12px; } .answers { padding:16px; } .answerList { grid-template-columns:1fr; } .workspaceFooter { flex-direction:column; align-items:stretch; padding:16px; } .coordinates { grid-template-columns:repeat(2,minmax(0,1fr)); } .retouchDialog,.suggestionsDialog,.creatorDialog { inline-size:calc(100vw - 16px); max-block-size:calc(100dvh - 16px); } .dialogHeader,.paintTools,.dialogFooter,.suggestionsBody,.creatorBody { padding:16px; } .dialogFooter p { flex-basis:100%; } .paintStage { padding:8px; } .proposalList { grid-template-columns:1fr; } .entryActions { flex-direction:column; inline-size:100%; } }
+@media(prefers-reduced-motion:reduce) { .workspace *,.retouchDialog *,.suggestionsDialog * { scroll-behavior:auto; } }
+
+/* The two ways to fill the answer list, stacked under it. */
+.answerActions { display:flex; flex-direction:column; gap:8px; }
+
+/* The draggable labels, previewed above the picture. Chips rather than a list,
+   because that is the shape the learner will pick them up in. */
+.labelStrip { display:flex; flex-direction:column; gap:8px; margin-block-end:12px; }
+.labelStrip > p { display:flex; align-items:center; gap:7px; margin:0; font-size:.8125rem; line-height:1.5; color:var(--muted); }
+.labelStrip > p > svg { flex:0 0 auto; }
+.labelStrip > ul { display:flex; flex-wrap:wrap; gap:8px; margin:0; padding:0; list-style:none; }
+.labelStrip li { display:flex; align-items:center; gap:8px; padding:6px 10px; border:1px solid var(--line); border-radius:5px; background:var(--surface); color:var(--ink); }
+.labelStrip li[data-selected] { border-color:var(--act); box-shadow:inset 0 0 0 1px var(--act); }
+.labelNumber { display:grid; place-items:center; flex:0 0 24px; block-size:24px; border-radius:5px; background:var(--raised); color:var(--ink); font-size:.75rem; font-weight:700; font-variant-numeric:tabular-nums; }
+.labelStrip li[data-selected] .labelNumber { background:var(--act); color:var(--on-act); }
+.labelStrip input { inline-size:14ch; min-inline-size:0; border:0; padding:2px 0; background:transparent; color:inherit; font:inherit; font-size:.875rem; font-weight:600; }
+.labelStrip input:focus { outline:none; }
+.labelStrip input::placeholder { font-weight:400; color:var(--muted); }

@@ -14,7 +14,21 @@ export function errorPairSlots(kind:QuestionKind,payload:unknown):ErrorPairSlot[
   if('options'in p)return p.options.filter(o=>o.key!==p.correct).map(o=>({elementKey:o.key,wrongTargetKey:null,label:o.text||o.key}))
   if(kind==='tf'&&'correct'in p)return [{elementKey:p.correct?'false':'true',wrongTargetKey:null,label:p.correct?'False / خطأ':'True / صح'}]
   if('items'in p)return orderSlots(p)
-  if('cards'in p){const targets='targets'in p?p.targets:p.zones.map((z,i)=>({key:z.key,text:String(i+1)}));return p.cards.flatMap(card=>targets.filter(t=>t.key!==p.map[card.key]).map(t=>({elementKey:card.key,wrongTargetKey:t.key,label:`${card.text||card.key} → ${t.text}`})))}
+  if('cards'in p){
+    /*
+     * An image area has no name of its own — only a number, which on this list
+     * is unreadable: "Milk → 2" tells a teacher nothing about what area 2 is.
+     * The area IS identifiable by the label that belongs in it, so the number
+     * keeps the tie to the picture and the label supplies the meaning:
+     * "Milk → 2 (Bread)" reads as "Milk was put where Bread belongs".
+     * Parenthesised rather than worded, so it needs no language.
+     */
+    const targets='targets'in p?p.targets:p.zones.map((z,i)=>{
+      const belongs=p.cards.find(c=>p.map[c.key]===z.key)?.text.trim()
+      return {key:z.key,text:belongs?`${i+1} (${belongs})`:String(i+1)}
+    })
+    return p.cards.flatMap(card=>targets.filter(t=>t.key!==p.map[card.key]).map(t=>({elementKey:card.key,wrongTargetKey:t.key,label:`${card.text||card.key} → ${t.text}`})))
+  }
   if('zones'in p&&'correct'in p)return p.zones.filter(z=>!p.correct.includes(z.key)).map(z=>({elementKey:z.key,wrongTargetKey:null,label:z.key}))
   return []
 }

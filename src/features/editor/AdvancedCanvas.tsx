@@ -1,11 +1,9 @@
-import {useRef,useState} from 'react'
 import {useTranslation} from 'react-i18next'
 import {Trash2} from 'lucide-react'
 import {Button, Select } from '@/design'
-import type {QuestionRecord,ErrorPairRecord,QuestionKindWire} from '@/lib/api'
-import {parsePayload,type MatchPayload,type HotspotPayload,type ImageZone} from '@/shared/questions'
-import {errorPairSlots} from '@/shared/error-pairs'
-import {ImageUpload,useImage} from './ImageUpload'
+import type {QuestionRecord,QuestionKindWire} from '@/lib/api'
+import {parsePayload,type MatchPayload} from '@/shared/questions'
+import {HotspotCanvas} from './HotspotCanvas'
 import styles from './Editor.module.css'
 const key=(prefix:string)=>`${prefix}_${crypto.randomUUID().replace(/-/g,'').slice(0,12)}`
 export function defaultPayload(kind:QuestionKindWire,imageKey=''){
@@ -13,7 +11,7 @@ export function defaultPayload(kind:QuestionKindWire,imageKey=''){
   if(kind==='tf')return {correct:true}
   if(kind==='order')return {items:[{key:'item_a',text:''},{key:'item_b',text:''},{key:'item_c',text:''}],correct:['item_a','item_b','item_c']}
   if(kind==='match')return {cards:[{key:'card_a',text:''},{key:'card_b',text:''}],targets:[{key:'target_a',text:''},{key:'target_b',text:''}],map:{card_a:'target_a',card_b:'target_b'}}
-  return {mode:'click_zone',imageKey,zones:[{key:'zone_a',x:.08,y:.1,w:.35,h:.35},{key:'zone_b',x:.57,y:.1,w:.35,h:.35}],correct:['zone_a']}
+  return {mode:'card_to_zone',imageKey,zones:[{key:'zone_a',x:.35,y:.35,w:.25,h:.2,shape:'rect' as const}],cards:[{key:'card_a',text:''}],map:{card_a:'zone_a'}}
 }
 function MatchEditor({p,onChange}:{p:MatchPayload;onChange:(p:MatchPayload)=>void}){
   const {i18n}=useTranslation(),ar=i18n.language.startsWith('ar')
@@ -24,30 +22,16 @@ function MatchEditor({p,onChange}:{p:MatchPayload;onChange:(p:MatchPayload)=>voi
     <Button disabled={p.cards.length>=8} onClick={()=>{const id=key('card');onChange({...p,cards:[...p.cards,{key:id,text:''}],map:{...p.map,[id]:p.targets[0]!.key}})}}>{ar?'أضف بطاقة':'Add card'}</Button></div></div>
   </section>
 }
-function HotspotEditor({p,onChange,onConfirm}:{p:HotspotPayload;onChange:(p:HotspotPayload)=>void;onConfirm:()=>void}){
-  const {i18n}=useTranslation(),ar=i18n.language.startsWith('ar'),url=useImage(p.imageKey)
-  const [active,setActive]=useState(p.zones[0]!.key),[draw,setDraw]=useState(false),[confirmed,setConfirmed]=useState(false)
-  const origin=useRef<{x:number;y:number}|null>(null),z=p.zones.find(z=>z.key===active)??p.zones[0]!
-  const change=(next:HotspotPayload)=>{setConfirmed(false);onChange(next)}
-  function updateZone(patch:Partial<ImageZone>){const next={...z,...patch};next.w=Math.max(.01,Math.min(next.w,1-next.x));next.h=Math.max(.01,Math.min(next.h,1-next.y));change({...p,zones:p.zones.map(x=>x.key===z.key?next:x)})}
-  function point(e:React.PointerEvent<HTMLDivElement>){const r=e.currentTarget.getBoundingClientRect();return {x:Math.min(.99,Math.max(0,(e.clientX-r.left)/r.width)),y:Math.min(.99,Math.max(0,(e.clientY-r.top)/r.height))}}
-  return <section className={styles.advanced}><h2>{ar?'مناطق الصورة':'Image zones'}</h2><ImageUpload imageKey={p.imageKey} showPreview={false} onImage={imageKey=>change({...p,imageKey})}/>
-    <label>{ar?'طريقة الإجابة':'Answer mode'}<Select value={p.mode} onValueChange={e=>change(e==='click_zone'?{mode:'click_zone',imageKey:p.imageKey,zones:p.zones,correct:[p.zones[0]!.key]}:{mode:'card_to_zone',imageKey:p.imageKey,zones:p.zones,cards:[{key:'card_a',text:''}],map:{card_a:p.zones[0]!.key}})}><option value="click_zone">{ar?'النقر على المناطق':'Select zones'}</option><option value="card_to_zone">{ar?'بطاقات إلى مناطق':'Cards to zones'}</option></Select></label>
-    <div className={styles.zoneTools}><label>{ar?'المنطقة المحددة':'Selected zone'}<Select value={z.key} onValueChange={e=>setActive(e)}>{p.zones.map((z,i)=><option value={z.key} key={z.key}>{i+1}</option>)}</Select></label><Button aria-pressed={draw} onClick={()=>setDraw(v=>!v)}>{ar?'ارسم حدود المنطقة':'Draw zone bounds'}</Button><Button disabled={p.zones.length>=12} onClick={()=>{const id=key('zone');change({...p,zones:[...p.zones,{key:id,x:.2,y:.2,w:.2,h:.2}]});setActive(id)}}>{ar?'أضف منطقة':'Add zone'}</Button><Button disabled={p.zones.length<=1} onClick={()=>{const zones=p.zones.filter(x=>x.key!==z.key);setActive(zones[0]!.key);change(p.mode==='click_zone'?{...p,zones,correct:p.correct.filter(k=>k!==z.key).length?p.correct.filter(k=>k!==z.key):[zones[0]!.key]}:{...p,zones,map:Object.fromEntries(Object.entries(p.map).map(([c,k])=>[c,k===z.key?zones[0]!.key:k]))})}}>{ar?'احذف المنطقة':'Delete zone'}</Button></div>
-    {draw&&<p role="status">{ar?'اسحب من زاوية إلى الزاوية المقابلة. يمكنك إدخال النسب بالأسفل أيضًا.':'Drag from one corner to the opposite corner. You can also enter percentages below.'}</p>}
-    {url&&<div className={styles.zoneEditor} dir="ltr" style={{touchAction:draw?'none':'auto'}} onPointerDown={e=>{if(!draw)return;origin.current=point(e);e.currentTarget.setPointerCapture(e.pointerId)}} onPointerUp={e=>{if(!draw||!origin.current)return;const end=point(e),start=origin.current;origin.current=null;updateZone({x:Math.min(start.x,end.x),y:Math.min(start.y,end.y),w:Math.max(.02,Math.abs(end.x-start.x)),h:Math.max(.02,Math.abs(end.y-start.y))});setDraw(false)}}><img src={url} alt={ar?'الصورة ومناطق الإجابة':'Image and answer zones'}/><svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">{p.zones.map((zone,i)=><g key={zone.key}><rect x={zone.x*100} y={zone.y*100} width={zone.w*100} height={zone.h*100} className={zone.key===z.key?styles.activeZone:undefined}/><text x={(zone.x+.015)*100} y={(zone.y+.06)*100}>{i+1}</text></g>)}</svg></div>}
-    <div className={styles.zoneNumbers}>{(['x','y','w','h']as const).map(axis=><label key={axis}>{({x:ar?'أفقي %':'Horizontal %',y:ar?'رأسي %':'Vertical %',w:ar?'عرض %':'Width %',h:ar?'ارتفاع %':'Height %'})[axis]}<input type="number" min={axis==='x'||axis==='y'?0:1} max={axis==='x'||axis==='y'?99:100} step="1" value={Math.round(z[axis]*100)} onChange={e=>updateZone({[axis]:Math.min(axis==='x'||axis==='y'?.99:1,Math.max(axis==='x'||axis==='y'?0:.01,Number(e.target.value)/100))})}/></label>)}</div>
-    {p.mode==='click_zone'?<fieldset><legend>{ar?'المناطق الصحيحة':'Correct zones'}</legend>{p.zones.map((z,i)=><label key={z.key} className={styles.checkZone}><input type="checkbox" checked={p.correct.includes(z.key)} onChange={e=>{const correct=e.target.checked?[...p.correct,z.key]:p.correct.filter(k=>k!==z.key);if(correct.length)change({...p,correct})}}/>{i+1}</label>)}</fieldset>:<div>{p.cards.map((c,i)=><div className={styles.editRow} key={c.key}><input aria-label={`${ar?'البطاقة':'Card'} ${i+1}`} value={c.text} onChange={e=>change({...p,cards:p.cards.map(x=>x.key===c.key?{...x,text:e.target.value}:x)})}/><Select aria-label={`${ar?'منطقة البطاقة':'Zone for card'} ${i+1}`} value={p.map[c.key]} onValueChange={e=>change({...p,map:{...p.map,[c.key]:e}})}>{p.zones.map((z,i)=><option key={z.key} value={z.key}>{i+1}</option>)}</Select><Button disabled={p.cards.length<=1} onClick={()=>change({...p,cards:p.cards.filter(x=>x.key!==c.key),map:Object.fromEntries(Object.entries(p.map).filter(([k])=>k!==c.key))})}><Trash2 size={18}/></Button></div>)}<Button disabled={p.cards.length>=12} onClick={()=>{const id=key('card');change({...p,cards:[...p.cards,{key:id,text:''}],map:{...p.map,[id]:z.key}})}}>{ar?'أضف بطاقة':'Add card'}</Button></div>}
-    <Button variant="primary" onClick={()=>{onConfirm();setConfirmed(true)}}>{confirmed?(ar?'أُرسل تأكيد المناطق للحفظ':'Zone confirmation sent for saving'):(ar?'راجعت حدود المناطق وأؤكدها':'I have reviewed and confirm these bounds')}</Button>
-  </section>
-}
-export function AdvancedCanvas({question,pairs,onPatch,onPair}:{question:QuestionRecord;pairs:ErrorPairRecord[];onPatch:(patch:Record<string,unknown>)=>void;onPair:(element:string,target:string|null,reason:string)=>void}){
-  const {i18n}=useTranslation(),ar=i18n.language.startsWith('ar'),parsed=parsePayload(question.kind,question.payload),[slot,setSlot]=useState('')
+/* The wrong-answer reason used to live here as a collapsed section. It moved
+   into the verification dialog, where the mistake it describes is chosen — the
+   live engine needs a reason AND a link for the same mistake before it will
+   offer to treat it, and writing them apart produced silent half-setups. */
+export function AdvancedCanvas({activityId,question,onPatch,onPrepare,onApplied}:{activityId:number;question:QuestionRecord;onPatch:(patch:Record<string,unknown>)=>void;onPrepare:()=>Promise<QuestionRecord>;onApplied:()=>Promise<void>}){
+  const {i18n}=useTranslation(),ar=i18n.language.startsWith('ar'),parsed=parsePayload(question.kind,question.payload)
   if(!parsed.success)return <p role="alert">{ar?'تعذّر قراءة السؤال':'Could not read this question'}</p>
-  const p=parsed.data,slots=errorPairSlots(question.kind,p),chosen=slots.find(s=>`${s.elementKey}:${s.wrongTargetKey}`===slot)??slots[0]
+  const p=parsed.data
   return <>
     {'targets'in p&&<MatchEditor p={p} onChange={payload=>onPatch({payload})}/>}
-    {'zones'in p&&<HotspotEditor p={p} onChange={payload=>onPatch({payload,mediaKey:payload.imageKey})} onConfirm={()=>onPatch({confirmZones:true})}/>}
-    {chosen&&<details className={styles.advanced}><summary>{ar?'سبب متوقع لخطأ محدد (اختياري)':'A possible reason for a specific mistake (optional)'}</summary><p>{ar?'سجّل تفسيرًا يساعد المعلّم على المراجعة، دون الجزم بسبب خطأ الطالب.':'Record a possibility to support teacher review, without claiming to diagnose a learner.'}</p><Select aria-label={ar?'الخطأ المتوقع':'Possible mistake'} value={`${chosen.elementKey}:${chosen.wrongTargetKey}`} onValueChange={e=>setSlot(e)}>{slots.map(s=><option key={`${s.elementKey}:${s.wrongTargetKey}`} value={`${s.elementKey}:${s.wrongTargetKey}`}>{s.label}</option>)}</Select><textarea aria-label={ar?'سبب الخطأ المتوقع':'Possible reason'} value={pairs.find(x=>x.elementKey===chosen.elementKey&&x.wrongTargetKey===chosen.wrongTargetKey)?.reason??''} onChange={e=>onPair(chosen.elementKey,chosen.wrongTargetKey,e.target.value)}/></details>}
+    {'zones'in p&&<HotspotCanvas activityId={activityId} question={question} p={p} onChange={payload=>onPatch({payload,mediaKey:payload.imageKey})} onConfirm={()=>onPatch({confirmZones:true})} onPrepare={onPrepare} onApplied={onApplied}/>}
   </>
 }

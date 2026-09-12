@@ -360,6 +360,24 @@ export type MatchPayload = z.infer<typeof matchPayloadSchema>
  * unhittable, and a question that publishes with one is broken in a way no
  * pupil can report.
  */
+/** A point inside the image, in the same normalised space as a zone box. */
+const normalisedPoint = z.object({ x: z.number().min(0).max(1), y: z.number().min(0).max(1) }).strict()
+
+/**
+ * What a target looks like. Kahoot lets a creator draw circles, squares and
+ * polygons, and a diagram rarely has rectangular parts.
+ *
+ * EVERY SHAPE KEEPS THE BOX. `x/y/w/h` stay required and remain the bounding
+ * box for all four shapes, which is why this is additive: every zone ever
+ * stored is a valid `rect` with no migration, the editor's four number fields
+ * still mean what they meant, and layout code that positions a target needs no
+ * change. A circle is the ellipse inscribed in the box and a hexagon the
+ * regular hexagon inscribed in it, so neither needs coordinates of its own.
+ * Only a free polygon carries points, and they are box-relative.
+ */
+export const zoneShapeSchema = z.enum(['rect', 'circle', 'hexagon', 'polygon'])
+export type ZoneShape = z.infer<typeof zoneShapeSchema>
+
 export const imageZoneSchema = z
   .object({
     key: elementKey,
@@ -367,9 +385,35 @@ export const imageZoneSchema = z
     y: z.number().min(0).max(1),
     w: z.number().gt(0).max(1),
     h: z.number().gt(0).max(1),
+    /** Defaults to `rect`, so a payload written before shapes existed still parses. */
+    shape: zoneShapeSchema.default('rect'),
+    /** Free polygon only: at least a triangle, in image coordinates. */
+    points: z.array(normalisedPoint).min(3).max(24).optional(),
   })
   .refine((z_) => z_.x + z_.w <= 1 + 1e-9, { message: 'zone extends past the right edge (x + w > 1)' })
   .refine((z_) => z_.y + z_.h <= 1 + 1e-9, { message: 'zone extends past the bottom edge (y + h > 1)' })
+  .superRefine((z_, ctx) => {
+    if (z_.shape === 'polygon') {
+      if (!z_.points || z_.points.length < 3) {
+        ctx.addIssue({ code: 'custom', path: ['points'], message: 'a polygon zone needs at least three points' })
+        return
+      }
+      /* The box is the polygon's bounding box, not a separate opinion about
+         where it sits. A point outside it would render clipped and be
+         unhittable, which is the same failure a zero-sized zone is rejected
+         for. */
+      for (const [index, point] of z_.points.entries()) {
+        const inside =
+          point.x >= z_.x - 1e-6 && point.x <= z_.x + z_.w + 1e-6 &&
+          point.y >= z_.y - 1e-6 && point.y <= z_.y + z_.h + 1e-6
+        if (!inside) {
+          ctx.addIssue({ code: 'custom', path: ['points', index], message: 'polygon point lies outside the zone box' })
+        }
+      }
+    } else if (z_.points) {
+      ctx.addIssue({ code: 'custom', path: ['points'], message: `points belong to a polygon zone, not a ${z_.shape}` })
+    }
+  })
 export type ImageZone = z.infer<typeof imageZoneSchema>
 
 const zoneList = z.array(imageZoneSchema).min(1).max(12)

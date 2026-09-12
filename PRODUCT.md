@@ -14,9 +14,10 @@ theming, and typed translations already solved, and they judge the starter by
 how little of it they have to undo.
 
 **Downstream audience the starter is tuned for — Arabic-speaking users in MENA.**
-Arabic leads: it is the language a first-time visitor sees, and the script the
-design is tuned against first. English is the fully-supported second language,
-not an afterthought in either direction.
+The first visit follows the device/browser language: Arabic opens in RTL;
+every other language opens in English LTR. A later user choice is remembered.
+Arabic and English are both fully supported, not an afterthought in either
+direction.
 
 ## Product Purpose
 
@@ -30,10 +31,10 @@ responsive scale — and without discovering an RTL defect after launch.
 ## Positioning
 
 Most bilingual starters are an LTR template with an RTL patch applied later.
-This one inverts that: Arabic is the default language, layout is expressed in
-logical properties so mirroring needs no overrides, and the Arabic message
-bundle is typed against the English one so a missing key fails the build
-instead of silently falling back at runtime.
+This one handles direction from the selected interface language, uses logical
+properties so mirroring needs no overrides, and types the Arabic message bundle
+against the English one so a missing key fails the build instead of silently
+falling back at runtime.
 
 ## Operating Context
 

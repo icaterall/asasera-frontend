@@ -10,9 +10,13 @@
 .zoneTitle{font-size:16px;font-weight:800;line-height:1.3}
 .zoneHint{font-size:14px;color:var(--muted)}
 .caption{font-size:13px;font-weight:700;color:var(--ink)}
-.preview{display:flex;flex-direction:column;align-items:center;gap:10px}
-.preview img{max-height:260px;max-width:100%;object-fit:contain;border-radius:8px}
-.previewActions{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.preview{position:relative;display:inline-flex;max-width:100%;margin-inline:auto}
+.previewImage{display:block;padding:0;border:0;border-radius:8px;background:transparent;cursor:pointer;line-height:0}
+.previewImage:focus-visible{outline:3px solid var(--act);outline-offset:3px}
+.preview img{display:block;max-height:260px;max-width:100%;object-fit:contain;border-radius:8px}
+.previewRemove{position:absolute;inset-block-start:8px;inset-inline-end:8px;display:grid;place-items:center;width:30px;height:30px;padding:0;border:0;border-radius:6px;background:#000000a6;color:#fff;cursor:pointer}
+.previewRemove:hover{background:#000000d1}
+.previewRemove:focus-visible{outline:2px solid #fff;outline-offset:2px}
 
 /* The picker itself. */
 .dialog{width:min(900px,calc(100vw - 24px));max-width:calc(100vw - 24px);height:min(600px,calc(100dvh - 24px));margin:auto;padding:0;border:0;border-radius:10px;background:var(--surface);color:var(--ink);box-shadow:0 18px 48px #0005;overflow:hidden}

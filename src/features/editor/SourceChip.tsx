@@ -5,6 +5,7 @@ import {FileText,Lightbulb,Presentation,ScrollText,Unlink} from 'lucide-react'
 import {ApiError,teaching,type MaterialSegment,type QuestionProvenance,type RevisionSummary} from '@/lib/api'
 import {Button,LoadingIndicator} from '@/design'
 import styles from './SourceChip.module.css'
+import {mediaUrl} from './ImageUpload'
 
 /**
  * A question's source chip (v5.1 C4).
@@ -46,19 +47,34 @@ function segmentLabel(ar:boolean,kind:LocatorKind,segment:MaterialSegment):strin
  return segment.printedLabel&&segment.printedLabel!==String(index)&&kind==='page'?`${base} (${segment.printedLabel})`:base
 }
 
-export type SourceEntry={key:string|number;label?:string;text:string;warning?:string|null}
+export type SourceEntry={key:string|number;label?:string;text:string;warning?:string|null;previewUrl?:string}
 
 /**
  * The source viewer. Extracted from the generation panel, where it shows one
  * cited segment of a candidate; the editor shows every segment a question cites.
  * Text is rendered as text — it came out of an untrusted file.
  */
+function SourcePage({entry}:{entry:SourceEntry}){
+ const {i18n}=useTranslation(),ar=i18n.language.startsWith('ar')
+ const [state,setState]=useState<'loading'|'ready'|'error'>('loading')
+ return <article className={styles.pageCard}>
+  <h4 className={styles.sourceEntryLabel}>{entry.label}</h4>
+  <div className={styles.pagePicture} aria-busy={state==='loading'}>
+   {state==='loading'&&<LoadingIndicator label={ar?'جارٍ عرض الصفحة…':'Rendering page…'}/>}
+   {state!=='error'&&<img src={mediaUrl(entry.previewUrl!)} alt={entry.label??(ar?'صفحة PDF':'PDF page')} loading="lazy" decoding="async" onLoad={()=>setState('ready')} onError={()=>setState('error')}/>}
+   {state==='error'&&<p role="status">{ar?'تعذّر عرض صورة الصفحة. النص متاح أدناه.':'Page preview unavailable. The extracted text is available below.'}</p>}
+  </div>
+  <details open={state==='error'}><summary>{ar?'النص المستخرج':'Extracted text'}</summary><p dir="auto">{entry.text}</p></details>
+ </article>
+}
+
 export function SourceText({title,entries,note,onClose,closeLabel,headingRef,children}:{title:string;entries:SourceEntry[];note?:ReactNode;onClose:()=>void;closeLabel:string;headingRef?:RefObject<HTMLHeadingElement|null>;children?:ReactNode}){
  const {i18n}=useTranslation(),ar=i18n.language.startsWith('ar')
  const warningText=(warning:string)=>({empty:ar?'بلا نص':'no text',unreadable:ar?'غير مقروء':'unreadable',low_text:ar?'نص قليل':'little text'} as Record<string,string>)[warning]??warning
  return <section className={styles.sourceText} aria-label={title} data-source-panel="">
   <h3 ref={headingRef} tabIndex={-1}>{title}</h3>
-  {entries.map(entry=>entry.label
+  {entries.some(entry=>entry.previewUrl)&&<div className={styles.sourcePages}>{entries.filter(entry=>entry.previewUrl).map(entry=><SourcePage key={`${entry.key}:${entry.previewUrl}`} entry={entry}/>)}</div>}
+  {entries.filter(entry=>!entry.previewUrl).map(entry=>entry.label
    ?<article key={entry.key} className={styles.sourceEntry}><h4 className={styles.sourceEntryLabel}><bdi>{entry.label}</bdi>{entry.warning?<span className={styles.sourceWarning}> · {warningText(entry.warning)}</span>:null}</h4><p dir="auto">{entry.text}</p></article>
    :<p key={entry.key}>{entry.text}</p>)}
   {children}
@@ -111,7 +127,7 @@ export function QuestionSource({provenance}:{provenance:QuestionProvenance|null}
 
  const found=(segments.data?.segments??[]).filter(s=>cited.includes(s.segmentIndex))
  const missing=cited.filter(index=>segments.isSuccess&&!found.some(s=>s.segmentIndex===index))
- const entries:SourceEntry[]=revision?found.map(s=>({key:s.segmentIndex,label:segmentLabel(ar,revision.locatorKind,s),text:s.text||'—',warning:s.warning})):[]
+ const entries:SourceEntry[]=revision?found.map(s=>({key:s.segmentIndex,label:segmentLabel(ar,revision.locatorKind,s),text:s.text||'—',warning:s.warning,previewUrl:revision.sourceKind==='pdf'&&s.pageIndex&&segments.data?.previewToken?teaching.pageImage(revision.id,s.pageIndex,segments.data.previewToken):undefined})):[]
  const originNote=t('تسجّل الإشارة أصل السؤال فقط، ولا تعني أنه تحقّق منه.','A citation records where the question came from; it is not a check of the question.')
 
  return <div className={styles.row} data-source-status={status}>

@@ -1,12 +1,15 @@
 import { useRef, useState } from 'react'
-import { DndContext,PointerSensor,TouchSensor,KeyboardSensor,useSensor,useSensors,useDraggable,useDroppable,type DragEndEvent } from '@dnd-kit/core'
+import { DndContext,DragOverlay,PointerSensor,TouchSensor,KeyboardSensor,useSensor,useSensors,useDraggable,useDroppable,type DragEndEvent } from '@dnd-kit/core'
 import { SortableContext,useSortable,verticalListSortingStrategy,sortableKeyboardCoordinates,arrayMove } from '@dnd-kit/sortable'
 import { ArrowUp,ArrowDown,GripVertical,Check } from 'lucide-react'
 import { FormattedText,plainFormattedText } from '@/components/formatted-text/FormattedText'
 import { useTranslation } from 'react-i18next'
 import { AnswerTile,Button,type AnswerSlot } from '@/design'
 import type { PublicQuestion } from '@/shared/session'
+import {zoneClipPath,zoneOutlinePoints} from '@/shared/zones'
+import type {ImageZone} from '@/shared/questions'
 import type { AnswerPayload,OrderEvidence } from '@/shared/questions'
+import {markAnswer,type MarkResult} from '@/shared/scoring'
 import {mediaUrl} from '@/features/editor/ImageUpload'
 import styles from './Session.module.css'
 
@@ -38,12 +41,26 @@ function SortItem({id,text,image,index,count,move,disabled}:{id:string;text:stri
 function CardChoice({id,text,selected,placed,onClick,disabled}:{id:string;text:string;selected:boolean;placed:boolean;onClick:()=>void;disabled:boolean}) {
   const d=useDraggable({id,disabled})
   return <button type="button" ref={d.setNodeRef} {...d.attributes} {...d.listeners} onClick={onClick} onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();if(!disabled)onClick()}}} disabled={disabled} aria-pressed={selected}
-    className={`${styles.cardChoice} ${selected?styles.chosen:''}`} style={{transform:d.transform?`translate3d(${d.transform.x}px,${d.transform.y}px,0)`:undefined}}>{text}{placed&&<Check size={18}/>}</button>
+    className={`${styles.cardChoice} ${selected?styles.chosen:''}`} data-dragging={d.isDragging||undefined} style={{transform:d.transform?`translate3d(${d.transform.x}px,${d.transform.y}px,0)`:undefined}}>{text}{placed&&<Check size={18}/>}</button>
 }
-function Target({id,label,children,onClick,disabled,zone}:{id:string;label:string;children?:React.ReactNode;onClick:()=>void;disabled:boolean;zone?:{x:number;y:number;w:number;h:number}}) {
+function Target({id,label,children,onClick,disabled,zone,placed}:{id:string;label:string;children?:React.ReactNode;onClick:()=>void;disabled:boolean;zone?:ImageZone;placed?:boolean}) {
   const d=useDroppable({id,disabled})
-  return <button type="button" ref={d.setNodeRef} onClick={onClick} disabled={disabled} aria-label={label} className={`${styles.target} ${d.isOver?styles.chosen:''} ${zone?styles.zoneTarget:''}`}
-    style={zone?{left:`${zone.x*100}%`,top:`${zone.y*100}%`,width:`${zone.w*100}%`,height:`${zone.h*100}%`}:undefined}>{children??label}</button>
+  /* The clip path is the hit area, not decoration: a browser does not deliver a
+     pointer event to a clipped-away corner. So a circle drawn by the teacher
+     behaves as a circle for the class, and nothing in this file has to know
+     what a hexagon is — `zoneClipPath` is the one definition, shared with the
+     editor so the two cannot disagree. */
+  /* A hotspot is a transparent hit area over the picture. It must not inherit
+     the large card-selection treatment used by ordinary matching targets. */
+  const stateClass=d.isOver?(zone?styles.zoneDropOver:styles.chosen):''
+  /* A filled area is painted on the BUTTON, not on a box inside it. A button
+     lays its children out in an anonymous shrink-to-fit box, so a child asked
+     to stretch takes the full height and only its own width — which is how a
+     dropped label ended up a tall narrow slab in a wide area. Painting the
+     button means the answer fills the zone exactly, clip path and all, so a
+     circle reads as a filled circle rather than a rectangle inside one. */
+  return <button type="button" ref={d.setNodeRef} onClick={onClick} disabled={disabled} aria-label={label} data-placed={placed||undefined} className={`${styles.target} ${zone?styles.zoneTarget:''} ${stateClass}`}
+    style={zone?{left:`${zone.x*100}%`,top:`${zone.y*100}%`,width:`${zone.w*100}%`,height:`${zone.h*100}%`,clipPath:zoneClipPath(zone)}:undefined}>{children??label}</button>
 }
 /**
  * Renders one question for answering (player / learner), or as a read-only preview.
@@ -54,11 +71,18 @@ function Target({id,label,children,onClick,disabled,zone}:{id:string;label:strin
  * must read prompt, media and option text on their own device. The option text stays
  * in the accessible name either way, and colour is never the only signal.
  */
-export function QuestionInput({question,onAnswer,disabled=false,projectorOnly=false,preview=false,revealed}: {
-  question:PublicQuestion;onAnswer:(answer:AnswerPayload)=>void;disabled?:boolean;projectorOnly?:boolean;preview?:boolean;revealed?:unknown
+export function QuestionInput({question,onAnswer,disabled=false,projectorOnly=false,preview=false,interactivePreview=false,revealed}: {
+  question:PublicQuestion;onAnswer:(answer:AnswerPayload)=>void;disabled?:boolean;projectorOnly?:boolean;preview?:boolean;interactivePreview?:boolean;revealed?:unknown
 }) {
   const {i18n}=useTranslation(),ar=i18n.language.startsWith('ar'),p=question.payload
   const [sequence,setSequence]=useState(p.kind==='order'?p.items.map(i=>i.key):[])
+  /* An interactive preview is a small, self-contained learner attempt. It
+     intentionally never reaches the session API: checking an answer marks it
+     against the authored payload in memory, then locks this attempt just as a
+     submitted learner answer would be locked. The editor's “Try again”
+     remounts us. Other preview callers remain read-only. */
+  const [previewResult,setPreviewResult]=useState<MarkResult|null>(null)
+  const interactive=!disabled&&(!preview||interactivePreview)&&!(interactivePreview&&previewResult!==null)
   /*
    * ORDERING EVIDENCE (brief §4). What the learner was shown, what they moved
    * and how long they took — recorded because the submitted sequence alone
@@ -72,6 +96,7 @@ export function QuestionInput({question,onAnswer,disabled=false,projectorOnly=fa
   const openedAt=useRef(Date.now())
   const moves=useRef<OrderEvidence['moves']>([])
   const reorder=(from:number,to:number)=>{
+    if(!interactive)return
     if(from<0||to<0||from===to||from>=sequence.length||to>=sequence.length)return
     const item=sequence[from]
     if(item===undefined)return
@@ -94,47 +119,86 @@ export function QuestionInput({question,onAnswer,disabled=false,projectorOnly=fa
   const [selected,setSelected]=useState<string|null>(null)
   const [pairs,setPairs]=useState<Record<string,string>>({})
   const [picks,setPicks]=useState<string[]>([])
+  const [draggedCard,setDraggedCard]=useState<{id:string;text:string}|null>(null)
+  const draggableCards=p.kind==='match'||(p.kind==='hotspot'&&p.mode==='card_to_zone')?p.cards:[]
+  const checkPreview=(answer:AnswerPayload)=>{
+    onAnswer(answer)
+    if(interactivePreview)setPreviewResult(markAnswer(p.kind,p,answer))
+  }
+  const previewFeedback=interactivePreview&&previewResult&&<p className={styles.previewFeedback} data-correct={previewResult.correct} role="status">
+    {previewResult.correct
+      ?(ar?'إجابة صحيحة. هكذا ستظهر للمتعلم بعد إرسال الإجابة.':'Correct. This is how a learner sees a checked answer.')
+      :(ar?'ليست صحيحة بعد. استخدم «جرّب من جديد» ثم أعد المحاولة.':'Not quite. Use Try again to reset the preview and attempt it again.')}
+  </p>
   const sensors=useSensors(useSensor(PointerSensor,{activationConstraint:{distance:8}}),useSensor(TouchSensor,{activationConstraint:{delay:180,tolerance:8}}),useSensor(KeyboardSensor,{coordinateGetter:sortableKeyboardCoordinates}))
   if(p.kind==='mcq'||p.kind==='tf')return <>{!projectorOnly&&question.media&&<img data-question-media="" className={styles.questionMedia} src={mediaUrl(question.media)} alt={question.prompt}/>}<div data-answer-grid="" data-layout={projectorOnly?'shape':'text'} className={`${styles.answers} ${projectorOnly?styles.phoneAnswers:''}`}>
     {p.options.map((o,i)=><AnswerTile key={o.key} slot={(Math.min(i,5)+1)as AnswerSlot} label={p.kind==='tf'?(o.key==='true'?(ar?'صح':'True'):(ar?'خطأ':'False')):o.text}
       trailing={'image'in o&&o.image&&!projectorOnly?<img src={mediaUrl(o.image)} alt={o.text}/>:undefined}
-      locale={ar?'ar':'en'} shapeOnly={projectorOnly} className={styles.answer} data-answer-tile="" disabled={disabled&&!preview} aria-disabled={preview||undefined} tabIndex={preview?-1:undefined}
-      state={revealed!==undefined?(String(revealed)===o.key?'correct':'incorrect'):selected===o.key?'selected':'idle'}
-      onClick={()=>{if(disabled||preview)return;setSelected(o.key);onAnswer(p.kind==='tf'?{kind:'tf',choice:o.key as 'true'|'false'}:{kind:'mcq',choice:o.key})}} />)}
-  </div></>
+      locale={ar?'ar':'en'} shapeOnly={projectorOnly} className={styles.answer} data-answer-tile="" disabled={disabled||(interactivePreview&&previewResult!==null)} aria-disabled={preview&&!interactivePreview||undefined} tabIndex={preview&&!interactivePreview?-1:undefined}
+      state={revealed!==undefined?(String(revealed)===o.key?'correct':'incorrect'):previewResult&&selected===o.key?(previewResult.correct?'correct':'incorrect'):selected===o.key?'selected':'idle'}
+      onClick={()=>{if(!interactive)return;setSelected(o.key);checkPreview(p.kind==='tf'?{kind:'tf',choice:o.key as 'true'|'false'}:{kind:'mcq',choice:o.key})}} />)}
+  </div>{previewFeedback}</>
   const displaySequence=p.kind==='order'&&Array.isArray(revealed)?revealed as string[]:sequence
   const displayPairs=revealed&&typeof revealed==='object'&&!Array.isArray(revealed)?revealed as Record<string,string>:pairs
-  const pair=(card:string,target:string)=>{if(!disabled){setPairs(current=>({...current,[card]:target}));setSelected(null)}}
+  const pair=(card:string,target:string)=>{if(interactive){setPairs(current=>({...current,[card]:target}));setSelected(null)}}
   const dragEnd=(event:DragEndEvent)=>{
-    if(!event.over||disabled)return
+    if(!event.over||!interactive)return
     const from=String(event.active.id),to=String(event.over.id)
     if(p.kind==='order')reorder(sequence.indexOf(from),sequence.indexOf(to))
     else pair(from,to)
   }
-  return <DndContext sensors={sensors} onDragEnd={dragEnd}>
+  return <DndContext sensors={sensors} onDragStart={event=>{
+    const card=draggableCards.find(item=>item.key===String(event.active.id))
+    setDraggedCard(card?{id:card.key,text:card.text}:null)
+  }} onDragCancel={()=>setDraggedCard(null)} onDragEnd={event=>{dragEnd(event);setDraggedCard(null)}}>
     {(p.kind==='order'||p.kind==='match')&&question.media&&<img className={styles.questionMedia} src={mediaUrl(question.media)} alt={question.prompt}/>}
     {p.kind==='order'&&<><p>{ar?'رتّب العناصر بالترتيب الصحيح. اسحب أو استخدم زري الأعلى والأسفل.':'Put the items in the correct order. Drag, or use the up and down buttons.'}</p>
-      <SortableContext items={displaySequence} strategy={verticalListSortingStrategy}><ol className={styles.orderList}>{displaySequence.map((key,index)=><SortItem key={key} id={key} index={index} count={sequence.length} text={p.items.find(i=>i.key===key)!.text} disabled={disabled||preview}
+      <SortableContext items={displaySequence} strategy={verticalListSortingStrategy}><ol className={styles.orderList}>{displaySequence.map((key,index)=><SortItem key={key} id={key} index={index} count={sequence.length} text={p.items.find(i=>i.key===key)!.text} disabled={!interactive}
         image={p.items.find(i=>i.key===key)?.image} move={direction=>reorder(index,index+direction)}/>)}</ol></SortableContext>
-      {!preview&&<Button variant="primary" disabled={disabled} onClick={()=>onAnswer({kind:'order',sequence,evidence:orderEvidence()})}>{ar?'تحقق':'Check'}</Button>}</>}
+      {(!preview||interactivePreview)&&<Button variant="primary" disabled={!interactive} onClick={()=>checkPreview({kind:'order',sequence,evidence:orderEvidence()})}>{preview?(ar?'تحقق من إجابة المعاينة':'Check preview answer'):(ar?'تحقق':'Check')}</Button>}</>}
     {(p.kind==='match'||(p.kind==='hotspot'&&p.mode==='card_to_zone'))&&<>
-      <p>{ar?'اختر بطاقة ثم هدفها، أو اسحبها. يمكنك تغيير اختياراتك قبل الإرسال.':'Choose a card, then its target, or drag it. You can change placements before submitting.'}</p>
-      <div className={styles.cards}>{p.cards.map(c=><CardChoice key={c.key} id={c.key} text={c.text} selected={selected===c.key} placed={!!pairs[c.key]} onClick={()=>setSelected(c.key)} disabled={disabled||preview}/>)}</div>
+      <p>{ar?'اسحب البطاقة إلى مكانها، أو انقرها ثم انقر المنطقة.':'Drag a card to its area, or tap the card then the area.'}</p>
+      <div className={styles.cards} data-interactive-preview={interactivePreview||undefined}>{p.cards.filter(c=>!pairs[c.key]).map(c=><CardChoice key={c.key} id={c.key} text={c.text} selected={selected===c.key} placed={false} onClick={()=>{if(interactive)setSelected(c.key)}} disabled={!interactive}/>)}</div>
     </>}
-    {p.kind==='match'&&<div className={styles.targets}>{p.targets.map(t=><Target key={t.key} id={t.key} label={t.text} disabled={disabled||preview} onClick={()=>{if(selected)pair(selected,t.key)}}>
+    {p.kind==='match'&&<div className={styles.targets}>{p.targets.map(t=><Target key={t.key} id={t.key} label={t.text} disabled={!interactive} onClick={()=>{if(selected)pair(selected,t.key)}}>
       <strong>{t.text}</strong><span>{p.cards.filter(c=>displayPairs[c.key]===t.key).map(c=>c.text).join(' · ')|| (ar?'ضع البطاقة هنا':'Place a card here')}</span>
     </Target>)}</div>}
     {p.kind==='hotspot'&&<>
       {question.media?<div className={styles.imageStage} dir="ltr"><img src={mediaUrl(question.media)} alt={question.prompt}/>
-        <svg className={styles.zoneSvg} viewBox="0 0 1 1" preserveAspectRatio="none" aria-hidden="true">{p.zones.map(z=><rect key={z.key} x={z.x} y={z.y} width={z.w} height={z.h}/>)}</svg>
-        {p.zones.map((z,i)=><Target key={z.key} id={z.key} zone={z} label={`${ar?'المنطقة':'Zone'} ${i+1}`} disabled={disabled||preview} onClick={()=>{
-          if(p.mode==='click_zone')setPicks(current=>current.includes(z.key)?current.filter(k=>k!==z.key):[...current,z.key])
-          else if(selected)pair(selected,z.key)
-        }}><span>{i+1}{((Array.isArray(revealed)?revealed.includes(z.key):picks.includes(z.key))||Object.values(displayPairs).includes(z.key))&&<Check size={20}/>}</span></Target>)}
+        <svg className={styles.zoneSvg} viewBox="0 0 1 1" preserveAspectRatio="none" aria-hidden="true">{p.zones.map(z=>z.shape==='circle'
+          ?<ellipse key={z.key} cx={z.x+z.w/2} cy={z.y+z.h/2} rx={z.w/2} ry={z.h/2}/>
+          :z.shape&&z.shape!=='rect'
+            ?<polygon key={z.key} points={zoneOutlinePoints(z)}/>
+            :<rect key={z.key} x={z.x} y={z.y} width={z.w} height={z.h}/>)}</svg>
+        {p.zones.map((z,i)=>{
+          const placedCard=p.mode==='card_to_zone'?p.cards.find(card=>displayPairs[card.key]===z.key):undefined
+          return <Target key={z.key} id={z.key} zone={z} placed={!!placedCard} label={`${ar?'المنطقة':'Zone'} ${i+1}`} disabled={!interactive} onClick={()=>{
+            if(!interactive)return
+            if(p.mode==='click_zone'){setPicks(current=>current.includes(z.key)?current.filter(k=>k!==z.key):[...current,z.key]);return}
+            if(selected){pair(selected,z.key);return}
+            /* A placed label is picked back up by selecting its area. It then
+               returns to the answer bank as the active card, ready for a new
+               area — no duplicate card and no hidden state to undo. */
+            if(placedCard){setPairs(current=>{const next={...current};delete next[placedCard.key];return next});setSelected(placedCard.key)}
+          }}><span className={placedCard?styles.placedAnswer:undefined}>{placedCard?placedCard.text:<>{i+1}{((Array.isArray(revealed)?revealed.includes(z.key):picks.includes(z.key))||Object.values(displayPairs).includes(z.key))&&<Check size={20}/>}</>}</span></Target>
+        })}
       </div>:<p role="alert">{ar?'تعذّر تحميل الصورة. أعد الاتصال.':'Image unavailable. Reconnect.'}</p>}
-      <p>{p.mode==='click_zone'?(ar?'اختر كل المناطق الصحيحة ثم أرسل إجابتك.':'Select all correct zones, then submit.') :p.cards.map(c=>`${c.text}: ${displayPairs[c.key]??'—'}`).join(' · ')}</p>
+      {/* Click-zone mode has nothing on screen to read back, so its instruction
+          stays visible. The card list does not: every placement is already
+          legible in the picture, and repeating it underneath was noise for the
+          sighted learner. It survives for screen readers, where the picture
+          says nothing — announced as it changes, which is the one context
+          where it is the only account of what has been placed. */}
+      {p.mode==='click_zone'
+        ? <p>{ar?'اختر كل المناطق الصحيحة ثم أرسل إجابتك.':'Select all correct zones, then submit.'}</p>
+        : <p className={styles.pairSummary} role="status">{p.cards.map(c=>{
+            const target=displayPairs[c.key],position=target?p.zones.findIndex(z=>z.key===target)+1:0
+            return `${c.text}: ${position>0?(ar?`المنطقة ${position}`:`Area ${position}`):'—'}`
+          }).join(' · ')}</p>}
     </>}
-    {!preview&&(p.kind==='match'||p.kind==='hotspot')&&<Button variant="primary" disabled={disabled||(p.kind==='hotspot'&&p.mode==='click_zone'?picks.length===0:p.cards.some(c=>!pairs[c.key]))}
-      onClick={()=>onAnswer(p.kind==='match'?{kind:'match',pairs:Object.entries(pairs)}:{kind:'hotspot',picks:p.mode==='click_zone'?picks.map(key=>['*',key]):Object.entries(pairs)})}>{ar?'أرسل الإجابة':'Submit answer'}</Button>}
+    {(!preview||interactivePreview)&&(p.kind==='match'||p.kind==='hotspot')&&<Button variant="primary" disabled={!interactive||(p.kind==='hotspot'&&p.mode==='click_zone'?picks.length===0:p.cards.some(c=>!pairs[c.key]))}
+      onClick={()=>checkPreview(p.kind==='match'?{kind:'match',pairs:Object.entries(pairs)}:{kind:'hotspot',picks:p.mode==='click_zone'?picks.map(key=>['*',key]):Object.entries(pairs)})}>{ar?'أرسل الإجابة':'Submit answer'}</Button>}
+    {previewFeedback}
+    <DragOverlay dropAnimation={null}>{draggedCard&&<div className={styles.dragOverlay} dir="auto"><GripVertical size={18} aria-hidden="true"/><span>{draggedCard.text}</span></div>}</DragOverlay>
   </DndContext>
 }
