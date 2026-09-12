@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useLayoutEffect, useRef, useState } from 'react'
 import { DndContext,DragOverlay,PointerSensor,TouchSensor,KeyboardSensor,useSensor,useSensors,useDraggable,useDroppable,type DragEndEvent } from '@dnd-kit/core'
 import { SortableContext,useSortable,verticalListSortingStrategy,sortableKeyboardCoordinates,arrayMove } from '@dnd-kit/sortable'
 import { ArrowUp,ArrowDown,GripVertical,Check } from 'lucide-react'
@@ -9,7 +9,7 @@ import type { PublicQuestion } from '@/shared/session'
 import {zoneClipPath,zoneOutlinePoints} from '@/shared/zones'
 import type {ImageZone} from '@/shared/questions'
 import type { AnswerPayload,OrderEvidence } from '@/shared/questions'
-import {markAnswer,type MarkResult} from '@/shared/scoring'
+import type {MarkResult} from '@/shared/scoring'
 import {mediaUrl} from '@/features/editor/ImageUpload'
 import styles from './Session.module.css'
 
@@ -43,6 +43,47 @@ function CardChoice({id,text,selected,placed,onClick,disabled}:{id:string;text:s
   return <button type="button" ref={d.setNodeRef} {...d.attributes} {...d.listeners} onClick={onClick} onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();if(!disabled)onClick()}}} disabled={disabled} aria-pressed={selected}
     className={`${styles.cardChoice} ${selected?styles.chosen:''}`} data-dragging={d.isDragging||undefined} style={{transform:d.transform?`translate3d(${d.transform.x}px,${d.transform.y}px,0)`:undefined}}>{text}{placed&&<Check size={18}/>}</button>
 }
+/** Fit the authored wording to the shape's safe text area, never the viewport. */
+function PlacedAnswer({text}:{text:string}){
+  const areaRef=useRef<HTMLSpanElement>(null),textRef=useRef<HTMLSpanElement>(null)
+  useLayoutEffect(()=>{
+    const area=areaRef.current,label=textRef.current
+    if(!area||!label)return
+    let active=true
+    const fit=()=>{
+      if(!active)return
+      label.style.removeProperty('font-size')
+      const areaStyle=getComputedStyle(area)
+      const width=area.clientWidth-parseFloat(areaStyle.paddingLeft)-parseFloat(areaStyle.paddingRight)
+      const height=area.clientHeight-parseFloat(areaStyle.paddingTop)-parseFloat(areaStyle.paddingBottom)
+      if(width<=0||height<=0)return
+      const bounds=area.getBoundingClientRect(),range=document.createRange()
+      range.selectNodeContents(label)
+      const fits=()=>{
+        const glyphs=range.getBoundingClientRect()
+        return label.scrollWidth<=width+.5&&label.getBoundingClientRect().height<=height+.5
+          &&glyphs.top>=bounds.top+parseFloat(areaStyle.paddingTop)-.5
+          &&glyphs.bottom<=bounds.bottom-parseFloat(areaStyle.paddingBottom)+.5
+      }
+      if(fits())return
+      let high=parseFloat(getComputedStyle(label).fontSize),low=Math.min(8,high)
+      // The maximum follows the zone size in CSS. Only overflowing text is
+      // reduced; no rerender, persistence, or change to the answer geometry.
+      for(let step=0;step<7;step++){
+        const size=(low+high)/2
+        label.style.fontSize=`${size}px`
+        if(fits())low=size;else high=size
+      }
+      label.style.fontSize=`${low}px`
+    }
+    fit()
+    const observer=typeof ResizeObserver==='undefined'?undefined:new ResizeObserver(fit)
+    observer?.observe(area)
+    void document.fonts?.ready.then(fit)
+    return ()=>{active=false;observer?.disconnect()}
+  },[text])
+  return <span ref={areaRef} className={styles.placedAnswer} title={text}><span ref={textRef} className={styles.placedAnswerText} dir="auto">{text}</span></span>
+}
 function Target({id,label,children,onClick,disabled,zone,placed}:{id:string;label:string;children?:React.ReactNode;onClick:()=>void;disabled:boolean;zone?:ImageZone;placed?:boolean}) {
   const d=useDroppable({id,disabled})
   /* The clip path is the hit area, not decoration: a browser does not deliver a
@@ -50,16 +91,11 @@ function Target({id,label,children,onClick,disabled,zone,placed}:{id:string;labe
      behaves as a circle for the class, and nothing in this file has to know
      what a hexagon is — `zoneClipPath` is the one definition, shared with the
      editor so the two cannot disagree. */
-  /* A hotspot is a transparent hit area over the picture. It must not inherit
-     the large card-selection treatment used by ordinary matching targets. */
+  /* Image areas and matching cards must have separate base classes. Mobile
+     matching targets have minimum dimensions that override image coordinates
+     if both classes are applied, stretching hit areas beyond their outlines. */
   const stateClass=d.isOver?(zone?styles.zoneDropOver:styles.chosen):''
-  /* A filled area is painted on the BUTTON, not on a box inside it. A button
-     lays its children out in an anonymous shrink-to-fit box, so a child asked
-     to stretch takes the full height and only its own width — which is how a
-     dropped label ended up a tall narrow slab in a wide area. Painting the
-     button means the answer fills the zone exactly, clip path and all, so a
-     circle reads as a filled circle rather than a rectangle inside one. */
-  return <button type="button" ref={d.setNodeRef} onClick={onClick} disabled={disabled} aria-label={label} data-placed={placed||undefined} className={`${styles.target} ${zone?styles.zoneTarget:''} ${stateClass}`}
+  return <button type="button" ref={d.setNodeRef} onClick={onClick} disabled={disabled} aria-label={label} data-placed={placed||undefined} data-zone-shape={zone?(zone.shape??'rect'):undefined} className={`${zone?styles.zoneTarget:styles.target} ${stateClass}`}
     style={zone?{left:`${zone.x*100}%`,top:`${zone.y*100}%`,width:`${zone.w*100}%`,height:`${zone.h*100}%`,clipPath:zoneClipPath(zone)}:undefined}>{children??label}</button>
 }
 /**
@@ -71,9 +107,9 @@ function Target({id,label,children,onClick,disabled,zone,placed}:{id:string;labe
  * must read prompt, media and option text on their own device. The option text stays
  * in the accessible name either way, and colour is never the only signal.
  */
-export function QuestionInput({question,onAnswer,disabled=false,projectorOnly=false,preview=false,interactivePreview=false,revealed}: {
-  question:PublicQuestion;onAnswer:(answer:AnswerPayload)=>void;disabled?:boolean;projectorOnly?:boolean;preview?:boolean;interactivePreview?:boolean;revealed?:unknown
-}) {
+export function QuestionInput({question,onAnswer,disabled=false,projectorOnly=false,preview=false,interactivePreview=false,evaluatePreview,revealed}: {
+  question:PublicQuestion;onAnswer:(answer:AnswerPayload)=>void;disabled?:boolean;projectorOnly?:boolean;preview?:boolean;revealed?:unknown
+}&({interactivePreview:true;evaluatePreview:(answer:AnswerPayload)=>MarkResult}|{interactivePreview?:false;evaluatePreview?:never})) {
   const {i18n}=useTranslation(),ar=i18n.language.startsWith('ar'),p=question.payload
   const [sequence,setSequence]=useState(p.kind==='order'?p.items.map(i=>i.key):[])
   /* An interactive preview is a small, self-contained learner attempt. It
@@ -123,7 +159,9 @@ export function QuestionInput({question,onAnswer,disabled=false,projectorOnly=fa
   const draggableCards=p.kind==='match'||(p.kind==='hotspot'&&p.mode==='card_to_zone')?p.cards:[]
   const checkPreview=(answer:AnswerPayload)=>{
     onAnswer(answer)
-    if(interactivePreview)setPreviewResult(markAnswer(p.kind,p,answer))
+    // Public learner questions have no answer key. Only the editor can check
+    // a practice attempt, using its private authored payload through this seam.
+    if(interactivePreview&&evaluatePreview)setPreviewResult(evaluatePreview(answer))
   }
   const previewFeedback=interactivePreview&&previewResult&&<p className={styles.previewFeedback} data-correct={previewResult.correct} role="status">
     {previewResult.correct
@@ -180,7 +218,7 @@ export function QuestionInput({question,onAnswer,disabled=false,projectorOnly=fa
                returns to the answer bank as the active card, ready for a new
                area — no duplicate card and no hidden state to undo. */
             if(placedCard){setPairs(current=>{const next={...current};delete next[placedCard.key];return next});setSelected(placedCard.key)}
-          }}><span className={placedCard?styles.placedAnswer:undefined}>{placedCard?placedCard.text:<>{i+1}{((Array.isArray(revealed)?revealed.includes(z.key):picks.includes(z.key))||Object.values(displayPairs).includes(z.key))&&<Check size={20}/>}</>}</span></Target>
+          }}>{placedCard?<PlacedAnswer text={placedCard.text}/>:<span>{i+1}{((Array.isArray(revealed)?revealed.includes(z.key):picks.includes(z.key))||Object.values(displayPairs).includes(z.key))&&<Check size={20}/>}</span>}</Target>
         })}
       </div>:<p role="alert">{ar?'تعذّر تحميل الصورة. أعد الاتصال.':'Image unavailable. Reconnect.'}</p>}
       {/* Click-zone mode has nothing on screen to read back, so its instruction

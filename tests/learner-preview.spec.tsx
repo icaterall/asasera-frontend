@@ -4,24 +4,26 @@ import {createInstance} from 'i18next'
 import {I18nextProvider} from 'react-i18next'
 import {QuestionInput} from '../src/features/session/QuestionInput'
 import type {PublicQuestion} from '../src/shared/session'
+import {markAnswer} from '../src/shared/scoring'
 
 const language=createInstance()
 
 beforeAll(async()=>{await language.init({lng:'en',resources:{en:{translation:{}}},interpolation:{escapeValue:false}})})
 afterEach(cleanup)
 
-const question={
+const question:PublicQuestion={
   id:1,qIndex:0,prompt:'Match each label to the picture',media:'preview-image.png',timeLimitS:20,
   payload:{
     kind:'hotspot',mode:'card_to_zone',
     zones:[{key:'milk-zone',x:.1,y:.1,w:.25,h:.25,shape:'rect'}],
-    cards:[{key:'milk',text:'Milk'}],map:{milk:'milk-zone'},
+    cards:[{key:'milk',text:'Milk'}],
   },
-} as PublicQuestion
+}
+const evaluatePreview=(answer:Parameters<typeof markAnswer>[2])=>markAnswer('hotspot',{...question.payload,map:{milk:'milk-zone'}},answer)
 
 test('learner preview accepts a real placement, checks it locally, and locks the completed attempt',()=>{
   const answer=vi.fn()
-  render(<I18nextProvider i18n={language}><QuestionInput question={question} onAnswer={answer} preview interactivePreview/></I18nextProvider>)
+  render(<I18nextProvider i18n={language}><QuestionInput question={question} onAnswer={answer} preview interactivePreview evaluatePreview={evaluatePreview}/></I18nextProvider>)
 
   const card=screen.getByRole('button',{name:'Milk',exact:true})
   fireEvent.click(card)
@@ -34,4 +36,14 @@ test('learner preview accepts a real placement, checks it locally, and locks the
   expect(screen.getByText('Correct. This is how a learner sees a checked answer.')).toBeTruthy()
   expect(screen.getByRole('button',{name:'Zone 1',exact:true}).hasAttribute('disabled')).toBe(true)
   expect(screen.getByRole('button',{name:'Submit answer',exact:true}).hasAttribute('disabled')).toBe(true)
+})
+
+test('read-only previews do not allow a learner attempt or require an answer key',()=>{
+  const answer=vi.fn()
+  render(<I18nextProvider i18n={language}><QuestionInput question={question} onAnswer={answer} preview/></I18nextProvider>)
+  fireEvent.click(screen.getByRole('button',{name:'Milk',exact:true}))
+  fireEvent.click(screen.getByRole('button',{name:'Zone 1',exact:true}))
+  expect(screen.getByRole('button',{name:'Zone 1',exact:true}).hasAttribute('disabled')).toBe(true)
+  expect(screen.queryByRole('button',{name:'Submit answer',exact:true})).toBeNull()
+  expect(answer).not.toHaveBeenCalled()
 })

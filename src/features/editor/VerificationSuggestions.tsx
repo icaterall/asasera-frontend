@@ -46,12 +46,19 @@ export function VerificationSuggestions({activityId,questionId,revision,labelFor
  const gate=useRef(false),alive=useRef(true)
  useEffect(()=>{alive.current=true;return()=>{alive.current=false}},[])
 
+ /*
+  * A 422 from this endpoint is a reason, not a failure: the question is not
+  * approved yet, it has no wrong answers to link, there is no second question
+  * to verify with. The server writes those in words a teacher can act on, so
+  * they are shown as written — a generic "could not be completed" turned a
+  * clear answer into a dead end and sent the teacher hunting.
+  */
  const describe=(e:unknown)=>e instanceof ApiError&&e.code==='revision_conflict'
   ?t('تغيّر السؤال. أغلق هذه النافذة وافتحها من جديد.','The question changed. Close this panel and open it again.')
-  :e instanceof ApiError&&e.code==='no_verification_questions'
-   ?t('تحتاج نشاطًا معتمدًا آخر ليكون مصدرًا لأسئلة التحقق.','You need another approved activity to draw verification questions from.')
-   :e instanceof ApiError&&['quote_changed','quote_already_used'].includes(e.code)
-    ?t('انتهى عرض التكلفة. أغلق النافذة وافتحها من جديد.','The estimate expired. Close and reopen this panel.')
+  :e instanceof ApiError&&['quote_changed','quote_already_used'].includes(e.code)
+   ?t('انتهى عرض التكلفة. أغلق النافذة وافتحها من جديد.','The estimate expired. Close and reopen this panel.')
+   :e instanceof ApiError&&e.status===422&&e.message
+    ?e.message
     :t('تعذّر إكمال الطلب. يمكنك المحاولة مرة أخرى.','The request could not be completed. You can try again.')
 
  /* Priced before it is offered: the estimate is only fetched once the teacher

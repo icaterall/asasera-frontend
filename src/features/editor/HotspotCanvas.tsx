@@ -5,6 +5,7 @@ import {Button,LoadingIndicator,Select} from '@/design'
 import type {QuestionRecord} from '@/lib/api'
 import type {HotspotPayload,ImageZone} from '@/shared/questions'
 import {zoneOutlinePoints} from '@/shared/zones'
+import {markAnswer} from '@/shared/scoring'
 import {QuestionInput} from '@/features/session/QuestionInput'
 import {ImageUpload,UploadBar,useImage,useUploadProgress} from './ImageUpload'
 import {ImageRetouch} from './ImageRetouch'
@@ -66,7 +67,7 @@ export function HotspotCanvas({activityId,question,p,onChange,onConfirm,onPrepar
   * behind the application's own spinner — not just the image slot.
   */
  const loading=(!url||!imageReady)&&!imageFailed
- return <section className={styles.workspace} aria-label={t('محرر إجابات الصورة','Image answer editor')} aria-busy={loading||undefined}>
+ return <section className={styles.workspace} data-learner-preview={preview||undefined} aria-label={t('محرر إجابات الصورة','Image answer editor')} aria-busy={loading||undefined}>
   {loading&&<div className={styles.workspaceLoading} role="status"><LoadingIndicator label={t('جارٍ تحميل الصورة…','Loading image…')}/></div>}
   <div className={styles.workspaceBody} inert={loading}>
   <div className={styles.workspaceHeader}><div><h2>{t('حوّل الصورة إلى سؤال','Make the image a question')}</h2>{/* This describes EDITING; in preview the learner's own instruction below is the one that applies. */}
@@ -80,7 +81,7 @@ export function HotspotCanvas({activityId,question,p,onChange,onConfirm,onPrepar
    <Button variant="quiet" icon={<MousePointer2 size={18}/>} aria-label={t('تحديد وتحريك','Select and move')} aria-pressed={tool==='select'} onClick={()=>setTool('select')}>{t('تحديد','Select')}</Button><Button icon={<Square size={18}/>} aria-pressed={tool==='rect'} disabled={full||upload.busy} onClick={()=>setTool(tool==='rect'?'select':'rect')}>{t('مستطيل','Box')}</Button><Button icon={<Circle size={18}/>} aria-pressed={tool==='circle'} disabled={full||upload.busy} onClick={()=>setTool(tool==='circle'?'select':'circle')}>{t('دائرة','Circle')}</Button></div>
   </div>}
   {preview?<div className={styles.preview}>
-   {url&&<QuestionInput key={previewKey} question={{id:question.id,qIndex:0,prompt:question.prompt,media:url,timeLimitS:question.timeLimitS,payload:{kind:'hotspot',mode:p.mode,zones:p.zones,cards:p.mode==='card_to_zone'?p.cards:[]}}} onAnswer={()=>undefined} preview interactivePreview/>}
+   {url&&<QuestionInput key={previewKey} question={{id:question.id,qIndex:0,prompt:question.prompt,media:url,timeLimitS:question.timeLimitS,payload:{kind:'hotspot',mode:p.mode,zones:p.zones,cards:p.mode==='card_to_zone'?p.cards:[]}}} onAnswer={()=>undefined} preview interactivePreview evaluatePreview={answer=>markAnswer('hotspot',p,answer)}/>}
    <Button variant="secondary" icon={<RotateCcw size={18}/>} onClick={()=>setPreviewKey(k=>k+1)}>{t('جرّب من جديد','Try again')}</Button>
   </div>:<div className={styles.workbench} inert={upload.busy}>
    <div className={styles.pictureColumn}>
