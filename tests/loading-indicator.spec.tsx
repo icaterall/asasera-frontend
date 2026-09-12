@@ -15,6 +15,7 @@ beforeAll(async () => { await language.init({ lng: 'en', resources: { en: { tran
 afterEach(() => { cleanup(); vi.unstubAllGlobals() })
 const show = (ui: ReactNode) => render(<I18nextProvider i18n={language}>{ui}</I18nextProvider>)
 
+
 it.each([['en', 'Loading…'], ['ar', 'جارٍ التحميل…']])('announces loading once in %s without reading decorative media', async (locale, label) => {
   await language.changeLanguage(locale)
   show(<LoadingIndicator />)
