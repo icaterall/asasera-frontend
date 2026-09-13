@@ -5,6 +5,23 @@ import {Button,LoadingIndicator,Select} from '@/design'
 import type {QuestionRecord} from '@/lib/api'
 import type {HotspotPayload,ImageZone} from '@/shared/questions'
 import {zoneOutlinePoints} from '@/shared/zones'
+
+/**
+ * What this area is called, in the teacher's own words.
+ *
+ * The side list used to read "Area 1 … Area 4" — four rows saying nothing about
+ * a picture the teacher had just labelled themselves. In drag-label mode every
+ * area already has a name: the card mapped to it. Showing the number instead
+ * made them hold the mapping in their head to know which row they were about to
+ * delete.
+ *
+ * Click-zone mode keeps the number, because there genuinely is no name to show;
+ * so does an area whose label has not been written yet.
+ */
+function zoneName(payload:HotspotPayload,zoneKey:string){
+ if(payload.mode!=='card_to_zone')return ''
+ return payload.cards.find(card=>payload.map[card.key]===zoneKey)?.text.trim()??''
+}
 import {markAnswer} from '@/shared/scoring'
 import {QuestionInput} from '@/features/session/QuestionInput'
 import {ImageUpload,UploadBar,useImage,useUploadProgress} from './ImageUpload'
@@ -12,7 +29,7 @@ import {ImageRetouch} from './ImageRetouch'
 import {ImageCreator} from './ImageCreator'
 import {ConfirmDialog} from '@/components/teaching/TeachingUI'
 import {ZoneSuggestions} from './ZoneSuggestions'
-import {elementKey,transformZone,addAnswerZone,removeAnswerZone} from './hotspot-editing'
+import {elementKey,transformZone,addAnswerZone,removeAnswerZone,clearAnswerZones} from './hotspot-editing'
 import styles from './HotspotCanvas.module.css'
 
 export function ZoneOutline({zone,...props}:{zone:ImageZone}&React.SVGProps<SVGElement>){
@@ -30,11 +47,12 @@ export function HotspotCanvas({activityId,question,p,onChange,onConfirm,onPrepar
   */
  const [imageReady,setImageReady]=useState(false)
  useEffect(()=>{setImageReady(false)},[url])
- const [active,setActive]=useState(p.zones[0]!.key),[tool,setTool]=useState<'select'|'rect'|'circle'>('select'),[preview,setPreview]=useState(false),[retouch,setRetouch]=useState(false),[suggest,setSuggest]=useState(false),[confirmed,setConfirmed]=useState(false),[create,setCreate]=useState(false),[switchMode,setSwitchMode]=useState(false)
+ const [active,setActive]=useState<string|null>(p.zones[0]?.key??null),[tool,setTool]=useState<'select'|'rect'|'circle'>('select'),[preview,setPreview]=useState(false),[retouch,setRetouch]=useState(false),[suggest,setSuggest]=useState(false),[confirmed,setConfirmed]=useState(false),[create,setCreate]=useState(false),[switchMode,setSwitchMode]=useState(false),[clearAll,setClearAll]=useState(false)
  const [drawing,setDrawing]=useState<ImageZone|null>(null),[previewKey,setPreviewKey]=useState(0),[imageFailed,setImageFailed]=useState(false)
  const gesture=useRef<Gesture|null>(null),latestDrawing=useRef<ImageZone|null>(null),uploader=useRef<HTMLDivElement>(null),upload=useUploadProgress()
  useEffect(()=>setImageFailed(false),[p.imageKey])
- const selected=p.zones.find(z=>z.key===active)??p.zones[0]!,full=p.zones.length>=12||(p.mode==='card_to_zone'&&p.cards.length>=12)
+ const selected=p.zones.find(z=>z.key===active)??p.zones[0],full=p.zones.length>=12||(p.mode==='card_to_zone'&&p.cards.length>=12)
+ const hasAnswers=p.zones.length>0&&(p.mode==='card_to_zone'?p.cards.length>0:p.correct.length>0)
  function change(next:HotspotPayload){setConfirmed(false);onChange(next)}
  function update(zone:ImageZone){change({...p,zones:p.zones.map(z=>z.key===zone.key?zone:z)})}
  function point(e:React.PointerEvent<SVGSVGElement>){const r=e.currentTarget.getBoundingClientRect();return {x:Math.max(0,Math.min(.99,(e.clientX-r.left)/r.width)),y:Math.max(0,Math.min(.99,(e.clientY-r.top)/r.height))}}
@@ -59,7 +77,7 @@ export function HotspotCanvas({activityId,question,p,onChange,onConfirm,onPrepar
  function finish(){const g=gesture.current,next=latestDrawing.current;gesture.current=null;latestDrawing.current=null;if(g&&next){if(g.kind==='draw')change(addAnswerZone(p,next));else update(next)}setDrawing(null);setTool('select')}
  function add(){if(full)return;const zone:ImageZone={key:elementKey('zone'),x:.35,y:.35,w:.25,h:.2,shape:'rect'};change(addAnswerZone(p,zone));setActive(zone.key)}
  const zones=drawing?[...p.zones.map(z=>z.key===drawing.key?drawing:z),...(!p.zones.some(z=>z.key===drawing.key)?[drawing]:[])]:p.zones
- const current=drawing?.key===selected.key?drawing:selected
+ const current=drawing&&drawing.key===selected?.key?drawing:selected
  /*
   * Until the picture is on screen there is nothing here to act on: the areas
   * are drawn in its coordinates, and a click on an empty stage would place one
@@ -71,7 +89,7 @@ export function HotspotCanvas({activityId,question,p,onChange,onConfirm,onPrepar
   {loading&&<div className={styles.workspaceLoading} role="status"><LoadingIndicator label={t('جارٍ تحميل الصورة…','Loading image…')}/></div>}
   <div className={styles.workspaceBody} inert={loading}>
   <div className={styles.workspaceHeader}><div><h2>{t('حوّل الصورة إلى سؤال','Make the image a question')}</h2>{/* This describes EDITING; in preview the learner's own instruction below is the one that applies. */}
-   {!preview&&<p>{t('غطِّ التسميات، وحدّد أماكن الإجابات، ثم جرّب السؤال.','Cover labels, place answer areas, then try your question.')}</p>}</div><Button icon={<Eye size={18}/>} aria-pressed={preview} onClick={()=>{setPreview(!preview);setPreviewKey(k=>k+1)}}>{preview?t('تابع التحرير','Back to editing'):t('معاينة الطالب','Learner preview')}</Button></div>
+   {!preview&&<p>{t('غطِّ التسميات، وحدّد أماكن الإجابات، ثم جرّب السؤال.','Cover labels, place answer areas, then try your question.')}</p>}</div><Button icon={<Eye size={18}/>} aria-pressed={preview} disabled={!preview&&!hasAnswers} onClick={()=>{setPreview(!preview);setPreviewKey(k=>k+1)}}>{preview?t('تابع التحرير','Back to editing'):t('معاينة الطالب','Learner preview')}</Button></div>
   <div ref={uploader}><ImageUpload compact showPreview={false} imageKey={p.imageKey} onProgress={upload.onProgress} onImage={imageKey=>{setImageFailed(false);change({...p,imageKey})}}/></div>
   {!preview&&<div className={styles.toolbar}>
    <div className={styles.toolGroup} aria-label={t('أدوات الصورة','Image tools')}><span className={styles.toolLabel}>{t('الصورة','Image')}</span><Button icon={<ImagePlus size={18}/>} disabled={upload.busy} onClick={()=>uploader.current?.querySelector('input')?.click()}>{t('استبدل الصورة','Replace image')}</Button><Button icon={<Sparkles size={18}/>} disabled={upload.busy} onClick={()=>setCreate(true)}>{t('صورة بالذكاء الاصطناعي','AI image')}</Button><Button icon={<Brush size={18}/>} disabled={!url||upload.busy} onClick={()=>setRetouch(true)}>{t('نظّف الصورة','Clean image')}</Button></div>
@@ -96,7 +114,7 @@ export function HotspotCanvas({activityId,question,p,onChange,onConfirm,onPrepar
       * numbering in the list goes back to meaning "which area", not "which
       * label comes first".
       */}
-    {p.mode==='card_to_zone'&&<div className={styles.labelStrip}>
+    {p.mode==='card_to_zone'&&p.zones.length>0&&<div className={styles.labelStrip}>
       <p><Shuffle size={15} aria-hidden="true"/>{t('يرى كل طالب هذه التسميات بترتيب مختلف، فترتيبها هنا لا يهم.','Every learner sees these in a different order, so their order here does not matter.')}</p>
       {/*
         * Written here, beside the picture they describe — not in the side list.
@@ -134,28 +152,31 @@ export function HotspotCanvas({activityId,question,p,onChange,onConfirm,onPrepar
      {imageFailed&&<p role="alert">{t('تعذّر تحميل الصورة. أعد فتح السؤال لتحديث رابطها.','Could not load the image. Reopen the question to refresh its link.')}</p>}
      <UploadBar state={upload.state} label={t('تحديث الصورة','Updating image')}/>
     </div>
-    <details className={styles.precision}><summary>{t('الشكل والموضع الدقيق','Shape and precise position')}</summary><label>{t('الشكل','Shape')}<Select aria-label={t('الشكل','Shape')} value={selected.shape??'rect'} onValueChange={shape=>{const {points:oldPoints,...rest}=selected;update(shape==='polygon'?{...rest,shape,points:oldPoints??[{x:selected.x,y:selected.y+selected.h},{x:selected.x+selected.w/2,y:selected.y},{x:selected.x+selected.w,y:selected.y+selected.h}]}:{...rest,shape:shape as 'rect'|'circle'|'hexagon'})}}><option value="rect">{t('مستطيل','Rectangle')}</option><option value="circle">{t('دائرة','Circle')}</option><option value="hexagon">{t('سداسي','Hexagon')}</option><option value="polygon">{t('مضلّع','Polygon')}</option></Select></label><div className={styles.coordinates}>{(['x','y','w','h'] as const).map(axis=><label key={axis}>{({x:t('أفقي %','Horizontal %'),y:t('رأسي %','Vertical %'),w:t('عرض %','Width %'),h:t('ارتفاع %','Height %')})[axis]}<input type="number" min={axis==='x'||axis==='y'?0:1} max={100} value={Math.round(current[axis]*100)} onChange={e=>update(transformZone(selected,{[axis]:Number(e.target.value)/100}))}/></label>)}</div></details>
+    {selected&&current&&<details className={styles.precision}><summary>{t('الشكل والموضع الدقيق','Shape and precise position')}</summary><label>{t('الشكل','Shape')}<Select aria-label={t('الشكل','Shape')} value={selected.shape??'rect'} onValueChange={shape=>{const {points:oldPoints,...rest}=selected;update(shape==='polygon'?{...rest,shape,points:oldPoints??[{x:selected.x,y:selected.y+selected.h},{x:selected.x+selected.w/2,y:selected.y},{x:selected.x+selected.w,y:selected.y+selected.h}]}:{...rest,shape:shape as 'rect'|'circle'|'hexagon'})}}><option value="rect">{t('مستطيل','Rectangle')}</option><option value="circle">{t('دائرة','Circle')}</option><option value="hexagon">{t('سداسي','Hexagon')}</option><option value="polygon">{t('مضلّع','Polygon')}</option></Select></label><div className={styles.coordinates}>{(['x','y','w','h'] as const).map(axis=><label key={axis}>{({x:t('أفقي %','Horizontal %'),y:t('رأسي %','Vertical %'),w:t('عرض %','Width %'),h:t('ارتفاع %','Height %')})[axis]}<input type="number" min={axis==='x'||axis==='y'?0:1} max={100} value={Math.round(current[axis]*100)} onChange={e=>update(transformZone(selected,{[axis]:Number(e.target.value)/100}))}/></label>)}</div></details>}
    </div>
    <aside className={styles.answers} aria-label={t('الإجابات ومناطقها','Answers and their areas')}>
     <div className={styles.answersHeading}><h3>{t('الإجابات','Answers')}</h3><span><bdi>{p.zones.length}/12</bdi></span></div>
     <label className={styles.answerMode}>{t('طريقة الإجابة','Answer mode')}<Select value={p.mode} onValueChange={mode=>{if(mode===p.mode)return;if(mode==='click_zone')setSwitchMode(true);else{const cards=p.zones.map(()=>({key:elementKey('card'),text:''}));change({mode:'card_to_zone',imageKey:p.imageKey,zones:p.zones,cards,map:Object.fromEntries(cards.map((c,i)=>[c.key,p.zones[i]!.key]))})}}}><option value="card_to_zone">{t('اسحب التسميات','Drag labels')}</option><option value="click_zone">{t('انقر على الإجابات','Pin answers')}</option></Select></label>
-    <ol className={styles.answerList}>{p.zones.map((zone,index)=><li key={zone.key} data-selected={zone.key===active}>
-     <div className={styles.answerRow}><button type="button" className={styles.answerNumber} aria-label={`${t('حدد المنطقة','Select area')} ${index+1}`} aria-pressed={zone.key===active} onClick={()=>setActive(zone.key)}>{index+1}</button><strong>{t('المنطقة','Area')} {index+1}</strong><Button variant="quiet" disabled={p.zones.length===1} aria-label={`${t('احذف المنطقة','Delete area')} ${index+1}`} onClick={()=>{change(removeAnswerZone(p,zone.key));if(active===zone.key)setActive(p.zones.find(z=>z.key!==zone.key)!.key)}}><Trash2 size={16}/></Button></div>
-     {p.mode==='click_zone'&&<label className={styles.correctCheck}><input type="checkbox" checked={p.correct.includes(zone.key)} onChange={e=>{const correct=e.target.checked?[...p.correct,zone.key]:p.correct.filter(k=>k!==zone.key);if(correct.length)change({...p,correct})}}/>{t('إجابة صحيحة','Correct answer')}</label>}
-    </li>)}</ol>
+    <ol className={styles.answerList}>{p.zones.map((zone,index)=>{const named=zoneName(p,zone.key)||`${t('المنطقة','Area')} ${index+1}`;return <li key={zone.key} data-selected={zone.key===active}>
+     <div className={styles.answerRow}><button type="button" className={styles.answerNumber} aria-label={`${t('حدد','Select')} ${named}`} aria-pressed={zone.key===active} onClick={()=>setActive(zone.key)}>{index+1}</button><strong>{named}</strong><Button variant="quiet" disabled={upload.busy} aria-label={`${t('احذف','Delete')} ${named}`} onClick={()=>{change(removeAnswerZone(p,zone.key));if(active===zone.key)setActive(p.zones.find(z=>z.key!==zone.key)?.key??null)}}><Trash2 size={16}/></Button></div>
+     {p.mode==='click_zone'&&<label className={styles.correctCheck}><input type="checkbox" checked={p.correct.includes(zone.key)} onChange={e=>change({...p,correct:e.target.checked?[...p.correct,zone.key]:p.correct.filter(k=>k!==zone.key)})}/>{t('إجابة صحيحة','Correct answer')}</label>}
+    </li>})}</ol>
+    {!p.zones.length&&<p className={styles.answerHint} role="status">{t('لا توجد مناطق إجابة بعد. ارسم مستطيلاً أو دائرة، أو أضف منطقة، أو دع الذكاء الاصطناعي يقرأ الصورة ويقترح الإجابات.','No answer areas yet. Draw a box or circle, add an area, or let AI read the image and suggest answers.')}</p>}
     {/* Moved out of the image toolbar: it produces ANSWERS, and it belongs
         beside the list it adds to rather than among the tools that change the
         picture. */}
     <div className={styles.answerActions}>
-     <Button variant="primary" full icon={<Plus size={18}/>} disabled={full} onClick={add}>{t('أضف منطقة إجابة','Add answer area')}</Button>
+     <Button variant="primary" full icon={<Plus size={18}/>} disabled={full||upload.busy} onClick={add}>{t('أضف منطقة إجابة','Add answer area')}</Button>
      <Button variant="secondary" full icon={<Sparkles size={18}/>} disabled={full||upload.busy} onClick={()=>setSuggest(true)}>{t('اقترح الإجابات بالذكاء الاصطناعي','Suggest answers with AI')}</Button>
+     {p.zones.length>0&&<Button variant="quiet" full icon={<Trash2 size={16}/>} disabled={upload.busy} onClick={()=>setClearAll(true)}>{t('احذف كل مناطق الإجابة','Clear all answer areas')}</Button>}
     </div>
     <p className={styles.answerHint}>{p.mode==='card_to_zone'?t('يرى الطالب التسميات ويسحب كل تسمية إلى مكانها.','Learners drag each label to its matching area.'):t('يمكنك تحديد أكثر من منطقة صحيحة.','You can mark more than one area correct.')}</p>
    </aside>
   </div>}
-  {!preview&&<footer className={styles.workspaceFooter}><p>{t('راجع مواضع الإجابات وتسمياتها ثم أكّدها. لا يمكن اعتماد السؤال قبل تأكيدها.','Check the areas and their answers, then confirm them. The question cannot be approved until you do.')}</p><Button icon={<Check size={18}/>} disabled={upload.busy} onClick={()=>{onConfirm();setConfirmed(true)}}>{confirmed?t('تم تأكيد مناطق الإجابة','Answer areas confirmed'):t('تأكيد مناطق الإجابة','Confirm answer areas')}</Button></footer>}
+  {!preview&&<footer className={styles.workspaceFooter}><p>{t('راجع مواضع الإجابات وتسمياتها ثم أكّدها. لا يمكن اعتماد السؤال قبل تأكيدها.','Check the areas and their answers, then confirm them. The question cannot be approved until you do.')}</p><Button icon={<Check size={18}/>} disabled={upload.busy||!hasAnswers} onClick={()=>{onConfirm();setConfirmed(true)}}>{confirmed?t('تم تأكيد مناطق الإجابة','Answer areas confirmed'):t('تأكيد مناطق الإجابة','Confirm answer areas')}</Button></footer>}
   </div>
-  {switchMode&&<ConfirmDialog open title={t('تبديل طريقة الإجابة؟','Switch answer mode?')} body={t('ستُحذف تسميات السحب، وتبقى المناطق على الصورة.','This removes the draggable labels but keeps the image areas.')} confirmLabel={t('بدّل إلى النقر','Switch to pins')} onConfirm={()=>{change({mode:'click_zone',imageKey:p.imageKey,zones:p.zones,correct:[selected.key]});setSwitchMode(false)}} onCancel={()=>setSwitchMode(false)}/>}
+  {switchMode&&<ConfirmDialog open title={t('تبديل طريقة الإجابة؟','Switch answer mode?')} body={t('ستُحذف تسميات السحب، وتبقى المناطق على الصورة.','This removes the draggable labels but keeps the image areas.')} confirmLabel={t('بدّل إلى النقر','Switch to pins')} onConfirm={()=>{change({mode:'click_zone',imageKey:p.imageKey,zones:p.zones,correct:selected?[selected.key]:[]});setSwitchMode(false)}} onCancel={()=>setSwitchMode(false)}/>}
+  {clearAll&&<ConfirmDialog open title={t('حذف كل مناطق الإجابة؟','Clear all answer areas?')} body={t('ستُحذف المناطق وتسميات الإجابات فقط. ستبقى الصورة لتضيف مناطق جديدة يدويًا أو بالذكاء الاصطناعي.','This removes every area and answer label. Your image stays so you can add new areas manually or with AI.')} confirmLabel={t('احذف الكل','Clear all')} onConfirm={()=>{change(clearAnswerZones(p));setActive(null);setClearAll(false)}} onCancel={()=>setClearAll(false)}/>}
   {create&&<ImageCreator activityId={activityId} questionId={question.id} onPrepare={onPrepare} onImage={imageKey=>change({...p,imageKey})} onClose={()=>setCreate(false)}/>}
   {retouch&&url&&<ImageRetouch url={url} imageKey={p.imageKey} onImage={imageKey=>change({...p,imageKey})} onClose={()=>setRetouch(false)}/>}
   {suggest&&<ZoneSuggestions activityId={activityId} question={question} imageUrl={url} onPrepare={onPrepare} onApplied={onApplied} onClose={()=>setSuggest(false)}/>}

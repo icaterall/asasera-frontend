@@ -121,7 +121,12 @@ export default function SessionPage({role}:{role:'host'|'projector'|'player'}) {
         <p>{t('اختر الصف نفسه في كل حصة للحفاظ على دقة تقارير الاستخدام.','Choose the same saved class each time to keep usage reports accurate.')}</p>
       </section>}
       {role==='host'&&!s.wheel?.visible&&s.intervention&&<section className={styles.intervention} aria-live="polite">
-        <p>{t(`${s.intervention.count} من ${s.intervention.total} اختاروا الخطأ نفسه. احتمال للمراجعة: ${s.intervention.reason}`,`${s.intervention.count} of ${s.intervention.total} chose the same mistake. Possible explanation: ${s.intervention.reason}`)}</p>
+        {/* The mistake is always named — it comes from the question itself. The
+            explanation is shown only when one exists; it used to be required
+            before the offer could appear at all, which is why the offer almost
+            never did. */}
+        <p>{t(`${s.intervention.count} من ${s.intervention.total} وقعوا في الخطأ نفسه: ${s.intervention.mistake}.`,`${s.intervention.count} of ${s.intervention.total} made the same mistake: ${s.intervention.mistake}.`)}
+          {s.intervention.reason&&' '+t(`احتمال للمراجعة: ${s.intervention.reason}`,`Possible explanation: ${s.intervention.reason}`)}</p>
         <Button variant="primary" disabled={busy} onClick={()=>void action(()=>session.send('host:decision',{runId:s.runId,requestId:crypto.randomUUID(),choice:'treat'}))}>{t('عالج الآن','Treat now')}</Button>
         <Button disabled={busy} onClick={()=>void action(()=>session.send('host:decision',{runId:s.runId,requestId:crypto.randomUUID(),choice:'continue'}))}>{t('تابع','Continue')}</Button>
       </section>}

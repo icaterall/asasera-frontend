@@ -5,6 +5,7 @@ import { Logo } from '@/components/ui/Logo'
 import { ThemeToggle } from '@/components/ui/ThemeToggle'
 import { AccountControl } from '@/components/layout/AccountControl'
 import { MenuIcon } from './TeacherIcons'
+import {InstructorBalance} from '@/features/account/InstructorBalance'
 
 export function TeacherHeader({ onOpenNav }: { onOpenNav: () => void }) {
   const { t, i18n } = useTranslation()
@@ -39,6 +40,7 @@ export function TeacherHeader({ onOpenNav }: { onOpenNav: () => void }) {
           {i18n.language.startsWith('ar') ? 'إنشاء نشاط' : 'Create activity'}
         </Link>}
 
+        <InstructorBalance />
         <LanguageToggle />
         <ThemeToggle />
 

@@ -1,0 +1,34 @@
+.billing { max-width: 1040px; margin-inline: auto; padding: clamp(20px,3vw,40px) 16px; display: grid; gap: 20px; }
+.head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px; }
+.head h1 { margin: 0; font-size: clamp(24px,3vw,32px); }
+.head p { margin: 8px 0 0; max-width: 60ch; color: var(--muted); line-height: 1.65; }
+
+.done,.note,.error,.current { margin: 0; padding: 12px 14px; border-radius: var(--r-card); font-size: .9375rem; line-height: 1.6; display: flex; align-items: center; gap: 8px; }
+.done { background: color-mix(in srgb, var(--evidence) 12%, var(--surface)); color: var(--evidence); }
+.note,.current { background: var(--raised); color: var(--ink); }
+.error { background: color-mix(in srgb, var(--a1) 10%, var(--surface)); color: var(--a1); }
+
+/* Three cards that must stay comparable: the eye should run across one row of
+   prices, then one row of credit figures, not down three ragged columns. */
+.plans { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin: 4px 0 0; padding: 0; list-style: none; }
+.plans > li { display: flex; flex-direction: column; gap: 14px; padding: 22px; border: 1px solid var(--line); border-radius: var(--r-card); background: var(--surface); }
+.plans > li[data-current=true] { border-color: var(--act); box-shadow: inset 0 0 0 1px var(--act); }
+.plans h2 { margin: 0; font-size: 1.0625rem; }
+.price { margin: 0; display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px; }
+.price strong { font-size: 2rem; line-height: 1.1; }
+.price span { font-size: .875rem; color: var(--muted); }
+.features { margin: 0; padding: 0; list-style: none; display: grid; gap: 9px; flex: 1; }
+.features li { display: flex; align-items: flex-start; gap: 8px; font-size: .875rem; line-height: 1.55; }
+.features svg { flex: none; margin-block-start: 2px; color: var(--act); }
+
+.topUpHeading { margin: 16px 0 0; font-size: 1.0625rem; }
+.topUpLead { margin: 0; color: var(--muted); font-size: .875rem; line-height: 1.6; }
+.topUps { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin: 0; padding: 0; list-style: none; }
+.topUps > li { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 14px 16px; border: 1px solid var(--line); border-radius: var(--r-card); background: var(--surface); }
+.topUps strong { display: block; font-size: 1.125rem; }
+.topUps span { display: block; font-size: .8125rem; color: var(--muted); margin-block-start: 2px; }
+
+@media (max-width: 600px) {
+  .head { flex-direction: column; align-items: stretch; }
+  .plans > li { padding: 18px; }
+}

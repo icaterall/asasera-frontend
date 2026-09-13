@@ -34,16 +34,20 @@ export function creditMillicents(usd:string):number|null {
 }
 
 export type AiProvider = 'openai'|'gemini'
-export type AiPolicy = {version:number;provider:AiProvider;model:string;enabled:boolean}
+export type ImageQuality = 'low'|'medium'|'high'
+/** `imageQuality` is the administrator's ceiling — the dearest tier a teacher may pick. */
+export type AiPolicy = {version:number;provider:AiProvider;model:string;enabled:boolean;imageQuality?:ImageQuality|null}
 export type AiRouteCapability = 'pdf_questions'|'image_generation'|'audio_generation'
 export type AiRoutePolicy = AiPolicy&{capability:AiRouteCapability;configured:boolean;execution:'active'|'pending'}
 export type AiPriceRateKind = 'input_text'|'cached_input_text'|'input_image'|'cached_input_image'|'input_text_or_image'|'output_text'|'output_audio'|'output_image'
 export type AiModelPrice = {
   catalogVersion:string;currency:'USD';serviceTier:'standard';lifecycle:'stable'|'preview'|'deprecated';verifiedAt:string;source:string;
   components:{kind:AiPriceRateKind;amountMillicents:number}[];
-  imageOutputReferences?:{size:string;quality:'low'|'medium'|'high'|null;amountMillicents:number}[]
+  imageOutputReferences?:{size:string;quality:ImageQuality|null;amountMillicents:number}[]
 }
-export type AiRouteModel = {id:string;provider:AiProvider;configured:boolean;price?:AiModelPrice}
+export type ImageQualityOption = {quality:ImageQuality;outputTokens:number;amountMillicents:number}
+/** Empty when the model prices image output by resolution — then no ceiling applies. */
+export type AiRouteModel = {id:string;provider:AiProvider;configured:boolean;price?:AiModelPrice;imageQualityOptions?:ImageQualityOption[]}
 export type AiCatalogCandidate = {provider:AiProvider;id:string;firstSeenAt:string;lastSeenAt:string;verification:'approved'|'needs_verification'}
 export type AiCatalogProviderStatus = {provider:AiProvider;status:'updated'|'not_configured'|'unavailable'|'not_fetched';modelCount:number;fetchedAt:string|null}
 export type AiModelCatalog = {candidates:AiCatalogCandidate[];providers:AiCatalogProviderStatus[]}
@@ -73,4 +77,55 @@ export type AdminOverview = {
 }
 export const adminAnalytics = {
   overview:(signal?:AbortSignal)=>api.get<AdminOverview>(`${API_PREFIX}/admin/overview`,{...(signal?{signal}:{})}),
+}
+
+export type AiUsageRow = {jobs:number;failed:number;costMillicents:number}
+export type AiUsage = {
+  filters:{from:string|null;to:string|null;userId:number|null}
+  totals:{jobs:number;succeeded:number;failed:number;cancelled:number;needsReview:number;teachers:number
+    settledMillicents:number;costMillicents:number;heldMillicents:number;inputTokens:number;outputTokens:number}
+  daily:{date:string;jobs:number;settledMillicents:number;costMillicents:number}[]
+  byTeacher:(AiUsageRow&{userId:number;name:string|null;email:string|null;settledMillicents:number;tokens:number;lastAt:string|null})[]
+  byModel:(AiUsageRow&{provider:string;model:string;inputTokens:number;outputTokens:number;latencyMs:number})[]
+  byTask:(AiUsageRow&{task:string;settledMillicents:number})[]
+  recent:{createdAt:string;finishedAt:string|null;state:string;errorCode:string|null;task:string;provider:string;model:string
+    userId:number;name:string|null;email:string|null;settledMillicents:number;costMillicents:number;inputTokens:number;outputTokens:number}[]
+}
+export const adminAiUsage = {
+  load:(params:{from?:string;to?:string;userId?:number},signal?:AbortSignal)=>{
+    const query=new URLSearchParams()
+    if(params.from)query.set('from',params.from)
+    if(params.to)query.set('to',params.to)
+    if(params.userId)query.set('userId',String(params.userId))
+    const suffix=query.toString()
+    return api.get<AiUsage>(`${API_PREFIX}/admin/ai-usage${suffix?`?${suffix}`:''}`,{...(signal?{signal}:{})})
+  },
+}
+
+export type BillingPlanId = 'day_pass'|'monthly'|'yearly'|'topup_small'|'topup_medium'|'topup_large'
+export type BillingBlockReason = 'no_secret_key'|'no_webhook_secret'|'price_not_set'|'price_archived'|'mode_mismatch'|'currency_mismatch'|'interval_mismatch'|'price_uneconomic'
+export type AdminBillingPlan = {
+  plan:BillingPlanId; kind:'one_time'|'subscription'; period:'day'|'month'|'year'|null
+  suggestedPriceMillicents:number; requiredInterval:'month'|'year'|null
+  imageQualityCeiling:'low'|'medium'|'high'; maxOpenJobs:number
+  stripePriceId:string|null; priceMillicents:number|null; currency:string|null
+  recurringInterval:string|null; livemode:boolean|null; active:boolean|null; verifiedAt:string|null
+  processorFeeMillicents:number|null; processorShareBasisPoints:number|null
+  allowanceMillicents:number|null; includedAiCredits:number|null; activities:number|null; marginMillicents:number|null
+  blockedBy:BillingBlockReason|null
+}
+export type AdminBilling = {
+  policy:{version:number;enabled:boolean;currency:string;marginBasisPoints:number;feeBasisPoints:number;feeFixedMillicents:number;freeMonthlyMillicents:number}
+  /** Presence only. A key's value never leaves the server. */
+  credentials:{secretKey:boolean;webhookSecret:boolean;publishableKey:boolean;mode:'live'|'test'|null;modeMismatch:boolean}
+  plans:AdminBillingPlan[]
+}
+export const adminBilling = {
+  get:(signal?:AbortSignal)=>api.get<AdminBilling>(`${API_PREFIX}/admin/billing`,{signal}),
+  savePolicy:(input:{currency:string;marginBasisPoints:number;feeBasisPoints:number;feeFixedMillicents:number;freeMonthlyMillicents:number;enabled:boolean;expectedVersion:number})=>
+    api.put<AdminBilling>(`${API_PREFIX}/admin/billing`,input),
+  savePrice:(input:{plan:BillingPlanId;stripePriceId:string|null;expectedVersion:number})=>
+    api.put<AdminBilling>(`${API_PREFIX}/admin/billing/price`,input),
+  reverify:()=>api.post<{results:{plan:BillingPlanId;status:string}[];settings:AdminBilling}>(`${API_PREFIX}/admin/billing/reverify`,{}),
+  discover:()=>api.post<{results:{plan:BillingPlanId;status:'installed'|'not_found'|'rejected';detail?:string}[];settings:AdminBilling}>(`${API_PREFIX}/admin/billing/discover`,{}),
 }

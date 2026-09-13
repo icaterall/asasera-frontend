@@ -7,16 +7,17 @@ export function transformZone(zone:ImageZone,patch:Partial<Pick<ImageZone,'x'|'y
 }
 export function addAnswerZone(p:HotspotPayload,zone:ImageZone):HotspotPayload{
  if(p.zones.length>=12||(p.mode==='card_to_zone'&&p.cards.length>=12))return p
- if(p.mode==='click_zone')return {...p,zones:[...p.zones,zone]}
+ if(p.mode==='click_zone')return {...p,zones:[...p.zones,zone],correct:p.zones.length?p.correct:[zone.key]}
  const card={key:elementKey('card'),text:''}
  return {...p,zones:[...p.zones,zone],cards:[...p.cards,card],map:{...p.map,[card.key]:zone.key}}
 }
 export function removeAnswerZone(p:HotspotPayload,key:string):HotspotPayload{
- if(p.zones.length<=1)return p
+ if(!p.zones.some(z=>z.key===key))return p
  const zones=p.zones.filter(z=>z.key!==key)
- if(p.mode==='click_zone'){const correct=p.correct.filter(k=>k!==key);return {...p,zones,correct:correct.length?correct:[zones[0]!.key]}}
+ if(p.mode==='click_zone')return {...p,zones,correct:p.correct.filter(k=>k!==key)}
  const removed=p.cards.filter(c=>p.map[c.key]===key),cards=p.cards.filter(c=>p.map[c.key]!==key)
- // Preserve the final card rather than producing an invalid, unsavable draft.
- if(!cards.length)return {...p,zones,map:Object.fromEntries(p.cards.map(c=>[c.key,zones[0]!.key]))}
  return {...p,zones,cards,map:Object.fromEntries(Object.entries(p.map).filter(([c])=>!removed.some(r=>r.key===c)))}
+}
+export function clearAnswerZones(p:HotspotPayload):HotspotPayload{
+ return p.mode==='click_zone'?{...p,zones:[],correct:[]}:{...p,zones:[],cards:[],map:{}}
 }

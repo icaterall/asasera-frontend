@@ -15,3 +15,22 @@ These rules apply to the entire output and to every variant, edit and regenerati
 export function mediaGenerationPrompt(brief: string): string {
   return `${MEDIA_GENERATION_POLICY}\n\nCreative brief:\n${brief.trim()}\n\n${MEDIA_GENERATION_POLICY}`
 }
+
+/**
+ * Image quality, cheapest first. The order is the ranking: a ceiling clamps
+ * anything above it, so adding a tier means inserting it at its true price
+ * position, never appending.
+ */
+export const IMAGE_QUALITIES = ['low', 'medium', 'high'] as const
+export type ImageQuality = (typeof IMAGE_QUALITIES)[number]
+export function isImageQuality(value: unknown): value is ImageQuality {
+  return typeof value === 'string' && (IMAGE_QUALITIES as readonly string[]).includes(value)
+}
+/** A teacher may prefer more than the administrator pays for; the ceiling wins. */
+export function clampImageQuality(requested: ImageQuality, ceiling: ImageQuality): ImageQuality {
+  return IMAGE_QUALITIES.indexOf(requested) > IMAGE_QUALITIES.indexOf(ceiling) ? ceiling : requested
+}
+/** Every tier a ceiling permits, cheapest first — what a teacher may choose from. */
+export function allowedImageQualities(ceiling: ImageQuality): readonly ImageQuality[] {
+  return IMAGE_QUALITIES.slice(0, IMAGE_QUALITIES.indexOf(ceiling) + 1)
+}

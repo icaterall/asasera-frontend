@@ -1,4 +1,5 @@
 import {createRoot} from 'react-dom/client'
+import {useState} from 'react'
 import {createInstance} from 'i18next'
 import {I18nextProvider} from 'react-i18next'
 import '@fontsource/montserrat/latin-400.css'
@@ -12,7 +13,7 @@ import type {QuestionRecord} from '@/lib/api'
 // by the browser test. No account, saved activity, or live session is needed.
 const params=new URLSearchParams(location.search),ar=params.get('lang')==='ar',circle=params.get('shape')==='circle',long=params.has('long')
 const i18n=createInstance()
-await i18n.init({lng:ar?'ar':'en',resources:{en:{translation:{}},ar:{translation:{}}}})
+await i18n.init({lng:ar?'ar':'en',resources:{en:{translation:{teaching:{common:{cancel:'Cancel'}}}},ar:{translation:{teaching:{common:{cancel:'إلغاء'}}}}}})
 document.documentElement.lang=ar?'ar':'en'
 document.documentElement.dir=ar?'rtl':'ltr'
 const payload:HotspotPayload={
@@ -22,8 +23,12 @@ const payload:HotspotPayload={
   map:{c1:'z1',c2:'z2',c3:'z3',c4:'z4'},
 }
 const question:QuestionRecord={id:1,revision:1,ordinal:1,kind:'hotspot',prompt:ar?'قم بتوصيل ما يناسب الصورة':'Match the labels to the picture',mediaKey:payload.imageKey,timeLimitS:20,payload}
+function EditableFixture(){
+ const [current,setCurrent]=useState(question)
+ return <HotspotCanvas activityId={1} question={current} p={current.payload as HotspotPayload} onChange={payload=>setCurrent({...current,payload,revision:current.revision+1})} onConfirm={()=>{}} onPrepare={async()=>current} onApplied={async()=>{}}/>
+}
 createRoot(document.getElementById('root')!).render(<I18nextProvider i18n={i18n}>
   <main className="asas" style={{maxWidth:1100,margin:'0 auto',padding:8}}>
-    <HotspotCanvas activityId={1} question={question} p={payload} onChange={()=>{}} onConfirm={()=>{}} onPrepare={async()=>question} onApplied={async()=>{}}/>
+    <EditableFixture/>
   </main>
 </I18nextProvider>)

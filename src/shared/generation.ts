@@ -6,7 +6,8 @@
  * CI fails if this file and its source differ.
  */
 import {z} from 'zod'
-export const generationTaskSchema=z.enum(['questions','reasons','zones','merges','verification'])
+import {contentLanguageSchema} from './content-language.ts'
+export const generationTaskSchema=z.enum(['questions','reasons','zones','merges'])
 export type GenerationTask=z.infer<typeof generationTaskSchema>
 /** Automatic routing by default; an explicit provider is honoured and never silently switched (v5 §13). */
 export const generationProviderSchema=z.enum(['auto','openai','gemini'])
@@ -16,8 +17,8 @@ export const generationInputSchema=z.object({
  activityId:z.number().int().positive(),task:generationTaskSchema,
  origin:z.enum(['topic','file']).default('topic'),
  /* Optional for file-grounded questions: the selected pages are the objective. Required (≥3 chars) for topic origin; checked by the service. */
- objective:z.string().trim().max(1000).default(''),language:z.enum(['ar','en']).default('ar'),
- count:z.number().int().min(1).max(10).default(5),kinds:z.array(z.enum(['mcq','tf','order','match'])).min(1).max(4).default(['mcq','tf']),
+ objective:z.string().trim().max(1000).default(''),language:contentLanguageSchema.default('ar'),
+ count:z.number().int().min(1).max(20).default(5),kinds:z.array(z.enum(['mcq','tf','order','match'])).min(1).max(4).default(['mcq','tf']),
  mode:z.enum(['generate','extract']).default('generate'),tone:z.enum(['clear','conversational','formal']).default('clear'),
  difficulty:generationDifficultySchema.default('medium'),quoteId:z.uuid().optional(),
  materialRevisionId:z.number().int().positive().nullable().default(null),segments:z.array(z.number().int().positive()).max(30).default([]),
@@ -42,26 +43,6 @@ export const generatedQuestionSchema=z.object({kind:z.enum(['mcq','tf','order','
  * in the same call costs nothing extra.
  */
 export const proposedZoneSchema=z.object({key:z.string().regex(/^[a-z0-9_]{1,32}$/),x:z.number().min(0).max(1),y:z.number().min(0).max(1),w:z.number().gt(0).max(1),h:z.number().gt(0).max(1),shape:z.enum(['rect','circle','hexagon','polygon']).default('rect'),points:z.array(z.object({x:z.number().min(0).max(1),y:z.number().min(0).max(1)}).strict()).min(3).max(24).nullish(),label:z.string().trim().max(60).nullish()}).strict()
-/**
- * A proposed verification link, whole.
- *
- * Three parts, always together: WHICH mistake (a slot the question actually
- * has), WHY a learner makes it, and WHICH existing question proves the gap
- * closed. The reason is not decoration — the remediation engine fires only on
- * `link && reason`, so a suggestion that carried a target and no reason would
- * create a link that can never run. The model is therefore never asked for
- * half of one.
- *
- * `rationale` is for the teacher, not the engine: one sentence saying why that
- * question tests the same understanding without being the same item. It is
- * what they read before approving, and it is never stored.
- */
-export const verificationSuggestionSchema=z.object({
- elementKey:z.string().max(32),wrongTargetKey:z.string().max(32).nullable(),
- reason:z.string().trim().min(3).max(1000),
- versionId:z.number().int().positive(),questionId:z.number().int().positive(),
- rationale:z.string().trim().min(3).max(400),
-}).strict()
 /**
  * Does this wording point at material the learner cannot see?
  *
@@ -96,7 +77,7 @@ export function pointsAtSource(text:string):boolean{return SOURCE_POINTERS.some(
 
 export const mergeCandidateSchema=z.object({sourceId:z.number().int().positive(),targetId:z.number().int().positive(),reason:z.string().min(3).max(1000)}).strict()
 export const outputSchemas={
- questions:z.object({candidates:z.array(generatedQuestionSchema).max(10)}).strict(),
+ questions:z.object({candidates:z.array(generatedQuestionSchema).max(20)}).strict(),
  reasons:z.object({candidates:z.array(reason).max(64)}).strict(),
  /* `prompt` is the question the picture is asking, proposed alongside the
     regions because the model has just looked at the image and a pin-answer
@@ -105,7 +86,6 @@ export const outputSchemas={
     say nothing rather than invent. */
  zones:z.object({candidates:z.array(proposedZoneSchema).max(12),prompt:z.string().trim().max(300).nullish()}).strict(),
  merges:z.object({candidates:z.array(mergeCandidateSchema).max(10)}).strict(),
- verification:z.object({candidates:z.array(verificationSuggestionSchema).max(12)}).strict(),
 }
 export type GeneratedQuestion=z.infer<typeof generatedQuestionSchema>
 export const generationApplySchema=z.object({selected:z.array(z.number().int().min(0).max(63)).min(1).max(64),expectedRevision:z.number().int().positive(),edits:z.array(z.object({index:z.number().int().min(0).max(63),question:generatedQuestionSchema,mediaKey:z.string().min(1).max(500).nullable().optional()}).strict()).max(10).optional()}).strict()

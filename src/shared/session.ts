@@ -50,7 +50,17 @@ export const snapshotSchema = z.object({
   acceptedCount: z.number(), reveal: revealSchema.nullable(), top: z.array(standing),
   persistence: z.enum(['ready', 'pending', 'failed']), endReason: z.string().nullable(), hostConnected: z.boolean(),
   classId:z.number().nullable(),
-  intervention:z.object({qIndex:z.number(),count:z.number(),total:z.number(),reason:z.string(),linkId:z.number()}).nullable(),
+  /*
+   * The one decision a teacher is asked to make mid-class.
+   *
+   * `mistake` is always present: it is the shared wrong answer in the learners'
+   * own words, derived from the question itself, so the offer can be made
+   * without anything having been configured beforehand. `reason` is the
+   * explanation when one exists and empty when it does not — it enriches the
+   * decision, it no longer gates it. `linkId` is null when the verification
+   * question was matched automatically rather than hand-picked.
+   */
+  intervention:z.object({qIndex:z.number(),count:z.number(),total:z.number(),mistake:z.string(),reason:z.string(),linkId:z.number().nullable()}).nullable(),
   self: z.object({ participantId: z.string(), name: z.string(), score: z.number(), correctCount: z.number(), answered: z.boolean(), result: z.enum(['correct', 'incorrect', 'unanswered']).nullable() }).nullable(),
 })
 export type SessionSnapshot = z.infer<typeof snapshotSchema>

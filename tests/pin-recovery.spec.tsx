@@ -2,6 +2,7 @@ import {afterEach,beforeAll,beforeEach,expect,test,vi} from 'vitest'
 import {cleanup,fireEvent,render,screen,waitFor} from '@testing-library/react'
 import {createInstance} from 'i18next'
 import {I18nextProvider} from 'react-i18next'
+import {useState} from 'react'
 import {ZoneSuggestions} from '../src/features/editor/ZoneSuggestions'
 import {HotspotCanvas} from '../src/features/editor/HotspotCanvas'
 import {api,type QuestionRecord} from '../src/lib/api'
@@ -11,7 +12,7 @@ const p:HotspotPayload={mode:'card_to_zone',imageKey:'new.png',zones:[{key:'manu
 const question={id:8,revision:2,ordinal:1,kind:'hotspot',prompt:'Label the flower',mediaKey:p.imageKey,timeLimitS:20,payload:p} as QuestionRecord
 const proposal={key:'ai',x:.4,y:.4,w:.2,h:.2,shape:'circle',label:'Petal',points:null}
 const quote={quoteId:crypto.randomUUID(),quoteExpiresAt:'2999-01-01',estimateMillicents:10,maxAuthorizedMillicents:20,estimateAiCredits:10,maxAuthorizedAiCredits:20,usableAiCredits:900,creditPolicyVersion:1,creditUnit:'AI Credits',spendableMillicents:900,usableMillicents:900,allowanceMillicents:900,exposureMillicents:0,affordable:true,pricingAvailable:true,generationAvailable:true,grant:{trialMillicents:900,trialAiCredits:900,claimed:true,eligible:true,reason:null},delivery:'new answers'}
-beforeAll(async()=>{await language.init({lng:'en',resources:{en:{translation:{}}},interpolation:{escapeValue:false}});HTMLDialogElement.prototype.showModal=function(){this.setAttribute('open','')};HTMLDialogElement.prototype.close=function(){this.removeAttribute('open')}})
+beforeAll(async()=>{await language.init({lng:'en',resources:{en:{translation:{teaching:{common:{cancel:'Cancel'}}}}},interpolation:{escapeValue:false}});HTMLDialogElement.prototype.showModal=function(){this.setAttribute('open','')};HTMLDialogElement.prototype.close=function(){this.removeAttribute('open')}})
 beforeEach(()=>{sessionStorage.clear();vi.spyOn(api,'post').mockImplementation(async(path,body)=>path.endsWith('/resolve')?{url:`/${(body as {key:string}).key}`} :quote)})
 afterEach(()=>{cleanup();vi.restoreAllMocks()})
 function saved(){sessionStorage.setItem(storageKey,JSON.stringify({jobId:90,request:{task:'zones',activityId:42,questionId:8,expectedRevision:1,objective:'Flower',maxAuthorizedMillicents:20,idempotencyKey:crypto.randomUUID()}}))}
@@ -46,4 +47,52 @@ test('an image failure clears when any replacement path supplies a new key',asyn
  view.rerender(<I18nextProvider i18n={language}><HotspotCanvas {...props} p={{...p,imageKey:'replacement.png'}}/></I18nextProvider>)
  await waitFor(()=>expect(screen.queryByRole('alert')).toBeNull())
  expect((await screen.findByAltText('Question image')).getAttribute('src')).toBe('/replacement.png')
+})
+
+function EditableCanvas({initial=p}:{initial?:HotspotPayload}){
+ const [payload,setPayload]=useState(initial)
+ const current={...question,payload}
+ return <HotspotCanvas activityId={42} question={current} p={payload} onChange={setPayload} onConfirm={()=>{}} onPrepare={async()=>current} onApplied={async()=>{}}/>
+}
+async function showEditor(initial?:HotspotPayload){
+ render(<I18nextProvider i18n={language}><EditableCanvas initial={initial}/></I18nextProvider>)
+ fireEvent.load(await screen.findByAltText('Question image'))
+}
+test('the final area can be deleted and rebuilt without removing the image',async()=>{
+ await showEditor()
+ expect((screen.getByRole('button',{name:'Delete area 1'}) as HTMLButtonElement).disabled).toBe(false)
+ fireEvent.click(screen.getByRole('button',{name:'Delete area 1'}))
+ expect(screen.getByText(/No answer areas yet/)).toBeTruthy()
+ expect(screen.queryByText('Shape and precise position')).toBeNull()
+ expect(screen.queryByRole('textbox',{name:'Answer for area 1'})).toBeNull()
+ expect((screen.getByRole('button',{name:'Learner preview'}) as HTMLButtonElement).disabled).toBe(true)
+ expect((screen.getByRole('button',{name:'Confirm answer areas'}) as HTMLButtonElement).disabled).toBe(true)
+ expect(screen.getByAltText('Question image').getAttribute('src')).toBe('/new.png')
+ fireEvent.click(screen.getByRole('button',{name:'Add answer area'}))
+ expect(screen.queryByText(/No answer areas yet/)).toBeNull()
+ expect(screen.getByRole('textbox',{name:'Answer for area 1'})).toBeTruthy()
+ expect(screen.getByText('Shape and precise position')).toBeTruthy()
+})
+test('clear all is confirmed and an empty draft can obtain a free estimate, not a paid job',async()=>{
+ await showEditor()
+ fireEvent.click(screen.getByRole('button',{name:'Clear all answer areas'}))
+ fireEvent.click(screen.getByRole('button',{name:'Cancel'}))
+ expect(screen.getByRole('textbox',{name:'Answer for area 1'})).toBeTruthy()
+ fireEvent.click(screen.getByRole('button',{name:'Clear all answer areas'}))
+ expect(screen.getByText(/Your image stays/)).toBeTruthy()
+ fireEvent.click(screen.getByRole('button',{name:'Clear all',exact:true}))
+ expect(screen.getByText('0/12')).toBeTruthy()
+ fireEvent.click(screen.getByRole('button',{name:'Suggest answers with AI'}))
+ await waitFor(()=>expect((screen.getByRole('button',{name:'Suggest with AI',exact:true}) as HTMLButtonElement).disabled).toBe(false))
+ expect(screen.getByText(/Estimating is free: no AI call/)).toBeTruthy()
+ expect(vi.mocked(api.post).mock.calls.find(([path])=>path.endsWith('/quote'))?.[1]).toMatchObject({task:'zones',expectedRevision:2,questionId:8})
+ expect(vi.mocked(api.post).mock.calls.some(([path])=>path.endsWith('/jobs'))).toBe(false)
+})
+test('an initially empty pin draft renders and adding its first area marks it correct',async()=>{
+ await showEditor({mode:'click_zone',imageKey:p.imageKey,zones:[],correct:[]})
+ expect(screen.getByText(/No answer areas yet/)).toBeTruthy()
+ fireEvent.click(screen.getByRole('button',{name:'Add answer area'}))
+ expect((screen.getByRole('checkbox',{name:'Correct answer'}) as HTMLInputElement).checked).toBe(true)
+ fireEvent.click(screen.getByRole('button',{name:'Delete area 1'}))
+ expect(screen.getByText('0/12')).toBeTruthy()
 })

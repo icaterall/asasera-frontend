@@ -19,6 +19,8 @@ import { recordLandingVisit } from '@/lib/analytics'
 const AdminLayout = lazy(() => import('@/features/admin/AdminLayout'))
 const AdminOverview = lazy(() => import('@/features/admin/AdminOverview'))
 const AdminAiSettings = lazy(() => import('@/features/admin/AdminAiSettings'))
+const AdminAiUsage = lazy(() => import('@/features/admin/AdminAiUsage'))
+const AdminBilling = lazy(() => import('@/features/admin/AdminBilling'))
 const AdminUsers = lazy(() => import('@/features/admin/AdminUsers'))
 const AdminUserDetail = lazy(() => import('@/features/admin/AdminUserDetail'))
 const StudentLayout = lazy(() => import('@/features/student/StudentLayout'))
@@ -41,6 +43,7 @@ const StudentPractice = lazy(() => import('@/features/student/StudentPages').the
 const Gallery = import.meta.env.DEV ? lazy(() => import('@/design/gallery/Gallery')) : null
 
 const AccountPage = lazy(() => import('@/features/account/AccountPage'))
+const BillingPlans = lazy(() => import('@/features/account/BillingPlans'))
 const ContactPage = lazy(() => import('@/features/support/ContactPage'))
 const SharedActivity = lazy(() => import('@/features/community/SharedActivity'))
 const FeedbackInbox = lazy(() => import('@/features/community/FeedbackInbox'))
@@ -121,6 +124,8 @@ export default function App() {
                 <Route index element={<Navigate to="/admin/overview" replace/>}/>
                 <Route path="overview" element={<AdminOverview/>}/>
                 <Route path="ai-settings" element={<AdminAiSettings/>}/>
+                <Route path="ai-usage" element={<AdminAiUsage/>}/>
+                <Route path="billing" element={<AdminBilling/>}/>
                 <Route path="users" element={<AdminUsers/>}/>
                 <Route path="users/:id" element={<AdminUserDetail/>}/>
               </Route>
@@ -228,6 +233,7 @@ export default function App() {
               <Route path="teacher" element={<TeacherLayout />}>
                 <Route index element={<Navigate to="/teacher/dashboard" replace />} />
                 <Route path="dashboard" element={<TeacherHome />} />
+                <Route path="billing" element={<BillingPlans />} />
                 <Route path="tools" element={<TeacherDashboard />} />
                 <Route path="wheel" element={<WheelPage/>}/>
                 <Route path="guides" element={<TeacherGuides />} />

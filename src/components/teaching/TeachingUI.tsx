@@ -388,7 +388,22 @@ export function ConfirmDialog({
             onClick={onConfirm}
             disabled={busy}
             className="inline-flex items-center gap-2 rounded-sm px-4 py-2.5 text-sm font-bold text-white transition-colors focus-visible:outline-3 focus-visible:outline-accent focus-visible:outline-offset-2 disabled:opacity-60"
-            style={{ background: 'var(--tc-coral)' }}
+            /*
+             * The fallbacks are the point, not defensive padding.
+             *
+             * `--tc-coral` is declared only on `.teacher-scope`. This dialog is
+             * shared, and in the activity editor it renders inside `.asas` —
+             * and for a delete confirmation, through a portal to <body>, inside
+             * neither. There the token resolved to nothing, `background` was
+             * dropped, and a button whose text is `text-white` became white on
+             * a white panel: present, focusable, clickable, invisible. The
+             * teacher saw a dialog with only Cancel and reported the feature as
+             * broken, which it effectively was.
+             *
+             * A destructive action must never depend on a scope it cannot see,
+             * so the chain ends in a literal.
+             */
+            style={{ background: 'var(--tc-coral, var(--a1, #e21b3c))' }}
           >
             {confirmLabel}
           </button>

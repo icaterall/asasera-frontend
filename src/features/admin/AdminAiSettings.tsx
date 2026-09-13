@@ -5,7 +5,7 @@ import { CheckCircle2, CirclePause, Image, RefreshCw, Settings2, Volume2 } from 
 import { Button, FailureState, LoadingState, Select } from '@/design'
 import { useAuth } from '@/hooks/useAuth'
 import { ApiError } from '@/lib/api'
-import { aiAdministration, creditUsd, type AiModelCatalog, type AiModelPrice, type AiPolicy, type AiPriceRateKind, type AiRouteModel, type AiRoutePolicy, type AiSettings } from './api'
+import { aiAdministration, creditUsd, type AiModelCatalog, type AiModelPrice, type AiPolicy, type AiPriceRateKind, type AiRouteModel, type AiRoutePolicy, type AiSettings, type ImageQuality } from './api'
 import styles from './Admin.module.css'
 
 export default function AdminAiSettings() {
@@ -114,12 +114,19 @@ function MediaRouteSettings({route,models,reload}:{route:AiRoutePolicy&{capabili
   const title=route.capability==='image_generation'?t('imageGeneration'):t('audioGeneration')
   const selected=models.find(model=>model.id===policy.model&&model.provider===policy.provider)
   const providers=[...new Set(models.map(model=>model.provider))]
-  const changed=policy.provider!==route.provider||policy.model!==route.model||policy.enabled!==route.enabled
+  /*
+   * Only models that publish a price per quality tier get a ceiling. On a model
+   * billed by resolution the control would set a limit the provider never
+   * applies, so it is absent rather than inert.
+   */
+  const qualityOptions=selected?.imageQualityOptions??[]
+  const ceiling=qualityOptions.length?policy.imageQuality??'low':null
+  const changed=policy.provider!==route.provider||policy.model!==route.model||policy.enabled!==route.enabled||ceiling!==(route.imageQuality??null)
   async function save(event:FormEvent) {
     event.preventDefault();if(submitting.current||!changed||conflict)return
     submitting.current=true;setBusy(true);setError('')
     try {
-      const updated=await aiAdministration.saveRoute(route.capability,{provider:policy.provider,model:policy.model,enabled:policy.enabled,expectedVersion:route.version})
+      const updated=await aiAdministration.saveRoute(route.capability,{provider:policy.provider,model:policy.model,enabled:policy.enabled,imageQuality:ceiling,expectedVersion:route.version})
       client.setQueryData(['admin-ai-settings',user?.id],updated)
       client.setQueryData(['admin-ai-settings-saved',user?.id],true)
     } catch(e) {
@@ -138,6 +145,9 @@ function MediaRouteSettings({route,models,reload}:{route:AiRoutePolicy&{capabili
       <label>{t('model')}<Select value={policy.model} aria-label={`${t('model')} ${title}`} disabled={busy||conflict||models.length===0} dir="ltr" onValueChange={model=>setPolicy(current=>({...current,model}))}>
         {models.filter(model=>model.provider===policy.provider).map(model=><option key={model.id} value={model.id}>{model.id}</option>)}
       </Select></label>
+      {qualityOptions.length>0&&<label>{t('imageQualityCeiling')}<Select value={ceiling??'low'} aria-label={t('imageQualityCeiling')} disabled={busy||conflict} onValueChange={value=>setPolicy(current=>({...current,imageQuality:value as ImageQuality}))}>
+        {qualityOptions.map(option=><option key={option.quality} value={option.quality}>{`${t(option.quality==='low'?'lowQuality':option.quality==='medium'?'mediumQuality':'highQuality')} · ≈ ${option.outputTokens.toLocaleString()} ${t('outputTokens')}`}</option>)}
+      </Select><small>{t('imageQualityCeilingLead')}</small></label>}
       <ModelPrice price={selected?.price}/>
       <label className={styles.aiToggle}><input type="checkbox" checked={policy.enabled} disabled={busy||conflict} onChange={event=>setPolicy(current=>({...current,enabled:event.target.checked}))}/>{t('enableRoute',{capability:title})}</label>
       <p role="status">{status}</p>
@@ -150,6 +160,16 @@ function MediaRouteSettings({route,models,reload}:{route:AiRoutePolicy&{capabili
 const priceRateLabels:Record<AiPriceRateKind,'priceInputText'|'priceCachedInputText'|'priceInputImage'|'priceCachedInputImage'|'priceInputTextOrImage'|'priceOutputText'|'priceOutputAudio'|'priceOutputImage'>={
  input_text:'priceInputText',cached_input_text:'priceCachedInputText',input_image:'priceInputImage',cached_input_image:'priceCachedInputImage',input_text_or_image:'priceInputTextOrImage',output_text:'priceOutputText',output_audio:'priceOutputAudio',output_image:'priceOutputImage',
 }
+/*
+ * Teachers are quoted in tokens, so the administrator's table shows the same
+ * figure beside the money. It is derived from the published per-image price and
+ * the model's own output rate rather than typed in, so the two columns cannot
+ * tell different stories.
+ */
+function referenceTokens(price:AiModelPrice,amountMillicents:number){
+ const rate=price.components.find(component=>component.kind==='output_image')?.amountMillicents??0
+ return rate>0?Math.round(amountMillicents*1_000_000/rate):null
+}
 function ModelPrice({price}:{price?:AiModelPrice}) {
  const {t,i18n}=useTranslation('adminAi')
  if(!price)return <p className={styles.priceUnavailable} role="status">{t('priceUnavailable')}</p>
@@ -157,7 +177,10 @@ function ModelPrice({price}:{price?:AiModelPrice}) {
  return <div className={styles.modelPrice} aria-live="polite" aria-label={t('referencePrice')}>
    <div className={styles.priceHeading}><strong>{t('referencePrice')}</strong><span data-lifecycle={price.lifecycle}>{t(lifecycle)}</span></div>
    <dl className={styles.priceRates}>{price.components.map(component=><div key={component.kind}><dt>{t(priceRateLabels[component.kind])}</dt><dd dir="ltr">{creditUsd(component.amountMillicents,i18n.language)} / {t('perMillionTokens')}</dd></div>)}</dl>
-   {price.imageOutputReferences&&<div className={styles.imagePriceTable}><strong>{t('imageOutputCosts')}</strong><table><caption>{t('imageOutputCostLead')}</caption><thead><tr><th>{t('imageSize')}</th><th>{t('imageQuality')}</th><th>{t('cost')}</th></tr></thead><tbody>{price.imageOutputReferences.map(reference=><tr key={`${reference.size}-${reference.quality??'standard'}`}><td dir="ltr">{reference.size}</td><td>{reference.quality?t(reference.quality==='low'?'lowQuality':reference.quality==='medium'?'mediumQuality':'highQuality'):t('standard')}</td><td dir="ltr">{creditUsd(reference.amountMillicents,i18n.language)} / {t('perImage')}</td></tr>)}</tbody></table></div>}
+   {price.imageOutputReferences&&<div className={styles.imagePriceTable}><strong>{t('imageOutputCosts')}</strong><table><caption>{t('imageOutputCostLead')}</caption><thead><tr><th>{t('imageSize')}</th><th>{t('imageQuality')}</th><th>{t('outputTokens')}</th><th>{t('cost')}</th></tr></thead><tbody>{price.imageOutputReferences.map(reference=>{
+     const tokens=referenceTokens(price,reference.amountMillicents)
+     return <tr key={`${reference.size}-${reference.quality??'standard'}`}><td dir="ltr">{reference.size}</td><td>{reference.quality?t(reference.quality==='low'?'lowQuality':reference.quality==='medium'?'mediumQuality':'highQuality'):t('standard')}</td><td dir="ltr">{tokens===null?'—':`≈ ${tokens.toLocaleString(i18n.language)}`}</td><td dir="ltr">{creditUsd(reference.amountMillicents,i18n.language)} / {t('perImage')}</td></tr>
+    })}</tbody></table></div>}
    <p>{t(price.lifecycle==='deprecated'?'priceDeprecatedLead':price.lifecycle==='preview'?'pricePreviewLead':'priceReferenceLead')}</p>
    <small>{t('standardPaidTier')} · {t('priceVerified',{date:new Date(`${price.verifiedAt}T00:00:00Z`).toLocaleDateString(i18n.language)})} · <a href={price.source} target="_blank" rel="noreferrer">{t('officialPricing')}</a></small>
  </div>

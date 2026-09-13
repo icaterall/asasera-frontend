@@ -140,6 +140,22 @@
 .reviewCheck input { flex:none; inline-size:18px; block-size:18px; margin-block-start:3px; accent-color:var(--act); }
 .creatorBody img { max-inline-size:100%; max-block-size:50dvh; margin-inline:auto; border-radius:var(--r-control); }
 .creatorBody p { margin:0; font-size:.875rem; line-height:1.65; }
+
+/* The quality choice reads as three priced cards, not a dropdown: the whole
+   point is comparing the token figures, and a closed <select> hides two of the
+   three numbers at the moment the teacher is deciding between them. */
+.qualityChoice { margin:0; padding:0; border:0; display:grid; gap:8px; }
+.qualityChoice legend { padding:0; font-size:.875rem; font-weight:700; }
+.qualityChoice > div { display:grid; grid-template-columns:repeat(auto-fit,minmax(116px,1fr)); gap:8px; }
+.qualityChoice label { display:flex; align-items:center; gap:8px; margin:0; padding:10px 12px; border:1px solid var(--line); border-radius:var(--r-control); background:var(--surface); cursor:pointer; font-weight:700; }
+.qualityChoice label:hover { background:var(--raised); }
+.qualityChoice label:has(input:checked) { border-color:var(--act); box-shadow:inset 0 0 0 1px var(--act); }
+.qualityChoice label:has(input:focus-visible) { outline:3px solid var(--act); outline-offset:2px; }
+.qualityChoice input { flex:none; inline-size:18px; block-size:18px; margin:0; accent-color:var(--act); }
+.qualityChoice span { flex:none; }
+.qualityChoice small { margin-inline-start:auto; font-size:.75rem; font-weight:400; color:var(--muted); white-space:nowrap; }
+.qualityChoice > p { font-size:.8125rem; color:var(--muted); }
+.qualityChoice:disabled label { cursor:default; opacity:.6; }
 @media(max-width:1100px) { .workbench { grid-template-columns:minmax(0,1fr); } .answers { border-inline-start:0; border-block-start:1px solid var(--line); } .answerList { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); column-gap:20px; } .answerList>li:first-child { padding-block-start:12px; border-block-start:1px solid var(--line); } }
 @media(max-width:600px) { .workspaceHeader { align-items:flex-start; flex-direction:column; padding:16px; } .toolbar { padding:12px; justify-content:flex-start; } .toolbar>button { inline-size:100%; } .pictureColumn { padding:12px; } .answers { padding:16px; } .answerList { grid-template-columns:1fr; } .workspaceFooter { flex-direction:column; align-items:stretch; padding:16px; } .coordinates { grid-template-columns:repeat(2,minmax(0,1fr)); } .retouchDialog,.suggestionsDialog,.creatorDialog { inline-size:calc(100vw - 16px); max-block-size:calc(100dvh - 16px); } .dialogHeader,.paintTools,.dialogFooter,.suggestionsBody,.creatorBody { padding:16px; } .dialogFooter p { flex-basis:100%; } .paintStage { padding:8px; } .proposalList { grid-template-columns:1fr; } .entryActions { flex-direction:column; inline-size:100%; } }
 
@@ -173,3 +189,15 @@
 .labelStrip input { inline-size:14ch; min-inline-size:0; border:0; padding:2px 0; background:transparent; color:inherit; font:inherit; font-size:.875rem; font-weight:600; }
 .labelStrip input:focus { outline:none; }
 .labelStrip input::placeholder { font-weight:400; color:var(--muted); }
+
+/* The wait, while the model reads the picture. Inline rather than a blocking
+   overlay: this panel can be closed and reopened onto the same request, and an
+   overlay would remove that just when the wait is longest. */
+.suggestionsWaiting { display:flex; flex-direction:column; align-items:center; gap:10px; padding-block:24px; text-align:center; }
+.suggestionsWaiting p { margin:0; color:var(--muted); font-size:.875rem; line-height:1.6; }
+
+/* The moment a teacher is certainly thinking about credit is the moment they
+   are told they have not got enough. Anything less than a direct link here
+   asks them to go and find the page themselves. */
+.creatorUpgrade{color:var(--act);font-weight:700;text-decoration:underline;text-underline-offset:2px}
+.creatorUpgrade:hover{color:var(--act-press)}

@@ -13,7 +13,15 @@ test('deleting a target deletes its associated labels and keeps the remaining an
  const next=removeAnswerZone(addAnswerZone(draft,{...zone,key:'b'}),'a')
  if(next.mode!=='card_to_zone')throw Error('Wrong mode')
  expect(next.cards.some(c=>c.key==='old')).toBe(false);expect(next.map.old).toBeUndefined()
- expect(parsePayload('hotspot',next).success).toBe(true);expect(removeAnswerZone(next,'b')).toBe(next)
+ expect(parsePayload('hotspot',next).success).toBe(true)
+ const empty=removeAnswerZone(next,'b')
+ expect(empty).toMatchObject({zones:[],cards:[],map:{},imageKey:draft.imageKey})
+ expect(parsePayload('hotspot',empty).success).toBe(true)
+})
+test('deleting the last correct pin leaves an empty draft, not a replacement answer',()=>{
+ const empty=removeAnswerZone({mode:'click_zone',imageKey:draft.imageKey,zones:[zone],correct:['a']},'a')
+ expect(empty).toMatchObject({zones:[],correct:[],imageKey:draft.imageKey})
+ expect(parsePayload('hotspot',empty).success).toBe(true)
 })
 test('polygon points move and resize with their bounds and stay on the image',()=>{
  const p:ImageZone={...zone,shape:'polygon',points:[{x:.1,y:.1},{x:.4,y:.1},{x:.4,y:.4}]}

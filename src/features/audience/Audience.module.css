@@ -5,6 +5,8 @@
 .failure{display:flex;gap:12px;align-items:center;flex-wrap:wrap;font-size:14px;line-height:1.6}
 .failure p{margin:0;max-width:70ch}
 .editor{grid-area:audience;max-height:32dvh;overflow:auto;background:var(--dropdown-bg);padding:5px 24px;color:var(--dropdown-ink);border-bottom:1px solid var(--dropdown-line)}
+.editor[open]{max-height:60dvh;scrollbar-gutter:stable}
+.editor form+form{border-top:1px solid var(--dropdown-line)}
 .editor summary{cursor:pointer;font-weight:700;min-height:40px;display:flex;align-items:center;gap:10px;width:100%;flex-wrap:wrap}
 .editor summary::-webkit-details-marker{display:none}
 .summaryTitle{flex-shrink:0;font-size:14px}
@@ -19,5 +21,4 @@
 .editor form{max-width:900px;padding-block:16px;display:flex;flex-direction:column;gap:20px}
 .actions{display:flex;flex-wrap:wrap;align-items:center;gap:12px}
 @media(max-width:700px){.pair{grid-template-columns:1fr}.editor{padding:12px 16px}}
-
 

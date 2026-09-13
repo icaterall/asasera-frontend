@@ -210,3 +210,85 @@
   .routeHeading { display: grid; gap: 8px; }
   .priceRates { grid-template-columns: 1fr; }
 }
+
+/* ---- AI usage ----------------------------------------------------------- */
+.pageHead { display:flex; flex-wrap:wrap; align-items:flex-end; justify-content:space-between; gap:16px; margin-block-end:20px; }
+.pageHead h1 { margin:0; font-size:24px; }
+.pageHead p { margin:6px 0 0; color:var(--muted); font-size:14px; line-height:1.6; }
+
+/* Filters in one row above everything they filter, so the scope is read before
+   the numbers rather than hunted for after them. */
+.filterBar { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-block-end:20px; }
+.filterChip { min-height:38px; padding:0 14px; border:1px solid #dce3ee; border-radius:999px; background:var(--surface); color:var(--ink); font:inherit; font-size:14px; font-weight:700; cursor:pointer; }
+.filterChip:hover { background:var(--raised); }
+.filterChip[aria-pressed=true] { background:var(--act); border-color:var(--act); color:#fff; }
+.filterChip:focus-visible,.filterActive:focus-visible { outline:3px solid var(--act); outline-offset:2px; }
+.filterDate { display:inline-flex; align-items:center; gap:8px; font-size:13px; color:var(--muted); }
+.filterDate input { min-height:38px; padding:0 10px; border:1px solid #dce3ee; border-radius:8px; background:var(--surface); color:var(--ink); font:inherit; font-size:14px; }
+.filterActive { display:inline-flex; align-items:center; gap:8px; min-height:38px; padding:0 12px; border:1px solid var(--act); border-radius:999px; background:color-mix(in srgb,var(--act) 10%,var(--surface)); color:var(--act); font:inherit; font-size:14px; font-weight:700; cursor:pointer; }
+.srOnly { position:absolute; inline-size:1px; block-size:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+
+.usagePanel { margin-block-start:28px; }
+.usagePanel h2 { margin:0 0 12px; font-size:17px; }
+.muted { color:var(--muted); font-size:14px; }
+
+/* The day series says WHEN, which a thirty-row table cannot show at a glance.
+   One series, one hue, no legend — the exact figures are in the tables. */
+.chartCard { margin-block-start:28px; padding:18px 20px; border:1px solid #dce3ee; border-radius:12px; background:var(--surface); }
+.chartCard h2 { margin:0 0 14px; font-size:17px; }
+.dayChart { display:flex; align-items:flex-end; gap:2px; block-size:140px; margin:0; padding:0; list-style:none; overflow-x:auto; }
+.dayChart > li { display:flex; flex-direction:column; align-items:center; justify-content:flex-end; gap:6px; flex:1 0 14px; block-size:100%; }
+.dayChart small { color:var(--muted); font-size:10px; white-space:nowrap; }
+/* Rounded at the data end only: the baseline end is a real zero and rounding it
+   would lift the mark off the axis it is measured from. */
+.dayBar { inline-size:100%; max-inline-size:26px; border-radius:4px 4px 0 0; background:var(--act); }
+.dayChart > li:hover .dayBar { background:var(--act-press); }
+
+/* A bar under the figure, not instead of it: the number is the answer and the
+   bar only says how this row compares with the largest. */
+.rowBar { display:block; block-size:4px; margin-block-start:7px; border-radius:999px; background:color-mix(in srgb,var(--act) 45%,transparent); }
+.clickRow { cursor:pointer; }
+.clickRow:hover { background:var(--raised); }
+
+/* Dark: same borders the rest of this file swaps, and a lighter blue so the
+   bars stay visible on the dark panel rather than sinking into it. */
+:global(.dark) .filterChip,:global(.dark) .filterDate input,:global(.dark) .chartCard { border-color:#43516a; }
+:global(.dark) .filterChip { background:#1b2635; color:#dce8f7; }
+:global(.dark) .filterChip:hover { background:#24354b; }
+:global(.dark) .chartCard { background:#1b2635; }
+:global(.dark) .clickRow:hover { background:#24354b; }
+
+/* ---- Billing plans ------------------------------------------------------- */
+.planGroup { margin-block-start: 22px; }
+.planGroup h3 { margin: 0 0 10px; font-size: 14px; font-weight: 700; color: var(--muted); }
+.planRows { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+
+/* One row per plan, not one card per plan: six of these have to be readable
+   in a single glance, which the route-card layout could not do. */
+.planRow { display: grid; gap: 10px; padding: 14px 16px; border: 1px solid #dce3ee; border-radius: 10px; background: var(--surface); }
+.planRow[data-ready=true] { border-inline-start: 3px solid var(--evidence); }
+.planTop { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 12px; }
+.planTop > strong { font-size: 15px; }
+.planNeed { flex: 1; min-inline-size: 180px; font-size: 12px; color: var(--muted); }
+.planState { flex: none; font-size: 12px; font-weight: 700; padding: 3px 9px; border-radius: 999px; }
+/* An empty slot is a hint, never an alarm; only a failed check is red. */
+.planState[data-state=pending] { background: var(--raised); color: var(--muted); }
+.planState[data-state=ready] { background: #e2f5ee; color: #176047; }
+.planState[data-state=blocked] { background: #fdecec; color: #9a1c28; }
+
+.planForm { display: flex; flex-wrap: wrap; gap: 8px; }
+.planRow input { flex: 1; min-inline-size: min(100%, 240px); min-height: 40px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; }
+.planForm button { flex: none; }
+
+/* Four figures on one line: price, fee, what it buys, what you keep. */
+.planFigures { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px 16px; margin: 0; padding: 10px 0 0; border-top: 1px solid #eef2f8; }
+.planFigures div { min-width: 0; }
+.planFigures dt { font-size: 11px; color: var(--muted); }
+.planFigures dd { margin: 2px 0 0; font-size: 14px; font-weight: 700; overflow-wrap: anywhere; }
+.planBlocked { margin: 0; font-size: 13px; color: #9a1c28; }
+.planVerified { color: var(--muted); font-size: 11px; }
+
+:global(.dark) .planRow { background: #1b2635; border-color: #43516a; }
+:global(.dark) .planFigures { border-top-color: #43516a; }
+:global(.dark) .planState[data-state=ready] { background: #143a2c; color: #8fe3c0; }
+:global(.dark) .planState[data-state=blocked] { background: #3a1c22; color: #ffb3bd; }

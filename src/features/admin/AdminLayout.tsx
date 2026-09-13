@@ -1,7 +1,7 @@
 import {BackLink,TitleRow} from '@/design/BackLink'
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { ShieldCheck, Users, UserRound, Settings2, ChartNoAxesCombined } from 'lucide-react'
+import { ShieldCheck, Users, UserRound, Settings2, ChartNoAxesCombined, Coins , CreditCard } from 'lucide-react'
 import { Logo } from '@/components/ui/Logo'
 import { LanguageToggle } from '@/components/ui/LanguageToggle'
 import { AccountControl } from '@/components/layout/AccountControl'
@@ -30,6 +30,8 @@ export default function AdminLayout() {
       <NavLink to="/admin/overview" className={({isActive})=>isActive?styles.active:undefined}><ChartNoAxesCombined size={21} aria-hidden="true"/>{t('نظرة عامة','Overview')}</NavLink>
       <NavLink to="/admin/users" className={({isActive})=>isActive?styles.active:undefined}><Users size={21} aria-hidden="true"/>{t('المستخدمون والأرصدة','Users & credit')}</NavLink>
       <NavLink to="/admin/ai-settings" className={({isActive})=>isActive?styles.active:undefined}><Settings2 size={21} aria-hidden="true"/>{t('إعدادات الذكاء الاصطناعي','AI settings')}</NavLink>
+      <NavLink to="/admin/ai-usage" className={({isActive})=>isActive?styles.active:undefined}><Coins size={21} aria-hidden="true"/>{t('استهلاك الذكاء الاصطناعي','AI usage')}</NavLink>
+      <NavLink to="/admin/billing" className={({isActive})=>isActive?styles.active:undefined}><CreditCard size={21} aria-hidden="true"/>{t('الدفع والخطط','Payments')}</NavLink>
       <Link to="/account"><UserRound size={21} aria-hidden="true"/>{t('حسابي','My account')}</Link>
     </nav><p><ShieldCheck size={18} aria-hidden="true"/>{t('دخول آمن عبر Google','Google sign-in required')}</p></aside>
     <main id="admin-main" className={styles.main}><Outlet/></main>

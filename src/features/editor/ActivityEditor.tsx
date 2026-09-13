@@ -3,13 +3,14 @@ import {FormattedInput} from './FormattedInput'
 import {QuestionTypeDialog,QuestionTypePicker,questionTypeName} from './QuestionTypePicker'
 import {ButtonSpinner} from '@/design/ButtonSpinner'
 import {AccountControl} from '@/components/layout/AccountControl'
+import {InstructorBalance} from '@/features/account/InstructorBalance'
 import {LanguageToggle} from '@/components/ui/LanguageToggle'
 import {Logo} from '@/components/ui/Logo'
 import {useAuth} from '@/hooks/useAuth'
 import {ActivityFeedbackModal} from '@/features/community/ActivityFeedbackModal'
 import {acknowledgeQuestion, acknowledgeTitle, decodeGenerationDraft, draftKey, editorDraftSchema, emptyEditorDraft, hasEditorChanges, readDraft, storeEditorDraft, type EditorDraft, type GenerationDraft} from './session-drafts'
 import {ActivityAudience} from '@/features/audience/ActivityAudience'
-import {Menu,Settings,TriangleAlert,Check,Palette,Share2,MessageSquare,Sparkles,Radio,Clock,Library,PanelRightClose,PanelRightOpen,MessageCircleQuestion,Timer,Medal,SlidersHorizontal,Plus,ArrowUp,ArrowDown,Copy,Trash2,Undo2,Save,ShieldCheck,ListOrdered,MoreHorizontal,X} from 'lucide-react'
+import {Menu,Settings,TriangleAlert,Check,Palette,Share2,MessageSquare,Sparkles,Radio,Clock,Library,PanelRightClose,PanelRightOpen,MessageCircleQuestion,Timer,Medal,SlidersHorizontal,Plus,ArrowUp,ArrowDown,Copy,Trash2,Undo2,Save,ListOrdered,MoreHorizontal,X} from 'lucide-react'
 import {useTranslation} from 'react-i18next'
 import {useEditorText} from './useEditorText'
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
@@ -35,7 +36,6 @@ import {ImageQuestionEntry} from './ImageCreator'
 import styles from './Editor.module.css'
 import { McqCanvas, TfCanvas, MIN_OPTIONS, MAX_OPTIONS, type McqOption } from './McqCanvas'
 import { OrderCanvas } from './OrderCanvas'
-import { VerificationDialog } from './VerificationDialog'
 import type { OrderPayload } from '@/shared/questions'
 import { useAutosave } from './useAutosave'
 import { ThemePicker } from '../activity-themes/ThemePicker'
@@ -193,7 +193,6 @@ function ActivityEditorWorkspace() {
   /* Deleting a question takes its answers and any reasons written against them
      with it, and there is no undo for it the way there is for a type change. */
   const [deleting,setDeleting]=useState(false)
-  const [verifying,setVerifying]=useState(false)
   /*
    * Changing a question's type REPLACES its answers — every kind stores a
    * different payload, so there is nothing to carry across. That is a
@@ -408,22 +407,6 @@ function ActivityEditorWorkspace() {
 
   const payload = (active?.payload ?? {}) as { options?: McqOption[]; correct?: string | boolean; pointsMultiplier?:0|1|2 }
 
-  const setReasonPair = useCallback((elementKey: string, wrongTargetKey:string|null,reason: string) => {
-    if (!active) return
-    changeData((current) => {
-      if (!current) return current
-      const others = current.errorPairs.filter(
-        (p) => !(p.questionId === active.id && p.elementKey === elementKey && p.wrongTargetKey === wrongTargetKey),
-      )
-      return {
-        ...current,
-        errorPairs: reason.trim().length > 0
-          ? [...others, { questionId: active.id, elementKey, wrongTargetKey, reason }]
-          : others,
-      }
-    })
-    patchActive({})
-  }, [active,patchActive])
 
   patchActiveRef.current = patchActive
 
@@ -682,12 +665,17 @@ function ActivityEditorWorkspace() {
         icon={<Undo2 size={18} aria-hidden="true"/>}
         title={ar?'أعد السؤال إلى ما كان عليه':'Put this question back the way it was'}
         onClick={undoQuestion}>{ar?'تراجع':'Undo'}</Button>
-      {data.activity.currentVersionId&&<Button variant="quiet" className={styles.verifyAction} icon={<ShieldCheck size={18} aria-hidden="true"/>} onClick={()=>setVerifying(true)}>{t("اربط سؤال تحقق")}</Button>}
     </>
   ) : null
   const actionsUnsaved = (questionSave.unsaved||titleSave.unsaved)||undefined
 
-  const audienceEditor = (<ActivityAudience activity={data.activity} onSave={async value=>{
+  const audienceEditor = (<ActivityAudience activity={data.activity} onLanguageSave={async contentLanguage=>{
+        await questionSave.flushNow();await titleSave.flushNow()
+        const latest=await activities.load(activityId)
+        if(latest.activity.contentLanguage!==data.activity.contentLanguage)throw new Error(ar?'تغيّرت لغة النشاط في جلسة أخرى. أعد فتح النشاط قبل الحفظ.':'The activity language changed in another session. Reopen the activity before saving.')
+        const result=await activities.update(activityId,{contentLanguage,expectedRevision:latest.activity.revision})
+        changeData(current=>current&&({...current,activity:{...result.activity,title:current.activity.title}}))
+  }} onSave={async value=>{
         await questionSave.flushNow();await titleSave.flushNow()
         const latest=await activities.load(activityId)
         if(JSON.stringify([latest.activity.categoryId,latest.activity.educationStageIds,latest.activity.countryIds])!==JSON.stringify([data.activity.categoryId,data.activity.educationStageIds,data.activity.countryIds]))throw new Error(ar?'تغيّر الجمهور في جلسة أخرى. أعد فتح النشاط قبل الحفظ.':'The audience changed in another session. Reopen the activity before saving.')
@@ -765,6 +753,7 @@ function ActivityEditorWorkspace() {
 
         </div>
         <div className={styles.accountControls}>
+          {!phone&&<InstructorBalance />}
           <LanguageToggle className={styles.languageToggle} />
           <AccountControl />
         </div>
@@ -779,6 +768,7 @@ function ActivityEditorWorkspace() {
           {data.activity.currentVersionId ? t("اعتماد التغييرات") : t("اعتماد النسخة")}
         </Button>
         </div>
+        {phone&&<div className={styles.phoneAccountBalance}><InstructorBalance compact/></div>}
       </header>
 
       {!phone&&audienceEditor}
@@ -795,9 +785,6 @@ function ActivityEditorWorkspace() {
         onCancel={()=>setDeleting(false)}
       />,document.body)}
 
-      {verifying&&active&&<VerificationDialog activityId={activityId} questionId={active.id} revision={active.revision} kind={active.kind} payload={active.payload}
-        pairs={data.errorPairs.filter(p=>p.questionId===active.id)}
-        onPair={setReasonPair} onApplied={()=>reload().then(()=>undefined)} onClose={()=>setVerifying(false)}/>}
 
       {addingType&&<QuestionTypeDialog
         side="start"
@@ -1173,9 +1160,6 @@ function ActivityEditorWorkspace() {
               <Button variant="quiet" className={styles.undoButton} disabled={!questionEdited}
                 icon={<Undo2 size={18} aria-hidden="true"/>}
                 onClick={()=>{undoQuestion();setMoreOpen(false)}}>{ar?'تراجع':'Undo'}</Button>
-              {data.activity.currentVersionId&&<Button variant="quiet" className={styles.verifyAction}
-                icon={<ShieldCheck size={18} aria-hidden="true"/>}
-                onClick={()=>{setMoreOpen(false);setVerifying(true)}}>{t("اربط سؤال تحقق")}</Button>}
             </div>}
             <div className={styles.moreActivity}>
               <h3>{ar?'هذا النشاط':'This activity'}</h3>

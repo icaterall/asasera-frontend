@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import {contentLanguageSchema} from '@/shared/content-language'
 
 
 // Recovery within the current browser tab, scoped to the authenticated owner.
@@ -31,7 +32,7 @@ export function clearDraft(key: string | null, expected?: unknown): boolean {
 }
 
 export const audienceDraftSchema = z.object({ categoryId: z.number().int().nullable(), educationStageIds: z.array(z.number().int()), countryIds: z.array(z.number().int()) })
-export const creationDraftSchema = z.object({ title: z.string(), purpose: z.string(), audience: audienceDraftSchema.nullable() })
+export const creationDraftSchema = z.object({ title: z.string(), purpose: z.string(), audience: audienceDraftSchema.nullable(),contentLanguage:z.string().max(80).optional() })
 export const questionPatchSchema = z.object({
   kind: z.enum(['mcq', 'tf', 'order', 'match', 'hotspot']), prompt: z.string(),
   payload: z.record(z.string(), z.unknown()), timeLimitS: z.number(),
@@ -47,7 +48,7 @@ export const questionPatchSchema = z.object({
  */
 export const generationDraftSchema = z.object({
  task:z.literal('questions').optional(),origin:z.enum(['file','topic']).optional(),objective:z.string().optional(),
- language:z.enum(['ar','en']).optional(),count:z.number().int().min(1).max(10).optional(),
+ language:contentLanguageSchema.optional(),count:z.number().int().min(1).max(10).optional(),
  kinds:z.array(z.enum(['mcq','tf','order','match'])).optional(),difficulty:z.enum(['easy','medium','hard']).optional(),
  materialRevisionId:z.number().int().nullable().optional(),segments:z.array(z.number()).optional(),sourceRunId:z.number().nullable().optional(),
  questionId:z.number().nullable().optional(),

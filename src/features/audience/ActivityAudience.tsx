@@ -10,18 +10,21 @@ import {AudienceFields} from './AudienceFields'
 import {AudienceSummary} from './AudienceSummary'
 import {useAudienceForm} from './useAudienceForm'
 import styles from './Audience.module.css'
+import {ActivityLanguageSettings} from '@/features/editor/ActivityLanguageSettings'
+import {contentLanguageName} from '@/shared/content-language'
 
-export function ActivityAudience({activity,onSave}:{activity:ActivityRecord;onSave:(value:AudienceSelection)=>Promise<void>}) {
+export function ActivityAudience({activity,onSave,onLanguageSave}:{activity:ActivityRecord;onSave:(value:AudienceSelection)=>Promise<void>;onLanguageSave:(language:string)=>Promise<void>}) {
   const {user}=useAuth()
   const {i18n}=useTranslation(),ar=i18n.language.startsWith('ar'),[open,setOpen]=useState(()=>!!readDraft(draftKey(user?.id,`activity:${activity.id}:audience`),audienceDraftSchema))
   return <details open={open} className={styles.editor} onToggle={event=>setOpen(event.currentTarget.open)}>
     <summary>
       <Users size={16} aria-hidden="true"/>
-      <span className={styles.summaryTitle}>{ar?'التصنيف والجمهور':'Category & audience'}</span>
+      <span className={styles.summaryTitle}>{ar?'اللغة والجمهور':'Language & audience'}</span>
       {!open&&<AudienceSummary activity={activity}/>}
+      {!open&&activity.contentLanguage&&<bdi className={styles.chip}>{contentLanguageName(activity.contentLanguage,i18n.language)}</bdi>}
       <span className={styles.summaryEdit}><Pencil size={15} aria-hidden="true"/>{open?(ar?'إغلاق':'Close'):(ar?'تعديل':'Edit')}</span>
     </summary>
-    {open&&<AudienceEditForm activity={activity} onSave={onSave}/>}
+    {open&&<><ActivityLanguageSettings key={activity.id} activity={activity} onSave={onLanguageSave}/><AudienceEditForm activity={activity} onSave={onSave}/></>}
   </details>
 }
 function AudienceEditForm({activity,onSave}:{activity:ActivityRecord;onSave:(value:AudienceSelection)=>Promise<void>}) {

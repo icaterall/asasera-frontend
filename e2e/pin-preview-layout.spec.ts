@@ -2,6 +2,43 @@ import {expect,test,type Page} from '@playwright/test'
 
 const picture=`<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="460" viewBox="0 0 1000 460"><rect width="1000" height="460" fill="#391639"/><text x="500" y="55" text-anchor="middle" font-family="sans-serif" font-size="28" fill="white">Match the following</text>${['#28629d','#2792a0','#eca019','#c84768'].map((color,index)=>`<rect x="${index*250+8}" y="115" width="238" height="130" rx="6" fill="${color}"/><circle cx="${index*250+127}" cy="180" r="25" fill="white"/><rect x="${index*250+8}" y="330" width="238" height="122" rx="6" fill="#30142e"/>`).join('')}</svg>`
 
+for(const width of [390,1440])for(const lang of ['en','ar']){
+ test(`clear all and rebuild answers at ${width}px ${lang}`,async({page},testInfo)=>{
+  const ar=lang==='ar',errors:string[]=[],requests:string[]=[]
+  page.on('pageerror',e=>errors.push(e.message))
+  await page.setViewportSize({width,height:900})
+  await page.route('**/api/**',route=>{
+   const path=route.request().url();requests.push(path)
+   if(path.endsWith('/activity-media/resolve'))return route.fulfill({json:{url:`data:image/svg+xml,${encodeURIComponent(picture)}`}})
+   if(path.endsWith('/activity-generation/quote'))return route.fulfill({json:{quoteId:'aadd4477-7878-4444-8989-888888888888',quoteExpiresAt:'2999-01-01',estimateMillicents:10,maxAuthorizedMillicents:20,estimateAiCredits:10,maxAuthorizedAiCredits:20,usableAiCredits:900,creditPolicyVersion:1,creditUnit:'AI Credits',spendableMillicents:900,usableMillicents:900,allowanceMillicents:900,exposureMillicents:0,affordable:true,pricingAvailable:true,generationAvailable:true,grant:{trialMillicents:900,trialAiCredits:900,claimed:true,eligible:true,reason:null},delivery:'new answers'}})
+   return route.fulfill({json:{}})
+  })
+  await page.goto(`/e2e/fixtures/pin-preview.html?lang=${lang}`)
+  const image=page.getByAltText(ar?'صورة السؤال':'Question image'),clear=page.getByRole('button',{name:ar?'احذف كل مناطق الإجابة':'Clear all answer areas',exact:true})
+  await expect(image).toBeVisible()
+  await clear.click()
+  await page.getByRole('button',{name:ar?'إلغاء':'Cancel',exact:true}).click()
+  await expect(page.getByRole('textbox',{name:ar?'إجابة المنطقة 1':'Answer for area 1',exact:true})).toHaveValue(ar?'حليب':'Milk')
+  await clear.click()
+  await page.getByRole('button',{name:ar?'احذف الكل':'Clear all',exact:true}).click()
+  await expect(page.getByText('0/12',{exact:true})).toBeVisible()
+  await expect(page.getByRole('button',{name:ar?'معاينة الطالب':'Learner preview',exact:true})).toBeDisabled()
+  await expect(image).toBeVisible()
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true)
+  await page.screenshot({path:testInfo.outputPath('empty-draft.png'),fullPage:true})
+  await page.getByRole('button',{name:ar?'أضف منطقة إجابة':'Add answer area',exact:true}).click()
+  await expect(page.getByRole('textbox',{name:ar?'إجابة المنطقة 1':'Answer for area 1',exact:true})).toHaveValue('')
+  await page.getByRole('button',{name:ar?'احذف المنطقة 1':'Delete area 1',exact:true}).click()
+  await expect(page.getByText('0/12',{exact:true})).toBeVisible()
+  await page.getByRole('button',{name:ar?'اقترح الإجابات بالذكاء الاصطناعي':'Suggest answers with AI',exact:true}).click()
+  await expect(page.getByRole('button',{name:ar?'اقترح بالذكاء الاصطناعي':'Suggest with AI',exact:true})).toBeEnabled()
+  await expect(page.getByText(ar?/حساب التكلفة مجاني/:/Estimating is free/)).toBeVisible()
+  expect(requests.some(path=>path.endsWith('/activity-generation/jobs'))).toBe(false)
+  expect(errors).toEqual([])
+  await page.screenshot({path:testInfo.outputPath('free-estimate.png'),fullPage:true})
+ })
+}
+
 async function assertZoneGeometry(page:Page,{long=false}={}){
   const sizes=await page.locator('div[class*="imageStage"]:has(svg[class*="zoneSvg"])').evaluate(stage=>{
     const outlines=[...stage.querySelectorAll('svg rect,svg ellipse')]

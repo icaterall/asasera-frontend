@@ -14,6 +14,8 @@ import { useAuth } from '@/hooks/useAuth'
 import { useSessionDraft } from './useSessionDraft'
 import { creationDraftSchema, draftKey, encodeGenerationDraft } from './session-drafts'
 import styles from '@/features/teacher-home/TeacherHome.module.css'
+import {ActivityLanguageField} from './ActivityLanguageField'
+import {contentLanguageSchema,defaultContentLanguage} from '@/shared/content-language'
 
 /**
  * v5 §08: a title is enough to start. Audience and purpose stay optional —
@@ -26,8 +28,10 @@ export default function CreateActivity() {
   const { user } = useAuth()
   const [params] = useSearchParams()
   const materialRevisionId = Number(params.get('revisionId')) || null, materialId = Number(params.get('materialId')) || null
-  const draft=useSessionDraft(draftKey(user?.id,'new'),{title:'',purpose:'',audience:null},creationDraftSchema)
+  const [initialLanguage]=useState(()=>defaultContentLanguage(i18n.language))
+  const draft=useSessionDraft(draftKey(user?.id,'new'),{title:'',purpose:'',audience:null,contentLanguage:initialLanguage},creationDraftSchema)
   const {title,purpose}=draft.value
+  const contentLanguage=draft.value.contentLanguage??initialLanguage,languageValid=contentLanguageSchema.safeParse(contentLanguage).success
   const setTitle=(title:string)=>draft.update(current=>({...current,title}))
   const setPurpose=(purpose:string)=>draft.update(current=>({...current,purpose}))
   const audience=useAudienceForm(draft.value.audience??undefined,value=>draft.update(current=>({...current,audience:value})))
@@ -38,14 +42,14 @@ export default function CreateActivity() {
   useDocumentTitle(ar ? 'إنشاء نشاط' : 'Create activity')
   async function create(event: FormEvent) {
     event.preventDefault()
-    if(submitting.current||!title.trim())return
+    if(submitting.current||!title.trim()||!languageValid)return
     if(!audience.optionalReady){setError(ar?'أكمل الفئة والمرحلة أو امسح الاختيار الاختياري.':'Complete the category and stage, or clear the optional audience selection.');return}
     submitting.current = true; setBusy(true); setError('')
     try {
       /* Send the audience only when it is complete; an absent audience lets the
          server infer one from the profile or file the activity as general. */
       const chosen = audience.ready ? {...audience.value, categoryId: audience.value.categoryId!} : {}
-      const { activity } = await activities.create({ title: title.trim() || (ar?'نشاط جديد':'Untitled quiz'), ...chosen, purposeId: purpose ? Number(purpose) : null })
+      const { activity } = await activities.create({ title: title.trim() || (ar?'نشاط جديد':'Untitled quiz'), contentLanguage:contentLanguageSchema.parse(contentLanguage), ...chosen, purposeId: purpose ? Number(purpose) : null })
       draft.clear(draft.value)
       void client.invalidateQueries({ queryKey: ['owned-activities'] })
       const generate = `?generate=1&choose=1${materialRevisionId?`&draft=${encodeGenerationDraft({origin:'file',task:'questions',materialRevisionId})}`:''}`
@@ -61,10 +65,11 @@ export default function CreateActivity() {
     {draft.storageError&&<p role="alert">{ar?'تعذّر حفظ نسخة الاسترداد في هذا المتصفح. أبقِ الصفحة مفتوحة حتى يكتمل الحفظ.':'This browser could not keep a recovery copy. Keep the page open until saving finishes.'}</p>}
     {refs.isPending ? <LoadingState variant="form" rows={3} label={ar ? 'جارٍ التحميل' : 'Loading activity settings'} /> : refs.error ? <FailureState title={ar ? 'تعذّر تحميل المواد والمراحل' : 'Activity settings couldn’t load'} body={ar ? 'حاول مرة أخرى للبدء.' : 'Try again to get started.'} actions={<Button onClick={() => void refs.refetch()}>{ar ? 'إعادة المحاولة' : 'Try again'}</Button>} /> : <form className={styles.createForm} onSubmit={event=>void create(event)} aria-busy={busy}>
       <label className={styles.field}>{ar ? 'اسم النشاط' : 'Activity name'}<input autoFocus required maxLength={200} value={title} onChange={e => setTitle(e.target.value)} placeholder={ar ? 'مثلًا: مغامرة الكسور' : 'For example: The fractions adventure'} disabled={busy} /></label>
+      <ActivityLanguageField value={contentLanguage} onChange={contentLanguage=>draft.update(current=>({...current,contentLanguage}))} disabled={busy}/>
       <AudienceFields form={audience} disabled={busy} optional/>
       <details><summary>{ar ? 'المزيد من الإعدادات' : 'More settings'}</summary><label className={styles.field}>{ar ? 'الغرض التعليمي (اختياري)' : 'Teaching purpose (optional)'}<Select value={purpose} onValueChange={e => setPurpose(e)} disabled={busy}><option value="">{ar ? 'بلا غرض محدد' : 'No purpose chosen'}</option>{refs.data.purposes.map(p => <option key={p.id} value={p.id}>{ar ? p.nameAr : p.nameEn}</option>)}</Select><span className={styles.field} style={{fontWeight:400,color:'var(--muted)'}}>{ar ? 'يلزم غرض أو وحدة منهجية فقط عند مشاركة النشاط في المكتبة.' : 'A purpose or curriculum unit is only needed when you share the activity to the library.'}</span></label></details>
       {error&&<p role="alert">{error}</p>}
-      <div className={styles.formActions}><Button type="submit" variant="primary" loading={busy} disabled={!title.trim() || !audience.optionalReady}>{ar ? 'التالي' : 'Next'}</Button><Button variant="quiet" disabled={busy} onClick={() => {draft.clear(); navigate('/teacher/activities')}}>{ar ? 'حذف المسودة' : 'Discard draft'}</Button></div>
+      <div className={styles.formActions}><Button type="submit" variant="primary" loading={busy} disabled={!title.trim() || !audience.optionalReady||!languageValid}>{ar ? 'التالي' : 'Next'}</Button><Button variant="quiet" disabled={busy} onClick={() => {draft.clear(); navigate('/teacher/activities')}}>{ar ? 'حذف المسودة' : 'Discard draft'}</Button></div>
     </form>}
     </details>
   </div>

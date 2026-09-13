@@ -76,3 +76,7 @@
 .dialog:has(.reviewList) .footer>button:first-of-type{grid-column:1/-1}
 .dialog:has(.reviewList) .footer>button{width:100%;min-width:0;font-size:14px;line-height:1.4}
 }
+
+/* Told they cannot afford it, and given the way to fix it in the same breath. */
+.costUpgrade{color:var(--act);font-weight:700;text-decoration:underline;text-underline-offset:2px;white-space:nowrap}
+.costUpgrade:hover{color:var(--act-press)}

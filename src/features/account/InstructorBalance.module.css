@@ -1,0 +1,78 @@
+.trigger{display:inline-flex;align-items:center;gap:8px;flex-shrink:0;min-height:44px;max-width:220px;padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);font:inherit;cursor:pointer;text-align:start}
+.trigger>svg{color:var(--act);flex-shrink:0}
+.trigger,.dialog{--muted:#666;--a4:#26712e}
+:global(.dark) .trigger,:global(.dark) .dialog{--muted:#b7b7b7;--act:#80b4ff;--a4:#84d98c}
+.trigger>span{display:flex;flex-direction:column;min-width:0;gap:1px}
+.trigger strong{font-size:16px;line-height:1.2;font-weight:700;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.trigger span span{font-size:12px;line-height:1.3;color:var(--muted)}
+.trigger:hover{background:var(--raised);border-color:var(--act)}
+.trigger[data-empty=true]>svg{color:var(--danger-ink)}
+.trigger[data-compact=true]{min-height:44px;gap:6px;padding:4px 8px}
+.trigger[data-compact=true]>span{flex-direction:row;align-items:center;gap:5px}
+.trigger[data-compact=true] strong{font-size:14px}
+.dialog{margin:auto;width:min(720px,calc(100vw - 32px));max-width:none;max-height:calc(100dvh - 32px);padding:0;border:0;border-radius:16px;background:var(--surface);color:var(--ink);box-shadow:0 24px 80px rgb(0 20 55 / 24%);overflow:hidden;text-align:start}
+.dialog[open]{display:flex;flex-direction:column}
+.dialog::backdrop{background:rgb(8 22 44 / 55%)}
+.header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:24px;border-bottom:1px solid var(--line);flex-shrink:0}
+.header h2{margin:0;font-size:24px;line-height:1.3;font-weight:700}
+.header p{margin:6px 0 0;font-size:14px;color:var(--muted);line-height:1.6}
+.iconButton{display:grid;place-items:center;min-width:44px;min-height:44px;padding:8px;border:0;border-radius:8px;background:var(--raised);color:var(--ink);cursor:pointer}
+.body{padding:24px;overflow-y:auto;overscroll-behavior:contain;min-height:0;scrollbar-color:var(--line) var(--surface);scrollbar-width:thin}
+.body h3{font-size:16px;font-weight:700;line-height:1.5;margin:0 0 16px}
+.identity{display:flex;justify-content:space-between;gap:16px;align-items:start;margin-bottom:24px;min-width:0}
+.identity>div{display:flex;flex-direction:column;min-width:0;gap:4px}
+.identity strong{font-size:16px;overflow-wrap:anywhere}
+.identity bdi{font-size:14px;color:var(--muted);overflow-wrap:anywhere}
+.identity>span{font-size:12px;color:var(--muted);flex-shrink:0;padding-top:3px}
+.identity>span[data-verified=true]{color:var(--a4)}
+.balance{padding:20px;background:var(--raised);border-radius:12px}
+.balance h3{display:flex;align-items:center;gap:8px}
+.balance h3 svg{color:var(--act)}
+.balances{display:grid;grid-template-columns:1.25fr 1fr 1fr;gap:16px;margin:0}
+.balances dt,.usage dt,.stats dt{font-size:14px;line-height:1.5;color:var(--muted)}
+.balances dd{margin:4px 0 0;font-size:24px;line-height:1.3;font-weight:700;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.available dd{color:var(--act)}
+.hint{font-size:14px;line-height:1.6;color:var(--muted);margin:12px 0 0;max-width:70ch}
+.notice{font-size:14px;line-height:1.6;color:var(--ink);margin:12px 0;padding:12px;border:1px solid var(--line);border-radius:8px}
+.section{margin-top:24px;padding-top:24px;border-top:1px solid var(--line)}
+.usage{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin:0}
+.usage dd{font-size:20px;font-weight:700;margin:4px 0 0;font-variant-numeric:tabular-nums}
+.sectionTitle{display:flex;align-items:baseline;justify-content:space-between;gap:16px}
+.sectionTitle>span{color:var(--muted);font-size:12px}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin:0}
+.stats dd{font-size:24px;font-weight:700;margin:4px 0;font-variant-numeric:tabular-nums}
+.stats small{font-size:12px;color:var(--muted);line-height:1.5;display:block}
+.history{list-style:none;margin:0;padding:0}
+.history li{display:flex;justify-content:space-between;gap:16px;padding:12px 0;border-bottom:1px solid var(--line)}
+.history li:last-child{border:0;padding-bottom:0}
+.history strong{font-size:14px;font-weight:600;display:block}
+.history time{font-size:12px;color:var(--muted);display:block;margin-top:4px}
+.history bdi{font-size:16px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.history bdi[data-positive=true]{color:var(--a4)}
+.footer{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 24px;border-top:1px solid var(--line);flex-shrink:0}
+.footer nav{display:flex;gap:16px;flex-wrap:wrap;justify-content:flex-end}
+.footer a,.refresh{display:inline-flex;align-items:center;justify-content:center;gap:6px;font:inherit;font-size:14px;font-weight:600;min-height:44px;color:var(--ink);text-decoration:underline;text-underline-offset:4px}
+.refresh{padding:0;border:0;background:transparent;cursor:pointer;text-decoration:none}
+.refresh:disabled{color:var(--muted);cursor:wait}
+.trigger:focus-visible,.dialog :is(button,a):focus-visible{outline:2px solid var(--focus-colour,var(--act));outline-offset:3px}
+.dialog ::selection{background:var(--act);color:var(--on-act)}
+@media(max-width:540px){.dialog{width:calc(100vw - 16px);max-height:calc(100dvh - 16px)}.header,.body{padding:16px}.header h2{font-size:20px}.balance{padding:16px}.balances{gap:12px;grid-template-columns:1fr 1fr}.available{grid-column:1/-1}.balances dd{font-size:22px}.identity{flex-direction:column;gap:8px}.footer{padding:12px 16px;gap:12px;flex-wrap:wrap}.footer nav{gap:12px}.stats{gap:20px 12px}}
+@media(prefers-reduced-motion:no-preference){.dialog[open]{animation:account-enter 160ms ease-out}@keyframes account-enter{from{transform:translateY(8px)}to{transform:translateY(0)}}}
+
+/* The way to buy more, always in the balance section rather than only when it
+   runs out: a teacher planning next week's lessons decides before the wall,
+   not at it. */
+.upgrade{display:flex;align-items:center;gap:10px;margin-block-start:12px;padding:12px 14px;border:1px solid var(--act);border-radius:8px;background:color-mix(in srgb,var(--act) 8%,var(--surface));color:var(--ink);text-decoration:none}
+.upgrade:hover{background:color-mix(in srgb,var(--act) 14%,var(--surface))}
+.upgrade>svg:first-child{flex:none;color:var(--act)}
+.upgrade>svg:last-child{flex:none;margin-inline-start:auto;color:var(--act)}
+.upgrade span{display:grid;gap:2px;min-width:0}
+.upgrade strong{font-size:.9375rem}
+.upgrade small{font-size:.75rem;color:var(--muted)}
+
+/* Low, not empty: amber says "top up soon", red would say "you are stuck". */
+.trigger[data-low=true]{border-color:#b06f12}
+.trigger[data-low=true]>svg{color:#b06f12}
+.trigger[data-low=true] span span{color:#8a5610;font-weight:700}
+:global(.dark) .trigger[data-low=true]{border-color:#e0a23c}
+:global(.dark) .trigger[data-low=true]>svg,:global(.dark) .trigger[data-low=true] span span{color:#e0a23c}

@@ -1107,6 +1107,8 @@ const ACTIVITIES = `${API_PREFIX}/activities`
 export type QuestionKindWire = 'mcq' | 'tf' | 'order' | 'match' | 'hotspot'
 
 export type ActivityRecord = {
+  /** Absent/null on older activities until the instructor chooses a language. */
+  contentLanguage?: string | null
   id: number
   authorId: number
   title: string
@@ -1181,6 +1183,7 @@ export const activities = {
 
   create: (input: {
     title: string
+    contentLanguage?:string
     categoryId?:number
     educationStageIds?:number[]
     countryIds?:number[]

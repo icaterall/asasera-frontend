@@ -416,7 +416,8 @@ export const imageZoneSchema = z
   })
 export type ImageZone = z.infer<typeof imageZoneSchema>
 
-const zoneList = z.array(imageZoneSchema).min(1).max(12)
+// Empty is a valid editing draft. Publication requires playable answer areas.
+const zoneList = z.array(imageZoneSchema).max(12)
 
 /**
  * Two play modes (§16 W09: «النقر على منطقة، وسحب البطاقات إلى مناطقها»).
@@ -432,7 +433,7 @@ export const hotspotClickPayloadSchema = z
     imageKey: z.string().min(1).max(500),
     zones: zoneList,
     /** Zone keys that count as correct. More than one is allowed ("click all …"). */
-    correct: z.array(elementKey).min(1),
+    correct: z.array(elementKey),
   })
   .superRefine((value, ctx) => {
     uniqueKeys(value.zones, ctx, 'zone')
@@ -448,7 +449,7 @@ export const hotspotCardPayloadSchema = z
     pointsMultiplier,
     imageKey: z.string().min(1).max(500),
     zones: zoneList,
-    cards: z.array(matchCard).min(1).max(12),
+    cards: z.array(matchCard).max(12),
     map: z.record(elementKey, elementKey),
   })
   .superRefine((value, ctx) => {
