@@ -56,7 +56,6 @@ export default function BillingPlans(){
   topup_small:label('شحنة صغيرة','Small top-up'),topup_medium:label('شحنة متوسطة','Medium top-up'),topup_large:label('شحنة كبيرة','Large top-up'),
  })[id]
  const per=(plan:BillingPlan)=>plan.period==='day'?label('ليوم واحد','for one day'):plan.period==='month'?label('شهريًا','per month'):plan.period==='year'?label('سنويًا','per year'):label('دفعة واحدة','one payment')
- const quality=(value:BillingPlan['imageQualityCeiling'])=>value==='high'?label('عالية','High'):value==='medium'?label('متوسطة','Medium'):label('منخفضة','Low')
 
  function dismiss(){const next=new URLSearchParams(params);next.delete('checkout');next.delete('session');setParams(next,{replace:true})}
  const receipt=confirmed?.userId===user.id&&confirmed.session===session?confirmed.receipt:null
@@ -114,7 +113,9 @@ export default function BillingPlans(){
    <p className={styles.price}><strong>{money(plan.priceMillicents,plan.currency)}</strong><span>{per(plan)}</span></p>
    <ul className={styles.features}>
     <li><Sparkles size={15} aria-hidden="true"/>{label(`نحو ${new Intl.NumberFormat('ar').format(plan.activities)} نشاطًا مولّدًا`,`About ${new Intl.NumberFormat('en').format(plan.activities)} generated activities`)}</li>
-    <li><Check size={15} aria-hidden="true"/>{label(`جودة صور حتى ${quality(plan.imageQualityCeiling)}`,`Image quality up to ${quality(plan.imageQualityCeiling)}`)}</li>
+    {/* The image-quality tier is no longer gated by plan — each teacher chooses
+        it and pays from their own balance — so a plan may not advertise one.
+        A feature line for a gate that does not exist is a false promise. */}
     <li><Check size={15} aria-hidden="true"/>{label(`${plan.maxOpenJobs} طلبات توليد في وقت واحد`,`${plan.maxOpenJobs} generations at once`)}</li>
     {plan.period==='year'&&<li><Check size={15} aria-hidden="true"/>{label('رصيد السنة كاملًا من أول يوم','The whole year’s credit from day one')}</li>}
    </ul>

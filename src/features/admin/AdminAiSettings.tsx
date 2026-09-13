@@ -5,7 +5,7 @@ import { CheckCircle2, CirclePause, Image, RefreshCw, Settings2, Volume2 } from 
 import { Button, FailureState, LoadingState, Select } from '@/design'
 import { useAuth } from '@/hooks/useAuth'
 import { ApiError } from '@/lib/api'
-import { aiAdministration, creditUsd, type AiModelCatalog, type AiModelPrice, type AiPolicy, type AiPriceRateKind, type AiRouteModel, type AiRoutePolicy, type AiSettings, type ImageQuality } from './api'
+import { aiAdministration, creditUsd, type AiModelCatalog, type AiModelPrice, type AiPolicy, type AiPriceRateKind, type AiRouteModel, type AiRoutePolicy, type AiSettings } from './api'
 import styles from './Admin.module.css'
 
 export default function AdminAiSettings() {
@@ -120,13 +120,12 @@ function MediaRouteSettings({route,models,reload}:{route:AiRoutePolicy&{capabili
    * applies, so it is absent rather than inert.
    */
   const qualityOptions=selected?.imageQualityOptions??[]
-  const ceiling=qualityOptions.length?policy.imageQuality??'low':null
-  const changed=policy.provider!==route.provider||policy.model!==route.model||policy.enabled!==route.enabled||ceiling!==(route.imageQuality??null)
+  const changed=policy.provider!==route.provider||policy.model!==route.model||policy.enabled!==route.enabled
   async function save(event:FormEvent) {
     event.preventDefault();if(submitting.current||!changed||conflict)return
     submitting.current=true;setBusy(true);setError('')
     try {
-      const updated=await aiAdministration.saveRoute(route.capability,{provider:policy.provider,model:policy.model,enabled:policy.enabled,imageQuality:ceiling,expectedVersion:route.version})
+      const updated=await aiAdministration.saveRoute(route.capability,{provider:policy.provider,model:policy.model,enabled:policy.enabled,expectedVersion:route.version})
       client.setQueryData(['admin-ai-settings',user?.id],updated)
       client.setQueryData(['admin-ai-settings-saved',user?.id],true)
     } catch(e) {
@@ -145,9 +144,21 @@ function MediaRouteSettings({route,models,reload}:{route:AiRoutePolicy&{capabili
       <label>{t('model')}<Select value={policy.model} aria-label={`${t('model')} ${title}`} disabled={busy||conflict||models.length===0} dir="ltr" onValueChange={model=>setPolicy(current=>({...current,model}))}>
         {models.filter(model=>model.provider===policy.provider).map(model=><option key={model.id} value={model.id}>{model.id}</option>)}
       </Select></label>
-      {qualityOptions.length>0&&<label>{t('imageQualityCeiling')}<Select value={ceiling??'low'} aria-label={t('imageQualityCeiling')} disabled={busy||conflict} onValueChange={value=>setPolicy(current=>({...current,imageQuality:value as ImageQuality}))}>
-        {qualityOptions.map(option=><option key={option.quality} value={option.quality}>{`${t(option.quality==='low'?'lowQuality':option.quality==='medium'?'mediumQuality':'highQuality')} · ≈ ${option.outputTokens.toLocaleString()} ${t('outputTokens')}`}</option>)}
-      </Select><small>{t('imageQualityCeilingLead')}</small></label>}
+      {/*
+        The ceiling control is gone: each teacher chooses the tier and pays for
+        it from their own wallet, which already refuses what it cannot afford.
+        The tiers and their token costs stay visible here — an administrator
+        still needs to know what the route can cost — but they are a price list
+        now, not a control.
+      */}
+      {qualityOptions.length>0&&<div className={styles.qualityReference}>
+        <strong>{t('imageQualityCeiling')}</strong>
+        <ul>{qualityOptions.map(option=><li key={option.quality}>
+          <span>{t(option.quality==='low'?'lowQuality':option.quality==='medium'?'mediumQuality':'highQuality')}</span>
+          <small dir="auto">{`≈ ${option.outputTokens.toLocaleString()} ${t('outputTokens')}`}</small>
+        </li>)}</ul>
+        <small>{t('imageQualityCeilingLead')}</small>
+      </div>}
       <ModelPrice price={selected?.price}/>
       <label className={styles.aiToggle}><input type="checkbox" checked={policy.enabled} disabled={busy||conflict} onChange={event=>setPolicy(current=>({...current,enabled:event.target.checked}))}/>{t('enableRoute',{capability:title})}</label>
       <p role="status">{status}</p>

@@ -116,7 +116,18 @@ export default function TeacherHome() {
   return <div className={`asas ${styles.page} ${home.dashboard}`}>
     <header className={home.greeting}>
       <span className={home.greetingIcon}><Sun size={28} strokeWidth={2} aria-hidden="true" /></span>
-      <div><h1>{ar ? 'أهلًا بعودتك' : 'Welcome back'}{name ? <>, <bdi>{name}</bdi></> : ''}!</h1><p>{ar ? 'كل ما تحتاجه لحصة مميزة، في مكان واحد.' : 'Everything for a great class, all in one place.'}</p></div>
+      {/*
+        BIDI: the punctuation has to sit on the correct side of the name.
+        `<bdi>` isolated the Latin name correctly, but the "!" was left outside
+        it — in an RTL paragraph a trailing neutral resolves to the paragraph
+        direction and jumps to the far LEFT of the line, so an Arabic teacher
+        read "!Ashraf ،أهلًا بعودتك" with the mark detached from the name it
+        belongs to. Arabic takes its own comma and no exclamation; English keeps
+        both, inside the same isolate as the name.
+      */}
+      <div><h1>{ar
+        ? <>أهلًا بعودتك{name ? <>، <bdi>{name}</bdi></> : ''}</>
+        : <>Welcome back{name ? <>, <bdi>{name}</bdi></> : ''}!</>}</h1><p>{ar ? 'كل ما تحتاجه لحصة مميزة، في مكان واحد.' : 'Everything for a great class, all in one place.'}</p></div>
     </header>
 
     <section className={home.hero} aria-labelledby="create-next-activity">

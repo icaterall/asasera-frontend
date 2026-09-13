@@ -21,6 +21,16 @@ const question:PublicQuestion={
 }
 const evaluatePreview=(answer:Parameters<typeof markAnswer>[2])=>markAnswer('hotspot',{...question.payload,map:{milk:'milk-zone'}},answer)
 
+test.each(['tf','hotspot'] as const)('renders attached video in the %s learner view without autoplay',kind=>{
+  const payload:PublicQuestion['payload']=kind==='tf'?{kind:'tf',options:[{key:'true',text:'True'},{key:'false',text:'False'}]}:question.payload
+  render(<I18nextProvider i18n={language}><QuestionInput question={{...question,payload,videoId:'abcdefghijk',videoStartS:5,videoEndS:20}} onAnswer={vi.fn()} preview/></I18nextProvider>)
+  const src=screen.getByTitle('Attached video').getAttribute('src')!
+  expect(src).toContain('youtube-nocookie.com/embed/abcdefghijk')
+  expect(src).toContain('start=5')
+  expect(src).toContain('end=20')
+  expect(src).not.toContain('autoplay')
+})
+
 test('learner preview accepts a real placement, checks it locally, and locks the completed attempt',()=>{
   const answer=vi.fn()
   render(<I18nextProvider i18n={language}><QuestionInput question={question} onAnswer={answer} preview interactivePreview evaluatePreview={evaluatePreview}/></I18nextProvider>)

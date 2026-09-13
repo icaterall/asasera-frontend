@@ -1,0 +1,5 @@
+.video{width:100%;max-width:720px;min-width:0;margin:12px auto}
+.video iframe{display:block;width:100%;aspect-ratio:16/9;border:0;border-radius:6px;background:#000}
+.video figcaption{padding-block:8px;font-size:13px;text-align:end}
+.video a{color:var(--act-ink,var(--act));text-decoration:underline;text-underline-offset:3px}
+.video a:focus-visible{outline:2px solid var(--act);outline-offset:3px}

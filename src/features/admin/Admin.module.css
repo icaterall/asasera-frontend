@@ -299,3 +299,11 @@
 :global(.dark) .planFigures { border-top-color: #43516a; }
 :global(.dark) .planState[data-state=ready] { background: #143a2c; color: #8fe3c0; }
 :global(.dark) .planState[data-state=blocked] { background: #3a1c22; color: #ffb3bd; }
+
+/* A price list, not a control. Kept beside the route so an administrator can
+   still see what an image can cost, now that the teacher is the one choosing. */
+.qualityReference{display:grid;gap:6px;padding:13px 14px;border:1px solid #dce3ee;border-radius:8px;background:#f8fafc}
+.qualityReference>strong{font-size:13px}
+.qualityReference ul{display:grid;gap:4px;margin:0;padding:0;list-style:none}
+.qualityReference li{display:flex;justify-content:space-between;gap:12px;font-size:13px}
+.qualityReference small{color:var(--muted);font-size:12px;font-variant-numeric:tabular-nums}

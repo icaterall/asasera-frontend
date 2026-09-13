@@ -58,6 +58,34 @@ beforeEach(() => {
 })
 afterEach(() => {cleanup(); vi.restoreAllMocks(); sessionStorage.clear(); void language.changeLanguage('en')})
 
+it('saves the selected video, restores it after reload, and saves removal', async () => {
+  vi.spyOn(api, 'get').mockImplementation(async path => path.includes('video-suggestions')
+    ? {suggestions: [{videoId: 'abcdefghijk', title: 'Computer history', channel: 'Educator', thumbnail: null}], query: '', source: 'cache'}
+    : {capabilities: {imageCreation: {state: 'ready'}, videoSuggestions: {state: 'ready'}}})
+  const view = await editor()
+  fireEvent.click(screen.getByRole('button', {name: 'Find and insert media (Optional)'}))
+  fireEvent.click(await screen.findByRole('button', {name: 'YouTube', exact: true}))
+  fireEvent.click(await screen.findByRole('button', {name: 'Use this video'}))
+  fireEvent.change(screen.getByLabelText('Start video at'),{target:{value:'00:05'}})
+  fireEvent.change(screen.getByLabelText('End video at'),{target:{value:'00:25'}})
+  fireEvent.click(screen.getByRole('button',{name:'Add video',exact:true}))
+  expect(screen.queryByRole('dialog')).toBeNull()
+  expect(readDraft(key, editorDraftSchema)?.questions[5]?.patch.videoId).toBe('abcdefghijk')
+  await waitFor(() => expect(activities.updateQuestion).toHaveBeenCalledWith(5, expect.objectContaining({videoId: 'abcdefghijk',videoStartS:5,videoEndS:25, expectedRevision: 3})), {timeout: 2500})
+  await waitFor(() => expect(sessionStorage.getItem(key)).toBeNull())
+  view.unmount()
+  vi.mocked(activities.load).mockResolvedValue(load([{...q1, videoId: 'abcdefghijk',videoStartS:5,videoEndS:25, revision: 4}, q2]))
+  await editor()
+  expect(screen.getByTitle('Attached video').getAttribute('src')).toContain('/embed/abcdefghijk')
+  fireEvent.click(screen.getByRole('button',{name:'Edit timeframe'}))
+  expect((screen.getByLabelText('Start video at') as HTMLInputElement).value).toBe('00:05')
+  expect((screen.getByLabelText('End video at') as HTMLInputElement).value).toBe('00:25')
+  fireEvent.click(screen.getByRole('button',{name:'Close',exact:true}))
+  fireEvent.click(screen.getByRole('button', {name: 'Remove video'}))
+  expect(screen.queryByTitle('Attached video')).toBeNull()
+  await waitFor(() => expect(activities.updateQuestion).toHaveBeenLastCalledWith(5, expect.objectContaining({videoId: null,videoStartS:null,videoEndS:null, expectedRevision: 4})), {timeout: 2500})
+})
+
 it('shows the branded spinner immediately while preparing the AI dialog and stops once it opens', async () => {
   await editor()
   let finish!: (value: ReturnType<typeof load>) => void

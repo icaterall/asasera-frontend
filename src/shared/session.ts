@@ -29,6 +29,9 @@ export type PublicPayload = z.infer<typeof publicPayloadSchema>
 export const publicQuestionSchema = z.object({
   id: z.number().int(), qIndex: z.number().int(), prompt: z.string(), media: z.string().nullable(),
   timeLimitS: z.number(), payload: publicPayloadSchema,
+  videoId:z.string().regex(/^[A-Za-z0-9_-]{11}$/).nullish(),
+  videoStartS:z.number().int().min(0).max(86400).nullish(),
+  videoEndS:z.number().int().min(1).max(86400).nullish(),
 })
 export type PublicQuestion = z.infer<typeof publicQuestionSchema>
 const standing = z.object({ participantId: z.string(), name: z.string(), score: z.number(), correctCount: z.number(), rank: z.number(), tied: z.boolean() })

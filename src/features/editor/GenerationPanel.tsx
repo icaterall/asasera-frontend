@@ -1,5 +1,6 @@
 import {QuestionCandidate,type ReviewCandidate} from './QuestionCandidate'
 import {CreationChoices} from './CreationChoices'
+import {FileMetadataStatus} from './FileMetadataStatus'
 import {z} from 'zod'
 import {generationInputSchema} from '@/shared/generation'
 import {contentLanguageSchema,contentLanguageName,defaultContentLanguage} from '@/shared/content-language'
@@ -193,6 +194,7 @@ export function GenerationPanel({startWithChoices=false,activity,question,onClos
      <label>{ar?'لغة الأسئلة':'Question language'}<input readOnly value={contentLanguageName(language,i18n.language)} aria-label={ar?'لغة الأسئلة':'Question language'} dir="auto"/><small>{mode==='extract'?(ar?'تُحفظ صياغة المصدر عند الاستخراج.':'Extraction keeps the source wording.'):(ar?'لغة هذا النشاط. غيّرها من إعدادات النشاط.':'This activity’s language. Change it in the activity settings.')}</small></label><label>{t('format')}<Select disabled={!!pending||!!submitted} value={kinds.length===2?'mixed':kinds[0]} onValueChange={v=>{setKinds(v==='mixed'?['mcq','tf']:[v]);setSubmitted(undefined)}}>{['mixed','mcq','tf'].map(v=><option value={v} key={v}>{t(v)}</option>)}</Select></label><label>{ar?'أسلوب الصياغة':'Tone'}<Select disabled={!!pending||!!submitted||mode==='extract'} value={tone} onValueChange={v=>setTone(v as typeof tone)}><option value="clear">{ar?'واضح ومباشر':'Clear and direct'}</option><option value="conversational">{ar?'حواري':'Conversational'}</option><option value="formal">{ar?'رسمي':'Formal'}</option></Select></label></div></details>}
     {replacement&&fileOrigin&&!revisionId&&<p role="alert">{t('noText')}</p>}
     {fileOrigin&&revisionId&&<section className={styles.fileSummary}><strong><FileText size={18} aria-hidden="true"/> {title}</strong>{revision.isPending||['pending','running'].includes(revision.data?.revision.state??'')?<LoadingIndicator label={t('processing')}/>:revision.isError?<p role="alert">{t('failed')}</p>:revision.data?.revision.state==='failed'?<p role="alert">{t('noText')}</p>:<>
+     {revision.data?.revision.sourceKind==='pdf'&&<FileMetadataStatus key={revisionId} revisionId={revisionId}/>}
      {pages.isPending&&<LoadingIndicator label={t('loadPages')}/>}
      {(!!revision.data?.revision.unreadableSegments||(pages.data?.segments??[]).some(s=>s.warning==='unreadable'||!s.text.trim()))&&<p className={styles.muted}>{t('unreadable')} {(pages.data?.segments??[]).filter(s=>s.warning==='unreadable'||!s.text.trim()).map(s=>number(s.pageIndex??s.segmentIndex)).join(', ')}</p>}
      {!replacement&&<>

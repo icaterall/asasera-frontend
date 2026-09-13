@@ -41,6 +41,9 @@ export const questionPatchSchema = z.object({
   kind: z.enum(['mcq', 'tf', 'order', 'match', 'hotspot']), prompt: z.string(),
   payload: z.record(z.string(), z.unknown()), timeLimitS: z.number(),
   mediaKey: z.string().nullable(), confirmZones: z.boolean(),
+  videoId: z.string().regex(/^[A-Za-z0-9_-]{11}$/).nullable().optional(),
+  videoStartS: z.number().int().min(0).max(86400).nullable().optional(),
+  videoEndS: z.number().int().min(1).max(86400).nullable().optional(),
   explanation: z.string().nullable().optional(),
   errorPairs: z.array(z.object({ elementKey: z.string(), wrongTargetKey: z.string().nullable(), reason: z.string() })),
 })

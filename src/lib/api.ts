@@ -1134,6 +1134,9 @@ export type QuestionRecord = {
   kind: QuestionKindWire
   prompt: string
   mediaKey: string | null
+  videoId?: string | null
+  videoStartS?: number | null
+  videoEndS?: number | null
   timeLimitS: number
   payload: unknown
   /** Why the key is correct; shown to learners only after the answer window closes (v5 §14). */

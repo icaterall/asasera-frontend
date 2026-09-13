@@ -11,6 +11,7 @@ import type {ImageZone} from '@/shared/questions'
 import type { AnswerPayload,OrderEvidence } from '@/shared/questions'
 import type {MarkResult} from '@/shared/scoring'
 import {mediaUrl} from '@/features/editor/ImageUpload'
+import {QuestionVideo} from '@/components/QuestionVideo'
 import styles from './Session.module.css'
 
 /**
@@ -169,7 +170,8 @@ export function QuestionInput({question,onAnswer,disabled=false,projectorOnly=fa
       :(ar?'ليست صحيحة بعد. استخدم «جرّب من جديد» ثم أعد المحاولة.':'Not quite. Use Try again to reset the preview and attempt it again.')}
   </p>
   const sensors=useSensors(useSensor(PointerSensor,{activationConstraint:{distance:8}}),useSensor(TouchSensor,{activationConstraint:{delay:180,tolerance:8}}),useSensor(KeyboardSensor,{coordinateGetter:sortableKeyboardCoordinates}))
-  if(p.kind==='mcq'||p.kind==='tf')return <>{!projectorOnly&&question.media&&<img data-question-media="" className={styles.questionMedia} src={mediaUrl(question.media)} alt={question.prompt}/>}<div data-answer-grid="" data-layout={projectorOnly?'shape':'text'} className={`${styles.answers} ${projectorOnly?styles.phoneAnswers:''}`}>
+  const video=!projectorOnly&&<QuestionVideo videoId={question.videoId} start={question.videoStartS} end={question.videoEndS}/>
+  if(p.kind==='mcq'||p.kind==='tf')return <>{video}{!projectorOnly&&question.media&&<img data-question-media="" className={styles.questionMedia} src={mediaUrl(question.media)} alt={question.prompt}/>}<div data-answer-grid="" data-layout={projectorOnly?'shape':'text'} className={`${styles.answers} ${projectorOnly?styles.phoneAnswers:''}`}>
     {p.options.map((o,i)=><AnswerTile key={o.key} slot={(Math.min(i,5)+1)as AnswerSlot} label={p.kind==='tf'?(o.key==='true'?(ar?'صح':'True'):(ar?'خطأ':'False')):o.text}
       trailing={'image'in o&&o.image&&!projectorOnly?<img src={mediaUrl(o.image)} alt={o.text}/>:undefined}
       locale={ar?'ar':'en'} shapeOnly={projectorOnly} className={styles.answer} data-answer-tile="" disabled={disabled||(interactivePreview&&previewResult!==null)} aria-disabled={preview&&!interactivePreview||undefined} tabIndex={preview&&!interactivePreview?-1:undefined}
@@ -189,6 +191,7 @@ export function QuestionInput({question,onAnswer,disabled=false,projectorOnly=fa
     const card=draggableCards.find(item=>item.key===String(event.active.id))
     setDraggedCard(card?{id:card.key,text:card.text}:null)
   }} onDragCancel={()=>setDraggedCard(null)} onDragEnd={event=>{dragEnd(event);setDraggedCard(null)}}>
+    {video}
     {(p.kind==='order'||p.kind==='match')&&question.media&&<img className={styles.questionMedia} src={mediaUrl(question.media)} alt={question.prompt}/>}
     {p.kind==='order'&&<><p>{ar?'رتّب العناصر بالترتيب الصحيح. اسحب أو استخدم زري الأعلى والأسفل.':'Put the items in the correct order. Drag, or use the up and down buttons.'}</p>
       <SortableContext items={displaySequence} strategy={verticalListSortingStrategy}><ol className={styles.orderList}>{displaySequence.map((key,index)=><SortItem key={key} id={key} index={index} count={sequence.length} text={p.items.find(i=>i.key===key)!.text} disabled={!interactive}

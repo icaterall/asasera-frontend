@@ -736,3 +736,117 @@ Correct-answer radios sit inside the answer rectangles and render as circular gr
 ### Question properties — 11 September 2026
 
 The properties panel follows the supplied reference: title and close action, section icons, separators, dropdown time limits, an underlined apply-to-all action, and descriptive Standard / Double points / No points choices. It closes and reopens on desktop as well as in the mobile drawer; Arabic uses logical layout. Points are stored in the question payload, included in approved versions, and applied by the server scoring engine; omitted values remain standard. No points preserves correctness without adding leaderboard points. This scoring change requires deployment of the updated backend, with no additional database migration. Browser checks cover English desktop and Arabic mobile persistence, timer application, and closing/reopening; 22 session tests and 42 marking tests passed. Unique editor keys and ignoring unchanged initialization updates prevent duplicate fields and unnecessary autosave cycles.
+
+### Saved PDF analysis — 13 September 2026
+
+The file page-selector includes a compact `FileMetadataStatus` disclosure. It uses
+the existing surface, line, muted-text and accessible action-ink tokens, with 6px
+corners and a 44px keyboard-focusable summary. Saved analysis says “No balance
+used”; expanded content shows its summary, source language and topics, with a
+reminder that later content generation uses balance normally. Pending or
+unavailable analysis never disables page selection or displays a blocking spinner.
+The analysis query is keyed by revision, not the current page selection.
+
+Finish review: retained the existing visual system and reviewed English desktop
+(1440px), Arabic mobile (390px) and dark mobile (390px) component captures.
+Keyboard disclosure, wrapping, no horizontal overflow, no console errors and
+idempotent old-file enqueue passed four browser checks. Verdict: ready for the
+coordinated backend release; this is component-fixture verification, not a claim
+that a paid AI provider or production deployment has been exercised. No new
+raster asset was introduced.
+
+### Single-window image creation — 13 September 2026
+
+Image Creator now embeds its actual form inside the Media picker instead of
+launching a second dialog. There is one description, one quality selector and
+one generate action. The form remains mounted across media-tab changes so the
+description is retained; existing saved-request recovery survives closing and
+reopening. Direct image-question entry still uses a single standalone dialog.
+The footer shows the signed quote's estimated/maximum balance cost (رصيد), not
+provider output-token counts or speculative images-per-balance arithmetic.
+Quality changes clear the old quote and disable generation until saving and
+repricing finish. After submission, the description becomes a disclosure and
+the preview/review check take priority. Use this image remains disabled until
+the image loads and the instructor confirms review.
+
+The embedded layout preserves the current blue actions, semantic theme tokens,
+fonts and navigation. Its footer stays visible; quality choices remain three
+compact controls on mobile. Finish review: the regression first reproduced two
+open dialogs, then passed with one throughout generation and application.
+Three browser journeys cover English desktop, Arabic mobile and dark mobile;
+three component tests cover estimation, interrupted-response recovery and
+quality-change price locking. Build and media-policy checks passed. Verdict:
+ready locally, not deployed. Browser responses and the review image are fixture
+data, not a live provider run or new shipping image asset.
+
+### Choose a question video — 13 September 2026
+
+Each YouTube suggestion now has an explicit blue “Use this video” / “استخدم
+هذا الفيديو” action, separate from playback. Selection closes the same Media
+window and attaches the video through the editor's existing autosave and draft
+recovery path. The attached player has Replace video and Remove video controls;
+replacement also accepts a pasted YouTube link. No extra confirmation modal,
+credit charge, or autoplay was introduced. IDs, not arbitrary iframe markup,
+are persisted. Published learner questions carry the video and existing clip
+bounds without exposing the answer key; old snapshots still parse.
+
+Finish review: retained theme colors and typography, with 44px selection and
+management controls and a fluid 16:9 player. Desktop English and 390px Arabic
+captures were inspected; selection, keyboard replacement, removal, and no
+horizontal dialog overflow passed. Thirty component tests, two database/public
+contract regressions, and five browser journeys (including the three image
+creation regressions) passed. Both builds and the shared-contract check passed.
+Verdict: ready locally, not deployed. Browser YouTube playback was intercepted
+with a fixture; external video availability is not guaranteed by these tests.
+Release with the existing question-video migration 0045 and corresponding
+backend changes, not a frontend-only deployment.
+
+### Video timeframe extension — 14 September 2026
+
+This extension supersedes the immediate-attachment behavior above. Selecting a
+video advances within the same Media dialog to `VideoClipEditor`: a preview,
+labeled start/end fields, Preview clip, Back and Add video. The attached player
+shows its timeframe with Edit timeframe, Replace video and Remove video actions;
+editing reopens the saved bounds. Fields accept seconds, minutes:seconds or
+hours:minutes:seconds, including Arabic and Persian digits. A blank end plays the
+rest of the video. Invalid times disable preview and save with a written error;
+values must be within 0–86400 seconds and an explicit end must follow the start.
+
+The existing neutral surfaces, blue actions and bilingual type remain. Time
+fields stay left-to-right with tabular numerals, two columns and 48px minimum
+height; mobile reduces spacing and gives the footer actions equal width.
+`QuestionVideo` previews the selected bounds through YouTube embed parameters,
+not exact-frame trimming. Bounds follow the existing autosave and draft-recovery
+path; replacement or removal clears the previous bounds. This uses the existing
+0045 columns and corresponding backend changes, with no additional migration.
+
+Finish review: ship for the supplied English desktop (1440px) and Arabic mobile
+(390px) captures, [desktop](.impeccable/review/video-time-1440.png) and
+[mobile](.impeccable/review/video-time-390.png); the minor footer-copy advisory was
+corrected. Forty-six frontend tests, 39 backend activity/duplication/video tests
+and five browser journeys including image creation passed, alongside both
+builds and the shared-contract check. Browser YouTube playback used an
+intercepted fixture; actual external playback and bounds against the video's
+real duration remain unverified. Ready locally, not deployed. No new shipping
+raster or durable design-system rule was introduced; the sidecar is unchanged.
+
+### Attached video card — 14 September 2026
+
+The user's supplied attached-video reference now governs the editor card:
+a centered, fluid 16:9 player (up to 600px), flush against a lavender action bar,
+rounded lower corners and a soft downward shadow. Three square icon buttons
+provide timeframe editing, video information and removal. Information expands
+the saved bounds, YouTube link and replacement action inline; those details no
+longer occupy the default card. Accessible bilingual names, tooltips and focus
+rings accompany the icons. The user's follow-up requested a smaller frame;
+the width cap is now 600px, with a compact 64px bar and 44px controls at every
+screen size. The bar mirrors in Arabic. Dark mode uses a deep-purple bar and the
+existing dark control surfaces. The player in learner views is unchanged.
+
+Finish: inspected English desktop, Arabic mobile and dark mobile captures.
+Six browser journeys and 27 editor/learner component tests passed, including
+timeframe editing, information disclosure, replacement and deletion. Typecheck
+passed. Screenshot players use labeled, intercepted fixtures; no real YouTube
+playback or production deployment is claimed. The lavender card colors are an
+intentional local exception pinned by the user's reference, not a global theme
+change. Existing unrelated media-picker detector warnings were left untouched.

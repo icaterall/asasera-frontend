@@ -32,7 +32,7 @@ import {AdvancedCanvas,defaultPayload} from './AdvancedCanvas'
 import {GenerationPanel} from './GenerationPanel'
 import {QuestionSource,SourceMarker,readProvenance} from './SourceChip'
 import {MediaField} from './MediaPicker'
-import {ImageQuestionEntry} from './ImageCreator'
+import {ImageCreationProvider,ImageQuestionEntry} from './ImageCreator'
 import styles from './Editor.module.css'
 import { McqCanvas, TfCanvas, MIN_OPTIONS, MAX_OPTIONS, type McqOption } from './McqCanvas'
 import { OrderCanvas } from './OrderCanvas'
@@ -374,6 +374,9 @@ function ActivityEditorWorkspace() {
         timeLimitS: next.timeLimitS,
         mediaKey:next.mediaKey,
         confirmZones:confirmZonesFor.current===next.id,
+        ...(next.videoId!==undefined?{videoId:next.videoId}:{}),
+        ...(next.videoStartS!==undefined?{videoStartS:next.videoStartS}:{}),
+        ...(next.videoEndS!==undefined?{videoEndS:next.videoEndS}:{}),
         /* Same key order as questionPatchSchema: the journal compares serialized patches after a zod round-trip. */
         explanation:next.explanation??null,
         errorPairs:(dataRef.current?.errorPairs??[]).filter(p=>p.questionId===next.id).map(({elementKey,wrongTargetKey,reason})=>({elementKey,wrongTargetKey,reason})),
@@ -485,7 +488,7 @@ function ActivityEditorWorkspace() {
     if (questionBaseline.current?.id !== active.id) questionBaseline.current = {id: active.id, question: active}
   }, [active])
 
-  const editedFields = (q: QuestionRecord) => JSON.stringify([q.kind, q.prompt, q.payload, q.mediaKey, q.timeLimitS, q.explanation ?? null])
+  const editedFields = (q: QuestionRecord) => JSON.stringify([q.kind, q.prompt, q.payload, q.mediaKey, q.videoId??null, q.videoStartS??null, q.videoEndS??null, q.timeLimitS, q.explanation ?? null])
   const questionEdited = !!active && !!questionBaseline.current && questionBaseline.current.id === active.id
     && editedFields(questionBaseline.current.question) !== editedFields(active)
 
@@ -508,8 +511,8 @@ function ActivityEditorWorkspace() {
   const undoQuestion = useCallback(() => {
     const baseline = questionBaseline.current
     if (!baseline || baseline.id !== activeIdRef.current) return
-    const {kind, prompt, payload, mediaKey, timeLimitS, explanation} = baseline.question
-    patchActiveRef.current?.({kind, prompt, payload, mediaKey, timeLimitS, explanation: explanation ?? null})
+    const {kind, prompt, payload, mediaKey, videoId, videoStartS, videoEndS, timeLimitS, explanation} = baseline.question
+    patchActiveRef.current?.({kind, prompt, payload, mediaKey, videoId:videoId??null, videoStartS:videoStartS??null, videoEndS:videoEndS??null, timeLimitS, explanation: explanation ?? null})
   }, [])
 
   const openGeneration = async (replacement = false) => {
@@ -936,6 +939,11 @@ function ActivityEditorWorkspace() {
                 arrives. That waiting state belongs on the canvas, where the
                 teacher is looking, rather than in the properties rail.
               */}
+              {/* Every media picker below this point can reach the creator: it
+                  needs the activity, the question and a flushed autosave before
+                  it may ask what an image would cost, and those three are only
+                  known here. */}
+              <ImageCreationProvider activityId={activityId} questionId={active.id} onPrepare={()=>questionSave.flushNow()} videoId={active.videoId??null} videoStartS={active.videoStartS??null} videoEndS={active.videoEndS??null} onVideo={(videoId,videoStartS=null,videoEndS=null)=>patchActive({videoId,videoStartS,videoEndS})}>
               {chooseHotspot&&<ImageQuestionEntry activityId={activityId} questionId={active.id} onPrepare={()=>questionSave.flushNow()}
                   onImage={mediaKey=>{patchActive({kind:'hotspot',mediaKey,payload:defaultPayload('hotspot',mediaKey)});setChooseHotspot(false)}}
                   />}
@@ -985,6 +993,8 @@ function ActivityEditorWorkspace() {
                   onCorrect={(value) => patchActive({ payload: { correct: value } })}
                 />
               )}
+
+              </ImageCreationProvider>
 
               {/* v5 §14/§18: why the key is correct. Shown to learners only after the answer window closes. */}
               <label className={styles.explanationField}>
