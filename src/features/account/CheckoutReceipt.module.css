@@ -1,5 +1,13 @@
 /* A moment, not a page. Centred, one column, and short enough that the two
    numbers that matter are both above the fold on a phone. */
+.inline { padding: 16px; border: 1px solid var(--line); border-radius: var(--r-card); background: var(--surface); color: var(--ink); min-inline-size: 0; }
+.inline h2 { margin: 0; font-size: 1.125rem; font-weight: 700; }
+.inline p { margin: 8px 0; line-height: 1.65; font-size: .9375rem; max-inline-size: 75ch; }
+.inline .actions { justify-content: flex-start; margin: 8px 0 0; }
+.inline .secondary { color: var(--ink); }
+.inline summary { cursor: pointer; min-block-size: 44px; align-content: center; font-size: .875rem; }
+.inline bdi { display: block; overflow-wrap: anywhere; font-size: .875rem; }
+.inline summary:focus-visible { outline: 3px solid var(--act); outline-offset: 2px; }
 .receipt {
   max-inline-size: 520px; margin: 8px auto 28px; padding: 28px 24px 24px;
   display: grid; justify-items: center; gap: 14px; text-align: center;

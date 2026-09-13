@@ -83,7 +83,7 @@ function AccountDialog({user,wallet,walletFailed,walletBusy,refreshWallet,onClos
     {/* Always here, not only when the balance is low: a teacher deciding
         whether to build ten activities this week needs to know the option
         exists before they run out, not after. */}
-    <Link className={styles.upgrade} to="/teacher/billing" onClick={onClose}>
+    <Link className={styles.upgrade} to="/teacher/billing?view=plans" onClick={onClose}>
      <Zap size={18} aria-hidden="true"/>
      <span><strong>{t('ارفع خطتك أو أضف رصيدًا','Upgrade or add credit')}</strong>
       <small>{t('من ٤ دولارات شهريًا · وكل شهر رصيد مجاني','From $4 a month · plus free credit every month')}</small></span>

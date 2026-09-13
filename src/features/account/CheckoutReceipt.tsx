@@ -4,6 +4,7 @@ import {useTranslation} from 'react-i18next'
 import {Link} from 'react-router-dom'
 import {ArrowUpRight,Check,Sparkles,Wand2} from 'lucide-react'
 import {LoadingIndicator} from '@/design'
+import {useAuth} from '@/hooks/useAuth'
 import {billing,type BillingPlanId,type CheckoutReceipt as Receipt} from './instructor-account-api'
 import styles from './CheckoutReceipt.module.css'
 
@@ -22,20 +23,22 @@ import styles from './CheckoutReceipt.module.css'
  * an empty box: it says the payment is in, names what is still happening, and
  * never claims a number it does not yet have.
  */
-export function CheckoutReceipt({session,onDone}:{session:string;onDone:()=>void}){
+export function CheckoutReceipt({session,onDone,onRecorded,compact=false}:{session:string;onDone:()=>void;onRecorded?:(receipt:Extract<Receipt,{state:'recorded'}>)=>void;compact?:boolean}){
  const {i18n}=useTranslation(),ar=i18n.language.startsWith('ar'),t=(a:string,e:string)=>ar?a:e
+ const {user}=useAuth()
  const [waited,setWaited]=useState(0)
  const client=useQueryClient()
  const query=useQuery({
-  queryKey:['checkout-receipt',session],
+  queryKey:['checkout-receipt',user?.id,session],
   queryFn:({signal})=>billing.receipt(session,signal),
+  enabled:user?.role==='teacher',
   retry:1,
   // Polls only while the webhook is outstanding, and gives up after half a
   // minute: an event that never arrives is an operator problem, not something
   // to keep asking the API about for the rest of the visit.
-  refetchInterval:query=>query.state.data?.state==='recorded'||waited>30?false:2_000,
+  refetchInterval:query=>query.state.data?.state==='recorded'||query.state.status==='error'||waited>=30?false:2_000,
  })
- useEffect(()=>{const timer=setInterval(()=>setWaited(value=>value+2),2_000);return()=>clearInterval(timer)},[])
+ useEffect(()=>{if(query.data?.state==='recorded'||query.isError||waited>=30)return;const timer=setTimeout(()=>setWaited(30),30_000);return()=>clearTimeout(timer)},[waited,query.data?.state,query.isError])
 
  /*
   * The balance elsewhere is refreshed HERE, when the purchase is confirmed —
@@ -51,7 +54,9 @@ export function CheckoutReceipt({session,onDone}:{session:string;onDone:()=>void
   void client.invalidateQueries({queryKey:['instructor-wallet']})
   void client.invalidateQueries({queryKey:['instructor-account-overview']})
   void client.invalidateQueries({queryKey:['billing-plans']})
+  void client.invalidateQueries({queryKey:['billing-purchases']})
  },[recordedState,client])
+ useEffect(()=>{if(query.data?.state==='recorded')onRecorded?.(query.data)},[query.data,onRecorded])
 
  const data=query.data
  const nf=new Intl.NumberFormat(ar?'ar':'en')
@@ -62,13 +67,28 @@ export function CheckoutReceipt({session,onDone}:{session:string;onDone:()=>void
 
  const recorded=data?.state==='recorded'?data:null
  const before=recorded?recorded.balanceAiCredits-recorded.addedAiCredits:null
+ if(compact&&recorded)return null
+
+ // Payment verification must never lock access to the existing account. The
+ // dashboard remains usable while this independent notice waits or retries.
+ if(compact&&!recorded)return <section className={styles.inline} aria-live="polite">
+  <div><h2>{query.isError?t('تعذّر التحقق من الدفع','Payment confirmation unavailable'):waited>=30?t('تأخر تأكيد الدفع','Payment confirmation delayed'):t('جارٍ التحقق من الدفع','Confirming your payment')}</h2>
+   <p>{waited>=30||query.isError?t('لم تُسجّل إضافة الرصيد بعد. لا تدفع مرة أخرى. يمكنك مراجعة رصيدك ومشترياتك أدناه أثناء التحقق.','The credit addition is not recorded yet. Don’t pay again. You can review your balance and purchases below while we check.'):t('ننتظر تسجيل عملية الدفع. رصيدك الحالي ومشترياتك متاحان أدناه.','We’re waiting for the payment to be recorded. Your current balance and purchases remain available below.')}</p>
+   <details><summary>{t('مرجع الدفع','Payment reference')}</summary><bdi>{session}</bdi></details>
+  </div>
+  <div className={styles.actions}>
+   {(waited>=30||query.isError)&&<button type="button" className={styles.secondary} disabled={query.isFetching} onClick={()=>{setWaited(0);void query.refetch()}}>{t('تحقق مجددًا','Check again')}</button>}
+   <Link to="/contact" className={styles.secondary}>{t('الدعم','Support')}</Link>
+   <button type="button" className={styles.secondary} onClick={onDone}>{t('إخفاء التنبيه','Dismiss notice')}</button>
+  </div>
+ </section>
 
  return <section className={styles.receipt} aria-live="polite">
-  <div className={styles.badge}><Check size={22} aria-hidden="true"/></div>
-  <h2>{recorded?t('رصيدك جاهز','Your credit is ready'):t('تمّ الدفع بنجاح','Payment successful')}</h2>
+  {recorded&&<div className={styles.badge}><Check size={22} aria-hidden="true"/></div>}
+  <h2>{recorded?t('رصيدك جاهز','Your credit is ready'):query.isError?t('تعذّر التحقق من الدفع','Payment confirmation unavailable'):t('جارٍ التحقق من الدفع','Confirming your payment')}</h2>
   <p className={styles.lead}>
    {recorded?t(`${planName(recorded.plan)} · ${money(recorded.paidMillicents,recorded.currency)}`,`${planName(recorded.plan)} · ${money(recorded.paidMillicents,recorded.currency)}`)
-    :t('يُضاف رصيدك الآن، انتظر ثوانٍ.','Your credit is being added — just a few seconds.')}
+    :t('ننتظر تسجيل عملية الدفع قبل تحديث رصيدك.','We’re waiting for the payment to be recorded before updating your balance.')}
   </p>
 
   {/* Old → added → new. The arithmetic a person does in their head anyway,
@@ -77,7 +97,7 @@ export function CheckoutReceipt({session,onDone}:{session:string;onDone:()=>void
    <div><dt>{t('كان لديك','You had')}</dt><dd>{nf.format(before ?? 0)}</dd></div>
    <div className={styles.added}><dt>{t('أُضيف','Added')}</dt><dd>+{nf.format(recorded.addedAiCredits)}</dd></div>
    <div className={styles.total}><dt>{t('رصيدك الآن','Your balance now')}</dt><dd>{nf.format(recorded.balanceAiCredits)}</dd></div>
-  </div>:<div className={styles.waiting}><LoadingIndicator label={t('لحظات…','One moment…')}/></div>}
+  </div>:!query.isError&&waited<30&&<div className={styles.waiting}><LoadingIndicator label={t('لحظات…','One moment…')}/></div>}
 
   {recorded&&<p className={styles.enough}>
    <Sparkles size={17} aria-hidden="true"/>
@@ -90,9 +110,11 @@ export function CheckoutReceipt({session,onDone}:{session:string;onDone:()=>void
    <li><Check size={15} aria-hidden="true"/>{t(`سارية حتى ${new Date(recorded.subscription.currentPeriodEnd).toLocaleDateString(ar?'ar':'en')}`,`Active until ${new Date(recorded.subscription.currentPeriodEnd).toLocaleDateString(ar?'ar':'en')}`)}</li>
   </ul>}
 
-  {!recorded&&waited>30&&<p className={styles.slow} role="status">
-   {t('لم يُضَف الرصيد بعد. لم يُخصم منك مبلغ إضافي ولن يضيع شيء؛ حدّث الصفحة بعد دقيقة، وإن بقي الأمر فتواصل معنا.','Your credit has not arrived yet. You have not been charged twice and nothing is lost — refresh in a minute, and contact us if it persists.')}
-  </p>}
+  {!recorded&&(waited>=30||query.isError)&&<div className={styles.slow} role="status">
+   <p>{t('لم نتمكن من تأكيد إضافة الرصيد بعد. لا تدفع مرة أخرى؛ أعد التحقق أو تواصل مع الدعم مع مرجع الدفع.','We haven’t confirmed the credit yet. Don’t pay again; check again or contact support with your payment reference.')}</p>
+   <button type="button" className={styles.secondary} disabled={query.isFetching} onClick={()=>{setWaited(0);void query.refetch()}}>{t('تحقق مجددًا','Check again')}</button>
+   <Link to="/contact">{t('الدعم','Support')}</Link>
+  </div>}
 
   <div className={styles.actions}>
    {/* A link, not a button wrapping one: an anchor inside a button is invalid
@@ -103,7 +125,7 @@ export function CheckoutReceipt({session,onDone}:{session:string;onDone:()=>void
     <Wand2 size={18} aria-hidden="true"/>{t('ابدأ نشاطًا جديدًا','Start a new activity')}
    </Link>
    <button type="button" className={styles.secondary} onClick={onDone}>
-    {t('عرض الخطط','See the plans')}<ArrowUpRight size={15} aria-hidden="true"/>
+    {t('الرصيد والاستخدام','Balance & usage')}<ArrowUpRight size={15} aria-hidden="true"/>
    </button>
   </div>
  </section>

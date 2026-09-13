@@ -75,3 +75,48 @@ The entrance translates vertically by 8px over 160ms with ease-out only when the
 - Don't treat fixture screenshots as production account evidence, complete editor-layout certification or proof of deployment.
 
 Review scope, evidence locations and validation limitations are recorded in `.impeccable/surfaces/instructor-balance.md` at the project root. No root DESIGN.md or shared design sidecar was regenerated for this extension.
+
+## Billing return and account destination — 13 September 2026
+
+`/teacher/billing` now opens a persistent Balance & usage overview. Plans remain
+at `?view=plans`, reached by the separate Plans & top-ups navigation and existing
+upgrade control. The overview uses the established neutral surfaces, restrained
+borders, type family, theme-aware ink and logical spacing. Available, held and
+total balances remain distinct. Purchase rows show the plan/top-up, date, paid
+amount/currency, and credit added; free grants are not presented as purchases.
+Usage and teaching totals use the existing owner-scoped endpoints.
+
+Checkout returns show the overview immediately, with an independent pending
+notice until the server records the receipt. Confirmation replaces the notice
+with the purchased-credit summary. No timer navigates the user away or blocks
+the account. Confirmation refreshes the wallet, usage, plans and purchase history.
+Pending/error states do not claim payment success and offer retry or support
+without initiating another checkout. A missing session reference cannot prove
+payment. Catalogue failures do not hide the wallet or purchase history.
+
+Phone layouts stack the available balance above held/total and turn each purchase
+into a compact two-row record. Arabic mirrors structurally; currency/credit
+amounts are isolated for bidirectional display. Dark confirmation text uses the
+normal readable foreground rather than the darker green status color.
+
+Fixture verification lives in `e2e/billing-return.spec.ts` and
+`tests/billing-return.spec.tsx`, with screenshots under
+`.impeccable/review/billing-return/`. These render the actual components with a
+synthetic account and intercepted requests. They do not certify a real payment,
+production webhook delivery, or deployment. No shipping images were added.
+
+### Unresolved-payment follow-up
+
+An actual local checkout returned indefinitely pending because its Stripe test
+session had completed but no corresponding event or purchase existed in the
+configured database. Read-only Stripe inspection found no configured test
+webhook endpoints. No event was replayed, no endpoint was created, and no balance
+was manually changed. Connecting payment events to the intended isolated test
+environment remains an operational prerequisite; an interface change does not
+record or fulfill a payment.
+
+The pending notice is now compact, exposes the payment reference for support,
+and never disables the existing balance, purchase history, or usage overview.
+After the bounded confirmation window it says "Payment confirmation delayed"
+and offers Check again, Support and Dismiss notice. The pending-mobile browser
+regression advances past that window and checks the dashboard is still usable.
