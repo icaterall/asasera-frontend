@@ -54,6 +54,13 @@ jobs:
       - name: Validate production Kubernetes manifest
         run: npm run check:k8s
 
+      # Vite handles deep links automatically; nginx uses an explicit route
+      # list. Validate it before any image can be pushed or deployed.
+      - name: Build and verify nginx page reloads
+        run: |
+          npm run build
+          npm run test:nginx-routes
+
       # ---------------------------------------------------------
       # 4. AWS authentication
       # ---------------------------------------------------------

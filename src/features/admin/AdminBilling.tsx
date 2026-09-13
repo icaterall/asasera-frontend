@@ -1,7 +1,7 @@
 import {useState,type FormEvent} from 'react'
 import {useQuery,useQueryClient} from '@tanstack/react-query'
 import {useTranslation} from 'react-i18next'
-import {AlertTriangle, CheckCircle2, CreditCard, Download, RefreshCw} from 'lucide-react'
+import {AlertTriangle, CheckCircle2, CreditCard, Download, PackagePlus, RefreshCw} from 'lucide-react'
 import {Button, FailureState, LoadingState, Select} from '@/design'
 import {useAuth} from '@/hooks/useAuth'
 import {ApiError} from '@/lib/api'
@@ -43,6 +43,8 @@ function BillingForm({data}:{data:Settings}) {
   const {user}=useAuth(),client=useQueryClient()
   const [policy,setPolicy]=useState(data.policy)
   const [busy,setBusy]=useState(''),[error,setError]=useState(''),[saved,setSaved]=useState('')
+  // Only ever true for a live key: creating real products asks first.
+  const [askLive,setAskLive]=useState(false)
   const cache=(next:Settings)=>client.setQueryData(['admin-billing',user?.id],next)
   const money=(millicents:number|null,currency:string|null)=>millicents===null?'—':new Intl.NumberFormat(ar?'ar':'en',{style:'currency',currency:(currency??policy.currency).toUpperCase(),maximumFractionDigits:2}).format(millicents/100_000)
   const nf=new Intl.NumberFormat(ar?'ar':'en')
@@ -94,6 +96,28 @@ function BillingForm({data}:{data:Settings}) {
       setSaved(t(`رُبطت ${installed} خطة من Stripe.`,`Installed ${installed} plan(s) from Stripe.`))
       if(rejected.length)setError(rejected.map(r=>`${r.plan}: ${r.detail??''}`).join(' · '))
     }catch(e){setError(e instanceof ApiError?e.message:t('تعذّر الجلب من Stripe.','Could not fetch from Stripe.'))}
+    finally{setBusy('')}
+  }
+  /*
+   * Creates the Products and Prices this account is missing.
+   *
+   * This replaces running scripts/stripe-plan.mjs from a terminal, which meant
+   * a live secret key had to be pasted into somebody's shell to open the shop.
+   * The server already holds the key; nothing needs to leave it. Every created
+   * price is still read back from Stripe and checked before it is installed.
+   */
+  async function provision(acknowledgeLive:boolean){
+    if(busy)return
+    setBusy('provision');setError('');setSaved('');setAskLive(false)
+    try{
+      const result=await adminBilling.provision(acknowledgeLive);cache(result.settings)
+      const created=result.results.filter(r=>r.status==='created').length
+      const reused=result.results.filter(r=>r.status==='installed').length
+      const rejected=result.results.filter(r=>r.status==='rejected')
+      setSaved(t(`أُنشئ في Stripe: ${created} · كان موجودًا: ${reused} · المربوط الآن: ${created+reused}`,
+        `Created in Stripe: ${created} · already existed: ${reused} · installed now: ${created+reused}`))
+      if(rejected.length)setError(rejected.map(r=>`${planName(r.plan)}: ${r.detail??''}`).join(' · '))
+    }catch(e){setError(e instanceof ApiError?e.message:t('تعذّر الإنشاء في Stripe.','Could not create the plans in Stripe.'))}
     finally{setBusy('')}
   }
   async function reverify(){
@@ -159,12 +183,24 @@ function BillingForm({data}:{data:Settings}) {
     <section className={styles.section} aria-labelledby="billing-plans">
       <div className={styles.catalogHeading}>
         <div><h2 id="billing-plans">{t('الخطط وأسعارها','Plans and prices')}</h2>
-          <p>{t('شغّل npm run stripe:plan -- --all ثم اضغط «اجلب الأسعار» — يجدها الخادم بمفتاح البحث ويفحصها قبل ربطها. أو الصق أي معرّف يدويًا أدناه.','Run npm run stripe:plan -- --all, then press Fetch — the server finds each price by its lookup key and runs every check before installing it. Or paste any id by hand below.')}</p></div>
+          <p>{t('«أنشئ الخطط» يُنشئ ما ينقص حساب Stripe من منتجات وأسعار ثم يربطها. و«اجلب الأسعار» يربط ما هو موجود فيه أصلًا. وفي الحالتين يقرأ الخادم السعر من Stripe ويفحصه قبل الربط، أو الصق أي معرّف يدويًا أدناه.','Create plans makes whatever this Stripe account is missing and installs it. Fetch installs what is already there. Either way the server reads each price back from Stripe and runs every check before installing it — or paste an id by hand below.')}</p></div>
         <div className={styles.actions}>
-          <Button variant="primary" icon={<Download size={16} aria-hidden="true"/>} loading={busy==='discover'} disabled={!!busy} onClick={()=>void discover()}>{t('اجلب الأسعار من Stripe','Fetch prices from Stripe')}</Button>
+          <Button variant="primary" icon={<PackagePlus size={16} aria-hidden="true"/>} loading={busy==='provision'} disabled={!!busy}
+            onClick={()=>data.credentials.mode==='live'?setAskLive(true):void provision(false)}>{t('أنشئ الخطط في Stripe','Create plans in Stripe')}</Button>
+          <Button variant="secondary" icon={<Download size={16} aria-hidden="true"/>} loading={busy==='discover'} disabled={!!busy} onClick={()=>void discover()}>{t('اجلب الأسعار من Stripe','Fetch prices from Stripe')}</Button>
           <Button variant="secondary" icon={<RefreshCw size={16} aria-hidden="true"/>} loading={busy==='reverify'} disabled={!!busy} onClick={()=>void reverify()}>{t('إعادة التحقق','Re-check all')}</Button>
         </div>
       </div>
+      {/* A live account is real money and real objects, so it is asked for
+          once, in words, rather than defended with a disabled button. */}
+      {askLive&&<div className={styles.liveConfirm} role="alert">
+        <p><strong>{t('هذا حساب Stripe مباشر.','This is a live Stripe account.')}</strong>{' '}
+          {t('سيجري إنشاء ستة منتجات بأسعارها الحقيقية فيه. المبالغ من إعدادات الخطط، والعملة من إعدادات المنصة أعلاه. والأمر آمن للتكرار: أي خطة موجودة تُربط ولا تُنشأ مرة ثانية.','Six products and their real prices will be created in it. The amounts come from the plan definitions, the currency from the platform settings above. Safe to repeat: a plan that already exists is installed, never created twice.')}</p>
+        <div className={styles.actions}>
+          <Button variant="primary" loading={busy==='provision'} disabled={!!busy} onClick={()=>void provision(true)}>{t('أنشئها في الحساب المباشر','Create them in the live account')}</Button>
+          <Button variant="quiet" disabled={!!busy} onClick={()=>setAskLive(false)}>{t('إلغاء','Cancel')}</Button>
+        </div>
+      </div>}
       {([['subscription',t('اشتراكات','Subscriptions')],['topup',t('شحنات رصيد','Credit top-ups')]] as const).map(([group,heading])=>{
         const rows=data.plans.filter(plan=>(plan.period===null)===(group==='topup'))
         return <div key={group} className={styles.planGroup}>

@@ -259,6 +259,13 @@
 :global(.dark) .clickRow:hover { background:#24354b; }
 
 /* ---- Billing plans ------------------------------------------------------- */
+/* The one destructive-ish action on this page: it creates objects in a real
+   Stripe account. Warning colours, and the confirm button is never the one
+   already under the cursor. */
+.liveConfirm { margin-top: 16px; padding: 16px; border: 1px solid #f0c36d; border-radius: 8px; background: #fff8e8; color: #6b4a06; }
+.liveConfirm p { margin: 0; font-size: 14px; line-height: 1.55; }
+.liveConfirm strong { color: #7a3e00; }
+
 .planGroup { margin-block-start: 22px; }
 .planGroup h3 { margin: 0 0 10px; font-size: 14px; font-weight: 700; color: var(--muted); }
 .planRows { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }

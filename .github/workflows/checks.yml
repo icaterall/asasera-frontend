@@ -27,3 +27,5 @@ jobs:
       - run: npm run typecheck
       - run: npm run lint
       - run: npm run build
+      - name: Verify every app route loads directly through production nginx
+        run: npm run test:nginx-routes

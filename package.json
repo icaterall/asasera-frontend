@@ -14,6 +14,7 @@
     "assert:build": "node scripts/assert-build.mjs",
     "postbuild": "npm run assert:build",
     "smoke": "node scripts/smoke.mjs",
+    "test:nginx-routes": "node scripts/test-nginx-routes.mjs",
     "check:shared": "node scripts/check-shared.mjs",
     "check:media": "node scripts/check-media-policy.mjs",
     "test:media": "node --test tests/media-policy.test.ts && vitest run tests/audio.spec.tsx",

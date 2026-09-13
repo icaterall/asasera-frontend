@@ -74,6 +74,15 @@ await check('the new build is live behind the load balancer', waitForDeploy)
  */
 const shell = await stableFetch(BASE).then((r) => r.text()).catch(() => '')
 
+for (const path of ['/teacher/billing', '/teacher/billing?view=plans', '/admin/overview', '/admin/ai-settings', '/admin/billing']) {
+  await check(`${path} loads the app on a direct visit or reload`, async () => {
+    const r = await stableFetch(`${BASE}${path}`)
+    const body = await r.text()
+    const ok = r.status === 200 && body.includes('id="root"') && (r.headers.get('content-type') ?? '').includes('text/html')
+    return { ok, detail: `HTTP ${r.status}, app shell=${body.includes('id="root"')}` }
+  })
+}
+
 for (const [path, needle] of [['/privacy', 'Privacy'], ['/data-deletion', 'deletion']]) {
   await check(`${path} is a real page, not the SPA shell`, async () => {
     const r = await stableFetch(`${BASE}${path}`)

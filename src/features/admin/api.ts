@@ -128,4 +128,8 @@ export const adminBilling = {
     api.put<AdminBilling>(`${API_PREFIX}/admin/billing/price`,input),
   reverify:()=>api.post<{results:{plan:BillingPlanId;status:string}[];settings:AdminBilling}>(`${API_PREFIX}/admin/billing/reverify`,{}),
   discover:()=>api.post<{results:{plan:BillingPlanId;status:'installed'|'not_found'|'rejected';detail?:string}[];settings:AdminBilling}>(`${API_PREFIX}/admin/billing/discover`,{}),
+  /* Creates whatever Stripe is missing, then installs it. `acknowledgeLive` is
+     required by the server when the key is a live one, so a mis-click cannot
+     create real products; the page asks before sending it. */
+  provision:(acknowledgeLive:boolean)=>api.post<{results:{plan:BillingPlanId;status:'created'|'installed'|'rejected';detail?:string}[];settings:AdminBilling}>(`${API_PREFIX}/admin/billing/provision`,{acknowledgeLive}),
 }
