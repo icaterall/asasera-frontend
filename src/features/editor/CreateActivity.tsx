@@ -31,7 +31,10 @@ export default function CreateActivity() {
   const [initialLanguage]=useState(()=>defaultContentLanguage(i18n.language))
   const draft=useSessionDraft(draftKey(user?.id,'new'),{title:'',purpose:'',audience:null,contentLanguage:initialLanguage},creationDraftSchema)
   const {title,purpose}=draft.value
-  const contentLanguage=draft.value.contentLanguage??initialLanguage,languageValid=contentLanguageSchema.safeParse(contentLanguage).success
+  /* The interface language is the default, and stays the default until the
+     teacher says otherwise — see `contentLanguageChosen` in session-drafts. */
+  const contentLanguage=(draft.value.contentLanguageChosen&&draft.value.contentLanguage)||initialLanguage
+  const languageValid=contentLanguageSchema.safeParse(contentLanguage).success
   const setTitle=(title:string)=>draft.update(current=>({...current,title}))
   const setPurpose=(purpose:string)=>draft.update(current=>({...current,purpose}))
   const audience=useAudienceForm(draft.value.audience??undefined,value=>draft.update(current=>({...current,audience:value})))
@@ -64,8 +67,10 @@ export default function CreateActivity() {
     {draft.restored&&<p role="status">{ar?'استعدنا تفاصيل نشاطك غير المحفوظة.':'Your unfinished activity details have been restored.'}</p>}
     {draft.storageError&&<p role="alert">{ar?'تعذّر حفظ نسخة الاسترداد في هذا المتصفح. أبقِ الصفحة مفتوحة حتى يكتمل الحفظ.':'This browser could not keep a recovery copy. Keep the page open until saving finishes.'}</p>}
     {refs.isPending ? <LoadingState variant="form" rows={3} label={ar ? 'جارٍ التحميل' : 'Loading activity settings'} /> : refs.error ? <FailureState title={ar ? 'تعذّر تحميل المواد والمراحل' : 'Activity settings couldn’t load'} body={ar ? 'حاول مرة أخرى للبدء.' : 'Try again to get started.'} actions={<Button onClick={() => void refs.refetch()}>{ar ? 'إعادة المحاولة' : 'Try again'}</Button>} /> : <form className={styles.createForm} onSubmit={event=>void create(event)} aria-busy={busy}>
-      <label className={styles.field}>{ar ? 'اسم النشاط' : 'Activity name'}<input autoFocus required maxLength={200} value={title} onChange={e => setTitle(e.target.value)} placeholder={ar ? 'مثلًا: مغامرة الكسور' : 'For example: The fractions adventure'} disabled={busy} /></label>
-      <ActivityLanguageField value={contentLanguage} onChange={contentLanguage=>draft.update(current=>({...current,contentLanguage}))} disabled={busy}/>
+      <div className={styles.formPair}>
+        <label className={styles.field}>{ar ? 'اسم النشاط' : 'Activity name'}<input autoFocus required maxLength={200} value={title} onChange={e => setTitle(e.target.value)} placeholder={ar ? 'مثلًا: مغامرة الكسور' : 'For example: The fractions adventure'} disabled={busy} /></label>
+        <ActivityLanguageField value={contentLanguage} onChange={contentLanguage=>draft.update(current=>({...current,contentLanguage,contentLanguageChosen:true}))} disabled={busy}/>
+      </div>
       <AudienceFields form={audience} disabled={busy} optional/>
       <details><summary>{ar ? 'المزيد من الإعدادات' : 'More settings'}</summary><label className={styles.field}>{ar ? 'الغرض التعليمي (اختياري)' : 'Teaching purpose (optional)'}<Select value={purpose} onValueChange={e => setPurpose(e)} disabled={busy}><option value="">{ar ? 'بلا غرض محدد' : 'No purpose chosen'}</option>{refs.data.purposes.map(p => <option key={p.id} value={p.id}>{ar ? p.nameAr : p.nameEn}</option>)}</Select><span className={styles.field} style={{fontWeight:400,color:'var(--muted)'}}>{ar ? 'يلزم غرض أو وحدة منهجية فقط عند مشاركة النشاط في المكتبة.' : 'A purpose or curriculum unit is only needed when you share the activity to the library.'}</span></label></details>
       {error&&<p role="alert">{error}</p>}

@@ -60,8 +60,8 @@ async function showEditor(initial?:HotspotPayload){
 }
 test('the final area can be deleted and rebuilt without removing the image',async()=>{
  await showEditor()
- expect((screen.getByRole('button',{name:'Delete area 1'}) as HTMLButtonElement).disabled).toBe(false)
- fireEvent.click(screen.getByRole('button',{name:'Delete area 1'}))
+ expect((screen.getByRole('button',{name:'Delete Stem'}) as HTMLButtonElement).disabled).toBe(false)
+ fireEvent.click(screen.getByRole('button',{name:'Delete Stem'}))
  expect(screen.getByText(/No answer areas yet/)).toBeTruthy()
  expect(screen.queryByText('Shape and precise position')).toBeNull()
  expect(screen.queryByRole('textbox',{name:'Answer for area 1'})).toBeNull()
@@ -93,6 +93,6 @@ test('an initially empty pin draft renders and adding its first area marks it co
  expect(screen.getByText(/No answer areas yet/)).toBeTruthy()
  fireEvent.click(screen.getByRole('button',{name:'Add answer area'}))
  expect((screen.getByRole('checkbox',{name:'Correct answer'}) as HTMLInputElement).checked).toBe(true)
- fireEvent.click(screen.getByRole('button',{name:'Delete area 1'}))
+ fireEvent.click(screen.getByRole('button',{name:'Delete Area 1'}))
  expect(screen.getByText('0/12')).toBeTruthy()
 })

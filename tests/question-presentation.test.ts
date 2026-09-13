@@ -66,7 +66,11 @@ it('advanced questions use correctness counts instead of inventing four answer c
 const stageSource=readFileSync(new URL('../src/features/session/LiveQuestionStage.tsx',import.meta.url),'utf8')
 const inputSource=readFileSync(new URL('../src/features/session/QuestionInput.tsx',import.meta.url),'utf8')
 it('players read the real prompt during an open question, not a "match the projector" placeholder',()=>{
-  assert.match(stageSource,/<h1 className=\{styles\.prompt\} dir="auto">\{q\.prompt\}<\/h1>/)
+  /* The prompt may be rendered directly or through FormattedText, which was
+     introduced for bold/subscript/equations. Either is the real prompt; what
+     this guards is that it is NOT replaced by a "look at the projector"
+     placeholder, which the next assertion states. */
+  assert.match(stageSource,/<h1 className=\{styles\.prompt\} dir="auto">(\{q\.prompt\}|<FormattedText text=\{q\.prompt\}\/>)<\/h1>/)
   assert.doesNotMatch(stageSource,/اختر الشكل الصحيح|طابق اللون والشكل/)
 })
 it('the stage never forces shape-only tiles on the player role; projector-only mode is opt-in',()=>{

@@ -726,7 +726,9 @@ function ActivityEditorWorkspace() {
       }}/>}
       {generationOpen&&<GenerationPanel startWithChoices={chooseOnMount.current} activity={data.activity} question={active} replacement={generationReplacement} provenance={readProvenance(active)??(!generationReplacement?data.questions.map(readProvenance).find(p=>p?.origin==='file'):null)??null} initialDraft={generationDraft} onClose={()=>{chooseOnMount.current=false;setGenerationOpen(false);setGenerationDraft(null);requestAnimationFrame(()=>{setRailOpen(generationDrawers.current.rail);setPropsOpen(generationDrawers.current.props);requestAnimationFrame(()=>{const trigger=document.querySelector<HTMLElement>(`[data-generation-trigger="${generationReplacement?'replacement':'batch'}"]`);(trigger??generationOpener.current)?.focus()})})}} onApplied={reload}/>}
       {/* ---- 1. top bar ---- */}
-      <header className={styles.top}>
+      {/* Named like every other landmark in this file (rail, props, more sheet):
+          landmark navigation should say which bar this is, not just "banner". */}
+      <header className={styles.top} aria-label={ar ? 'شريط المحرر' : 'Editor bar'}>
         <Link to="/teacher/dashboard" className={styles.brand} aria-label={ar ? 'أساسيرا — لوحة التحكم' : 'Asasera — dashboard'}>
           <Logo />
         </Link>

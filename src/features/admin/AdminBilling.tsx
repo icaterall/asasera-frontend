@@ -45,6 +45,16 @@ function BillingForm({data}:{data:Settings}) {
   const [busy,setBusy]=useState(''),[error,setError]=useState(''),[saved,setSaved]=useState('')
   // Only ever true for a live key: creating real products asks first.
   const [askLive,setAskLive]=useState(false)
+  /*
+   * WHICH SECTION THE LAST MESSAGE BELONGS TO.
+   *
+   * Both banners used to live at the top of the page only. This page is four
+   * screens tall and its two busiest buttons are at the bottom, so pressing
+   * one appeared to do nothing whatever the server answered — the reply was
+   * rendered two thousand pixels above the cursor. A result belongs beside the
+   * control that asked for it.
+   */
+  const [scope,setScope]=useState<'policy'|'plans'>('policy')
   const cache=(next:Settings)=>client.setQueryData(['admin-billing',user?.id],next)
   const money=(millicents:number|null,currency:string|null)=>millicents===null?'—':new Intl.NumberFormat(ar?'ar':'en',{style:'currency',currency:(currency??policy.currency).toUpperCase(),maximumFractionDigits:2}).format(millicents/100_000)
   const nf=new Intl.NumberFormat(ar?'ar':'en')
@@ -68,7 +78,7 @@ function BillingForm({data}:{data:Settings}) {
   async function savePolicy(event:FormEvent){
     event.preventDefault()
     if(busy||!changed)return
-    setBusy('policy');setError('');setSaved('')
+    setBusy('policy');setError('');setSaved('');setScope('policy')
     // Only the fields the endpoint accepts. `policy` also carries `version`,
     // and the schema is strict — spreading it whole was rejected as a bad body.
     try{cache(await adminBilling.savePolicy({currency:policy.currency,marginBasisPoints:policy.marginBasisPoints,
@@ -79,7 +89,7 @@ function BillingForm({data}:{data:Settings}) {
   }
   async function savePrice(plan:BillingPlanId,raw:string){
     if(busy)return
-    setBusy(plan);setError('');setSaved('')
+    setBusy(plan);setError('');setSaved('');setScope('plans')
     try{cache(await adminBilling.savePrice({plan,stripePriceId:raw.trim()||null,expectedVersion:data.policy.version}));setSaved(t('تم التحقق من السعر مع Stripe وحفظه.','Price verified with Stripe and saved.'))}
     catch(e){setError(e instanceof ApiError?e.message:t('تعذّر حفظ السعر.','Could not save the price.'))}
     finally{setBusy('')}
@@ -88,7 +98,7 @@ function BillingForm({data}:{data:Settings}) {
      on each price; this only removes the copying, and the swap it invites. */
   async function discover(){
     if(busy)return
-    setBusy('discover');setError('');setSaved('')
+    setBusy('discover');setError('');setSaved('');setScope('plans')
     try{
       const result=await adminBilling.discover();cache(result.settings)
       const installed=result.results.filter(r=>r.status==='installed').length
@@ -108,7 +118,7 @@ function BillingForm({data}:{data:Settings}) {
    */
   async function provision(acknowledgeLive:boolean){
     if(busy)return
-    setBusy('provision');setError('');setSaved('');setAskLive(false)
+    setBusy('provision');setError('');setSaved('');setScope('plans');setAskLive(false)
     try{
       const result=await adminBilling.provision(acknowledgeLive);cache(result.settings)
       const created=result.results.filter(r=>r.status==='created').length
@@ -117,21 +127,31 @@ function BillingForm({data}:{data:Settings}) {
       setSaved(t(`أُنشئ في Stripe: ${created} · كان موجودًا: ${reused} · المربوط الآن: ${created+reused}`,
         `Created in Stripe: ${created} · already existed: ${reused} · installed now: ${created+reused}`))
       if(rejected.length)setError(rejected.map(r=>`${planName(r.plan)}: ${r.detail??''}`).join(' · '))
-    }catch(e){setError(e instanceof ApiError?e.message:t('تعذّر الإنشاء في Stripe.','Could not create the plans in Stripe.'))}
+    }catch(e){
+      // The commonest failure is not Stripe at all: the deployed API predates
+      // this page. "Request failed (404)" would send someone to Stripe's
+      // dashboard looking for a problem that is not there.
+      setError(e instanceof ApiError
+        ? (e.status===404?t('هذا الخادم لا يعرف «أنشئ الخطط» بعد. انشر الواجهة الخلفية ثم أعد المحاولة.','This server does not have the create-plans endpoint yet. Deploy the backend, then try again.'):e.message)
+        : t('تعذّر الإنشاء في Stripe.','Could not create the plans in Stripe.'))
+    }
     finally{setBusy('')}
   }
   async function reverify(){
     if(busy)return
-    setBusy('reverify');setError('');setSaved('')
+    setBusy('reverify');setError('');setSaved('');setScope('plans')
     try{const result=await adminBilling.reverify();cache(result.settings);setSaved(t('أُعيد التحقق من كل الأسعار.','Every price was re-checked with Stripe.'))}
     catch(e){setError(e instanceof ApiError?e.message:t('تعذّرت إعادة التحقق.','Re-check failed.'))}
     finally{setBusy('')}
   }
 
   const sellable=data.plans.filter(plan=>!plan.blockedBy).length
-  return <div className={styles.aiSettings}>
+  const feedback=<>
     {saved&&<p className={styles.success} role="status">{saved}</p>}
     {error&&<p className={styles.error} role="alert">{error}</p>}
+  </>
+  return <div className={styles.aiSettings}>
+    {scope==='policy'&&feedback}
 
     <section className={styles.section} aria-labelledby="billing-credentials">
       <h2 id="billing-credentials">{t('بيانات الاعتماد','Credentials')}</h2>
@@ -201,6 +221,7 @@ function BillingForm({data}:{data:Settings}) {
           <Button variant="quiet" disabled={!!busy} onClick={()=>setAskLive(false)}>{t('إلغاء','Cancel')}</Button>
         </div>
       </div>}
+      {scope==='plans'&&feedback}
       {([['subscription',t('اشتراكات','Subscriptions')],['topup',t('شحنات رصيد','Credit top-ups')]] as const).map(([group,heading])=>{
         const rows=data.plans.filter(plan=>(plan.period===null)===(group==='topup'))
         return <div key={group} className={styles.planGroup}>

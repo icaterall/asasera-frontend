@@ -7,7 +7,14 @@
  */
 import {z} from 'zod'
 
-/** An output language, not an interface locale. Custom names are supported. */
+/*
+ * An output language, not an interface locale.
+ *
+ * The schema stays permissive on purpose even though the picker now offers a
+ * fixed list: activities created before the list existed hold typed names, and
+ * a validator that rejected them would make those activities unopenable. New
+ * values only ever come from CONTENT_LANGUAGES below.
+ */
 export const contentLanguageSchema=z.string().trim().min(1).max(80)
  .refine(value=>!/[\u0000-\u001f\u007f]/.test(value),'Enter a single language name.')
 
@@ -16,10 +23,11 @@ export function defaultContentLanguage(locale:string){return locale.toLowerCase(
 /**
  * The languages offered in the picker, in the order they are offered.
  *
- * A short list, deliberately. Scrolling is a cost for a teacher who almost
- * always wants one of the first two, and the field still accepts any name typed
- * into activity settings — so a language missing here is not one the product
- * refuses, only one it does not put in front of you.
+ * A short list, deliberately: scrolling is a cost for a teacher who almost
+ * always wants one of the first two. This IS the set on offer — the picker has
+ * no free-text escape, because a typed language arrives as French, Francais,
+ * français or FR, and every one of those reaches a model prompt. Adding a
+ * language is an edit here, which both apps then agree on.
  */
 export const CONTENT_LANGUAGES=['en','ar','fr','es'] as const
 const NAMES:Record<string,{en:string;ar:string}>={

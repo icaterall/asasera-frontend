@@ -3,6 +3,7 @@ import {act,cleanup,fireEvent,render,screen,waitFor} from '@testing-library/reac
 import {createInstance} from 'i18next'
 import {I18nextProvider} from 'react-i18next'
 import {QueryClient,QueryClientProvider} from '@tanstack/react-query'
+import {MemoryRouter} from 'react-router-dom'
 import {GenerationPanel} from '../src/features/editor/GenerationPanel'
 import {api,ApiError,type ActivityRecord,type QuestionRecord} from '../src/lib/api'
 import en from '../src/i18n/locales/en'
@@ -25,7 +26,7 @@ it('uses the saved custom activity language over the source, interface and recov
  expect(screen.getByDisplayValue('Français')).toBeTruthy()
 })
 let job={id:90,task:'questions',state:'queued',questionId:null as number|null,origin:'topic',errorCode:null,result:null as null|{candidates:typeof candidate[];appliedIndexes:number[];nextRevision:number}}
-function show(initialDraft:GenerationDraft|null=null,replacement=false,currentActivity=activity){return render(<I18nextProvider i18n={language}><QueryClientProvider client={new QueryClient({defaultOptions:{queries:{retry:false}}})}><GenerationPanel activity={currentActivity} question={replacement?{id:8,revision:2,prompt:'Old question',kind:'mcq'} as QuestionRecord:null} replacement={replacement} initialDraft={initialDraft} onClose={()=>{}} onApplied={async()=>{}}/></QueryClientProvider></I18nextProvider>)}
+function show(initialDraft:GenerationDraft|null=null,replacement=false,currentActivity=activity){return render(<MemoryRouter><I18nextProvider i18n={language}><QueryClientProvider client={new QueryClient({defaultOptions:{queries:{retry:false}}})}><GenerationPanel activity={currentActivity} question={replacement?{id:8,revision:2,prompt:'Old question',kind:'mcq'} as QuestionRecord:null} replacement={replacement} initialDraft={initialDraft} onClose={()=>{}} onApplied={async()=>{}}/></QueryClientProvider></I18nextProvider></MemoryRouter>)}
 async function topic(){if(screen.queryByRole('button',{name:'Topic to quiz'}))fireEvent.click(screen.getByRole('button',{name:'Topic to quiz'}));fireEvent.change(await screen.findByLabelText('Lesson topic'),{target:{value:'The water cycle'}});return await screen.findByRole('button',{name:'Generate 5 questions with AI'})}
 beforeAll(async()=>{await language.init({lng:'en',resources:{en:{translation:en},ar:{translation:ar}}});vi.stubGlobal('ResizeObserver',class{observe(){}unobserve(){}disconnect(){}});vi.stubGlobal('matchMedia',()=>({matches:false,addEventListener(){},removeEventListener(){}}));HTMLDialogElement.prototype.showModal=function(){this.setAttribute('open','')};HTMLDialogElement.prototype.close=function(){this.removeAttribute('open')}})
 beforeEach(async()=>{sessionStorage.clear();await language.changeLanguage('en');job={id:90,task:'questions',state:'queued',questionId:null,origin:'topic',errorCode:null,result:null};vi.spyOn(api,'get').mockImplementation(async path=>{if(path.endsWith('/limits'))return {maxBytes:10000000,acceptedKinds:['pdf','docx','pptx'],acceptedContentTypes:{pdf:'application/pdf'},maxPastedChars:120000,maxPages:100,maxSelectionChars:16000,maxSegmentsPerGeneration:30,maxQuestionsPerGeneration:10};if(path.includes('/materials?'))return {materials:[material],total:1};if(path.endsWith('/revisions/11'))return {revision:{id:11,title:'Biology.pdf',state:'ready',sourceKind:'pdf',locatorKind:'page',unreadableSegments:0,contentLanguage:'en'}};if(path.endsWith('/segments'))return {segments};if(path.includes('/jobs/90/source/'))return {index:1,text:segments[0]!.text};if(path.endsWith('/jobs/90'))return {job};if(path.includes('/activity-generation/activities/'))return {jobs:[]};throw new Error(path)});vi.spyOn(api,'post').mockImplementation(async(path)=>{if(path.endsWith('/quote'))return quote;if(path.endsWith('/jobs'))return {job};if(path.endsWith('/materials/text'))return {material};if(path.endsWith('/apply')){job={...job,result:{...job.result!,appliedIndexes:[0]}};return {added:1,remaining:0}}throw new Error(path)})})
@@ -114,4 +115,37 @@ it('adding one question preserves edits on other candidates',async()=>{
  await screen.findByText('Added')
  expect(screen.getByRole('heading',{name:'My revised second question?'})).toBeTruthy()
  expect(vi.mocked(api.post).mock.calls.find(([p])=>p.endsWith('/apply'))?.[1]).toMatchObject({selected:[0]})
+})
+
+/*
+ * A teacher who registered by email is unverified by design, so the trial
+ * allowance was never issued and the balance is zero. The panel used to say
+ * "your available credit does not cover this request — choose fewer questions
+ * or pages" and offer a billing link: advice that cannot work at zero, and an
+ * upsell inside the authoring canvas. The server sends the real reason on the
+ * quote; these two pin that the panel uses it.
+ */
+async function quoteWith(extra: Record<string, unknown>) {
+  const original = vi.mocked(api.post).getMockImplementation()!
+  vi.mocked(api.post).mockImplementation(async (path, body) =>
+    path.endsWith('/quote') ? {...quote, ...extra} : original(path, body))
+  show()
+  const button = await topic()
+  await waitFor(() => expect(vi.mocked(api.post).mock.calls.some(([p]) => p.endsWith('/quote'))).toBe(true))
+  return button
+}
+
+it('an unverified teacher is told to verify, and is not sold credit they already have coming', async () => {
+  await quoteWith({affordable: false, usableAiCredits: 0, usableMillicents: 0,
+    grant: {eligible: false, reason: 'email_not_verified', trialAiCredits: 100}})
+  expect(await screen.findByText('Verify your email to receive your free service credit.')).toBeTruthy()
+  expect(screen.queryByRole('link', {name: 'Add credit or upgrade'})).toBeNull()
+  expect(screen.queryByText(/does not cover this request/)).toBeNull()
+})
+
+it('a teacher who has genuinely spent their allowance still sees the credit route', async () => {
+  await quoteWith({affordable: false, usableAiCredits: 0, usableMillicents: 0,
+    grant: {eligible: true, reason: null, trialAiCredits: 100}})
+  expect(await screen.findByRole('link', {name: 'Add credit or upgrade'})).toBeTruthy()
+  expect(screen.queryByText('Verify your email to receive your free service credit.')).toBeNull()
 })

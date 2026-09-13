@@ -80,7 +80,12 @@
 .formPage { max-width: 760px; }
 .backLink { display: inline-block; color: var(--accent); margin-block-end: 28px; }
 .createForm { display: grid; gap: 24px; padding: 28px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
-.formPair { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.formPair { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
+/* The name sits beside the language picker, which is styled by its own module.
+   Two labels sharing a row have to look like one row, so the paired label
+   matches that module's 16px/700 and the input inside it stays normal weight. */
+.formPair > .field { font-size: 16px; font-weight: 700; }
+.formPair > .field input { font-weight: 400; }
 .createForm details summary { cursor: pointer; color: var(--muted); font-size: 14px; padding-block: 8px; }
 .createForm details .field { margin-block-start: 16px; }
 .formActions { display: flex; align-items: center; gap: 24px; }

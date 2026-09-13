@@ -28,7 +28,7 @@ describe('multi-selection controls',()=>{
   const user=userEvent.setup();show(<Stages/>);const form=screen.getByRole('form') as HTMLFormElement
   expect(form.checkValidity()).toBe(false)
   await user.click(screen.getByRole('combobox',{name:'Education stages'}))
-  await user.click(await screen.findByRole('option',{name:'Primary school'}));await user.click(screen.getByRole('option',{name:'Secondary school'}))
+  await user.click(await screen.findByRole('option',{name:'Primary school'}));await user.click(await screen.findByRole('option',{name:'Secondary school'}))
   expect(screen.getByRole('option',{name:'Primary school'}).getAttribute('aria-selected')).toBe('true')
   expect(screen.getByRole('option',{name:'Secondary school'}).getAttribute('aria-selected')).toBe('true')
   await user.click(screen.getByRole('button',{name:'Done'}))

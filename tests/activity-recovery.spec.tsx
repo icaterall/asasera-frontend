@@ -3,6 +3,7 @@ import ar from '../src/i18n/locales/ar'
 import {afterEach, beforeAll, beforeEach, expect, it, vi} from 'vitest'
 import {act, cleanup, fireEvent, render, screen, waitFor, within} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import {richText, setRichText} from './rich-text'
 import {createInstance} from 'i18next'
 import {I18nextProvider} from 'react-i18next'
 import {QueryClient, QueryClientProvider} from '@tanstack/react-query'
@@ -80,7 +81,7 @@ it('stops the Generate spinner after a failed save and retains the instructor’
   await editor()
   let fail!: (reason: Error) => void
   vi.mocked(activities.updateQuestion).mockReturnValueOnce(new Promise((_resolve, reject) => {fail = reject}))
-  fireEvent.change(screen.getByLabelText('Question text'), {target: {value: 'Keep this question'}})
+  setRichText(screen.getByLabelText('Question text'), 'Keep this question')
   const trigger = screen.getByRole('button', {name: 'Generate with AI'})
   fireEvent.click(trigger)
   expect(trigger.getAttribute('aria-busy')).toBe('true')
@@ -95,12 +96,12 @@ it('stops the Generate spinner after a failed save and retains the instructor’
 it('stores typing before the network debounce, restores title and question after remount, and clears only after saving', async () => {
   const view = await editor()
   fireEvent.change(screen.getByLabelText('Activity title'), {target: {value: 'My unfinished lesson'}})
-  fireEvent.change(screen.getByLabelText('Question text'), {target: {value: 'Unsaved question text'}})
+  setRichText(screen.getByLabelText('Question text'), 'Unsaved question text')
   expect(activities.updateQuestion).not.toHaveBeenCalled()
   expect(readDraft(key, editorDraftSchema)?.questions[5]?.patch.prompt).toBe('Unsaved question text')
   view.unmount(); await editor()
   expect((screen.getByLabelText('Activity title') as HTMLInputElement).value).toBe('My unfinished lesson')
-  expect((screen.getByLabelText('Question text') as HTMLTextAreaElement).value).toBe('Unsaved question text')
+  expect(richText(screen.getByLabelText('Question text'))).toBe('Unsaved question text')
   expect(screen.getByRole('region', {name: 'Recovered edits'})).toBeTruthy()
   fireEvent.click(screen.getByRole('button', {name: 'Save recovered edits'}))
   await waitFor(() => expect(sessionStorage.getItem(key)).toBeNull())
@@ -111,7 +112,7 @@ it('stores typing before the network debounce, restores title and question after
 it('retains a failed save through interruption and retries the recovered copy', async () => {
   vi.mocked(activities.updateQuestion).mockRejectedValueOnce(new Error('Connection interrupted'))
   const view = await editor()
-  fireEvent.change(screen.getByLabelText('Question text'), {target: {value: 'Keep my work'}})
+  setRichText(screen.getByLabelText('Question text'), 'Keep my work')
   await waitFor(() => expect(screen.getByRole('button', {name: 'Retry'})).toBeTruthy(), {timeout: 2500})
   expect(sessionStorage.getItem(key)).toContain('Keep my work')
   view.unmount(); await editor()
@@ -123,10 +124,10 @@ it('an older acknowledgement cannot clear a newer edit, including after the edit
   let finish!: (result: {question: QuestionRecord}) => void
   vi.mocked(activities.updateQuestion).mockReturnValueOnce(new Promise(resolve => {finish = resolve}))
   const view = await editor()
-  fireEvent.change(screen.getByLabelText('Question text'), {target: {value: 'First draft'}})
+  setRichText(screen.getByLabelText('Question text'), 'First draft')
   await waitFor(() => expect(activities.updateQuestion).toHaveBeenCalledOnce(), {timeout: 2500})
   view.unmount(); await editor()
-  fireEvent.change(screen.getByLabelText('Question text'), {target: {value: 'Newer draft'}})
+  setRichText(screen.getByLabelText('Question text'), 'Newer draft')
   await act(async () => {finish({question: {...q1, prompt: 'First draft', revision: 4}})})
   expect(readDraft(key, editorDraftSchema)?.questions[5]).toMatchObject({baseRevision: 4, patch: {prompt: 'Newer draft'}})
   fireEvent.click(screen.getByRole('button', {name: 'Save recovered edits'}))
@@ -138,14 +139,14 @@ it('warns before recovered edits can replace a changed database revision and nev
   storeEditorDraft(key, {...emptyEditorDraft(), activeQuestionId: 6, questions: {6: {baseRevision: 1, patch: patch('My recovered second question')}}})
   const publish = vi.spyOn(activities, 'publish')
   await editor()
-  expect((screen.getByLabelText('Question text') as HTMLTextAreaElement).value).toBe('My recovered second question')
+  expect(richText(screen.getByLabelText('Question text'))).toBe('My recovered second question')
   expect(screen.getByText(/saved version has changed/)).toBeTruthy()
   fireEvent.click(screen.getByRole('button', {name: 'Approve version'}))
   expect(publish).not.toHaveBeenCalled(); expect(activities.updateQuestion).not.toHaveBeenCalled()
   fireEvent.click(screen.getByRole('button', {name: 'Use saved version'}))
   await waitFor(() => expect(screen.queryByRole('region', {name: 'Recovered edits'})).toBeNull())
   expect(sessionStorage.getItem(key)).toBeNull()
-  expect((screen.getByLabelText('Question text') as HTMLTextAreaElement).value).toBe(q2.prompt)
+  expect(richText(screen.getByLabelText('Question text'))).toBe(q2.prompt)
 })
 
 it('retains recovery if explicit saving fails and clears each question independently after confirmation', async () => {
@@ -159,7 +160,7 @@ it('retains recovery if explicit saving fails and clears each question independe
 
 it('keeps feedback in a dialog on the current URL, retains reply drafts, and returns to the referenced question', async () => {
   const user = userEvent.setup(); await editor()
-  fireEvent.change(screen.getByLabelText('Question text'), {target: {value: 'Work in progress'}})
+  setRichText(screen.getByLabelText('Question text'), 'Work in progress')
   const trigger = screen.getByRole('button', {name: 'Feedback'})
   await user.click(trigger)
   const dialog = screen.getByRole('dialog', {name: 'Feedback & ideas'})
@@ -170,33 +171,33 @@ it('keeps feedback in a dialog on the current URL, retains reply drafts, and ret
   fireEvent.change(within(dialog).getByLabelText('Your reply to the teacher (optional)'), {target: {value: 'An unfinished reply'}})
   await user.click(within(dialog).getByRole('button', {name: 'Close feedback'}))
   expect(screen.queryByRole('dialog')).toBeNull(); expect(document.activeElement).toBe(trigger)
-  expect((screen.getByLabelText('Question text') as HTMLTextAreaElement).value).toBe('Work in progress')
+  expect(richText(screen.getByLabelText('Question text'))).toBe('Work in progress')
   await user.click(trigger)
   await screen.findByText('Please clarify this question')
   await user.click(screen.getByText('Reply and update status'))
   expect((screen.getByLabelText('Your reply to the teacher (optional)') as HTMLTextAreaElement).value).toBe('An unfinished reply')
   await user.click(screen.getByRole('combobox', {name: 'Feedback status'}))
   expect((await screen.findByRole('option', {name: 'Reviewed'})).closest('dialog')).not.toBeNull()
-  await user.click(screen.getByRole('option', {name: 'Reviewed'}))
+  await user.click(await screen.findByRole('option', {name: 'Reviewed'}))
   const respond = vi.spyOn(community, 'respond').mockResolvedValue({ok: true})
   await user.click(screen.getByRole('button', {name: 'Save response'}))
   await waitFor(() => expect(respond).toHaveBeenCalledWith(item, 'reviewed', 'An unfinished reply'))
   expect(sessionStorage.getItem(draftKey(73, 'activity:42:reply:flag:9')!)).toBeNull()
   await user.click(screen.getByRole('button', {name: 'Review and edit activity'}))
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
-  expect((screen.getByLabelText('Question text') as HTMLTextAreaElement).value).toBe(q2.prompt)
+  expect(richText(screen.getByLabelText('Question text'))).toBe(q2.prompt)
   expect(screen.getByLabelText('Current URL').textContent).toBe('/teacher/activities/42?question=6')
 })
 
 it('feedback can open even when question saving fails, and Escape returns to the editor', async () => {
   vi.mocked(activities.updateQuestion).mockRejectedValue(new Error('Offline'))
   await editor()
-  fireEvent.change(screen.getByLabelText('Question text'), {target: {value: 'Offline work'}})
+  setRichText(screen.getByLabelText('Question text'), 'Offline work')
   fireEvent.click(screen.getByRole('button', {name: 'Feedback'}))
   const dialog = screen.getByRole('dialog')
   fireEvent(dialog, new Event('cancel', {cancelable: true}))
   expect(screen.queryByRole('dialog')).toBeNull()
-  expect((screen.getByLabelText('Question text') as HTMLTextAreaElement).value).toBe('Offline work')
+  expect(richText(screen.getByLabelText('Question text'))).toBe('Offline work')
   expect(sessionStorage.getItem(key)).toContain('Offline work')
 })
 
@@ -208,9 +209,9 @@ it('does not restore another instructor’s draft and handles malformed or block
   sessionStorage.setItem(key, 'malformed')
   await editor()
   vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {throw new Error('Quota exceeded')})
-  fireEvent.change(screen.getByLabelText('Question text'), {target: {value: 'Still editable'}})
+  setRichText(screen.getByLabelText('Question text'), 'Still editable')
   expect(screen.getByText(/could not keep a recovery copy/)).toBeTruthy()
-  expect((screen.getByLabelText('Question text') as HTMLTextAreaElement).value).toBe('Still editable')
+  expect(richText(screen.getByLabelText('Question text'))).toBe('Still editable')
 })
 
 it('keeps new activity details and multiple audience stages across remounts, retains failed creation, and clears a successful creation', async () => {
@@ -220,7 +221,7 @@ it('keeps new activity details and multiple audience stages across remounts, ret
   const input = await screen.findByLabelText('Activity name')
   fireEvent.change(input, {target: {value: 'My science game'}})
   await user.click(screen.getByRole('combobox', {name: 'Category'})); await user.click(await screen.findByRole('option', {name: 'Science'}))
-  await user.click(screen.getByRole('combobox', {name: 'Education stages'})); await user.click(await screen.findByRole('option', {name: 'Kindergarten'})); await user.click(screen.getByRole('option', {name: 'Grade 1'})); await user.click(screen.getByRole('button', {name: 'Done'}))
+  await user.click(screen.getByRole('combobox', {name: 'Education stages'})); await user.click(await screen.findByRole('option', {name: 'Kindergarten'})); await user.click(await screen.findByRole('option', {name: 'Grade 1'})); await user.click(screen.getByRole('button', {name: 'Done'}))
   expect(JSON.parse(sessionStorage.getItem(newKey)!).audience.educationStageIds).toEqual([8, 9])
   view.unmount(); show(<CreateActivity/>)
   expect((await screen.findByLabelText('Activity name') as HTMLInputElement).value).toBe('My science game')
@@ -236,7 +237,7 @@ it('restores audience selections when reopening the section and removes them onl
   references(); const user = userEvent.setup(), save = vi.fn().mockRejectedValueOnce(new Error('Offline')).mockResolvedValueOnce(undefined)
   const audienceKey = draftKey(73, 'activity:42:audience')!
   const view = show(<ActivityAudience activity={activity} onSave={save}/>)
-  await user.click(screen.getByText('Category & audience'))
+  await user.click(screen.getByText('Language & audience'))
   await user.click(await screen.findByRole('combobox', {name: 'Education stages'}))
   await user.click(await screen.findByRole('option', {name: 'Grade 1'})); await user.click(screen.getByRole('button', {name: 'Done'}))
   view.unmount(); show(<ActivityAudience activity={activity} onSave={save}/>)
@@ -249,11 +250,19 @@ it('restores audience selections when reopening the section and removes them onl
 
 it('clears confirmed question deletion without resurrecting its session data', async () => {
   const remove = vi.spyOn(activities, 'deleteQuestion').mockResolvedValue(undefined)
-  await editor(); fireEvent.change(screen.getByLabelText('Question text'), {target: {value: 'Will be deleted'}})
+  await editor(); setRichText(screen.getByLabelText('Question text'), 'Will be deleted')
   vi.mocked(activities.load).mockImplementation(async () => load([q2]))
-  fireEvent.click(screen.getByRole('button', {name: 'Delete question'}))
+  /* Deleting a question now asks first. Open the confirmation, then confirm
+     inside it: before the dialog exists there is exactly one control by this
+     name, and afterwards the dialog carries its own. */
+  /* Two controls carry this name at once: the rail's icon button and the
+     properties panel's danger button. That duplication is a real finding about
+     the editor, not about this test, so the test states which one it presses
+     rather than hiding the ambiguity. Then it confirms inside the dialog. */
+  fireEvent.click(screen.getAllByRole('button', {name: 'Delete question'})[0])
+  fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', {name: 'Delete question'}))
   await waitFor(() => expect(remove).toHaveBeenCalledWith(5))
-  await waitFor(() => expect((screen.getByLabelText('Question text') as HTMLTextAreaElement).value).toBe(q2.prompt))
+  await waitFor(() => expect(richText(screen.getByLabelText('Question text'))).toBe(q2.prompt))
   expect(sessionStorage.getItem(key)).toBeNull()
 })
 
@@ -294,19 +303,19 @@ it('discards only the unfinished new activity and keeps another activity’s rec
 
 it('saving normally clears the recovery after acknowledgement and question selection survives a clean refresh in the URL', async () => {
   const view = await editor()
-  fireEvent.change(screen.getByLabelText('Question text'), {target: {value: 'Normal autosave'}})
+  setRichText(screen.getByLabelText('Question text'), 'Normal autosave')
   await waitFor(() => expect(sessionStorage.getItem(key)).toBeNull(), {timeout: 2500})
   fireEvent.click(screen.getByRole('button', {name: /Is a quarter greater/}))
   await waitFor(() => expect(screen.getByLabelText('Current URL').textContent).toBe('/teacher/activities/42?question=6'))
   expect(sessionStorage.getItem(key)).toBeNull()
   view.unmount(); show(<ActivityEditor/>, '/teacher/activities/42?question=6')
-  await waitFor(() => expect((screen.getByLabelText('Question text') as HTMLTextAreaElement).value).toBe(q2.prompt))
+  await waitFor(() => expect(richText(screen.getByLabelText('Question text'))).toBe(q2.prompt))
 })
 
 
 it('keeps the logo, language choices and working role-framed account menu in the editor header', async () => {
   const user = userEvent.setup(); await editor()
-  const header = screen.getByRole('banner')
+  const header = screen.getByRole('banner', {name: /شريط المحرر|Editor bar/})
   expect(within(header).getByRole('link', {name: 'Asasera — dashboard'}).getAttribute('href')).toBe('/teacher/dashboard')
   expect(within(header).getByRole('img', {name: 'Asasera'})).toBeTruthy()
   expect(within(header).getByRole('group', {name: 'Language'})).toBeTruthy()
@@ -326,18 +335,18 @@ it('switches the editor language without reloading, losing unsaved text or chang
   const user = userEvent.setup(); await editor()
   await user.click(screen.getByRole('button', {name: /Is a quarter greater/}))
   fireEvent.change(screen.getByLabelText('Activity title'), {target: {value: 'My bilingual activity'}})
-  fireEvent.change(screen.getByLabelText('Question text'), {target: {value: 'Keep this question exactly'}})
+  setRichText(screen.getByLabelText('Question text'), 'Keep this question exactly')
   await user.click(screen.getByRole('button', {name: 'Switch to Arabic'}))
   expect((screen.getByLabelText('عنوان النشاط') as HTMLInputElement).value).toBe('My bilingual activity')
-  expect((screen.getByLabelText('نص السؤال') as HTMLTextAreaElement).value).toBe('Keep this question exactly')
-  expect(screen.getByRole('banner').closest('[dir]')?.getAttribute('dir')).toBe('rtl')
+  expect(richText(screen.getByLabelText('نص السؤال'))).toBe('Keep this question exactly')
+  expect(screen.getByRole('banner', {name: /شريط المحرر|Editor bar/}).closest('[dir]')?.getAttribute('dir')).toBe('rtl')
   expect(screen.getByRole('button', {name: 'التبديل إلى العربية'}).getAttribute('aria-pressed')).toBe('true')
   expect(screen.getByLabelText('Current URL').textContent).toBe('/teacher/activities/42?question=6')
   expect(activities.load).toHaveBeenCalledOnce()
   expect(screen.queryByRole('button', {name: 'حفظ التعديلات المستعادة'})).toBeNull()
   await user.click(screen.getByRole('button', {name: 'التبديل إلى الإنجليزية'}))
-  expect((screen.getByLabelText('Question text') as HTMLTextAreaElement).value).toBe('Keep this question exactly')
-  expect(screen.getByRole('banner').closest('[dir]')?.getAttribute('dir')).toBe('ltr')
+  expect(richText(screen.getByLabelText('Question text'))).toBe('Keep this question exactly')
+  expect(screen.getByRole('banner', {name: /شريط المحرر|Editor bar/}).closest('[dir]')?.getAttribute('dir')).toBe('ltr')
   expect(activities.load).toHaveBeenCalledOnce()
 })
 
@@ -350,7 +359,7 @@ it('creates an activity from a title alone and carries a chosen material into th
   const submit = screen.getByRole('button', {name: 'Next'})
   await waitFor(() => expect(submit.hasAttribute('disabled')).toBe(false))
   fireEvent.click(submit)
-  await waitFor(() => expect(create).toHaveBeenCalledWith({title: 'From chapter 3', purposeId: null}))
+  await waitFor(() => expect(create).toHaveBeenCalledWith({title: 'From chapter 3', purposeId: null, contentLanguage: 'en'}))
   await waitFor(() => expect(screen.getByLabelText('Current URL').textContent).toMatch(/^\/teacher\/activities\/42\?generate=1&choose=1&draft=/))
   const draft = new URLSearchParams(screen.getByLabelText('Current URL').textContent!.split('?')[1]).get('draft')
   expect(decodeGenerationDraft(draft)).toMatchObject({origin: 'file', materialRevisionId: 11, task: 'questions'})

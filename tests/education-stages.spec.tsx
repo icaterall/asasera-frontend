@@ -41,7 +41,7 @@ it('loads exact database rows in server order, saves the row ID and allows gener
   await screen.findByRole('option', { name: rows[0]!.name_en })
   expect(screen.getAllByRole('option').map(option => option.textContent)).toEqual(['General learning — no specific stage', ...rows.map(row => row.name_en)])
   expect(screen.queryByRole('option', { name: 'Grade 1' })).toBeNull()
-  await user.click(screen.getByRole('option', { name: rows[0]!.name_en }))
+  await user.click(await screen.findByRole('option', { name: rows[0]!.name_en }))
   expect(selection()).toEqual({ stage: 'general', grade: null, educationStageId: 82 })
   await user.click(screen.getByRole('combobox', { name: 'Education stage' }))
   await user.click(await screen.findByRole('option', { name: 'General learning — no specific stage' }))

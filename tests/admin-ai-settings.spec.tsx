@@ -46,7 +46,7 @@ it('saves a selected registry model with concurrency version, updates from serve
  const save=vi.spyOn(aiAdministration,'save').mockImplementation(()=>new Promise(done=>{resolve=done}))
  show();await screen.findByText('AI capability status')
  await screen.findByRole('combobox',{name:'Provider'})
- const user=userEvent.setup();await user.click(screen.getByRole('combobox',{name:'Provider'}));await user.click(screen.getByRole('option',{name:'Gemini'}))
+ const user=userEvent.setup();await user.click(screen.getByRole('combobox',{name:'Provider'}));await user.click(await screen.findByRole('option',{name:'Gemini'}))
  expect(await screen.findByText('$0.30 / 1M tokens')).toBeTruthy()
  const button=screen.getByRole('button',{name:'Save settings'});fireEvent.click(button);fireEvent.click(button)
  expect(save).toHaveBeenCalledTimes(1);expect(save).toHaveBeenCalledWith({provider:'gemini',model:'gemini-2.5-flash',enabled:true,expectedVersion:1})
@@ -95,7 +95,7 @@ it('saves the selected image-generation model as its own administrator route',as
  expect(await screen.findByText('Generation route settings')).toBeTruthy()
  fireEvent.click(screen.getByRole('checkbox',{name:'Enable Image generation'}))
  fireEvent.click(screen.getByRole('button',{name:'Save Image generation settings'}))
- await waitFor(()=>expect(save).toHaveBeenCalledWith('image_generation',{provider:'openai',model:'gpt-image-1',enabled:false,expectedVersion:1}))
+ await waitFor(()=>expect(save).toHaveBeenCalledWith('image_generation',{provider:'openai',model:'gpt-image-1',enabled:false,imageQuality:null,expectedVersion:1}))
 })
 it('labels a saved but disabled media route as paused instead of unavailable',async()=>{
  vi.spyOn(aiAdministration,'get').mockResolvedValue({...settings,capabilities:capabilities.map(capability=>capability.id==='image_generation'?{...capability,status:'paused' as const}:capability),routes:routes.map(route=>route.capability==='image_generation'?{...route,enabled:false}:route)})

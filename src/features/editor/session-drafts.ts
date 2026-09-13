@@ -32,7 +32,11 @@ export function clearDraft(key: string | null, expected?: unknown): boolean {
 }
 
 export const audienceDraftSchema = z.object({ categoryId: z.number().int().nullable(), educationStageIds: z.array(z.number().int()), countryIds: z.array(z.number().int()) })
-export const creationDraftSchema = z.object({ title: z.string(), purpose: z.string(), audience: audienceDraftSchema.nullable(),contentLanguage:z.string().max(80).optional() })
+/* `contentLanguageChosen` separates a language the teacher picked from one the
+   form defaulted to. Without it a draft started in Arabic reopens in Arabic
+   weeks later under an English interface, and nobody can tell whether that was
+   a decision or a leftover. Only a chosen language survives a reload. */
+export const creationDraftSchema = z.object({ title: z.string(), purpose: z.string(), audience: audienceDraftSchema.nullable(),contentLanguage:z.string().max(80).optional(),contentLanguageChosen:z.boolean().optional() })
 export const questionPatchSchema = z.object({
   kind: z.enum(['mcq', 'tf', 'order', 'match', 'hotspot']), prompt: z.string(),
   payload: z.record(z.string(), z.unknown()), timeLimitS: z.number(),

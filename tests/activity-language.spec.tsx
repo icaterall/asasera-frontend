@@ -32,7 +32,7 @@ test.each(['en','ar'])('creation selects the %s interface language and includes 
 test('a custom choice survives interface changes and remount; blank custom languages cannot submit',async()=>{
  const user=userEvent.setup(),view=show();await screen.findByRole('combobox',{name:'Activity language'})
  fireEvent.change(screen.getByRole('textbox',{name:'Activity name'}),{target:{value:'Example'}})
- await user.click(screen.getByRole('combobox',{name:'Activity language'}));await user.click(screen.getByRole('option',{name:'Other language'}))
+ await user.click(screen.getByRole('combobox',{name:'Activity language'}));await user.click(await screen.findByRole('option',{name:'Other language'}))
  expect((screen.getByRole('button',{name:'Next'}) as HTMLButtonElement).disabled).toBe(true)
  fireEvent.change(screen.getByRole('textbox',{name:'Language name'}),{target:{value:'Français'}})
  await act(()=>language.changeLanguage('ar'))

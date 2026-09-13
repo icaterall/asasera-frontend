@@ -4,7 +4,11 @@ import {createInstance} from 'i18next'
 import {I18nextProvider} from 'react-i18next'
 import {ImageCreator} from '../src/features/editor/ImageCreator'
 import {api} from '../src/lib/api'
-const language=createInstance(),quote={quoteToken:'signed-test-quote',model:'test-model',estimateAiCredits:40,maxAiCredits:60,affordable:true,expiresAt:'2999-01-01T00:00:00Z'}
+/* imageQuality and outputTokens are always present on a real quote (see
+   image-creation.service.ts: the quote object always carries both, with
+   outputTokens null when the model has no reference). Omitting them made the
+   dialog throw on undefined.toLocaleString and render nothing. */
+const language=createInstance(),quote={quoteToken:'signed-test-quote',model:'test-model',imageQuality:'medium' as const,outputTokens:1056,estimateAiCredits:40,maxAiCredits:60,affordable:true,expiresAt:'2999-01-01T00:00:00Z'}
 beforeAll(async()=>{await language.init({lng:'en',resources:{en:{translation:{}}},interpolation:{escapeValue:false}});HTMLDialogElement.prototype.showModal=function(){this.setAttribute('open','')};HTMLDialogElement.prototype.close=function(){this.removeAttribute('open')}})
 beforeEach(()=>{sessionStorage.clear();vi.spyOn(api,'post').mockImplementation(async path=>{if(path.endsWith('/quote'))return quote;throw new Error('Response lost')})})
 afterEach(()=>{cleanup();vi.restoreAllMocks()})
