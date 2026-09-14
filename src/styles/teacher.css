@@ -446,3 +446,32 @@
 @media (prefers-reduced-motion:reduce){.teacher-card{transition:none}.teacher-card:hover{transform:none}}
 @media (max-width:900px){.teacher-scope #teacher-main{padding:20px}.teacher-joy-hero{min-height:0}.teacher-header{min-block-size:64px}.teacher-rail{box-shadow:none}}
 .dark .teacher-scope{--canvas:#081b40;--surface:#102a58;--fg:#f4f8ff;--muted:#b9cae9;--faint:#9fb5da;--line:#285187;--line-strong:#4a75ae;--panel-bg:#102a58;--tc-rail-bg:linear-gradient(180deg,#0c2857 0%,#091f46 58%,#06152f 100%);--tc-rail-text:#dceaff;--tc-rail-hover-bg:rgb(150 190 255 / 13%);--tc-rail-hover-text:#fff;--tc-rail-active-bg:linear-gradient(135deg,#176bd6,#0a4da9);--tc-rail-active-shadow:0 6px 16px rgb(0 0 0 / 30%);--tc-rail-brand-line:rgb(171 204 255 / 20%);--tc-rail-shadow:none;--tc-drawer-bg:#0b2148}.dark .teacher-shell{background:#081b40}.dark .teacher-card{background:#102a58;border-color:#285187;box-shadow:none}.dark .teacher-card-thumb{background:#153969}.dark .teacher-header{background:rgb(9 29 66 / 92%)}
+
+/* DARK: ONE PALETTE INSIDE THE TEACHER SHELL.
+ *
+ * The shell painted itself navy while the page content inside it kept the
+ * app's neutral dark palette, so `--surface` resolved to #222 and `--raised`
+ * to #333 a few nodes below a #102a58 ancestor. On screen that is a black
+ * strip of shortcuts and a black empty-state card sitting on navy — the two
+ * blocks that looked wrong. `--raised` was also never given a navy value at
+ * all, so anything raised above the surface fell back to the neutral step.
+ *
+ * Scoped to `.dark .teacher-scope .asas` so it outranks whatever sets the
+ * neutral values on the inner scope, and so nothing outside the teacher shell
+ * is touched. */
+.dark .teacher-scope { --raised: #153969; }
+.dark .teacher-scope .asas {
+  --canvas: #081b40;
+  --surface: #102a58;
+  --raised: #153969;
+  --panel-bg: #102a58;
+  --line: #285187;
+  --line-strong: #4a75ae;
+  --fg: #f4f8ff;
+  --muted: #b9cae9;
+  --faint: #9fb5da;
+}
+/* The hero illustration keeps a light ground in both themes — it is a bright
+   drawing and a navy plate behind it reads as a missing image — but the plate
+   is dimmed so it stops glowing against the dark page. */
+.dark .teacher-scope .asas :where([class*='heroArtwork']) { --home-art-ground: #cfe3f7; }

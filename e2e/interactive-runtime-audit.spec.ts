@@ -5,7 +5,7 @@ const OUT=process.env.RUNTIME_AUDIT_OUT??'../docs/evidence/interactive/runtime-a
 test.setTimeout(120_000)
 // Evidence must not include session capabilities or request authorization headers.
 test.use({trace:'off'})
-test.beforeEach(()=>{expect(process.env.PW_BASE_URL).toBe('http://127.0.0.1:5411');mkdirSync(OUT,{recursive:true})})
+test.beforeEach(()=>{expect(new URL(process.env.PW_BASE_URL??'').hostname).toMatch(/^(127\.0\.0\.1|localhost)$/);mkdirSync(OUT,{recursive:true})})
 function save(name:string,value:unknown){writeFileSync(`${OUT}/${name}.json`,JSON.stringify(value,null,2))}
 async function teacher(page:Page,request:APIRequestContext){
  const email=`runtime-audit-${crypto.randomUUID()}@example.com`,password='Synthetic runtime audit 2026!'

@@ -13,7 +13,7 @@ function watchSnapshots(page:Page){
 
 for(const mode of ['class-competition','question-wheel'] as const)test(`actual shared ${mode}: phone rules and teams, two learners, projector and separated report`,async({page,request,browser})=>{
  test.setTimeout(90000)
- expect(process.env.PW_BASE_URL).toBe('http://127.0.0.1:5411')
+ expect(new URL(process.env.PW_BASE_URL??'').hostname).toMatch(/^(127\.0\.0\.1|localhost)$/)
  const email=`live-rules-${crypto.randomUUID()}@example.com`,password='Synthetic live rules 2026!'
  expect((await request.post('/api/v1/auth/register/teacher',{data:{name:'Synthetic rules host',email,password}})).ok()).toBe(true)
  const login=await request.post('/api/v1/auth/login',{data:{email,password}}),{accessToken}=await login.json(),headers={authorization:`Bearer ${accessToken}`}
@@ -28,6 +28,7 @@ for(const mode of ['class-competition','question-wheel'] as const)test(`actual s
  page.on('pageerror',error=>errors.push(error.message))
  await page.goto(`/teacher/activities/${activity.id}/play?mode=live`)
  await page.getByRole('radio',{name:mode==='class-competition'?/مسابقة الصف/:/عجلة الأسئلة/}).check()
+ await page.getByText('تخصيص الحصة المباشرة',{exact:true}).click()
  await page.getByRole('checkbox',{name:'تدريب غير مُقيّم بدل تقييم الإجابات الأولى'}).check()
  await page.getByRole('checkbox',{name:'محاولة تدريب إضافية؛ تبقى الإجابة الأولى محفوظة'}).check()
  await page.getByRole('checkbox',{name:'استخدم وقت كل سؤال؛ وإلا يتحكم المعلم بالانتقال'}).check()

@@ -29,7 +29,7 @@ for(const language of ['en','ar'] as const)test(`approved presentation preview i
   await page.getByRole('radio',{name:new RegExp(`^${ar?arabic:en}`)}).check()
   const subset=page.getByRole('checkbox',{name:new RegExp(ar?'^استخدم':'^Use only')});if(await subset.isVisible())await subset.check()
   const response=page.waitForResponse(r=>r.url().endsWith(`/presentations/activities/${activity.id}/preview`)&&r.request().method()==='POST')
-  await page.getByRole('button',{name:ar?'معاينة المحتوى المعتمد':'Preview approved content',exact:true}).click()
+  await page.getByRole('button',{name:ar?'معاينة الأسئلة':'Preview questions',exact:true}).click()
   expect((await response).ok()).toBe(true)
   const preview=page.getByRole('region',{name:ar?'معاينة العرض':'Presentation preview',exact:true})
   await expect(preview).toBeVisible()

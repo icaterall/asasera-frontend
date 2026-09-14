@@ -26,7 +26,7 @@ test('Arabic native blanks survive whole-grapheme insertion, removal, formatted 
  expect(saved.payload.segments.map((s:{kind:string;text?:string})=>s.kind==='text'?s.text:'[blank]')).toEqual(['نقرأ ','[blank]',' ونلتقي ','[blank]','.'])
  expect(saved.payload.segments[1].blankId).toBe('anchor');expect(saved.payload.segments[3].blankId).not.toBe('anchor')
  expect(saved.payload.blanks).toHaveLength(2);expect(saved.prompt).toBe('**أكمل نص المراجعة.**')
- await page.goto(`/teacher/activities/${fixture.activity.id}/play?mode=study`);await page.getByRole('radio',{name:/^إكمال الجملة/}).check();await page.getByRole('button',{name:'معاينة المحتوى المعتمد',exact:true}).click()
+ await page.goto(`/teacher/activities/${fixture.activity.id}/play?mode=study`);await page.getByRole('radio',{name:/^إكمال الجملة/}).check();await page.getByRole('button',{name:'معاينة الأسئلة',exact:true}).click()
  const preview=page.getByRole('region',{name:'معاينة العرض',exact:true});await expect(preview.locator('h2,h3,h1').filter({hasText:'أكمل نص المراجعة.'})).toBeVisible()
  await preview.getByRole('textbox',{name:'الفراغ 1',exact:true}).fill('كتابًا');await preview.getByRole('textbox',{name:'الفراغ 2',exact:true}).fill('مُدَرِّسًا');await preview.getByRole('button',{name:'إرسال الإجابة',exact:true}).click();await expect(preview.getByRole('status').filter({hasText:'إجابة صحيحة'})).toBeVisible()
  const link=await assignment(page,fixture.activity.id,'ar','إكمال الجملة')

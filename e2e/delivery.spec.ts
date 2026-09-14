@@ -25,7 +25,7 @@ test('teacher assigns, learner resumes and completes all question types, feedbac
   await student.reload();await expect(student.getByRole('button',{name:'Next',exact:true})).toBeVisible();await student.getByRole('button',{name:'Next',exact:true}).click()
   await student.getByRole('button',{name:'True',exact:true}).click();await student.getByRole('button',{name:'Next',exact:true}).click()
   const first=student.locator('li[class*=orderItem]').first();if((await first.innerText()).includes('Two'))await student.getByRole('button',{name:'Move up / للأعلى One',exact:true}).press('Enter')
-  await student.getByRole('button',{name:'Submit order',exact:true}).click();await student.getByRole('button',{name:'Next',exact:true}).click()
+  await student.getByRole('button',{name:'Check',exact:true}).click();await student.getByRole('button',{name:'Next',exact:true}).click()
   await student.getByRole('button',{name:'One',exact:true}).press('Enter');await student.getByRole('button',{name:'A',exact:true}).press('Enter')
   await student.getByRole('button',{name:'Two',exact:true}).press('Enter');await student.getByRole('button',{name:'B',exact:true}).press('Enter')
   await student.getByRole('button',{name:'Submit answer',exact:true}).click();await student.getByRole('button',{name:'Next',exact:true}).click()

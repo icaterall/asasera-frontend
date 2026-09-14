@@ -86,7 +86,6 @@ export function ContactForm() {
     </div>
     <div className={styles.honeypot} aria-hidden="true"><label htmlFor={`${id}-website`}>Website</label><input id={`${id}-website`} name="website" tabIndex={-1} autoComplete="off" value={values.website} onChange={event => change('website', event.target.value)} /></div>
     {failure && <p className={styles.error} role="alert">{failure}</p>}
-    <div className={styles.actions}><Button type="submit" variant="primary" loading={busy}>{busy ? t('جارٍ الإرسال…', 'Sending…') : t('إرسال الرسالة', 'Send message')}</Button>
-      <p>{t('إلى فريق أساسيرا على', 'To the Asasera team at')} <a href="mailto:support@asasera.com"><bdi>support@asasera.com</bdi></a></p></div>
+    <div className={styles.actions}><Button type="submit" variant="primary" loading={busy}>{busy ? t('جارٍ الإرسال…', 'Sending…') : t('إرسال الرسالة', 'Send message')}</Button></div>
   </form>
 }

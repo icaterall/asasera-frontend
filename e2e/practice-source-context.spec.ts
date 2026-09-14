@@ -14,11 +14,13 @@ for(const language of ['en','ar'] as const)for(const definition of ['flashcards'
  const added=await request.post(`/api/v1/activities/${activity.id}/questions`,{headers,data:{kind:flash?'tf':'discussion',prompt,payload:flash?{correct:false}:{schemaVersion:1,referenceResponse:correction},explanation:flash?correction:undefined}})
  expect(added.ok()).toBe(true)
  // Only synthetic provenance is seeded: no generator, uploaded file, or provider call.
- const db=new Client({host:'127.0.0.1',port:55432,database:'asasera_interactive_browser_test_20260914',user:'postgres',password:'postgres',ssl:false})
+ const database=process.env.E2E_PG_DATABASE,port=Number(process.env.E2E_PG_PORT??55432)
+ expect(database).toContain('test')
+ const db=new Client({host:'127.0.0.1',port,database,user:process.env.E2E_PG_USER??'postgres',password:'postgres',ssl:false})
  let questionId:number
  await db.connect()
  try{
-  expect((await db.query('SELECT current_database() AS name')).rows[0].name).toBe('asasera_interactive_browser_test_20260914')
+  expect((await db.query('SELECT current_database() AS name')).rows[0].name).toBe(database)
   expect((await db.query('SELECT author_id FROM activities WHERE id=$1',[activity.id])).rows[0].author_id).toBe(user.id)
   questionId=(await db.query('SELECT id FROM questions WHERE activity_id=$1',[activity.id])).rows[0].id
   await db.query("INSERT INTO question_provenance(question_id,origin,segment_indexes) VALUES($1,'file',ARRAY[2,4])",[questionId])

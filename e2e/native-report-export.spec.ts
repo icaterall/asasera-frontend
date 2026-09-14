@@ -5,7 +5,7 @@ import { readZip } from '../../asasera-backend/src/lib/zip'
 test.use({ trace: 'off' })
 
 for (const language of ['en', 'ar'] as const) test(`same pinned dataset keeps native responses and self-ratings separate in report and exports ${language}`, async ({ page, request }) => {
-  expect(process.env.PW_BASE_URL).toBe('http://127.0.0.1:5411')
+  expect(new URL(process.env.PW_BASE_URL??'').hostname).toMatch(/^(127\.0\.0\.1|localhost)$/)
   const ar = language === 'ar', email = `native-report-${crypto.randomUUID()}@example.com`, password = crypto.randomUUID() + 'Aa1!'
   expect((await request.post('/api/v1/auth/register/teacher', { data: { name: 'Synthetic report instructor', email, password } })).ok()).toBe(true)
   const login = await request.post('/api/v1/auth/login', { data: { email, password } })

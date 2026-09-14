@@ -24,6 +24,7 @@ test('T087 T088 Challenge cards preserve mixed source wording and names on Arabi
  const host=watch(page),errors:string[]=[];page.on('pageerror',e=>errors.push(e.message))
  await page.goto(`/teacher/activities/${fixture.activity.id}/play?mode=live`)
  await page.getByRole('radio',{name:/بطاقات التحدي/}).check()
+ await page.getByText('تخصيص الحصة المباشرة',{exact:true}).click()
  await page.getByRole('checkbox',{name:'السماح للمعلم بعرض التلميحات المحفوظة للجميع'}).check()
  await page.getByRole('button',{name:'ابدأ الحصة المباشرة',exact:true}).click()
  await expect(page).toHaveURL(/\/teacher\/live\/\d+$/)

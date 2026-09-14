@@ -2,7 +2,7 @@ import {test,expect} from '@playwright/test'
 
 for(const ar of [false,true])test(`real shared box launch, explicit begin, saved answer and resume ${ar?'Arabic mobile':'English desktop'}`,async({page,request,browser})=>{
  test.setTimeout(60000)
- const origin=process.env.PW_BASE_URL??'';expect(origin).toBe('http://127.0.0.1:5411')
+ const origin=process.env.PW_BASE_URL??'';expect(new URL(origin).hostname).toMatch(/^(127\.0\.0\.1|localhost)$/)
  const email=`presentation-live-${crypto.randomUUID()}@example.com`,password='Synthetic live presentation 2026!'
  expect((await request.post('/api/v1/auth/register/teacher',{data:{name:'Synthetic presentation host',email,password}})).ok()).toBe(true)
  const login=await request.post('/api/v1/auth/login',{data:{email,password}}),{accessToken}=await login.json(),headers={authorization:`Bearer ${accessToken}`}
@@ -15,6 +15,7 @@ for(const ar of [false,true])test(`real shared box launch, explicit begin, saved
  const errors:string[]=[];page.on('pageerror',error=>errors.push(error.message))
  await page.goto(`/teacher/activities/${activity.id}/play?mode=live`)
  await page.getByRole('radio',{name:ar?/افتح الصندوق/:/Open the box/}).check()
+ await page.getByText(ar?'تخصيص الحصة المباشرة':'Customize live game',{exact:true}).click()
  await page.getByRole('checkbox',{name:ar?'السماح للمعلم بعرض التلميحات المحفوظة للجميع':'Allow the teacher to reveal reviewed hints to everyone'}).check()
  await page.getByRole('button',{name:ar?'ابدأ الحصة المباشرة':'Start live game',exact:true}).click()
  await expect(page.getByRole('button',{name:ar?'افتح الصندوق 2':'Open box 2',exact:true})).toBeVisible()

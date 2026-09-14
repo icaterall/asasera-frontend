@@ -37,7 +37,7 @@ for(const [language,width,height,reduced] of [['en',1440,900,false],['ar',844,39
   await learner.getByRole('button',{name:ar?'انضم':'Join class',exact:true}).click()
   await expect.poll(()=>learnerState?.self).toBeTruthy()
   for(const name of ar?['أحمد','سارة']:['Ahmed','Sara']){
-   const socket=io('http://127.0.0.1:5410',{transports:['websocket'],autoConnect:false,reconnection:false});sockets.push(socket)
+   const socket=io(process.env.PW_BASE_URL!,{transports:['websocket'],autoConnect:false,reconnection:false});sockets.push(socket)
    await new Promise<void>((resolve,reject)=>{socket.once('connect',resolve);socket.once('connect_error',reject);socket.connect()})
    const reply:Reply=await socket.timeout(5000).emitWithAck('player:join',{pin:current!.pin,name,requestId:crypto.randomUUID()});expect(reply.ok).toBe(true)
   }

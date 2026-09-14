@@ -39,7 +39,7 @@ export const authAR: AuthCopy = {
     emailRequired: 'اكتب بريدك الإلكتروني.',
     emailInvalid: 'اكتب بريدًا إلكترونيًا صحيحًا.',
     passwordRequired: 'اكتب كلمة مرور.',
-    passwordShort: 'استخدم 12 حرفًا على الأقل.',
+    passwordShort: 'استخدم 8 أحرف على الأقل.',
     stageRequired: 'اختر المرحلة.',
     categoryRequired: 'اختر المادة.',
     notFound: 'هذا غير متاح، أو ليس لك.',
@@ -94,7 +94,7 @@ export const authAR: AuthCopy = {
       title: 'أنشئ كلمة المرور',
       lead: 'خطوة واحدة ويصبح حسابك جاهزًا.',
       edit: 'تعديل',
-      hint: '12 حرفًا على الأقل. لا رموز ولا أحرف كبيرة مطلوبة.',
+      hint: '8 أحرف على الأقل. لا رموز ولا أحرف كبيرة مطلوبة.',
       submit: 'إنشاء الحساب',
     },
     checkEmail: {

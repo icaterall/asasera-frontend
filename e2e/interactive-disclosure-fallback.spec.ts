@@ -3,7 +3,7 @@ import {execFileSync} from 'node:child_process'
 import {resolve} from 'node:path'
 import {writeFile} from 'node:fs/promises'
 test.use({trace:'off',actionTimeout:12000})
-test.beforeEach(()=>expect(process.env.PW_BASE_URL).toBe('http://127.0.0.1:5411'))
+test.beforeEach(()=>expect(new URL(process.env.PW_BASE_URL??'').hostname).toMatch(/^(127\.0\.0\.1|localhost)$/))
 const API='/api/v1'
 async function record(info:TestInfo,name:string,value:unknown){const path=info.outputPath(name+'.json');await writeFile(path,JSON.stringify(value,null,2));await info.attach(name,{path,contentType:'application/json'})}
 async function instructor(request:APIRequestContext){
@@ -141,7 +141,7 @@ test('T080 concealed memory and saved crossword keep pair truths and solutions o
 
 test('T099 unavailable image-only media has readable failure and recovers without losing the card',async({page,request},info)=>{
  const {owner,headers}=await instructor(request)
- const images=JSON.parse(execFileSync(process.execPath,['--import','./tests/bootstrap.mjs','tests/browser-image-fixture.ts',String(owner)],{cwd:resolve('../asasera-backend'),env:{...process.env,PG_HOST:'127.0.0.1',PG_PORT:'55432',PG_DATABASE:'asasera_interactive_browser_test_20260914',PG_USER:'postgres',PG_PASSWORD:'postgres',PG_SSL:'disable'},encoding:'utf8'})) as string[]
+ const images=JSON.parse(execFileSync(process.execPath,['--import','./tests/bootstrap.mjs','tests/browser-image-fixture.ts',String(owner)],{cwd:resolve('../asasera-backend'),env:{...process.env,PG_HOST:'127.0.0.1',PG_PORT:process.env.E2E_PG_PORT??'55432',PG_DATABASE:process.env.E2E_PG_DATABASE,PG_USER:process.env.E2E_PG_USER??'postgres',PG_PASSWORD:'postgres',PG_SSL:'disable'},encoding:'utf8'})) as string[]
  const activity=await approved(request,headers,[{kind:'mcq',prompt:'Which reviewed image is blue?',payload:{options:[{key:'a',text:'',image:images[0]},{key:'b',text:'',image:images[1]}],correct:'a'}}]),assigned=await assignment(request,headers,activity,'flashcards')
  const matcher='**/api/v1/activity-media/file?*',errors:string[]=[];let denied=0
  page.on('pageerror',e=>errors.push(e.message));await page.route(matcher,route=>{denied++;return route.abort('failed')})

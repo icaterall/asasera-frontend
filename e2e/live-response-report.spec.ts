@@ -8,7 +8,7 @@ import type { LivePresentationCommand } from '../src/shared/live-presentation'
 for (const [language, semantics] of [['en', 'scored'], ['ar', 'practice']] as const) for (const ending of ['host', 'disconnect'] as const) {
   test(`owner reads real live response evidence ${language} ${semantics} ${ending}`, async ({ page, request }) => {
     test.setTimeout(120000)
-    expect(process.env.PW_BASE_URL).toBe('http://127.0.0.1:5411')
+    expect(new URL(process.env.PW_BASE_URL??'').hostname).toMatch(/^(127\.0\.0\.1|localhost)$/)
     const email = `live-report-${crypto.randomUUID()}@example.com`, password = crypto.randomUUID() + 'Aa1!'
     expect((await request.post('/api/v1/auth/register/teacher', { data: { name: 'Synthetic report instructor', email, password } })).ok()).toBe(true)
     const login = await request.post('/api/v1/auth/login', { data: { email, password } }), { accessToken } = await login.json(), headers = { authorization: `Bearer ${accessToken}` }
@@ -21,7 +21,7 @@ for (const [language, semantics] of [['en', 'scored'], ['ar', 'practice']] as co
     const published = await request.post(`/api/v1/activities/${activity.id}/publish`, { headers }); expect(published.ok()).toBe(true)
     const { versionId } = await published.json(), sockets: Socket[] = []
     async function connect(token?: string) {
-      const socket = io('http://127.0.0.1:5410', { transports: ['websocket'], autoConnect: false, reconnection: false, auth: token ? { accessToken: token } : {} }); sockets.push(socket)
+      const socket = io(process.env.PW_BASE_URL!, { transports: ['websocket'], autoConnect: false, reconnection: false, auth: token ? { accessToken: token } : {} }); sockets.push(socket)
       await new Promise<void>((resolve, reject) => { socket.once('connect', resolve); socket.once('connect_error', reject); socket.connect() })
       return socket
     }

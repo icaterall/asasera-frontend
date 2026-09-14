@@ -48,6 +48,10 @@ test('teacher authors ordering, matching, and confirmed image zones with durable
   const picker=page.waitForEvent('filechooser');await page.getByRole('button',{name:'ارفع صورة',exact:true}).click();await (await picker).setFiles({name:'synthetic-zones.png',mimeType:'image/png',buffer:image})
   await expect(type).toHaveAttribute('data-question-kind','hotspot',{timeout:20_000})
   await expect(page.getByRole('heading',{name:'حوّل الصورة إلى سؤال',exact:true})).toBeVisible({timeout:20_000})
+  /* The approved image still has to resolve and decode before the zone editor
+     becomes interactive. Filling a visible descendant while its workspace is
+     inert sends keyboard input to the previously focused prompt in Chromium. */
+  await expect(page.getByRole('region',{name:'محرر إجابات الصورة'})).not.toHaveAttribute('aria-busy','true',{timeout:20_000})
   const prompt=page.getByLabel('نص السؤال')
   const zoneAnswer=page.locator('input[aria-label="إجابة المنطقة 1"]')
   await prompt.fill('اختر المنطقة الأولى')

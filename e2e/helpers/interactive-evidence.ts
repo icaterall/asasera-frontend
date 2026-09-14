@@ -2,7 +2,7 @@ import {expect,type APIRequestContext,type Browser,type Page} from '@playwright/
 export type Language='en'|'ar'
 export const label=(language:Language,en:string,ar:string)=>language==='ar'?ar:en
 export async function teacherFixture(page:Page,request:APIRequestContext,language:Language,questions:Record<string,unknown>[]){
- expect(process.env.PW_BASE_URL).toBe('http://127.0.0.1:5411')
+ expect(new URL(process.env.PW_BASE_URL??'').hostname).toMatch(/^(127\.0\.0\.1|localhost)$/)
  const email=`bounded-evidence-${crypto.randomUUID()}@example.com`,password=`Synthetic-${crypto.randomUUID()}!`
  expect((await request.post('/api/v1/auth/register/teacher',{data:{name:'Synthetic evidence instructor',email,password}})).ok()).toBe(true)
  const login=await request.post('/api/v1/auth/login',{data:{email,password}});expect(login.ok()).toBe(true)

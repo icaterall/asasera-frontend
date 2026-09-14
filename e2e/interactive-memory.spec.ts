@@ -4,10 +4,12 @@ const {Client}=createRequire(import.meta.url)('../../asasera-backend/node_module
 // Read only this synthetic instructor's isolated board to guarantee a mismatch.
 // The real learner still receives no hidden faces, keys or answer map.
 async function mismatchPositions(activityId:number,owner:number):Promise<number[]>{
- const client=new Client({host:'127.0.0.1',port:55432,database:'asasera_interactive_browser_test_20260914',user:'postgres',password:'postgres',ssl:false})
+ const database=process.env.E2E_PG_DATABASE,port=Number(process.env.E2E_PG_PORT??55432)
+ expect(database).toContain('test')
+ const client=new Client({host:'127.0.0.1',port,database,user:process.env.E2E_PG_USER??'postgres',password:'postgres',ssl:false})
  await client.connect()
  try{
-  expect((await client.query('SELECT current_database() AS name')).rows[0].name).toBe('asasera_interactive_browser_test_20260914')
+  expect((await client.query('SELECT current_database() AS name')).rows[0].name).toBe(database)
   const rows=(await client.query('SELECT t.presentation_state FROM assignment_attempts t JOIN assignments a ON a.id=t.assignment_id JOIN activity_runs r ON r.id=a.run_id WHERE a.host_id=$1 AND r.activity_id=$2',[owner,activityId])).rows
   expect(rows).toHaveLength(1)
   const state=rows[0].presentation_state,cards=state.layouts[String(state.activeIndex)].memory.cards

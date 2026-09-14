@@ -990,7 +990,7 @@
   position: sticky;
   inset-block-start: 0;
   z-index: 60;
-  background: var(--color-brand-500); /* the brand primary, where white reads 7.23:1 */
+  background: #1e9ac5; /* owner-chosen; white on this measures 3.24:1 — see note */
   color: #ffffff;
 }
 

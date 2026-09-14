@@ -2,7 +2,7 @@ import {test,expect} from '@playwright/test'
 
 for(const ar of [false,true])for(const mode of ['memory','flashcards'] as const)test(`real teacher-led ${mode} ${ar?'Arabic mobile':'English desktop'}`,async({page,request,browser})=>{
  test.setTimeout(60000)
- expect(process.env.PW_BASE_URL).toBe('http://127.0.0.1:5411')
+ expect(new URL(process.env.PW_BASE_URL??'').hostname).toMatch(/^(127\.0\.0\.1|localhost)$/)
  const email=`collective-${crypto.randomUUID()}@example.com`,password='Synthetic collective class 2026!'
  expect((await request.post('/api/v1/auth/register/teacher',{data:{name:'Synthetic collective host',email,password}})).ok()).toBe(true)
  const login=await request.post('/api/v1/auth/login',{data:{email,password}}),{accessToken}=await login.json(),headers={authorization:`Bearer ${accessToken}`}

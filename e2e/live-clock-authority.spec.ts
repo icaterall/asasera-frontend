@@ -4,7 +4,7 @@ import type {Reply,SessionSnapshot} from '../src/shared/session'
 
 test('changed client clocks cannot start an unopened box, alter shared thinking time, or extend answer authority',async({page,request,browser})=>{
  test.setTimeout(45000)
- expect(process.env.PW_BASE_URL).toBe('http://127.0.0.1:5411')
+ expect(new URL(process.env.PW_BASE_URL??'').hostname).toMatch(/^(127\.0\.0\.1|localhost)$/)
  const email=`clock-authority-${crypto.randomUUID()}@example.com`,password='Synthetic clock authority2026!'
  expect((await request.post('/api/v1/auth/register/teacher',{data:{name:'Clock authority fixture',email,password}})).ok()).toBe(true)
  const login=await request.post('/api/v1/auth/login',{data:{email,password}}),{accessToken}=await login.json(),headers={Authorization:`Bearer ${accessToken}`}
@@ -12,7 +12,7 @@ test('changed client clocks cannot start an unopened box, alter shared thinking 
  const added=await request.post(`/api/v1/activities/${activity.id}/questions`,{headers,data:{kind:'tf',prompt:'The shared clock is authoritative.',timeLimitS:5,payload:{correct:true}}});expect(added.ok()).toBe(true)
  const {question}=await added.json(),published=await request.post(`/api/v1/activities/${activity.id}/publish`,{headers}),{versionId}=await published.json()
  const sockets:Socket[]=[]
- async function connect(token?:string){const socket=io('http://127.0.0.1:5410',{transports:['websocket'],autoConnect:false,reconnection:false,auth:token?{accessToken:token}:{}});sockets.push(socket);await new Promise<void>((resolve,reject)=>{socket.once('connect',resolve);socket.once('connect_error',reject);socket.connect()});return socket}
+ async function connect(token?:string){const socket=io(process.env.PW_BASE_URL!,{transports:['websocket'],autoConnect:false,reconnection:false,auth:token?{accessToken:token}:{}});sockets.push(socket);await new Promise<void>((resolve,reject)=>{socket.once('connect',resolve);socket.once('connect_error',reject);socket.connect()});return socket}
  async function ask(socket:Socket,event:string,input:unknown){const reply:Reply=await socket.timeout(5000).emitWithAck(event,input);if(!reply.ok)throw Error(`${reply.code}: ${reply.message}`);return reply}
  function watch(surface:Page){const state:{value?:SessionSnapshot}={};const packet=(value:string)=>{if(!/^4[23]\d*\[/.test(value))return;const parts=JSON.parse(value.slice(value.indexOf('[')));if(parts[0]==='session:snapshot')state.value=parts[1];else if(parts[0]?.snapshot)state.value=parts[0].snapshot};surface.on('websocket',socket=>socket.on('framereceived',frame=>packet(String(frame.payload))));surface.on('response',async response=>{if(response.url().includes('/socket.io/')&&response.request().method()==='GET'&&new URL(response.url()).searchParams.get('transport')==='polling')try{(await response.text()).split('\x1e').forEach(packet)}catch{/* Navigation can cancel an empty poll. */}});return state}
  const context=await browser.newContext({baseURL:process.env.PW_BASE_URL,viewport:{width:390,height:844}}),learner=await context.newPage(),hostState=watch(page),learnerState=watch(learner)

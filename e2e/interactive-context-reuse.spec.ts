@@ -2,7 +2,7 @@ import {test,expect,type Page,type APIRequestContext} from '@playwright/test'
 import {createRequire} from 'node:module'
 const {Client}=createRequire(import.meta.url)('../../asasera-backend/node_modules/pg')
 test.use({trace:'off',actionTimeout:12000})
-test.beforeEach(()=>expect(process.env.PW_BASE_URL).toBe('http://127.0.0.1:5411'))
+test.beforeEach(()=>expect(new URL(process.env.PW_BASE_URL??'').hostname).toMatch(/^(127\.0\.0\.1|localhost)$/))
 
 async function teacher(page:Page,request:APIRequestContext){
  const email=`context-${crypto.randomUUID()}@example.com`,password=`Synthetic-context-${crypto.randomUUID()}!`
@@ -27,10 +27,12 @@ async function lesson(request:APIRequestContext,headers:Record<string,string>,ti
 // A guarded, teacher-scoped fixture boundary, not a generation workflow. No
 // schema migration/seed/global counters. Every query is restricted to this ID.
 async function stored(owner:number,activityId:number,operation:'read'|'provenance'|'newer',value?:number|string){
- const client=new Client({host:'127.0.0.1',port:55432,database:'asasera_interactive_browser_test_20260914',user:'postgres',password:'postgres',ssl:false})
+ const database=process.env.E2E_PG_DATABASE,port=Number(process.env.E2E_PG_PORT??55432)
+ expect(database).toContain('test')
+ const client=new Client({host:'127.0.0.1',port,database,user:process.env.E2E_PG_USER??'postgres',password:'postgres',ssl:false})
  await client.connect()
  try{
-  expect((await client.query('SELECT current_database() AS name')).rows[0].name).toBe('asasera_interactive_browser_test_20260914')
+  expect((await client.query('SELECT current_database() AS name')).rows[0].name).toBe(database)
   expect((await client.query('SELECT author_id FROM activities WHERE id=$1',[activityId])).rows[0].author_id).toBe(owner)
   if(operation==='provenance')await client.query("INSERT INTO question_provenance(question_id,origin,material_revision_id,segment_indexes) SELECT id,'file',$2,'{1}' FROM questions WHERE activity_id=$1 AND kind='mcq'",[activityId,value])
   if(operation==='newer')expect((await client.query("UPDATE activity_runs SET presentation_config=jsonb_set(presentation_config,'{definitionVersion}','99') WHERE host_id=$1 AND activity_id=$2 AND id=(SELECT run_id FROM assignments WHERE id=$3)",[owner,activityId,value])).rowCount).toBe(1)

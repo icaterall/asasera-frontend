@@ -42,7 +42,7 @@ export const authEN = {
     emailRequired: 'Enter your email address.',
     emailInvalid: 'Enter a valid email address.',
     passwordRequired: 'Enter a password.',
-    passwordShort: 'Use at least 12 characters.',
+    passwordShort: 'Use at least 8 characters.',
     stageRequired: 'Choose a stage.',
     categoryRequired: 'Choose a subject.',
     notFound: 'That is not available, or it is not yours.',
@@ -107,7 +107,7 @@ export const authEN = {
       title: 'Create your password',
       lead: 'One more step and your account is ready.',
       edit: 'Edit',
-      hint: 'At least 12 characters. No symbols or capitals required.',
+      hint: 'At least 8 characters. No symbols or capitals required.',
       submit: 'Create account',
     },
     checkEmail: {

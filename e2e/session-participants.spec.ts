@@ -3,7 +3,7 @@ import {test,expect} from '@playwright/test'
 test('real live host moderation stays private, preserves wheel state, and ends the revoked learner seat',async({page,request,browser})=>{
  test.setTimeout(60000)
  const origin=process.env.PW_BASE_URL??''
- expect(origin).toBe('http://127.0.0.1:5411')
+ expect(new URL(origin).hostname).toMatch(/^(127\.0\.0\.1|localhost)$/)
  const email=`session-moderation-${crypto.randomUUID()}@example.com`,password='Synthetic live test 2026!'
  expect((await request.post('/api/v1/auth/register/teacher',{data:{name:'Synthetic moderation host',email,password}})).ok()).toBe(true)
  const login=await request.post('/api/v1/auth/login',{data:{email,password}}),{accessToken}=await login.json(),headers={authorization:`Bearer ${accessToken}`}

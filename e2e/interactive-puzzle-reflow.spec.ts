@@ -9,7 +9,7 @@ const text=(language:Language,en:string,ar:string)=>language==='ar'?ar:en
 const escaped=(value:string)=>value.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')
 
 async function prepare(page:Page,request:APIRequestContext,language:Language,source:Record<string,unknown>,kind?:'word-search'|'crossword'){
- expect(process.env.PW_BASE_URL).toBe('http://127.0.0.1:5411')
+ expect(new URL(process.env.PW_BASE_URL??'').hostname).toMatch(/^(127\.0\.0\.1|localhost)$/)
  const email=`puzzle-reflow-${crypto.randomUUID()}@example.com`,password=`Synthetic-${crypto.randomUUID()}!`
  expect((await request.post('/api/v1/auth/register/teacher',{data:{name:'Synthetic puzzle instructor',email,password}})).ok()).toBe(true)
  const login=await request.post('/api/v1/auth/login',{data:{email,password}});expect(login.ok()).toBe(true)
@@ -146,7 +146,7 @@ for(const diacritics of ['preserve','ignore'] as const)test(`edited Arabic passa
  const body=await owner.json(),savedQuestion=body.questions.find((item:{id:number})=>item.id===questionId)
  expect(savedQuestion.payload.segments).toEqual([{kind:'text',text:before},{kind:'blank',blankId:'hope'},{kind:'text',text:after}]);expect(savedQuestion.payload.policy.diacritics).toBe(diacritics)
  await page.goto(`/teacher/activities/${activityId}/play?mode=study`);await select(page,'ar','sentence-completion')
- await page.getByRole('button',{name:'معاينة المحتوى المعتمد',exact:true}).click()
+ await page.getByRole('button',{name:'معاينة الأسئلة',exact:true}).click()
  const preview=page.getByRole('region',{name:'معاينة العرض',exact:true})
  await expect(preview.getByText(before,{exact:true})).toBeVisible();await expect(preview.getByText(after,{exact:true})).toBeVisible()
  for(const [answer,correct] of [[wrong,false],[accepted,true]] as const){
@@ -187,7 +187,7 @@ for(const language of ['en','ar'] as const)test(`reviewed phrase ${language}: pr
  const graphemes=language==='ar'?['بَ','ا','ب',' ','بَ','ا','ب']:['l','e','t','t','e','r',' ','l','e','t','t','e','r']
  await prepare(page,request,language,{kind:'vocabulary',prompt:text(language,'Build the exact reviewed phrase.','كوّن العبارة المعتمدة بحروفها وحركاتها.'),payload:{schemaVersion:1,policy:policy(language),entries:[{id:'phrase',word:phrase,clue}]}})
  await select(page,language,'word-builder')
- await page.getByRole('button',{name:text(language,'Preview approved content','معاينة المحتوى المعتمد'),exact:true}).click()
+ await page.getByRole('button',{name:text(language,'Preview questions','معاينة الأسئلة'),exact:true}).click()
  const preview=page.getByRole('region',{name:text(language,'Presentation preview','معاينة العرض'),exact:true})
  await preview.getByText(text(language,'Accepted answers and comparison policy','الإجابات المقبولة وقواعد المقارنة'),{exact:true}).click()
  await expect(preview.getByText(text(language,'Diacritics: preserve · Tatweel: preserve · Spaces: preserve · Case: preserve','التشكيل: محفوظ · التطويل: محفوظ · المسافات: محفوظة · حالة الأحرف: محفوظة'),{exact:true})).toBeVisible()

@@ -27,15 +27,15 @@ function snapshots(page:Page,accept:(state:SessionSnapshot)=>void){
 }
 for(const language of ['en','ar'] as const)test(`native hidden tab preserves committed live wheel ${language}`,async({request},testInfo)=>{
  test.setTimeout(45000)
- expect(process.env.PW_BASE_URL).toBe('http://127.0.0.1:5411')
+ expect(new URL(process.env.PW_BASE_URL??'').hostname).toMatch(/^(127\.0\.0\.1|localhost)$/)
  const native=await nativeBrowser(),page=native.context.pages()[0],sockets:Socket[]=[],errors:string[]=[];page.on('pageerror',error=>errors.push(error.message))
  try{
   const fixture=await teacherFixture(page,request,language,[{kind:'tf',prompt:label(language,'Earth is a planet.','الأرض كوكب.'),payload:{correct:true}}]);await fixture.publish()
   await page.addInitScript(()=>{window.__nativeVisibility=[];document.addEventListener('visibilitychange',event=>window.__nativeVisibility.push({state:document.visibilityState,time:performance.now(),trusted:event.isTrusted}))})
   let current:SessionSnapshot|undefined;snapshots(page,state=>{current=state})
-  await page.goto(`http://127.0.0.1:5411/teacher/live/new?activityId=${fixture.activity.id}&request=${crypto.randomUUID()}`)
+  await page.goto(`${process.env.PW_BASE_URL}/teacher/live/new?activityId=${fixture.activity.id}&request=${crypto.randomUUID()}`)
   await expect(page.getByRole('button',{name:label(language,'Start class','ابدأ الحصة'),exact:true})).toBeVisible();await expect.poll(()=>current?.pin).toBeTruthy()
-  for(const name of language==='ar'?['أحمد','مريم','سارة']:['Ahmed','Mariam','Sara']){const socket=io('http://127.0.0.1:5410',{transports:['websocket'],autoConnect:false,reconnection:false});sockets.push(socket);await new Promise<void>((resolve,reject)=>{socket.once('connect',resolve);socket.once('connect_error',reject);socket.connect()});const reply:Reply=await socket.timeout(5000).emitWithAck('player:join',{pin:current!.pin,name,requestId:crypto.randomUUID()});expect(reply.ok).toBe(true)}
+  for(const name of language==='ar'?['أحمد','مريم','سارة']:['Ahmed','Mariam','Sara']){const socket=io(process.env.PW_BASE_URL!,{transports:['websocket'],autoConnect:false,reconnection:false});sockets.push(socket);await new Promise<void>((resolve,reject)=>{socket.once('connect',resolve);socket.once('connect_error',reject);socket.connect()});const reply:Reply=await socket.timeout(5000).emitWithAck('player:join',{pin:current!.pin,name,requestId:crypto.randomUUID()});expect(reply.ok).toBe(true)}
   await expect.poll(()=>current?.participants.length).toBe(3)
   const other=await native.context.newPage();await other.goto('about:blank');await page.bringToFront();await expect.poll(()=>page.evaluate(()=>document.visibilityState)).toBe('visible')
   await page.getByRole('button',{name:label(language,'Random wheel','العجلة العشوائية'),exact:true}).click();await page.getByRole('button',{name:label(language,'Spin the wheel','أدر العجلة'),exact:true}).click();await expect.poll(()=>current?.wheel?.spin?.id).toBeTruthy()
