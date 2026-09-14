@@ -41,6 +41,7 @@ for (const shot of MATRIX) {
 
 /* The editor, authored and populated — W03 evidence. */
 test('capture editor-authored-1440.png', async ({ page }) => {
+  await page.addInitScript(()=>{localStorage.setItem('asasera.language','ar');localStorage.setItem('i18nextLng','ar')})
   const {email,password}=localTeacher()
   const login = await page.request.post('/api/v1/auth/login', { data: { email, password } })
   const { accessToken } = await login.json()
@@ -53,6 +54,7 @@ test('capture editor-authored-1440.png', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 })
   await page.goto(`/teacher/activities/${id}`)
   await page.getByRole('button', { name: 'أضف سؤالًا' }).first().click()
+  await page.getByRole('dialog',{name:'ما نوع السؤال الجديد؟'}).getByRole('button',{name:'اختبار',exact:true}).click()
   await page.getByLabel('نص السؤال').fill('ما عاصمة فرنسا؟')
   for (const [slot, answer] of ['باريس', 'لندن', 'برلين', 'مدريد'].entries()) {
     await page.getByLabel(`نص الإجابة ${slot + 1}`).fill(answer)

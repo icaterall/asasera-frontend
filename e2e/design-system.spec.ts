@@ -70,20 +70,19 @@ test.describe('the owner-approved Kahoot token contract', () => {
     })
     expect(tokens).toEqual({
       act: '#1368ce', actPress: '#105cb4', evidence: '#26890c',
-      a1: '#e21b3c', a2: '#1368ce', a3: '#d89e00', a4: '#26890c',
+      a1: '#e21b3c', a2: '#1368ce', a3: '#9f5f08', a4: '#26890c',
       ink: '#333333', muted: '#6e6e6e', line: '#cccccc', surface: '#ffffff',
-      rControl: '4px', rCard: '8px', hControl: '48px',
+      rControl: '5px', rCard: '5px', hControl: '48px',
       tState: '200ms', tSelect: '100ms', tPanel: '300ms',
     })
   })
 
-  test('radius encodes hierarchy — a control is 4px and a card is 8px, never one value', async ({ page }) => {
+  test('controls and cards use the owner-approved 5px radius', async ({ page }) => {
     await openGallery(page, { dark: false, rtl: true })
     const control = await page.locator('button[class*="btn"]').first().evaluate((el) => getComputedStyle(el).borderRadius)
     const card = await page.locator('div[class*="card"]').first().evaluate((el) => getComputedStyle(el).borderRadius)
-    expect(control).toBe('4px')
-    expect(card).toBe('8px')
-    expect(control).not.toBe(card)
+    expect(control).toBe('5px')
+    expect(card).toBe('5px')
   })
 
   test('legacy screens inherit the current control geometry', async ({ page }) => {
@@ -92,7 +91,7 @@ test.describe('the owner-approved Kahoot token contract', () => {
       getComputedStyle(document.documentElement).getPropertyValue('--radius-sm').trim(),
     )
     // Owner styling override applies to the legacy shell as well.
-    expect(legacy === '4px').toBeTruthy()
+    expect(legacy === '5px').toBeTruthy()
   })
 })
 

@@ -159,8 +159,8 @@ export default function Gallery() {
         note="§5: «نصف قطر واحد لكل شيء» ممنوع صراحة. نصف القطر يشفّر التسلسل."
       >
         <div className={styles.geo}>
-          <div className={styles.geoBox} style={{ width: 96, height: 48, borderRadius: 'var(--r-control)' }}>4px · أداة</div>
-          <div className={styles.geoBox} style={{ width: 140, height: 96, borderRadius: 'var(--r-card)' }}>8px · بطاقة</div>
+          <div className={styles.geoBox} style={{ width: 96, height: 48, borderRadius: 'var(--r-control)' }}>5px · أداة</div>
+          <div className={styles.geoBox} style={{ width: 140, height: 96, borderRadius: 'var(--r-card)' }}>5px · بطاقة</div>
           <div className={styles.geoBox} style={{ width: 96, height: 48, borderRadius: 'var(--r-control)', boxShadow: 'var(--press)' }}>--press</div>
         </div>
       </Section>

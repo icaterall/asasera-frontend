@@ -32,6 +32,7 @@ import { expect, test, type Page } from '@playwright/test'
 const API = '/api/v1'
 
 async function signInAsNewTeacher(page: Page) {
+  await page.addInitScript(()=>{localStorage.setItem('asasera.language','ar');localStorage.setItem('i18nextLng','ar')})
   const {email,password}=localTeacher()
 
   const login = await page.request.post(`${API}/auth/login`, { data: { email, password } })
@@ -48,6 +49,11 @@ async function createActivity(page: Page, accessToken: string) {
   })
   expect(res.ok(), `create failed: ${res.status()} ${await res.text()}`).toBeTruthy()
   return (await res.json()).activity.id as number
+}
+
+async function addQuiz(page:Page){
+  await page.getByRole('button',{name:'أضف سؤالًا',exact:true}).first().click()
+  await page.getByRole('dialog',{name:'ما نوع السؤال الجديد؟'}).getByRole('button',{name:'اختبار',exact:true}).click()
 }
 
 test.describe('the four-region editor', () => {
@@ -72,7 +78,7 @@ test.describe('the four-region editor', () => {
     const thumbs = page.locator('[data-question-thumb]')
 
     for (const [index, question] of QUESTIONS.entries()) {
-      await page.getByRole('button', { name: 'أضف سؤالًا' }).first().click()
+      await addQuiz(page)
 
       /*
        * Wait for the new question to BE the active one before typing.
@@ -83,7 +89,7 @@ test.describe('the four-region editor', () => {
        * prompt is what "the new question is ready" actually means.
        */
       await expect(thumbs).toHaveCount(index + 1)
-      await expect(page.getByLabel('نص السؤال')).toHaveValue('')
+      await expect(page.getByLabel('نص السؤال')).toHaveText('')
 
       await page.getByLabel('نص السؤال').fill(question.prompt)
 
@@ -107,13 +113,14 @@ test.describe('the four-region editor', () => {
     const propertiesRail = page.getByLabel('خصائص السؤال')
     /* The type control is the design-system Select (a combobox), which exposes its value as data-select-value. */
     await expect(propertiesRail.getByLabel('نوع السؤال',{exact:true}).first()).toHaveAttribute('data-question-kind','mcq')
-    await expect(propertiesRail.getByLabel('مدة السؤال بالثواني')).toHaveValue('20')
+    await expect(propertiesRail.getByLabel('مدة السؤال بالثواني')).toHaveAttribute('data-select-value','20')
 
     await page.getByRole('button', { name: 'اعتماد النسخة' }).click()
 
     await expect(page.getByRole('button', { name: 'اعتماد التغييرات' })).toBeVisible({ timeout: 15_000 })
-    await expect(page.getByRole('button', { name: 'ابدأ حصة مباشرة' })).toBeVisible()
-    await expect(page.getByRole('button', { name: 'كلّف كواجب' })).toBeVisible()
+    await page.getByRole('button',{name:'المزيد',exact:true}).click()
+    await expect(page.getByRole('dialog',{name:'أدوات النشاط'}).getByRole('button', { name: 'ابدأ حصة مباشرة' })).toBeVisible()
+    await expect(page.getByRole('dialog',{name:'أدوات النشاط'}).getByRole('button', { name: 'كلّف كواجب' })).toBeVisible()
     await expect(page.getByRole('alert')).toHaveCount(0)
 
     /* And the server agrees — five questions, an approved version, still private (v5 §18). */
@@ -134,20 +141,20 @@ test.describe('the four-region editor', () => {
     await page.goto(`/teacher/activities/${activityId}`)
     await expect(page.getByLabel('عنوان النشاط')).toBeVisible({ timeout: 15_000 })
 
-    await page.getByRole('button', { name: 'أضف سؤالًا' }).first().click()
+    await addQuiz(page)
     await page.getByLabel('نص السؤال').fill('ما عاصمة فرنسا؟')
     await page.getByLabel('نص الإجابة 1').fill('باريس')
-    await page.getByLabel('نص الإجابة 2').fill('لندن')
     await page.getByLabel('نص الإجابة 3').fill('برلين')
-    // The fourth answer is deliberately empty.
-    await expect(page.getByLabel('نص الإجابة 4')).toHaveValue('')
+    // The first two options are required. Later empty slots are authoring
+    // placeholders and are deliberately removed during approval.
+    await expect(page.getByLabel('نص الإجابة 2')).toHaveText('')
 
     await page.getByRole('button', { name: 'اعتماد النسخة' }).click()
 
     const alert = page.getByRole('alert').first()
     await expect(alert).toBeVisible({ timeout: 15_000 })
     // The message names the exact option, not just "incomplete".
-    await expect(alert).toContainText('opt_d')
+    await expect(alert).toContainText('opt_b')
 
     // Still a draft.
     await expect(page.getByRole('button', { name: 'اعتماد النسخة' })).toBeVisible()
@@ -170,7 +177,7 @@ test.describe('the four-region editor', () => {
 
     await page.goto(`/teacher/activities/${activityId}`)
     await expect(page.getByLabel('عنوان النشاط')).toBeVisible({ timeout: 15_000 })
-    await page.getByRole('button', { name: 'أضف سؤالًا' }).first().click()
+    await addQuiz(page)
     await expect(page.locator('[data-question-thumb]')).toHaveCount(1)
 
     await page.getByLabel('نص السؤال').fill('سؤال')
@@ -199,7 +206,7 @@ test.describe('the four-region editor', () => {
 
     await page.goto(`/teacher/activities/${activityId}`)
     await expect(page.getByLabel('عنوان النشاط')).toBeVisible({ timeout: 15_000 })
-    await page.getByRole('button', { name: 'أضف سؤالًا' }).first().click()
+    await addQuiz(page)
     await expect(page.locator('[data-question-thumb]')).toHaveCount(1)
 
     failNext = true
@@ -207,7 +214,7 @@ test.describe('the four-region editor', () => {
 
     await expect(page.getByText('تعذّر الحفظ — تعديلك لم يُفقد')).toBeVisible({ timeout: 15_000 })
     // The edit is still on screen — a failure must not roll the editor back.
-    await expect(page.getByLabel('نص السؤال')).toHaveValue('نص لا يجب أن يُفقد')
+    await expect(page.getByLabel('نص السؤال')).toHaveText('نص لا يجب أن يُفقد')
 
     await page.getByRole('button', { name: 'أعد المحاولة' }).click()
     await expect(page.getByText('محفوظ', { exact: true })).toBeVisible({ timeout: 15_000 })
@@ -250,6 +257,7 @@ function seedProvenance(): ProvenanceFixture {
 }
 
 async function signIn(page: Page, email: string, password: string) {
+  await page.addInitScript(()=>{localStorage.setItem('asasera.language','ar');localStorage.setItem('i18nextLng','ar')})
   const login = await page.request.post(`${API}/auth/login`, { data: { email, password } })
   expect(login.ok(), `login failed: ${login.status()} ${await login.text()}`).toBeTruthy()
   return (await login.json()).accessToken as string

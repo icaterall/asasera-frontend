@@ -28,7 +28,7 @@ for(const [name,width,lang,theme] of [['desktop',1440,'en','light'],['mobile',39
   await expect(page.getByRole('heading',{name:arabic?'سجل المشتريات':'Purchase history'})).toBeVisible()
   const formatted=await page.evaluate(({lang,value})=>new Intl.NumberFormat(lang).format(value),{lang,value:pending?49000:129000})
   const balance=page.getByRole('button',{name:arabic?/الرصيد المتاح:/:/Available balance:/})
-  await expect(balance).toContainText(formatted)
+  await expect(balance).toHaveAttribute('title',new RegExp(formatted.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')))
   await expect(page.getByRole('button',{name:arabic?'تحديث':'Refresh',exact:true})).toBeEnabled()
   if(pending){
    await page.clock.runFor(31_000)

@@ -16,7 +16,7 @@
   
   --a1: #e21b3c;    /* triangle */
   --a2: #1368ce;    /* diamond  */
-  --a3: #b06f12;    /* circle   */
+  --a3: #9f5f08;    /* circle; white text 5.10:1 */
   --a4: #26890c;    /* square   */
   --a5: #0f9b8e;    /* pentagon */
   --a6: #7b3ff2;    /* inverted triangle */
@@ -26,8 +26,8 @@
   --line:#cccccc;    --surface:#ffffff;
 
   
-  --r-control: 4px;
-  --r-card:       8px;
+  --r-control: 5px;
+  --r-card:       5px;
   --h-control: 48px;
 
   
@@ -91,7 +91,7 @@
   --w-medium:  700;
   --w-bold:    700;
 
-  /* ---- space — a 4px base, matching --r-control ---- */
+  /* ---- space — a compact 4px spacing base; geometry uses the 5px product radius. ---- */
   --s-1: 4px;  --s-2: 8px;  --s-3: 12px; --s-4: 16px;
   --s-5: 24px; --s-6: 32px; --s-7: 48px; --s-8: 64px;
 }

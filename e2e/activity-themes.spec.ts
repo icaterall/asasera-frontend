@@ -18,6 +18,10 @@ async function setup(page:Page, theme='classic', lang='en') {
   for(const key of ['b','c','d'])expect((await page.request.put(`/api/v1/activities/questions/${question.id}/reasons`,{headers,data:{elementKey:key,reason:'A different planet.'}})).ok()).toBe(true)
   return {activity,question,headers}
 }
+async function openThemePicker(page:Page,ar=false){
+ await page.getByRole('button',{name:ar?'المزيد':'More',exact:true}).first().click()
+ await page.getByRole('button',{name:ar?'المظاهر':'Themes',exact:true}).click()
+}
 async function capture(page:Page,name:string) {
   await page.evaluate(()=>document.fonts.ready)
   await page.locator('[data-activity-theme] picture img').evaluateAll(async imgs=>{await Promise.all(imgs.map(img=>(img as HTMLImageElement).decode().catch(()=>{})))})
@@ -40,7 +44,7 @@ test('teacher previews every world, cancels, retries failed saves and preserves 
   const {activity,headers}=await setup(page)
   await page.setViewportSize({width:1440,height:1000});await page.goto(`/teacher/activities/${activity.id}`)
   await page.getByRole('textbox',{name:'Question text',exact:true}).fill('A saved question before choosing a world')
-  const open=page.getByRole('button',{name:'Themes',exact:true});await open.click()
+  await openThemePicker(page);const open=page.getByRole('button',{name:'More',exact:true}).first()
   const dialog=page.getByRole('dialog',{name:'Choose your activity world'});await expect(dialog).toBeVisible()
   await expect(dialog.getByRole('radio')).toHaveCount(13)
   for(const id of worlds){await dialog.locator(`input[value="${id}"]`).check();await expect(dialog.locator('[data-variant=preview]')).toHaveAttribute('data-activity-theme',id);await expect.poll(()=>dialog.locator('picture img').evaluate((img:HTMLImageElement)=>img.complete&&img.naturalWidth>0)).toBe(true)}
@@ -51,7 +55,7 @@ test('teacher previews every world, cancels, retries failed saves and preserves 
   await dialog.getByRole('button',{name:'Podium',exact:true}).click();await expect(dialog).toContainText('Every answer');await capture(page,'picker-desktop-podium')
   await dialog.getByRole('button',{name:'Cancel',exact:true}).click();await expect(open).toBeFocused()
   expect((await(await page.request.get(`/api/v1/activities/${activity.id}`,{headers})).json()).activity.theme).toBe('classic')
-  await open.click();await dialog.locator('input[value="island"]').check()
+  await openThemePicker(page);await dialog.locator('input[value="island"]').check()
   let fails=true
   await page.route(`**/api/v1/activities/${activity.id}`,async route=>{if(route.request().method()==='PATCH'&&fails){fails=false;await route.fulfill({status:503,json:{error:{code:'unavailable',message:'Theme save temporarily unavailable'}}})}else await route.continue()})
   await dialog.getByRole('button',{name:'Use this theme',exact:true}).click();await expect(dialog.getByRole('alert')).toBeVisible();await expect(dialog.locator('input[value="island"]')).toBeChecked()
@@ -125,10 +129,10 @@ test('Arabic mobile gallery handles keyboard, denied preference storage and fail
   const {activity}=await setup(page,'forest','ar');await page.setViewportSize({width:390,height:844})
   await page.addInitScript(()=>{const original=Storage.prototype.setItem;Storage.prototype.setItem=function(key,value){if(key==='asasera.activity.motion')throw new Error('Storage unavailable');return original.call(this,key,value)}})
   await page.goto(`/teacher/activities/${activity.id}`);await expect(page.locator('main[data-activity-theme]')).toHaveAttribute('data-activity-theme','jungle')
-  await page.getByRole('button',{name:'المظاهر',exact:true}).click();const dialog=page.getByRole('dialog',{name:'اختر عالم نشاطك'})
+  await openThemePicker(page,true);const dialog=page.getByRole('dialog',{name:'اختر عالم نشاطك'})
   await dialog.locator('input[value="jungle"]').focus();await page.keyboard.press('ArrowLeft');await expect(dialog.locator('input[value="sky"]')).toBeChecked()
   await dialog.getByRole('button',{name:'إيقاف الحركة',exact:true}).click();await expect(dialog.locator('[data-variant=preview]')).toHaveAttribute('data-motion','off')
   await capture(page,'picker-mobile-ar');expect(await dialog.evaluate(e=>e.scrollWidth<=e.clientWidth)).toBe(true)
   await page.route('**/activity-themes/ocean-*.webp',route=>route.abort());await dialog.locator('input[value="ocean"]').check();await expect(dialog.locator('picture')).toHaveCount(0);await expect(dialog.getByRole('heading',{name:'أي كوكب يُعرف بالكوكب الأحمر؟'})).toBeVisible()
-  await page.keyboard.press('Escape');await expect(dialog).toBeHidden();await expect(page.getByRole('button',{name:'المظاهر',exact:true})).toBeFocused()
+  await page.keyboard.press('Escape');await expect(dialog).toBeHidden();await expect(page.getByRole('button',{name:'المزيد',exact:true}).first()).toBeFocused()
 })

@@ -13,6 +13,7 @@ for(const mode of ['open-box','random-cards'] as const)for(const language of ['a
  await page.addInitScript(lang=>localStorage.setItem('asasera.language',lang),language);await page.setViewportSize({width,height})
  await page.goto(`/teacher/activities/${activity.id}/play?mode=study`)
  // Unavailable is inspectable, but cannot launch or silently manufacture pairs.
+ await page.getByText(ar?/قوالب تحتاج محتوى من نوع آخر/:/Formats that need other content/).click()
  await page.getByRole('radio',{name:ar?/الذاكرة/:/Memory/}).check()
  await expect(page.getByRole('button',{name:ar?'أنشئ رابط المشاركة':'Create assignment link'})).toBeDisabled()
  await expect(page.getByRole('link',{name:ar?'تعديل محتوى النشاط':'Edit activity content'})).toHaveAttribute('href',`/teacher/activities/${activity.id}`)
