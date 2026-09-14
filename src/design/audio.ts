@@ -14,22 +14,30 @@ export class SessionAudio {
  private sound:Howl|null=null
  private lobbySound:number|null=null
  private lobbyParticipants:number|null=null
+ private ready=false
+ private generation=0
  muted=localStorage.getItem('asasera:mute')==='true'
- unlock(){
+ async unlock(){
   // The game remains playable when a browser cannot provide Web Audio.
   if(typeof AudioContext==='undefined')return false
   try{
+   // Our explicit gesture owns unlock and handles refusal. Howler's automatic
+   // document listener calls resume without a rejection handler in this version.
+   Howler.autoUnlock=false
+   const generation=this.generation
    if(!this.sound){const {url,sprite}=soundSprite();this.sound=new Howl({src:[url],format:['wav'],sprite,html5:false,preload:true,volume:.24,mute:this.muted})}
-   void Howler.ctx?.resume().catch(()=>{})
-   return Howler.usingWebAudio
-  }catch{return false}
+   await Howler.ctx?.resume()
+   if(generation!==this.generation)return false
+   this.ready=Howler.usingWebAudio
+   return this.ready
+  }catch{this.ready=false;return false}
  }
  setMuted(muted:boolean){this.muted=muted;localStorage.setItem('asasera:mute',String(muted));this.sound?.mute(muted)}
- play(event:SoundEvent){if(this.muted||!this.sound)return;const id=this.sound.play(event);if(event==='lobby')this.lobbySound=id}
+ play(event:SoundEvent){if(this.muted||!this.sound||!this.ready||document.hidden||Howler.ctx?.state==='suspended')return;const id=this.sound.play(event);if(event==='lobby')this.lobbySound=id}
  lobby(participants:number){
   if(this.lobbyParticipants!==null&&participants>this.lobbyParticipants&&!document.hidden)this.play('lobby')
   this.lobbyParticipants=participants
  }
  stopLoop(){if(this.lobbySound!==null)this.sound?.stop(this.lobbySound);this.lobbySound=null}
- dispose(){this.stopLoop();this.lobbyParticipants=null;this.sound?.unload();this.sound=null}
+ dispose(){this.generation++;this.ready=false;this.stopLoop();this.lobbyParticipants=null;this.sound?.unload();this.sound=null}
 }

@@ -12,6 +12,45 @@
  * ------------------------------------------------------------------ */
 
 /* ------------------------------------------------------------------ *
+ * HK Grotesk — the teacher workspace's clearer Latin face.
+ *
+ * The family is already bundled with the product, so using it here adds no
+ * network dependency and avoids the dense, over-weight Montserrat treatment.
+ * ------------------------------------------------------------------ */
+
+@font-face {
+  font-family: 'HK Grotesk';
+  src: url('../assets/fonts/hkgrotesk-regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'HK Grotesk';
+  src: url('../assets/fonts/hkgrotesk-medium.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'HK Grotesk';
+  src: url('../assets/fonts/hkgrotesk-semibold.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'HK Grotesk';
+  src: url('../assets/fonts/hkgrotesk-bold.woff2') format('woff2');
+  font-weight: 700 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ------------------------------------------------------------------ *
  * Neo Sans Arabic — the brand face, from src/assets/fonts, self-hosted
  *
  * One family for the whole page. Neo Sans Arabic carries the Arabic script

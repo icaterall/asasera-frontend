@@ -149,7 +149,7 @@ export function TeacherToolCard({
 }) {
   const inner = (
     <>
-      <span aria-hidden="true" className="mb-1">
+      <span aria-hidden="true" className="teacher-tool-icon mb-1">
         {icon}
       </span>
       <h3 className="text-[0.9375rem] font-bold text-balance">{title}</h3>

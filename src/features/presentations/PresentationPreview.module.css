@@ -1,0 +1,14 @@
+.root{min-width:0;margin-block:24px;padding-block:20px;border-block:1px solid var(--line);color:var(--ink);font-size:16px;line-height:1.7}
+.header,.navigation{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.header h2{margin:0;font-size:20px}
+.notice{margin-block:12px;color:var(--ink);max-width:72ch}
+.stage{min-width:0;padding-block:16px}
+.stage h3{font-size:clamp(20px,3vw,28px);line-height:1.5;margin-block:0 20px;overflow-wrap:anywhere}
+.content{display:grid;gap:16px;min-width:0}
+.content>button{justify-self:start}
+.reference{white-space:pre-wrap;overflow-wrap:anywhere}
+.policy{font-size:14px;line-height:1.7}
+.policy summary{cursor:pointer;min-height:44px;align-content:center;font-weight:600}
+.policy summary:focus-visible{outline:2px solid var(--act);outline-offset:3px}
+.navigation{margin-block-start:20px}
+@media(max-width:430px){.root{padding-block:16px}.header{align-items:flex-start}.navigation>button{flex:1}.navigation>span{order:2;flex-basis:100%;text-align:center}}

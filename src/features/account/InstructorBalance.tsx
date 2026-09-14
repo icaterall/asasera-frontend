@@ -6,6 +6,7 @@ import {Link,useLocation} from 'react-router-dom'
 import {ArrowUpRight,ChevronDown,RefreshCw,Sparkles,X,Zap} from 'lucide-react'
 import {useAuth} from '@/hooks/useAuth'
 import {teaching,type PublicUser} from '@/lib/api'
+import {compactCredits} from '@/lib/credits'
 import {instructorAccount} from './instructor-account-api'
 import styles from './InstructorBalance.module.css'
 
@@ -17,7 +18,10 @@ export function InstructorBalance({compact=false}:{compact?:boolean}){
 function Balance({user,compact}:{user:PublicUser;compact:boolean}){
  const {i18n}=useTranslation(),ar=i18n.language.startsWith('ar'),location=useLocation(),[open,setOpen]=useState(false)
  const wallet=useQuery({queryKey:['instructor-wallet',user.id],queryFn:()=>teaching.wallet(),staleTime:15_000,refetchInterval:open?10_000:30_000,refetchOnWindowFocus:'always',retry:1})
- const nf=new Intl.NumberFormat(ar?'ar':'en',{notation:compact?'compact':'standard',maximumFractionDigits:compact?1:0})
+ /* Shortened for the chip, and floored rather than rounded: see compactCredits.
+    A seven-figure balance printed in full pushed the caption out of the button. */
+ const short=(amount:number)=>compactCredits(amount,ar?'ar':'en')
+ const exact=(amount:number)=>new Intl.NumberFormat(ar?'ar':'en',{numberingSystem:'latn'}).format(amount)
  useEffect(()=>setOpen(false),[location.key])
  const value=wallet.data?.usableAiCredits
  /*
@@ -29,10 +33,11 @@ function Balance({user,compact}:{user:PublicUser;compact:boolean}){
  const unavailable=wallet.isError,caption=unavailable?(ar?'تعذّر التحديث':'Refresh needed'):value===undefined?(ar?'تحميل الرصيد':'Loading balance'):ar?'رصيد':'Balance'
  return <>
   <button type="button" className={`asas ${styles.trigger}`} data-compact={compact} data-empty={value===0} data-low={low} aria-haspopup="dialog" aria-expanded={open}
-   aria-label={unavailable?(ar?'الرصيد يحتاج إلى تحديث. فتح الحساب والاستخدام':'Balance needs refresh. Open account and usage'):value===undefined?(ar?'فتح الحساب ورصيد الذكاء الاصطناعي':'Open account and AI balance'):`${ar?'الرصيد المتاح':'Available balance'}: ${new Intl.NumberFormat(ar?'ar':'en').format(value)}. ${ar?'فتح الحساب والاستخدام':'Open account and usage'}`}
+   aria-label={unavailable?(ar?'الرصيد يحتاج إلى تحديث. فتح الحساب والاستخدام':'Balance needs refresh. Open account and usage'):value===undefined?(ar?'فتح الحساب ورصيد الذكاء الاصطناعي':'Open account and AI balance'):`${ar?'الرصيد المتاح':'Available balance'}: ${exact(value)}. ${ar?'فتح الحساب والاستخدام':'Open account and usage'}`}
+   title={value===undefined?undefined:`${ar?'الرصيد المتاح':'Available balance'}: ${exact(value)}`}
    onClick={()=>{setOpen(true);void wallet.refetch()}}>
    <Sparkles size={compact?16:18} aria-hidden="true"/>
-   <span><strong>{value===undefined?'—':nf.format(value)}</strong><span>{low?(ar?'أضف رصيدًا':'Add credit'):caption}</span></span>
+   <span><strong>{value===undefined?'—':short(value)}</strong><span>{low?(ar?'أضف رصيدًا':'Add credit'):caption}</span></span>
    {!compact&&<ChevronDown size={14} aria-hidden="true"/>}
   </button>
   {open&&<AccountDialog user={user} wallet={wallet.data} walletFailed={unavailable} walletBusy={wallet.isFetching} refreshWallet={()=>void wallet.refetch()} onClose={()=>setOpen(false)}/>}

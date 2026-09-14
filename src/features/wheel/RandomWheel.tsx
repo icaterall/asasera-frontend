@@ -5,17 +5,22 @@ import {useTranslation} from 'react-i18next'
 import {RotateCw,RotateCcw,ChevronDown,X,Check,Users} from 'lucide-react'
 import {eligibleWheelEntries,wheelIsSpinning,type WheelState,type WheelCommand,type WheelEntry,type WheelSpin} from '@/shared/wheel'
 import {useActivityMotion} from '../activity-themes/useActivityMotion'
+import {interactiveMotion} from '@/shared/interactive-motion'
+import {MotionControl} from '../activity-themes/ActivityStage'
 import styles from './Wheel.module.css'
+import {wheelEntryLabel} from './entryLabel'
 
-type Props={headerAction?:ReactNode;wheel:WheelState;clock:{now:()=>number};onCommand?:(command:WheelCommand)=>Promise<unknown>;connected?:boolean;standalone?:boolean}
+type Props={headerAction?:ReactNode;wheel:WheelState;excludedIds?:string[];clock:{now:()=>number};onCommand?:(command:WheelCommand)=>Promise<unknown>;connected?:boolean;standalone?:boolean}
 const colors=[['#004ccc','#fff'],['#ffcf36','#182e48'],['#1b650a','#fff'],['#e21b3c','#fff']] as const
-export function RandomWheel({wheel,clock,onCommand,connected=true,standalone=false,headerAction}:Props){
+export function RandomWheel({wheel,excludedIds=[],clock,onCommand,connected=true,standalone=false,headerAction}:Props){
  const {i18n}=useTranslation(),ar=i18n.language.startsWith('ar'),t=(a:string,e:string)=>ar?a:e,motion=useActivityMotion()
  const [now,setNow]=useState(()=>clock.now()),[busy,setBusy]=useState(false),[error,setError]=useState('')
+ const [skipped,setSkipped]=useState<string|null>(null)
  const [source,setSource]=useState(wheel.source),[list,setList]=useState(()=>wheel.source==='custom'?wheel.entries.map(e=>e.label).join('\n'):''),[settings,setSettings]=useState(standalone&&wheel.entries.length===0)
  const inFlight=useRef(false),titleId=useId(),listId=useId()
- const spinning=wheelIsSpinning(wheel,now),eligible=eligibleWheelEntries(wheel),entries=wheel.spin?.entries??eligible
- const finished=!!wheel.spin&&!spinning,winner=finished?wheel.spin!.entries[wheel.spin!.winnerIndex]:null
+ const spinning=wheelIsSpinning(wheel,now),eligible=eligibleWheelEntries(wheel).filter(e=>!excludedIds.includes(e.id)),entries=wheel.spin?.entries??eligible
+ const locallySettled=!motion.enabled||skipped===wheel.spin?.id
+ const finished=!!wheel.spin&&(!spinning||locallySettled),winner=finished?wheel.spin!.entries[wheel.spin!.winnerIndex]:null
  const visiblePicks=spinning&&wheel.spin?wheel.pickedIds.filter(id=>id!==wheel.spin!.entries[wheel.spin!.winnerIndex]?.id):wheel.pickedIds
  useEffect(()=>{if(!wheel.spin)return;const timer=setInterval(()=>{const time=clock.now();setNow(time);if(time>=wheel.spin!.startedAt+wheel.spin!.durationMs)clearInterval(timer)},80);return()=>clearInterval(timer)},[wheel.spin,clock])
  async function act(command:WheelCommand){
@@ -29,16 +34,18 @@ export function RandomWheel({wheel,clock,onCommand,connected=true,standalone=fal
   <div className={styles.layout}>
    <div className={styles.game}>
     <div className={styles.wheelFrame} aria-hidden="true">
-     <WheelDisc entries={entries} spin={wheel.spin} clock={clock} animate={motion.enabled}/>
+     <WheelDisc entries={entries} spin={wheel.spin} clock={clock} animate={motion.enabled&&!locallySettled}/>
      <svg className={styles.pointer} viewBox="0 0 36 44"><path d="M3 3H33L18 39Z" fill="#ffcf36" stroke="#182e48" strokeWidth="4" strokeLinejoin="round"/></svg>
     </div>
     <div className={styles.result} role="status" aria-live="polite" aria-atomic="true">
-     {spinning?<><span>{t('تدور العجلة…','Spinning…')}</span><strong>{t('لمن ستكون الفرصة؟','Whose turn will it be?')}</strong></>:winner?<><span><Check size={20}/>{t('وقع الاختيار على','The wheel chose')}</span><strong>{winner.label}</strong></>:<><span>{t('جاهزون؟','Ready?')}</span><strong>{wheel.entries.length?t('لنرَ من يختار الدور','Let the wheel choose'):t('أضف أسماء أو خيارات للبدء','Add names or items to begin')}</strong></>}
+     {spinning&&!locallySettled?<><span>{t('تدور العجلة…','Spinning…')}</span><strong>{t('لمن ستكون الفرصة؟','Whose turn will it be?')}</strong></>:winner?<><span><Check size={20}/>{t('وقع الاختيار على','The wheel chose')}</span><strong dir="auto">{wheelEntryLabel(winner,wheel.entries,ar)}</strong></>:<><span>{t('جاهزون؟','Ready?')}</span><strong>{wheel.entries.length?t('لنرَ من يختار الدور','Let the wheel choose'):t('أضف أسماء أو خيارات للبدء','Add names or items to begin')}</strong></>}
     </div>
     {onCommand?<div className={styles.controls}>
      <button type="button" className={styles.spin} disabled={disabled||eligible.length===0} onClick={()=>void act({action:'spin',animate:motion.enabled})}><RotateCw size={23}/>{spinning?t('تدور العجلة…','Spinning…'):t('أدر العجلة','Spin the wheel')}</button>
      <button type="button" className={styles.reset} disabled={disabled||wheel.pickedIds.length===0} onClick={()=>void act({action:'reset'})}><RotateCcw size={18}/>{t('إعادة جميع الأسماء','Reset picks')}</button>
     </div>:<p className={styles.spectator}>{t('المعلّم يتحكّم بالعجلة.','Your teacher controls the wheel.')}</p>}
+    <div className={styles.controls}><MotionControl/>{spinning&&!locallySettled&&<button type="button" className={styles.reset} onClick={()=>setSkipped(wheel.spin!.id)}>{t('تخطي الحركة','Skip animation')}</button>}</div>
+    {entries.length>60&&<p className={styles.hint}>{t(`اختيار متساوٍ من ${entries.length} أسماء. العجلة للزينة؛ القائمة والنتيجة تعرضان الأسماء.`,`Choosing equally from ${entries.length} entries. The wheel is decorative; names appear in the list and result.`)}</p>}
     {!spinning&&wheel.entries.length>0&&eligible.length===0&&<p className={styles.notice}>{t('حصل الجميع على دور. أعد الأسماء لبدء جولة جديدة.','Everyone has had a turn. Reset picks to start another round.')}</p>}
     {!connected&&<p className={styles.notice} role="status">{t('جارٍ إعادة الاتصال. تبقى نتيجة الدور كما هي.','Reconnecting. This spin keeps the same result.')}</p>}
     {error&&<p role="alert" className={styles.error}>{error}</p>}
@@ -61,14 +68,14 @@ export function RandomWheel({wheel,clock,onCommand,connected=true,standalone=fal
  </section>
 }
 
-function WheelDisc({entries,spin,clock,animate}:{entries:WheelEntry[];spin:WheelSpin|null;clock:{now:()=>number};animate:boolean}){
+export function WheelDisc({entries,spin,clock,animate}:{entries:WheelEntry[];spin:WheelSpin|null;clock:{now:()=>number};animate:boolean}){
  const rotor=useRef<SVGGElement>(null)
  useLayoutEffect(()=>{
   const target=rotor.current;if(!target)return
   if(!spin){target.style.transform='rotate(0deg)';return}
   const elapsed=clock.now()-spin.startedAt
   if(!animate||elapsed>=spin.durationMs||!target.animate){target.style.transform=`rotate(${spin.toRotation}deg)`;return}
-  const animation=target.animate([{transform:`rotate(${spin.fromRotation}deg)`},{transform:`rotate(${spin.toRotation}deg)`}],{duration:spin.durationMs,easing:'cubic-bezier(.12,.78,.10,1)',fill:'both'})
+  const animation=target.animate([{transform:`rotate(${spin.fromRotation}deg)`},{transform:`rotate(${spin.toRotation}deg)`}],{duration:spin.durationMs,easing:interactiveMotion.easing.spin,fill:'both'})
   animation.currentTime=elapsed
   return()=>animation.cancel()
  },[spin,clock,animate])
@@ -77,7 +84,7 @@ function WheelDisc({entries,spin,clock,animate}:{entries:WheelEntry[];spin:Wheel
  return <svg className={styles.disc} viewBox="0 0 400 400"><circle cx="200" cy="200" r="196" fill="#12304e"/><circle cx="200" cy="200" r="187" fill="#fff"/>
   <g ref={rotor} className={styles.rotor} style={{transform:`rotate(${spin?.fromRotation??0}deg)`}}>
    {Array.from({length:count},(_,i)=>{const start=-90+i*angle,end=start+angle,[x1,y1]=point(start),[x2,y2]=point(end),middle=start+angle/2,[fill,ink]=colors[i%4]!,label=entries[i]?.label??'',short=Array.from(label).length>15?Array.from(label).slice(0,14).join('')+'…':label
-    return <g key={entries[i]?.id??i}>{count===1?<circle cx="200" cy="200" r={radius} fill={fill}/>:<path d={`M200 200 L${x1} ${y1} A${radius} ${radius} 0 ${angle>180?1:0} 1 ${x2} ${y2} Z`} fill={fill} stroke="#fff" strokeWidth={count>60?.6:1.5}/>}{label&&count<=60&&<text x="330" y="200" fill={ink} fontSize={count<=8?15:count<=16?12:11} fontWeight="700" textAnchor="end" dominantBaseline="middle" transform={`rotate(${middle},200,200)`} direction="auto">{count<=16?short:String(i+1)}</text>}</g>
+    return <g key={entries[i]?.id??i}>{count===1?<circle cx="200" cy="200" r={radius} fill={fill}/>:<path d={`M200 200 L${x1} ${y1} A${radius} ${radius} 0 ${angle>180?1:0} 1 ${x2} ${y2} Z`} fill={fill} stroke="#fff" strokeWidth={count>60?.6:1.5}/>}{label&&count<=60&&<text x="330" y="200" fill={ink} fontSize={count<=8?15:count<=16?12:11} fontWeight="700" textAnchor="end" dominantBaseline="middle" transform={`rotate(${middle},200,200)`} direction="ltr">{count<=16?short:String(i+1)}</text>}</g>
    })}
   </g><circle cx="200" cy="200" r="28" fill="#fff" stroke="#12304e" strokeWidth="6"/><circle cx="200" cy="200" r="10" fill="#004ccc"/>
  </svg>

@@ -13,9 +13,9 @@ import styles from './Audience.module.css'
 import {ActivityLanguageSettings} from '@/features/editor/ActivityLanguageSettings'
 import {contentLanguageName} from '@/shared/content-language'
 
-export function ActivityAudience({activity,onSave,onLanguageSave}:{activity:ActivityRecord;onSave:(value:AudienceSelection)=>Promise<void>;onLanguageSave:(language:string)=>Promise<void>}) {
+export function ActivityAudience({activity,onSave,onLanguageSave,initialOpen=false}:{activity:ActivityRecord;onSave:(value:AudienceSelection)=>Promise<void>;onLanguageSave:(language:string)=>Promise<void>;initialOpen?:boolean}) {
   const {user}=useAuth()
-  const {i18n}=useTranslation(),ar=i18n.language.startsWith('ar'),[open,setOpen]=useState(()=>!!readDraft(draftKey(user?.id,`activity:${activity.id}:audience`),audienceDraftSchema))
+  const {i18n}=useTranslation(),ar=i18n.language.startsWith('ar'),[open,setOpen]=useState(()=>initialOpen||!!readDraft(draftKey(user?.id,`activity:${activity.id}:audience`),audienceDraftSchema))
   return <details open={open} className={styles.editor} onToggle={event=>setOpen(event.currentTarget.open)}>
     <summary>
       <Users size={16} aria-hidden="true"/>

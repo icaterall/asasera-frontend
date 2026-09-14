@@ -10,7 +10,9 @@ import {InstructorBalance} from '@/features/account/InstructorBalance'
 export function TeacherHeader({ onOpenNav }: { onOpenNav: () => void }) {
   const { t, i18n } = useTranslation()
   const { pathname } = useLocation()
-  const showCreate = !['/teacher/dashboard', '/teacher/activities', '/teacher/activities/new'].includes(pathname)
+  // Creating is the primary classroom action in the supplied product direction.
+  // Keep it visible everywhere a teacher can safely start a new activity.
+  const showCreate = pathname !== '/teacher/activities/new'
   return (
     <header className="teacher-header flex flex-wrap items-center gap-3 border-b border-line bg-surface px-4 py-2 sm:px-6">
       <button
@@ -35,7 +37,7 @@ export function TeacherHeader({ onOpenNav }: { onOpenNav: () => void }) {
       <div className="ms-auto flex flex-wrap items-center justify-end gap-2">
         {showCreate && <Link
           to="/teacher/activities/new"
-          className="hidden rounded-sm bg-brand-500 px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-brand-600 focus-visible:outline-3 focus-visible:outline-accent focus-visible:outline-offset-2 sm:block"
+          className="teacher-create-activity hidden rounded-sm bg-brand-500 px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-brand-600 focus-visible:outline-3 focus-visible:outline-accent focus-visible:outline-offset-2 sm:block"
         >
           {i18n.language.startsWith('ar') ? 'إنشاء نشاط' : 'Create activity'}
         </Link>}

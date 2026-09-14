@@ -12,7 +12,12 @@ import type { AnswerPayload,OrderEvidence } from '@/shared/questions'
 import type {MarkResult} from '@/shared/scoring'
 import {mediaUrl} from '@/features/editor/ImageUpload'
 import {QuestionVideo} from '@/components/QuestionVideo'
+import {NativeQuestionInput} from './NativeQuestionInput'
+import {PlacementFeedback} from '../presentations/PlacementFeedback'
+import {useActivityMotion} from '../activity-themes/useActivityMotion'
+import {interactiveMotion} from '@/shared/interactive-motion'
 import styles from './Session.module.css'
+import feedbackStyles from './QuestionFeedback.module.css'
 
 /**
  * One draggable row.
@@ -24,7 +29,8 @@ import styles from './Session.module.css'
  * equation and keeps its own direction inside Arabic wording.
  */
 function SortItem({id,text,image,index,count,move,disabled}:{id:string;text:string;image?:string|undefined;index:number;count:number;move:(n:number)=>void;disabled:boolean}) {
-  const d=useSortable({id,disabled})
+  const motion=useActivityMotion()
+  const d=useSortable({id,disabled,transition:motion.enabled?{duration:interactiveMotion.duration.placement,easing:interactiveMotion.easing.standard}:null})
   const spoken=plainFormattedText(text).trim()||`${index+1}`
   return <li ref={d.setNodeRef} className={styles.orderItem} data-order-item="" data-dragging={d.isDragging||undefined}
     style={{transform:d.transform?`translate3d(0,${d.transform.y}px,0)`:undefined,transition:d.transition}}>
@@ -108,9 +114,23 @@ function Target({id,label,children,onClick,disabled,zone,placed}:{id:string;labe
  * must read prompt, media and option text on their own device. The option text stays
  * in the accessible name either way, and colour is never the only signal.
  */
-export function QuestionInput({question,onAnswer,disabled=false,projectorOnly=false,preview=false,interactivePreview=false,evaluatePreview,revealed}: {
-  question:PublicQuestion;onAnswer:(answer:AnswerPayload)=>void;disabled?:boolean;projectorOnly?:boolean;preview?:boolean;revealed?:unknown
-}&({interactivePreview:true;evaluatePreview:(answer:AnswerPayload)=>MarkResult}|{interactivePreview?:false;evaluatePreview?:never})) {
+type QuestionInputProps={
+  question:PublicQuestion;onAnswer:(answer:AnswerPayload)=>void;disabled?:boolean;projectorOnly?:boolean;preview?:boolean;revealed?:unknown;submittedAnswer?:AnswerPayload|null
+}&({interactivePreview:true;evaluatePreview:(answer:AnswerPayload)=>MarkResult}|{interactivePreview?:false;evaluatePreview?:never})
+export function QuestionInput(props:QuestionInputProps){
+ const {i18n}=useTranslation(),ar=i18n.language.startsWith('ar')
+ const own=ar?'إجابتك المرسلة':'Your submitted answer',reference=ar?'إجابة مرجعية':'Reference answer'
+ if(!props.submittedAnswer)return props.submittedAnswer===null&&props.revealed!==undefined
+  ? <div role="group" aria-label={reference}><p className={feedbackStyles.label}>{reference}</p><QuestionInputControls {...props}/></div>
+  : <QuestionInputControls {...props}/>
+ return <>
+  <div role="group" aria-label={own}><p className={feedbackStyles.label}>{own}</p><QuestionInputControls {...props} disabled revealed={undefined}/></div>
+  {props.revealed!==undefined&&<details className={feedbackStyles.reference}><summary>{reference}</summary><div role="group" aria-label={reference}>
+   <QuestionInputControls question={props.question} onAnswer={()=>{}} disabled preview revealed={props.revealed}/>
+  </div></details>}
+ </>
+}
+function QuestionInputControls({question,onAnswer,disabled=false,projectorOnly=false,preview=false,interactivePreview=false,evaluatePreview,revealed,submittedAnswer}:QuestionInputProps) {
   const {i18n}=useTranslation(),ar=i18n.language.startsWith('ar'),p=question.payload
   const [sequence,setSequence]=useState(p.kind==='order'?p.items.map(i=>i.key):[])
   /* An interactive preview is a small, self-contained learner attempt. It
@@ -171,15 +191,17 @@ export function QuestionInput({question,onAnswer,disabled=false,projectorOnly=fa
   </p>
   const sensors=useSensors(useSensor(PointerSensor,{activationConstraint:{distance:8}}),useSensor(TouchSensor,{activationConstraint:{delay:180,tolerance:8}}),useSensor(KeyboardSensor,{coordinateGetter:sortableKeyboardCoordinates}))
   const video=!projectorOnly&&<QuestionVideo videoId={question.videoId} start={question.videoStartS} end={question.videoEndS}/>
+  if(p.kind==='cloze'||p.kind==='vocabulary'||p.kind==='discussion')return <>{video}{question.media&&<img className={styles.questionMedia} src={mediaUrl(question.media)} alt={question.prompt}/>}<NativeQuestionInput payload={p} interactive={interactive} onAnswer={checkPreview} revealed={revealed} submittedAnswer={submittedAnswer}/>{previewFeedback}</>
   if(p.kind==='mcq'||p.kind==='tf')return <>{video}{!projectorOnly&&question.media&&<img data-question-media="" className={styles.questionMedia} src={mediaUrl(question.media)} alt={question.prompt}/>}<div data-answer-grid="" data-layout={projectorOnly?'shape':'text'} className={`${styles.answers} ${projectorOnly?styles.phoneAnswers:''}`}>
     {p.options.map((o,i)=><AnswerTile key={o.key} slot={(Math.min(i,5)+1)as AnswerSlot} label={p.kind==='tf'?(o.key==='true'?(ar?'صح':'True'):(ar?'خطأ':'False')):o.text}
       trailing={'image'in o&&o.image&&!projectorOnly?<img src={mediaUrl(o.image)} alt={o.text}/>:undefined}
       locale={ar?'ar':'en'} shapeOnly={projectorOnly} className={styles.answer} data-answer-tile="" disabled={disabled||(interactivePreview&&previewResult!==null)} aria-disabled={preview&&!interactivePreview||undefined} tabIndex={preview&&!interactivePreview?-1:undefined}
-      state={revealed!==undefined?(String(revealed)===o.key?'correct':'incorrect'):previewResult&&selected===o.key?(previewResult.correct?'correct':'incorrect'):selected===o.key?'selected':'idle'}
+      state={revealed!==undefined?(String(revealed)===o.key?'correct':'incorrect'):previewResult&&selected===o.key?(previewResult.correct?'correct':'incorrect'):(submittedAnswer?.kind==='mcq'||submittedAnswer?.kind==='tf'?submittedAnswer.choice:selected)===o.key?'selected':'idle'}
       onClick={()=>{if(!interactive)return;setSelected(o.key);checkPreview(p.kind==='tf'?{kind:'tf',choice:o.key as 'true'|'false'}:{kind:'mcq',choice:o.key})}} />)}
   </div>{previewFeedback}</>
-  const displaySequence=p.kind==='order'&&Array.isArray(revealed)?revealed as string[]:sequence
-  const displayPairs=revealed&&typeof revealed==='object'&&!Array.isArray(revealed)?revealed as Record<string,string>:pairs
+  const displaySequence=submittedAnswer?.kind==='order'?submittedAnswer.sequence:p.kind==='order'&&Array.isArray(revealed)?revealed as string[]:sequence
+  const displayPairs=submittedAnswer?.kind==='match'?Object.fromEntries(submittedAnswer.pairs):submittedAnswer?.kind==='hotspot'?Object.fromEntries(submittedAnswer.picks):revealed&&typeof revealed==='object'&&!Array.isArray(revealed)?revealed as Record<string,string>:pairs
+  const displayPicks=submittedAnswer?.kind==='hotspot'?submittedAnswer.picks.map(([,target])=>target):Array.isArray(revealed)?revealed:picks
   const pair=(card:string,target:string)=>{if(interactive){setPairs(current=>({...current,[card]:target}));setSelected(null)}}
   const dragEnd=(event:DragEndEvent)=>{
     if(!event.over||!interactive)return
@@ -199,10 +221,10 @@ export function QuestionInput({question,onAnswer,disabled=false,projectorOnly=fa
       {(!preview||interactivePreview)&&<Button variant="primary" disabled={!interactive} onClick={()=>checkPreview({kind:'order',sequence,evidence:orderEvidence()})}>{preview?(ar?'تحقق من إجابة المعاينة':'Check preview answer'):(ar?'تحقق':'Check')}</Button>}</>}
     {(p.kind==='match'||(p.kind==='hotspot'&&p.mode==='card_to_zone'))&&<>
       <p>{ar?'اسحب البطاقة إلى مكانها، أو انقرها ثم انقر المنطقة.':'Drag a card to its area, or tap the card then the area.'}</p>
-      <div className={styles.cards} data-interactive-preview={interactivePreview||undefined}>{p.cards.filter(c=>!pairs[c.key]).map(c=><CardChoice key={c.key} id={c.key} text={c.text} selected={selected===c.key} placed={false} onClick={()=>{if(interactive)setSelected(c.key)}} disabled={!interactive}/>)}</div>
+      <div className={styles.cards} data-interactive-preview={interactivePreview||undefined}>{p.cards.filter(c=>!displayPairs[c.key]).map(c=><CardChoice key={c.key} id={c.key} text={c.text} selected={selected===c.key} placed={false} onClick={()=>{if(interactive)setSelected(c.key)}} disabled={!interactive}/>)}</div>
     </>}
     {p.kind==='match'&&<div className={styles.targets}>{p.targets.map(t=><Target key={t.key} id={t.key} label={t.text} disabled={!interactive} onClick={()=>{if(selected)pair(selected,t.key)}}>
-      <strong>{t.text}</strong><span>{p.cards.filter(c=>displayPairs[c.key]===t.key).map(c=>c.text).join(' · ')|| (ar?'ضع البطاقة هنا':'Place a card here')}</span>
+      <strong>{t.text}</strong><PlacementFeedback value={p.cards.filter(c=>displayPairs[c.key]===t.key).map(c=>c.key).join('|')}>{p.cards.filter(c=>displayPairs[c.key]===t.key).map(c=>c.text).join(' · ')|| (ar?'ضع البطاقة هنا':'Place a card here')}</PlacementFeedback>
     </Target>)}</div>}
     {p.kind==='hotspot'&&<>
       {question.media?<div className={styles.imageStage} dir="ltr"><img src={mediaUrl(question.media)} alt={question.prompt}/>
@@ -221,7 +243,7 @@ export function QuestionInput({question,onAnswer,disabled=false,projectorOnly=fa
                returns to the answer bank as the active card, ready for a new
                area — no duplicate card and no hidden state to undo. */
             if(placedCard){setPairs(current=>{const next={...current};delete next[placedCard.key];return next});setSelected(placedCard.key)}
-          }}>{placedCard?<PlacedAnswer text={placedCard.text}/>:<span>{i+1}{((Array.isArray(revealed)?revealed.includes(z.key):picks.includes(z.key))||Object.values(displayPairs).includes(z.key))&&<Check size={20}/>}</span>}</Target>
+          }}>{placedCard?<PlacedAnswer text={placedCard.text}/>:<span>{i+1}{(displayPicks.includes(z.key)||Object.values(displayPairs).includes(z.key))&&<Check size={20}/>}</span>}</Target>
         })}
       </div>:<p role="alert">{ar?'تعذّر تحميل الصورة. أعد الاتصال.':'Image unavailable. Reconnect.'}</p>}
       {/* Click-zone mode has nothing on screen to read back, so its instruction

@@ -1,0 +1,5 @@
+.label {margin-block:16px 8px;font-weight:var(--w-bold)}
+.reference {margin-block-start:16px;border-block-start:1px solid var(--line)}
+.reference summary {min-height:44px;align-content:center;cursor:pointer;font-weight:var(--w-bold)}
+.reference summary:focus-visible {outline:2px solid var(--act);outline-offset:2px}
+.reference > div {padding-block:8px}

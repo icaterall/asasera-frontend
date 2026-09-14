@@ -21,3 +21,22 @@
 @media(forced-colors:active){.hero:after{background:Canvas}.hero,.heroButton,.primary,.stageOption[data-selected=true],.nav a.active{border:2px solid Highlight}.hero{color:CanvasText}}
 
 .workspace ::selection,.profileForm ::selection{background:var(--brand);color:#fff}.workspace input,.profileForm select{caret-color:var(--brand)}.nav{scrollbar-color:var(--line) var(--surface)}.workspace a,.profileForm a{text-underline-offset:3px}
+
+/* Bright, tactile student experience: local to the learner workspace. */
+.workspace{--brand:#075ce8;--brand-soft:#e8f3ff;--ink:#16346c;--muted:#58719c;--line:#d5e6fa;--surface:#fff;background:radial-gradient(circle at 90% 2%,rgb(106 211 255 / 28%),transparent 20rem),radial-gradient(circle at 5% 100%,rgb(43 208 156 / 16%),transparent 24rem),#f3f9ff}
+.sidebar{background:linear-gradient(180deg,#084eb9,#073b9f 62%,#082b76);border:0;box-shadow:8px 0 28px rgb(8 61 159 / 12%)}
+.sidebar .logo{border-bottom:1px solid rgb(255 255 255 / 20%)}
+.nav a{border-radius:12px;color:rgb(239 247 255 / 86%);font-weight:750}.nav a:hover{background:rgb(255 255 255 / 13%);color:#fff}.nav a.active{background:linear-gradient(135deg,#1685ff,#0967e8);box-shadow:0 5px 12px rgb(0 22 83 / 28%)}
+.header{min-height:72px;border:0;background:rgb(255 255 255 / 94%);box-shadow:0 2px 16px rgb(28 78 154 / 10%);backdrop-filter:blur(14px)}
+.main{padding:clamp(20px,3vw,40px)}
+.heading h1{color:var(--ink);font-weight:900;letter-spacing:-.035em}.heading p{color:var(--muted)}
+.hero{overflow:hidden;border:0;border-radius:22px;background:radial-gradient(circle at 87% 14%,rgb(131 246 223 / 42%),transparent 15rem),linear-gradient(135deg,#075ce8,#087af0 55%,#09959e);box-shadow:0 18px 38px rgb(8 86 206 / 22%)}
+.hero:before{content:"";position:absolute;width:16rem;aspect-ratio:1;border:26px solid rgb(255 255 255 / 14%);border-radius:50%;inset:-7rem -4rem auto auto}.hero h2,.hero p{position:relative}.hero h2{font-weight:900}.heroButton,.primary{border-radius:12px;box-shadow:0 5px 0 #0344b3,0 10px 18px rgb(5 92 232 / 22%);font-weight:800}.heroButton{background:#fff;color:#075ce8}.heroButton:active,.primary:active{transform:translateY(3px);box-shadow:0 2px 0 #0344b3}
+.section{border-radius:20px}.section,.gameCard,.activityList,.emptyInline,.stats>div,.profilePanel{border-color:var(--line);box-shadow:0 9px 22px rgb(27 91 170 / 8%)}
+.gameCard{overflow:hidden;border-radius:18px;box-shadow:0 10px 24px rgb(27 91 170 / 10%)}.gameCard:hover{box-shadow:0 16px 30px rgb(27 91 170 / 16%)}.gameCard>span{background:linear-gradient(135deg,#dff2ff,#bbdfff)}
+.gameCard:nth-child(4n+2)>span{background:linear-gradient(135deg,#e0fff2,#bff5da)}.gameCard:nth-child(4n+3)>span{background:linear-gradient(135deg,#fff3d8,#ffe0a0)}.gameCard:nth-child(4n+4)>span{background:linear-gradient(135deg,#f7eaff,#e4d0ff)}
+.stageOption{border-radius:16px}.stageOption[data-selected=true]{border-color:#0b72ec;background:#eaf4ff;box-shadow:0 0 0 3px rgb(11 114 236 / 12%)}
+.section h2,.gameCard h3,.activityDetail h3{color:var(--ink);font-weight:850}.section p,.gameCard p,.activityDetail p{color:var(--muted)}
+.stats>div{border-radius:16px;background:linear-gradient(145deg,#fff,#eff8ff)}.stats strong{color:#075ce8}.emptyInline{border-radius:18px;background:linear-gradient(145deg,#fff,#f1f8ff)}
+.dark .workspace{--ink:#f5f8ff;--muted:#bfd0ef;--line:#285187;--surface:#102a58;background:#081b40}.dark .sidebar{box-shadow:none}.dark .header{background:rgb(9 29 66 / 92%)}.dark .section,.dark .gameCard,.dark .activityList,.dark .emptyInline,.dark .stats>div,.dark .profilePanel{box-shadow:none}.dark .stats>div,.dark .emptyInline{background:#102a58}
+@media(prefers-reduced-motion:reduce){.gameCard{transition:none}.gameCard:hover{transform:none}}

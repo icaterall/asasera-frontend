@@ -34,7 +34,7 @@ export function TeacherSidebarNav({ onNavigate }: { onNavigate?: () => void }) {
 
 export function TeacherSidebar() {
   return <aside className="teacher-rail hidden border-e border-line bg-surface lg:block">
-    <div className="flex h-[68px] items-center px-5"><a href="/" className="rounded-sm focus-visible:outline-3 focus-visible:outline-accent"><Logo className="h-8 w-auto" /></a></div>
+    <div className="teacher-rail-brand flex h-[76px] items-center px-5"><a href="/" className="rounded-sm focus-visible:outline-3 focus-visible:outline-white"><Logo onDark className="h-8 w-auto" /></a></div>
     <TeacherSidebarNav />
   </aside>
 }

@@ -10,7 +10,7 @@ import {useAuth} from '@/hooks/useAuth'
 import {ActivityFeedbackModal} from '@/features/community/ActivityFeedbackModal'
 import {acknowledgeQuestion, acknowledgeTitle, decodeGenerationDraft, draftKey, editorDraftSchema, emptyEditorDraft, hasEditorChanges, readDraft, storeEditorDraft, type EditorDraft, type GenerationDraft} from './session-drafts'
 import {ActivityAudience} from '@/features/audience/ActivityAudience'
-import {Menu,Settings,TriangleAlert,Check,Palette,Share2,MessageSquare,Sparkles,Radio,Clock,Library,PanelRightClose,PanelRightOpen,MessageCircleQuestion,Timer,Medal,SlidersHorizontal,Plus,ArrowUp,ArrowDown,Copy,Trash2,Undo2,Save,ListOrdered,MoreHorizontal,X} from 'lucide-react'
+import {Menu,Settings,TriangleAlert,Check,Palette,Share2,MessageSquare,Sparkles,Radio,Clock,Library,PanelRightClose,PanelRightOpen,MessageCircleQuestion,Timer,Medal,SlidersHorizontal,Plus,ArrowUp,ArrowDown,Copy,Trash2,Undo2,Save,ListOrdered,MoreHorizontal} from 'lucide-react'
 import {useTranslation} from 'react-i18next'
 import {useEditorText} from './useEditorText'
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
@@ -20,6 +20,7 @@ import { Button, Select, EmptyState, FailureState, LoadingState } from '@/design
 import {createPortal} from 'react-dom'
 import {ConfirmDialog} from '@/components/teaching/TeachingUI'
 import {
+  api, API_PREFIX,
   activities,
   type ActivityRecord,
   type ErrorPairRecord,
@@ -29,11 +30,14 @@ import {
 } from '@/lib/api'
 import {errorPairSlots} from '@/shared/error-pairs'
 import {AdvancedCanvas,defaultPayload} from './AdvancedCanvas'
+import {NativeQuestionEditor,isNativeQuestionKind,nativeQuestionDefault,type NativeWordBoardRequest} from './NativeQuestionEditor'
+import {authoredWordBoardsSchema,type AuthoredWordBoards,type WordBoardGenerate} from '@/shared/word-board-contract'
 import {GenerationPanel} from './GenerationPanel'
 import {QuestionSource,SourceMarker,readProvenance} from './SourceChip'
 import {MediaField} from './MediaPicker'
 import {ImageCreationProvider,ImageQuestionEntry} from './ImageCreator'
 import styles from './Editor.module.css'
+import {EditorOverlay} from './EditorOverlay'
 import { McqCanvas, TfCanvas, MIN_OPTIONS, MAX_OPTIONS, type McqOption } from './McqCanvas'
 import { OrderCanvas } from './OrderCanvas'
 import type { OrderPayload } from '@/shared/questions'
@@ -110,9 +114,9 @@ function SaveIndicator({ state }: { state: ReturnType<typeof useAutosave>['state
  * function has not heard of counts nothing instead of throwing inside a banner.
  */
 function answerCount(payload: unknown): number {
-  const p = payload as {options?: unknown[]; items?: unknown[]; cards?: unknown[]; zones?: unknown[]} | null
+  const p = payload as {options?: unknown[]; items?: unknown[]; cards?: unknown[]; zones?: unknown[]; blanks?: unknown[]; entries?: unknown[]} | null
   if (!p || typeof p !== 'object') return 0
-  return (p.options ?? p.items ?? p.cards ?? p.zones ?? []).length
+  return (p.options ?? p.items ?? p.cards ?? p.zones ?? p.blanks ?? p.entries ?? []).length
 }
 
 export default function ActivityEditor() {
@@ -186,6 +190,7 @@ function ActivityEditorWorkspace() {
   const [actionBusy,setActionBusy]=useState(false)
   const [pending,setPending]=useState<string|null>(null)
   const actionInFlight=useRef(false)
+  const boardRequest=useRef<{questionId:number;request:WordBoardGenerate}|null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
   const [railOpen, setRailOpen] = useState(false)
   const [chooseHotspot,setChooseHotspot]=useState(false)
@@ -211,6 +216,7 @@ function ActivityEditorWorkspace() {
   const [phone, setPhone] = useState(()=>matchMedia('(max-width:700px)').matches)
   useEffect(()=>{const media=matchMedia('(max-width:700px)'),change=()=>setPhone(media.matches);media.addEventListener('change',change);return()=>media.removeEventListener('change',change)},[])
   const [moreOpen, setMoreOpen] = useState(false)
+  const [activitySettingsOpen,setActivitySettingsOpen]=useState(false)
   useEffect(()=>{if(!phone)setMoreOpen(false)},[phone])
   const [propsOpen, setPropsOpen] = useState(()=>matchMedia('(min-width:1025px)').matches)
   useEffect(()=>{const media=matchMedia('(min-width:1025px)'),change=()=>setPropsOpen(media.matches);media.addEventListener('change',change);return()=>media.removeEventListener('change',change)},[])
@@ -246,7 +252,8 @@ function ActivityEditorWorkspace() {
         if (!entry) return question
         const {errorPairs, confirmZones: _confirmZones, ...fields} = entry.patch
         loaded.errorPairs = [...loaded.errorPairs.filter(pair => pair.questionId !== question.id), ...errorPairs.map(pair => ({...pair, questionId: question.id}))]
-        return {...question, ...fields}
+        const changedBoardSource=fields.kind!==question.kind||JSON.stringify(fields.payload)!==JSON.stringify(question.payload)
+        return {...question, ...fields,...(changedBoardSource?{presentationBoards:{}}:{})}
       })
       if (needsReview && loaded.questions.some(q => q.id === draft.activeQuestionId)) setActiveId(draft.activeQuestionId)
       dataRef.current = loaded
@@ -312,7 +319,7 @@ function ActivityEditorWorkspace() {
       const { question } = await activities.updateQuestion(questionId, {...patch,expectedRevision:current?.revision})
       changeData((current) => current && ({
         ...current,
-        questions: current.questions.map((q) => (q.id === question.id ? {...q,revision:question.revision} : q)),
+        questions: current.questions.map((q) => (q.id === question.id ? {...q,revision:question.revision,...(q.kind===question.kind&&JSON.stringify(q.payload)===JSON.stringify(question.payload)?{presentationBoards:'presentationBoards'in question?question.presentationBoards:{}}:{})} : q)),
       }))
       if (patch.confirmZones === true && confirmZonesFor.current === questionId) confirmZonesFor.current = null
       persist(acknowledgeQuestion(readDraft(recoveryKey, editorDraftSchema) ?? journal.current, questionId, patch, question.revision))
@@ -353,7 +360,8 @@ function ActivityEditorWorkspace() {
     if (!current) return
     // Changing answer content/type must retain the teacher's scoring choice.
     if(patch.payload&&typeof patch.payload==='object')patch={...patch,payload:{pointsMultiplier:(current.payload as {pointsMultiplier?:number}).pointsMultiplier,...patch.payload}}
-    const next = { ...current, ...patch } as QuestionRecord
+    const changedBoardSource=('kind'in patch&&patch.kind!==current.kind)||('payload'in patch&&JSON.stringify(patch.payload)!==JSON.stringify(current.payload))
+    const next = { ...current, ...patch, ...(changedBoardSource?{presentationBoards:{}}:{}) } as QuestionRecord
     if (('prompt' in patch || 'payload' in patch) && (next.explanation ?? '').trim()) setExplanationCheck(ids => ids.includes(next.id) ? ids : [...ids, next.id])
     if ('explanation' in patch) setExplanationCheck(ids => ids.filter(id => id !== next.id))
     const slots=errorPairSlots(next.kind,next.payload)
@@ -448,6 +456,24 @@ function ActivityEditorWorkspace() {
     void run(what, action).finally(() => setPending(null))
   }, [run])
 
+  const generateNativeBoard = async (questionId:number, request:NativeWordBoardRequest) => {
+    if(actionInFlight.current||publishing)throw new Error(ar?'انتظر اكتمال الإجراء الحالي.':'Wait for the current editor action to finish.')
+    actionInFlight.current=true;setActionBusy(true)
+    try{
+      if(recovered)throw new Error(ar?'راجع التعديلات المستعادة واحفظها أولًا.':'Review and save recovered edits first.')
+      await questionSave.flushNow();await titleSave.flushNow()
+      const current=dataRef.current?.questions.find(question=>question.id===questionId)
+      if(!current||current.kind!=='vocabulary')throw new Error(ar?'لم يعد سؤال المفردات متاحًا.':'The vocabulary question is no longer available.')
+      // An uncertain response retries the identical saved revision and UUID.
+      const command=boardRequest.current?.questionId===questionId&&boardRequest.current.request.requestId===request.requestId?boardRequest.current.request:{...request,expectedRevision:current.revision}
+      boardRequest.current={questionId,request:command}
+      const result=await api.post<{question:QuestionRecord&{presentationBoards:AuthoredWordBoards}}>(`${API_PREFIX}/activities/questions/${questionId}/word-board`,command)
+      changeData(data=>data&&({...data,questions:data.questions.map(question=>question.id===questionId?result.question:question)}))
+      questionBaseline.current={id:questionId,question:result.question}
+      boardRequest.current=null
+    }finally{actionInFlight.current=false;setActionBusy(false)}
+  }
+
   /**
    * Moves the open question one place, from wherever the teacher asked.
    *
@@ -539,7 +565,7 @@ function ActivityEditorWorkspace() {
       const { question } = await activities.addQuestion(activityId, {
         kind: wanted,
         prompt: '',
-        payload: wanted === 'mcq' ? DEFAULT_MCQ() : defaultPayload(wanted),
+        payload: wanted === 'mcq' ? DEFAULT_MCQ() : isNativeQuestionKind(wanted) ? nativeQuestionDefault(wanted, dataRef.current?.activity.contentLanguage === 'en' ? 'en' : 'ar') : defaultPayload(wanted),
       })
       changeData((current) => current && { ...current, questions: [...current.questions, question] })
       await selectQuestion(question.id, {flushed: true})
@@ -621,7 +647,7 @@ function ActivityEditorWorkspace() {
         const questionId = Number(id), current = dataRef.current?.questions.find(q => q.id === questionId)
         if (!current) throw new Error(ar ? 'حُذف أحد الأسئلة المستعادة. استخدم النسخة المحفوظة لإزالة هذه المسودة.' : 'A recovered question was deleted. Use the saved version to discard this draft.')
         const {question} = await activities.updateQuestion(questionId, {...entry.patch, expectedRevision: Math.max(current.revision, entry.baseRevision)})
-        changeData(value => value && ({...value, questions: value.questions.map(q => q.id === questionId ? {...q, revision: question.revision} : q)}))
+        changeData(value => value && ({...value, questions: value.questions.map(q => q.id === questionId ? {...q, revision: question.revision,presentationBoards:'presentationBoards'in question?question.presentationBoards:{}} : q)}))
         persist(acknowledgeQuestion(readDraft(recoveryKey, editorDraftSchema) ?? journal.current, questionId, entry.patch, question.revision))
       }
       const title = journal.current.title?.value
@@ -649,15 +675,8 @@ function ActivityEditorWorkspace() {
 
   const incompleteIds = new Set(problems.map((p) => p.questionId).filter((x): x is number => x != null))
 
-  /*
-   * Save, Undo and Link verification — one definition, one home.
-   *
-   * They act on the teacher's work, not on settings, so they never live in the
-   * properties panel: folding a panel of SETTINGS must not take away the way to
-   * save or undo. They sit in the question's own footer instead, sticky to the
-   * bottom of the canvas, where no fold can reach them and there is only ever
-   * one Save on screen.
-   */
+  /* Save and Undo stay independent of the properties panel: desktop header,
+     or the phone's persistent navigation and More tools. */
   const questionActionControls = active ? (
     <>
       <Button variant="secondary" className={styles.saveNowButton} loading={pending==='save'}
@@ -672,7 +691,7 @@ function ActivityEditorWorkspace() {
   ) : null
   const actionsUnsaved = (questionSave.unsaved||titleSave.unsaved)||undefined
 
-  const audienceEditor = (<ActivityAudience activity={data.activity} onLanguageSave={async contentLanguage=>{
+  const audienceEditor = (<ActivityAudience initialOpen activity={data.activity} onLanguageSave={async contentLanguage=>{
         await questionSave.flushNow();await titleSave.flushNow()
         const latest=await activities.load(activityId)
         if(latest.activity.contentLanguage!==data.activity.contentLanguage)throw new Error(ar?'تغيّرت لغة النشاط في جلسة أخرى. أعد فتح النشاط قبل الحفظ.':'The activity language changed in another session. Reopen the activity before saving.')
@@ -686,14 +705,8 @@ function ActivityEditorWorkspace() {
         changeData(current=>current&&({...current,activity:{...result.activity,title:current.activity.title}}))
   }}/>)
 
-  /*
-   * The activity's own actions — themes, sharing, delivery, feedback, the way
-   * out. On a wide screen they line the top bar. On a phone nine buttons in a
-   * top bar is not a top bar, it is a wall: they wrapped onto four rows and ate
-   * half the viewport before a single question was visible. So the SAME buttons
-   * move into a sheet, reached from one control, and the top bar keeps only the
-   * title, the save state and Publish — the one act everything else builds to.
-   */
+  /* Secondary activity tools share one More surface at every viewport.
+     Keep save/approval in the editor bar, separate from delivery and sharing. */
   const activityActions = (
     <>
         <Button variant="secondary" disabled={actionBusy||publishing||recovered} onClick={()=>setThemesOpen(true)}><Palette size={18} aria-hidden="true"/>{ar?'المظاهر':'Themes'}</Button>
@@ -758,8 +771,7 @@ function ActivityEditorWorkspace() {
 
         </div>
         <div className={styles.accountControls}>
-          {!phone&&<InstructorBalance />}
-          <LanguageToggle className={styles.languageToggle} />
+          {!phone&&<InstructorBalance compact/>}
           <AccountControl />
         </div>
         <div className={styles.editorActions} role="group" aria-label={ar ? 'أدوات النشاط' : 'Activity actions'}>
@@ -768,15 +780,18 @@ function ActivityEditorWorkspace() {
         <Button variant="quiet" className={styles.propertiesToggle} data-properties-toggle="" onClick={() => setPropsOpen((v) => !v)}
           aria-expanded={propsOpen} aria-label={t("الخصائص")}><Settings size={22} aria-hidden="true"/></Button>
 
-        {!phone&&activityActions}
-        <Button variant={data.activity.currentVersionId ? 'secondary' : 'primary'} loading={publishing} onClick={() => void publish()}>
+        {!phone&&<>
+          {questionActionControls}
+          <Button variant="secondary" onClick={()=>setActivitySettingsOpen(true)}><Settings size={17} aria-hidden="true"/>{ar?'إعدادات النشاط':'Activity settings'}</Button>
+          <Button variant="secondary" aria-haspopup="dialog" aria-expanded={moreOpen} onClick={()=>setMoreOpen(true)}><MoreHorizontal size={18} aria-hidden="true"/>{ar?'المزيد':'More'}</Button>
+        </>}
+        <Button variant={data.activity.currentVersionId ? 'secondary' : 'primary'} loading={publishing} disabled={actionBusy} onClick={() => void publish()}>
           {data.activity.currentVersionId ? t("اعتماد التغييرات") : t("اعتماد النسخة")}
         </Button>
         </div>
-        {phone&&<div className={styles.phoneAccountBalance}><InstructorBalance compact/></div>}
       </header>
 
-      {!phone&&audienceEditor}
+      {activitySettingsOpen&&<EditorOverlay title={ar?'إعدادات النشاط':'Activity settings'} onClose={()=>setActivitySettingsOpen(false)}>{audienceEditor}</EditorOverlay>}
 
       {deleting&&active&&createPortal(<ConfirmDialog
         open
@@ -955,6 +970,7 @@ function ActivityEditorWorkspace() {
                 onMediaChange={mediaKey=>patchActive({mediaKey})}
                 onChange={next=>patchActive({payload:next})}/>}
               {!chooseHotspot&&['order','match','hotspot'].includes(active.kind)&&<AdvancedCanvas key={`advanced:${active.id}`} activityId={activityId} question={active} onPatch={patchActive} onPrepare={async()=>{await questionSave.flushNow();const current=dataRef.current?.questions.find(q=>q.id===active.id);if(!current)throw Error('Question unavailable');return current}} onApplied={reload}/>}
+              {!chooseHotspot&&isNativeQuestionKind(active.kind)&&<NativeQuestionEditor key={`native:${active.id}:${active.kind}`} kind={active.kind} payload={active.payload} onChange={next=>patchActive({payload:next})} wordBoards={{boards:authoredWordBoardsSchema.safeParse('presentationBoards'in active?active.presentationBoards:{}).data??{},generate:request=>generateNativeBoard(active.id,request)}}/>}
               {!chooseHotspot && active.kind === 'mcq' && (
                 <McqCanvas
                   key={`mcq:${active.id}`}
@@ -997,7 +1013,7 @@ function ActivityEditorWorkspace() {
               </ImageCreationProvider>
 
               {/* v5 §14/§18: why the key is correct. Shown to learners only after the answer window closes. */}
-              <label className={styles.explanationField}>
+              {active.kind!=='discussion'&&<label className={styles.explanationField}>
                 <span className={styles.propLabel}>{t("التفسير (اختياري)")}</span>
                 <textarea
                   key={`explanation:${active.id}`}
@@ -1015,17 +1031,10 @@ function ActivityEditorWorkspace() {
                   onChange={(event) => patchActive({ explanation: event.target.value })}
                 />
                 {explanationCheck.includes(active.id) && <span role="status" className={styles.explanationWarning}><TriangleAlert size={16} aria-hidden="true"/>{t("تحقّق من أن التفسير ما زال يطابق السؤال والإجابة.")}</span>}
-              </label>
+              </label>}
             </>
           )}
         </div>
-        {/* Outside the question column on purpose: a sibling of the canvas's
-            content, so it is pinned to the bottom of the canvas itself rather
-            than to wherever the column happens to end. See
-            questionActionControls above. */}
-        {questionActionControls&&<div className={styles.questionActions} data-unsaved={actionsUnsaved}>
-          {questionActionControls}
-        </div>}
       </ActivityStage>
 
       {/* ---- 4. properties ---- */}
@@ -1054,6 +1063,7 @@ function ActivityEditorWorkspace() {
         <div className={styles.propGroup}>
           <label htmlFor="question-kind" className={styles.propLabel}><MessageCircleQuestion size={22}/>{t("نوع السؤال")}</label>
           <QuestionTypePicker value={active?.kind??'mcq'} disabled={!active} onChange={kind=>{
+            if(kind===active?.kind)return
             if(kind==='hotspot'&&!active?.mediaKey){setChooseHotspot(true);return}
             setChooseHotspot(false)
             if(active&&kind!==active.kind)setTypeUndo({
@@ -1061,7 +1071,7 @@ function ActivityEditorWorkspace() {
               pairs:data.errorPairs.filter(p=>p.questionId===active.id),
               from:questionTypeName(active.kind,ar),to:questionTypeName(kind,ar),replaced:answerCount(active.payload),
             })
-            patchActive({kind,payload:defaultPayload(kind,active?.mediaKey??'')})
+            patchActive({kind,payload:isNativeQuestionKind(kind)?nativeQuestionDefault(kind,data.activity.contentLanguage==='en'?'en':'ar'):defaultPayload(kind,active?.mediaKey??'')})
           }}/>
 
         </div>
@@ -1093,7 +1103,7 @@ function ActivityEditorWorkspace() {
 
         <div className={styles.propGroup}>
           <label htmlFor="question-points" className={styles.propLabel}><Medal size={22}/>{ar?'النقاط':'Points'}</label>
-          <Select id="question-points" className={styles.propertySelect} aria-label={ar?'النقاط':'Points'} value={payload.pointsMultiplier??1} disabled={!active} onValueChange={value=>patchActive({payload:{...active!.payload as object,pointsMultiplier:Number(value)}})} optionDescriptions={{
+          <Select id="question-points" className={styles.propertySelect} aria-label={ar?'النقاط':'Points'} value={active?.kind==='discussion'?0:payload.pointsMultiplier??1} disabled={!active||active.kind==='discussion'} onValueChange={value=>patchActive({payload:{...active!.payload as object,pointsMultiplier:Number(value)}})} optionDescriptions={{
             '1':ar?'امنح الإجابات الصحيحة العدد المعتاد من النقاط.':'Award correct answers with the normal amount of points.',
             '2':ar?'امنح ضعف النقاط للإجابات الصحيحة.':'Give twice as many points for correct answers.',
             '0':ar?'خفف المنافسة في هذا السؤال دون احتساب نقاط.':'Lower the stakes of the question and remove points.',
@@ -1159,32 +1169,25 @@ function ActivityEditorWorkspace() {
         </button>
       </nav>}
 
-      {phone&&moreOpen&&<>
-        <div className={styles.backdrop} onClick={()=>setMoreOpen(false)}/>
-        <section className={styles.moreSheet} aria-label={ar?'المزيد':'More'}>
-          <header>
-            <h2>{ar?'المزيد':'More'}</h2>
-            <button type="button" aria-label={ar?'إغلاق':'Close'} onClick={()=>setMoreOpen(false)}><X size={22}/></button>
-          </header>
-          <div className={styles.moreBody}>
-            {active&&<div className={styles.moreQuestion}>
+      {moreOpen&&<EditorOverlay title={ar?'أدوات النشاط':'Activity tools'} onClose={()=>setMoreOpen(false)}>
+          <div className={styles.activityTools}>
+            {phone&&active&&<div className={styles.moreQuestion}>
               <h3>{ar?'هذا السؤال':'This question'}</h3>
               <Button variant="quiet" className={styles.undoButton} disabled={!questionEdited}
                 icon={<Undo2 size={18} aria-hidden="true"/>}
                 onClick={()=>{undoQuestion();setMoreOpen(false)}}>{ar?'تراجع':'Undo'}</Button>
             </div>}
-            <div className={styles.moreActivity}>
-              <h3>{ar?'هذا النشاط':'This activity'}</h3>
+            <div className={styles.moreActivity} onClick={event=>{if((event.target as HTMLElement).closest('button:not(:disabled)'))setMoreOpen(false)}}>
+              <h3>{ar?'تقديم النشاط ومشاركته':'Teach & share'}</h3>
               <div className={styles.editorActions} role="group" aria-label={ar?'أدوات النشاط':'Activity actions'}>{activityActions}</div>
             </div>
-            {audienceEditor}
+            <Button variant="secondary" onClick={()=>{setMoreOpen(false);setActivitySettingsOpen(true)}}><Settings size={18}/>{ar?'إعدادات النشاط':'Activity settings'}</Button>
             <div className={styles.moreAccount}>
               <LanguageToggle className={styles.languageToggle}/>
-              <AccountControl/>
+              {phone&&<><InstructorBalance compact/><AccountControl/></>}
             </div>
           </div>
-        </section>
-      </>}
+      </EditorOverlay>}
     </div>
   )
 }

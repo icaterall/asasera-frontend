@@ -10,6 +10,8 @@ import {api} from '@/lib/api'
 import {Button} from '@/design'
 import {attemptViewSchema,type AttemptView} from '@/shared/delivery'
 import type {AnswerPayload} from '@/shared/questions'
+import type {AttemptPresentationCommand} from '@/shared/delivery'
+import {PresentationAttempt} from '../presentations/PresentationAttempt'
 import {QuestionInput} from '../session/QuestionInput'
 import stage from '../session/Session.module.css'
 import { ActivityStage, MotionControl } from '../activity-themes/ActivityStage'
@@ -52,7 +54,7 @@ function LearnAttempt({studentId,defaultName}:{studentId:number|null;defaultName
  const initialSaved=useRef(saved)
  const inFlight=useRef(false),leaveDialog=useRef<HTMLDialogElement>(null),offset=useRef(0)
  const save=useCallback((s:Saved)=>{try{localStorage.setItem(storageKey(id,studentId),JSON.stringify(s))}catch{};setSaved(s)},[id,studentId])
- const accept=useCallback((value:unknown)=>{if(studentId)void queryClient.invalidateQueries({queryKey:studentQueryKey(studentId)});const parsed=attemptViewSchema.parse(value);offset.current=parsed.serverNow-Date.now();setView(prior=>prior&&prior.id===parsed.id&&(prior.position>parsed.position||(prior.position===parsed.position&&(prior.serverNow>parsed.serverNow||(prior.game?.sequence??0)>(parsed.game?.sequence??0)||(prior.game?.finished&&!parsed.game?.finished)||(prior.status!=='active'&&parsed.status==='active'))))?prior:parsed)},[studentId,queryClient])
+ const accept=useCallback((value:unknown)=>{if(studentId)void queryClient.invalidateQueries({queryKey:studentQueryKey(studentId)});const parsed=attemptViewSchema.parse(value);offset.current=parsed.serverNow-Date.now();setView(prior=>prior&&prior.id===parsed.id&&(parsed.presentation?!!prior.presentation&&(prior.presentation.revision>parsed.presentation.revision||(prior.presentation.revision===parsed.presentation.revision&&prior.serverNow>parsed.serverNow)):prior.position>parsed.position||(prior.position===parsed.position&&(prior.serverNow>parsed.serverNow||(prior.game?.sequence??0)>(parsed.game?.sequence??0)||(prior.game?.finished&&!parsed.game?.finished)||(prior.status!=='active'&&parsed.status==='active'))))?prior:parsed)},[studentId,queryClient])
  const refresh=useCallback(async()=>{if(!ready)return;if(saved.attemptId&&saved.token)accept(await api.post(`/api/v1/delivery/attempts/${saved.attemptId}/view`,{token:saved.token}));else{const a=await api.post<Assignment>(`/api/v1/delivery/assignments/${id}/open`,{accessToken:saved.accessToken});offset.current=a.serverNow-Date.now();setAssignment(a)}},[saved,id,accept,ready])
  const work=async(action:()=>Promise<void>)=>{if(inFlight.current)return;inFlight.current=true;setBusy(true);setError('');try{await action()}catch(e){setError(e instanceof Error?e.message:t('تعذّر الاتصال. حاول مجددًا.','Connection failed. Try again.'))}finally{inFlight.current=false;setBusy(false)}}
  useEffect(()=>{if(location.hash)history.replaceState(null,'',location.pathname+location.search)},[])
@@ -76,6 +78,19 @@ function LearnAttempt({studentId,defaultName}:{studentId:number|null;defaultName
  /* "Saved" is only ever rendered from a view the server returned, so a failed write leaves the
     previous, true state on screen with the error above it — it never claims a write that did not land. */
  const answer=(answer:AnswerPayload)=>void work(async()=>{if(!view?.question||!saved.token)return;accept(await api.post(`/api/v1/delivery/attempts/${view.id}/answer`,{token:saved.token,position:view.position,questionId:view.question.id,answer}))})
+ const presentationPending=useRef<{signature:string;body:AttemptPresentationCommand}|null>(null)
+ const presentationCommand=(action:Omit<AttemptPresentationCommand,'requestId'|'expectedRevision'|'token'>)=>void work(async()=>{
+  if(!view?.presentation||!saved.token)return
+  const signature=JSON.stringify(action)
+  const intent=presentationPending.current?.signature===signature?presentationPending.current:{signature,body:{...action,token:saved.token,requestId:crypto.randomUUID(),expectedRevision:view.presentation.revision}}
+  presentationPending.current=intent
+  try{accept(await api.post(`/api/v1/delivery/attempts/${view.id}/presentation`,intent.body));presentationPending.current=null}
+  catch(error){
+   const status=(error as {status?:number}).status
+   if(status&&status>=400&&status<500){presentationPending.current=null;if(status===409)await refresh()}
+   throw error
+  }
+ })
  /* A second attempt for the same identity: the guest sends the previous attempt's resume key, an
     account sends nothing but its session because the saved seat IS its identity. */
  const tryAgain=()=>void work(async()=>{
@@ -111,14 +126,14 @@ function LearnAttempt({studentId,defaultName}:{studentId:number|null;defaultName
   {error&&<div className={styles.alert} role="alert"><p>{error}</p><Button disabled={busy} onClick={()=>void work(async()=>{if(studentId)await connectAccount();await refresh()})}>{t('أعد الاتصال','Reconnect')}</Button></div>}
   {left?<section className={styles.complete}><h1>{t('أُزيل مفتاح الاستئناف من هذا المتصفح','Resume key removed from this browser')}</h1><p>{t('تبقى الإجابات التي أرسلتها محفوظة لدى المعلم.','Your submitted answers remain saved for your teacher.')}</p><Link to={studentId?"/student":"/"}>{t('الرئيسية','Home')}</Link></section>:view?<>
    <p data-window="">{title} · {t('الموعد النهائي','Deadline')}: <bdi>{bothTimes(view.deadline,tz)}</bdi>{view.maxAttempts>1?<> · <span data-attempt-counter="">{t(`المحاولة ${view.attemptNumber} من ${view.maxAttempts}`,`Attempt ${view.attemptNumber} of ${view.maxAttempts}`)}</span></>:null}</p>
-   <progress className={styles.progress} aria-label={t('التقدّم','Progress')} max={view.questionCount} value={view.status==='submitted'?view.questionCount:view.position+(view.answered?1:0)}/>
-   {view.status==='active'&&view.question?<>
+   <progress className={styles.progress} aria-label={t('التقدّم','Progress')} max={view.questionCount} value={view.status==='submitted'?view.questionCount:view.presentation?Math.max(0,view.presentation.drawn.length-(view.answered?0:1)):view.position+(view.answered?1:0)}/>
+   {view.presentation?<PresentationAttempt view={view} busy={busy} onCommand={presentationCommand} onAnswer={answer}/>:view.status==='active'&&view.question?<>
     {playing&&view.game?<><GameArena state={view.game} serverNow={view.serverNow} onInput={input=>sendGame('input',input)}/><div className={styles.next}><p>{view.gamePoints} {t('نقطة لعب محفوظة','saved game points')}</p><Button variant="primary" loading={busy} onClick={()=>void work(async()=>{await sendGame('finish');accept(await api.post(`/api/v1/delivery/attempts/${view.id}/next`,{token:saved.token,position:view.position}))})}>{view.game.finished?(view.position===view.questionCount-1?t('سلّم النشاط','Submit activity'):t('السؤال التالي','Next question')):t('تجاوز الجولة وتابع التعلّم','Skip round and keep learning')}</Button></div></>:<>
     <p>{t(`السؤال ${view.position+1} من ${view.questionCount}`,`Question ${view.position+1} of ${view.questionCount}`)}</p>
     {/* Distinct keys: two siblings sharing one key made React orphan the previous question's title,
         so every answered question left its heading stacked above the next one. */}
     <h1 key={`title-${view.question.id}`} className={styles.questionTitle} data-question-surface=""><FormattedText text={view.question.prompt}/></h1>
-    <QuestionInput key={`input-${view.question.id}`} question={view.question} onAnswer={answer} disabled={busy||view.answered} revealed={view.reveal?.correct}/>
+    <QuestionInput key={`input-${view.question.id}`} question={view.question} onAnswer={answer} disabled={busy||view.answered} submittedAnswer={view.submittedAnswer} revealed={view.reveal?.correct}/>
     {view.answered&&<div className={styles.next}><p role="status">{view.reveal?(view.reveal.wasCorrect?t('إجابة صحيحة!','Correct!'):t('راجع الإجابة الصحيحة ثم تابع.','Review the correct answer, then continue.')):t('تم حفظ إجابتك.','Your answer is saved.')}</p>{view.reveal?.explanation&&<p dir="auto" data-explanation=""><strong>{t('لماذا؟','Why?')}</strong> <bdi>{view.reveal.explanation}</bdi></p>}{view.gameMode!=='quiz'&&<Button variant="primary" loading={busy} onClick={()=>void work(()=>sendGame('start'))}>{t('ابدأ جولة اللعب','Play game round')}</Button>}<Button variant={view.gameMode==='quiz'?'primary':'secondary'} loading={busy} onClick={()=>void work(async()=>accept(await api.post(`/api/v1/delivery/attempts/${view.id}/next`,{token:saved.token,position:view.position})))}>{view.position===view.questionCount-1?t('سلّم النشاط','Submit activity'):t('التالي','Next')}</Button></div>}
    </>}
    </>:<section className={styles.complete}>{view.gameMode!=='quiz'&&<p className={styles.summary}>{view.gamePoints} {t('نقطة لعب','game points')}</p>}<h1>{view.status==='submitted'?t('تم تسليم نشاطك!','Activity submitted!'):t('انتهى وقت النشاط','This assignment has closed')}</h1><p>{view.status==='submitted'?studentId?t('حُفظت إجاباتك. تابع النتائج من صفحة تقدّمك.','Your answers are saved. Follow the results from your progress page.'):t('حُفظت إجاباتك للمعلم. يمكنك العودة من هذا المتصفح لعرض التغذية الراجعة.','Your answers are saved for your teacher. Return in this browser to see your feedback.'):t('حُفظت الإجابات التي أرسلتها قبل انتهاء الوقت.','Answers sent before the deadline have been saved.')}</p>{view.feedbackAvailable?<p className={styles.summary}>{t(`${view.correctCount} إجابات صحيحة من ${view.questionCount}`,`${view.correctCount} correct out of ${view.questionCount}`)}</p>:<p>{t('تظهر الإجابات الصحيحة بعد الموعد النهائي أو عند إغلاق المعلم للنشاط.','Correct answers appear after the deadline or when your teacher closes the assignment.')}</p>}
@@ -126,7 +141,9 @@ function LearnAttempt({studentId,defaultName}:{studentId:number|null;defaultName
      <Button variant="primary" loading={busy} data-try-again="" onClick={tryAgain}>{t(`حاول مجددًا (${view.attemptNumber+1} من ${view.maxAttempts})`,`Try again (${view.attemptNumber+1} of ${view.maxAttempts})`)}</Button></>}
     {limitReached&&<p data-attempts-exhausted="">{t(`استخدمت المحاولات ${view.maxAttempts} كلها.`,`You have used all ${view.maxAttempts} attempts.`)}{studentId?'':' '+t('تُحسب المحاولات لهذا المتصفح — وهي هوية تخزين في المتصفح، لا شخص موثّق.','Attempts are counted for this browser — a browser-storage identity, not a verified person.')}</p>}
     {view.status!=='active'&&view.windowState==='closed'&&view.maxAttempts>1&&view.attemptsRemaining>0&&<p data-attempts-expired="">{t('انتهى وقت النشاط قبل استخدام بقية المحاولات.','The assignment closed before your remaining attempts could be used.')}</p>}</section>}
-   {view.review.map((r,index)=><section className={styles.review} key={r.question.id}><h2>{index+1}. <FormattedText text={r.question.prompt}/></h2><p>{r.wasCorrect===null?t('لم تُجب','Unanswered'):r.wasCorrect?t('أجبت بشكل صحيح','You answered correctly'):t('راجع الإجابة الصحيحة','Review the correct answer')}</p><QuestionInput question={r.question} onAnswer={()=>{}} disabled preview revealed={r.correct}/>{r.explanation&&<p dir="auto" data-explanation=""><strong>{t('لماذا؟','Why?')}</strong> <bdi>{r.explanation}</bdi></p>}</section>)}
+   {view.presentation&&canRetry&&<section className={styles.complete}><p>{t(`تبقّى لك ${view.attemptsRemaining} محاولات. تبقى المحاولة السابقة محفوظة.`,`You have ${view.attemptsRemaining} attempts left. Your previous attempt stays saved.`)}</p><Button variant="primary" loading={busy} onClick={tryAgain}>{t(`حاول مجددًا (${view.attemptNumber+1} من ${view.maxAttempts})`,`Try again (${view.attemptNumber+1} of ${view.maxAttempts})`)}</Button></section>}
+   {view.presentation&&limitReached&&<p>{t('استخدمت جميع المحاولات المتاحة.','You have used all available attempts.')}</p>}
+   {view.review.map((r,index)=><section className={styles.review} key={r.question.id}><h2>{index+1}. <FormattedText text={r.question.prompt}/></h2><p>{r.wasCorrect===null?t('لم تُجب','Unanswered'):r.wasCorrect?t('أجبت بشكل صحيح','You answered correctly'):t('راجع الإجابة الصحيحة','Review the correct answer')}</p><QuestionInput question={r.question} onAnswer={()=>{}} disabled preview submittedAnswer={r.submittedAnswer} revealed={r.correct}/>{r.explanation&&<p dir="auto" data-explanation=""><strong>{t('لماذا؟','Why?')}</strong> <bdi>{r.explanation}</bdi></p>}</section>)}
   </>:assignment?<section className={styles.join}><h1>{title}</h1>
    <p data-window="">{assignment.questionCount} {t('أسئلة','questions')} · {t('الموعد النهائي','Deadline')}: <bdi>{bothTimes(assignment.deadline,tz)}</bdi>{assignment.maxAttempts>1?` · ${t(`${assignment.maxAttempts} محاولات`,`${assignment.maxAttempts} attempts`)}`:''}</p>
    {/* Three states before an attempt exists: not open yet, open, closed. The server decides which. */}

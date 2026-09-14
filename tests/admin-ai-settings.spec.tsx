@@ -88,14 +88,18 @@ it('fetches provider model IDs into the reviewed catalog without changing a rout
  expect(screen.getByText('gpt-next')).toBeTruthy()
  expect(screen.getByText('Needs price and capability verification')).toBeTruthy()
 })
-it('saves the selected image-generation model as its own administrator route',async()=>{
- vi.spyOn(aiAdministration,'get').mockResolvedValue(settings)
+it('saves the image-generation administrator route without resubmitting a historical quality ceiling',async()=>{
+ // Migration 0046 retires admin ceilings. Even an older response must not make
+ // the current UI send that field back; teachers own their quality choice.
+ vi.spyOn(aiAdministration,'get').mockResolvedValue({...settings,routes:settings.routes!.map(route=>route.capability==='image_generation'?{...route,imageQuality:'high'}:route)})
  const save=vi.spyOn(aiAdministration,'saveRoute').mockResolvedValue({...settings,routes:settings.routes!.map(route=>route.capability==='image_generation'?{...route,enabled:false,version:2}:route)})
  show();await screen.findByRole('heading',{name:'AI routes'})
  expect(await screen.findByText('Generation route settings')).toBeTruthy()
  fireEvent.click(screen.getByRole('checkbox',{name:'Enable Image generation'}))
  fireEvent.click(screen.getByRole('button',{name:'Save Image generation settings'}))
- await waitFor(()=>expect(save).toHaveBeenCalledWith('image_generation',{provider:'openai',model:'gpt-image-1',enabled:false,imageQuality:null,expectedVersion:1}))
+ await waitFor(()=>expect(save).toHaveBeenCalledWith('image_generation',{provider:'openai',model:'gpt-image-1',enabled:false,expectedVersion:1}))
+ expect(save).toHaveBeenCalledTimes(1)
+ expect(save.mock.calls[0]![1]).not.toHaveProperty('imageQuality')
 })
 it('labels a saved but disabled media route as paused instead of unavailable',async()=>{
  vi.spyOn(aiAdministration,'get').mockResolvedValue({...settings,capabilities:capabilities.map(capability=>capability.id==='image_generation'?{...capability,status:'paused' as const}:capability),routes:routes.map(route=>route.capability==='image_generation'?{...route,enabled:false}:route)})

@@ -1,0 +1,55 @@
+import {test,expect} from '@playwright/test'
+test.use({video:'on'})
+for(const [language,width,height] of [['en',1440,900],['ar',390,844]] as const){
+ test(`teacher creates flashcards and learner recalls ${language}`,async({page,request,browser})=>{
+  const origin=process.env.PW_BASE_URL??'http://127.0.0.1:5411'
+  expect(new URL(origin).hostname).toMatch(/^(127\.0\.0\.1|localhost)$/)
+  const ar=language==='ar',email=`cards-${crypto.randomUUID()}@example.com`,password='Synthetic cards fixture2026!'
+  expect((await request.post('/api/v1/auth/register/teacher',{data:{name:'Cards instructor',email,password}})).ok()).toBe(true)
+  const login=await request.post('/api/v1/auth/login',{data:{email,password}})
+  expect(login.ok()).toBe(true)
+  const {accessToken}=await login.json(),headers={Authorization:`Bearer ${accessToken}`}
+  const created=await request.post('/api/v1/activities',{headers,data:{title:ar?'مراجعة العلوم':'Science recall',subjectId:1,levelId:8,purposeId:2}})
+  expect(created.ok(),await created.text()).toBe(true);const {activity}=await created.json()
+  const prompt=ar?'القمر نجم.':'The moon is a star.',explanation=ar?'القمر تابع طبيعي للأرض، وليس نجمًا.':'The moon is Earth’s natural satellite, not a star.'
+  expect((await request.post(`/api/v1/activities/${activity.id}/questions`,{headers,data:{kind:'tf',prompt,payload:{correct:false},explanation}})).ok()).toBe(true)
+  expect((await request.post(`/api/v1/activities/${activity.id}/publish`,{headers})).ok()).toBe(true)
+  await page.context().addCookies((await request.storageState()).cookies)
+  await page.addInitScript(lang=>localStorage.setItem('asasera.language',lang),language)
+  await page.setViewportSize({width,height})
+  await page.goto(`/teacher/activities/${activity.id}/play?mode=study`)
+  await page.getByRole('radio',{name:ar?/بطاقات المراجعة/:/Flashcards/}).check()
+  await page.getByRole('button',{name:ar?'أنشئ رابط المشاركة':'Create assignment link'}).click()
+  const link=await page.getByRole('textbox',{name:ar?'رابط النشاط':'Assignment link'}).inputValue()
+  await page.evaluate(()=>{document.querySelectorAll('*').forEach(el=>{if(el.scrollTop)el.scrollTo({top:0,behavior:'instant'})});window.scrollTo({top:0,behavior:'instant'})})
+  await page.screenshot({path:`../docs/evidence/interactive/cards-${language}-${width}-instructor.png`,fullPage:true,mask:[page.getByRole('textbox',{name:ar?'رابط النشاط':'Assignment link'})]})
+  await page.screenshot({path:`../docs/evidence/interactive/cards-${language}-${width}-instructor-viewport.png`,mask:[page.getByRole('textbox',{name:ar?'رابط النشاط':'Assignment link'})]})
+  const learner=await browser.newContext({viewport:{width,height},recordVideo:{dir:'../docs/evidence/interactive/recordings',size:{width,height}}})
+  await learner.addInitScript(lang=>localStorage.setItem('asasera.language',lang),language)
+  const learn=await learner.newPage(),errors:string[]=[];learn.on('pageerror',e=>errors.push(e.message))
+  try{
+   await learn.goto(link)
+   await learn.getByRole('textbox',{name:ar?'اسمك':'Your name'}).fill(ar?'طالب تجريبي':'Synthetic learner')
+   await learn.getByRole('button',{name:ar?'ابدأ':'Start',exact:true}).click()
+   await learn.getByRole('button',{name:ar?'ابدأ الجولة':'Start round'}).click()
+   await expect(learn.getByRole('heading',{name:prompt,exact:true})).toBeVisible()
+   await expect(learn.getByText(explanation,{exact:true})).toHaveCount(0)
+   await learn.locator('[data-presentation]').evaluate(async el=>{await document.fonts.ready;await Promise.all(el.getAnimations({subtree:true}).map(animation=>animation.finished.catch(()=>{})))})
+   await learn.screenshot({path:`../docs/evidence/interactive/cards-${language}-${width}-front.png`,fullPage:true})
+   await learn.getByRole('button',{name:ar?'اكشف الإجابة':'Reveal answer'}).click()
+   await expect(learn.getByText(explanation,{exact:true})).toBeVisible()
+   await learn.locator('[data-presentation]').evaluate(async el=>{await Promise.all(el.getAnimations({subtree:true}).map(animation=>animation.finished.catch(()=>{})))})
+   await learn.screenshot({path:`../docs/evidence/interactive/cards-${language}-${width}-back.png`,fullPage:true})
+   await learn.getByRole('button',{name:ar?'أراجع مرة أخرى':'Review again',exact:true}).click()
+   await learn.reload()
+   await expect(learn.getByRole('button',{name:ar?'أراجع مرة أخرى':'Review again',exact:true})).toHaveAttribute('aria-pressed','true')
+   await learn.getByRole('button',{name:ar?'إنهاء الجولة':'Finish round'}).click()
+   await expect(learn.getByRole('heading',{name:ar?'اكتملت الجولة':'Round complete'})).toBeVisible()
+   expect(await learn.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true)
+   await learn.screenshot({path:`../docs/evidence/interactive/cards-${language}-${width}-complete.png`,fullPage:true})
+   await learn.getByRole('button',{name:ar?'راجع البطاقات التي تحتاجها':'Review cards marked again'}).click()
+   await expect(learn.getByText(ar?'مراجعة اختيارية؛ تقييماتك السابقة محفوظة.':'Optional review; your previous ratings are saved.',{exact:true})).toBeVisible()
+   expect(errors).toEqual([])
+  }finally{const video=learn.video();await learner.close();await video?.saveAs(`../docs/evidence/interactive/recordings/cards-${language}-${width}.webm`)}
+ })
+}

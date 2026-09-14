@@ -62,6 +62,11 @@ typography:
   caption:
     fontFamily: "Montserrat, Neo Sans Arabic, sans-serif"
     fontSize: "0.75rem"
+  teacher-body:
+    fontFamily: "HK Grotesk, Neo Sans Arabic, sans-serif"
+    fontSize: "1rem"
+    fontWeight: 400
+    lineHeight: 1.7
   landing-headline:
     fontFamily: "Montserrat, Neo Sans Arabic, sans-serif"
     fontSize: "clamp(30px, 3.1vw, 44px)"
@@ -385,7 +390,7 @@ Home uses a solid Asasera Blue hero with white heading, pale-blue support copy, 
 
 ## Typography
 
-**Display and Body Font:** Montserrat for Latin, with locally hosted Neo Sans Arabic for Arabic, then a sans-serif fallback. `main.tsx` loads Latin weights 400, 700, and 900; `src/styles/tokens.css` declares the Arabic files.
+**Display and Body Font:** Montserrat remains the general Latin face, with locally hosted Neo Sans Arabic for Arabic, then a sans-serif fallback. The teacher workspace uses the locally bundled HK Grotesk cuts for clearer English interface text while preserving Neo Sans Arabic for Arabic. `main.tsx` loads the general Latin weights; `src/styles/tokens.css` declares the teacher Latin and Arabic files.
 
 **Character:** Latin is broad, geometric, and emphatic. Arabic remains script-specific with normal letter spacing. The working scale is compact; the classroom scale increases the question and answer mass.
 
@@ -430,7 +435,15 @@ Home, library, creation and discovery share the inherited bilingual font family.
 
 ## Layout
 
-The current activity editor fills the viewport and separates toolbar, question rail, canvas, and properties. Its desktop columns are 180px, a flexible center, and 280px; the center is capped internally at 1080px. Rails scroll independently. Below 1025px both rails become drawers, each capped at the smaller of 320px and 86vw; the canvas keeps the full working width. At 700px the toolbar wraps and canvas padding becomes compact. Answer inputs switch to two columns from 720px.
+The current activity editor fills the viewport and separates toolbar, question rail, canvas, and properties. Its desktop columns are 200px, a flexible center, and 280px; the center is capped internally at 1320px. Rails scroll independently, and closing desktop properties leaves a 48px reopening strip. Below 1025px both rails become drawers, each capped at the smaller of 360px and 88vw; the canvas keeps the full working width. At 700px and below, rails become full-width bottom sheets and persistent bottom navigation preserves Questions, Save, Settings and More. Answer inputs switch to two columns from 720px.
+
+### Compact activity editor — 14 September 2026
+
+Above 1100px the header occupies one row: title/save state, Save and Undo, Activity settings, More, approval, and compact balance/account controls. Between 1025px and 1100px it deliberately uses two rows while retaining both desktop rails; the same two-row header continues through the tablet range above 700px. Compact rail spacing and desktop answer tiles (96px minimum height) leave more room for question content.
+
+The attached video stays centered and 16:9. Desktop width is capped at the smaller of 480px and `(100dvh - 440px) × 1.77778`, with a 280px minimum; between 1025px and 1100px the cap is 400px. These scoped editor constraints supersede the earlier 600px attached-card cap on desktop, preserving the existing card, duration and timeframe behavior described below. Phone navigation occupies its own grid row with safe-area padding so it does not cover the canvas.
+
+Recorded from [the editor layout](src/features/editor/Editor.module.css) and [the scoped direction](.impeccable/surfaces/editor-density.md). Fresh finish disposition: **ship for this compact editor scope**. Twelve valid editor/tools captures cover six viewport/language/theme cases: 1440px English light, 1366px English light, 1366px Arabic light, 1025px English light, 390px Arabic light and 390px English dark (`.impeccable/review/editor-*.png` and `editor-tools-*.png`). Six browser density tests, 65 component tests, four video browser journeys and the production build passed. Changes are local only, not deployed; no new shipping raster or global palette/type token is introduced.
 
 The legacy lesson editor still defines a separate 184px/288px rail composition with 1100px and 820px transitions. Those measurements are not the v4 activity-editor contract.
 
@@ -567,6 +580,12 @@ White or dark theme surfaces, card corners, neutral border, and 24px internal pa
 ### Navigation
 
 The editor's question rail uses rectangular previews with an ordinal, up to two lines of prompt, and a miniature four-color strip. Active previews gain a blue perimeter and pale blue fill; hover changes the neutral ground. Keyboard focus remains visible. At the drawer breakpoint the same ordered navigation moves into a dismissible side region rather than reducing the canvas width.
+
+### Activity settings and More
+
+**The Editor Tools Rule.** Keep Save and approval directly available; group secondary activity actions under More, and open language and audience fields directly from Activity settings.
+
+More uses the shared editor overlay for Themes, Exit, Feedback, sharing and delivery, plus interface language. On phones it also carries Undo, balance and account access; the persistent Settings navigation opens question properties. Activity settings initializes the existing audience disclosure open, preserving its draft and save behavior. Both overlays use a labeled native modal dialog with a scrollable body, bilingual close control, native focus containment and Escape dismissal; closing restores the connected opening control. Their local dimensions and corners do not redefine shared dialog or control tokens.
 
 ### Chips / Feedback Badges
 
@@ -850,3 +869,30 @@ passed. Screenshot players use labeled, intercepted fixtures; no real YouTube
 playback or production deployment is claimed. The lavender card colors are an
 intentional local exception pinned by the user's reference, not a global theme
 change. Existing unrelated media-picker detector warnings were left untouched.
+
+### Attached video duration — 14 September 2026
+
+The compact lavender toolbar now includes a clock, Video length in localized
+seconds/minutes/hours, and a separate Selected clip length when bounds are set.
+The 600px frame cap and 44px management controls remain; text can wrap on narrow
+screens. Full duration comes from YouTube contentDetails through the existing
+server metadata cache (72 hours), with no AI generation or credit charge.
+An older cache entry is refreshed using a versioned key. Missing or failed
+metadata shows Length unavailable without disabling playback or editing.
+English desktop, Arabic mobile and dark mobile fixture captures were inspected.
+Real external playback is not covered by these fixtures; changes are local only.
+
+### Timeframe dialog layout and duration — 14 September 2026
+
+Full video length is now visible beneath the preview inside the timeframe
+dialog itself, both as explicit localized units and a timecode. Desktop places
+preview/duration beside the start/end controls; below 760px they stack in DOM
+order. The dialog fits its content rather than forcing a tall empty shell.
+The selected clip duration updates separately as the instructor types, with a
+Use full video reset. Known duration bounds reject starts at/past the end and
+ends beyond the video. Loading metadata never replaces entered values.
+The dialog and attached card share one cached metadata lookup. Missing duration
+does not block ordinary timeframe editing. Existing colors, type, RTL input
+direction and management behavior are preserved. Four browser journeys and
+20 focused component/unit tests passed; desktop, Arabic mobile and dark mobile
+fixture layouts were inspected. Typecheck and layout scan passed. Local only.

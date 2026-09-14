@@ -9,6 +9,7 @@ import { pendingLoginReturn } from '@/lib/loginReturn'
 import { AuthContext, type AuthStatus } from './auth-context'
 import {
   auth,
+  knownAnonymous,
   setAccessToken,
   getAccessToken,
   refreshSession,
@@ -39,6 +40,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const { i18n } = useTranslation()
 
   const accessToken = useSyncExternalStore(subscribeToAccessToken, getAccessToken, () => null)
+
+  /* The URL this page load STARTED at. The boot effect runs once and must
+     judge that entry, not wherever the person has navigated to since. */
+  const entryPath = useRef(location.pathname)
 
   // Leaving login/recovery/signup abandons the old request. Google navigates
   // outside this app, so its callback can still recover the tab's destination.
@@ -72,6 +77,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
      */
     function recover() {
       if (cancelled || pending || settled) return
+      /*
+       * A visitor this browser has already been told is not signed in.
+       *
+       * The exception is an authentication route, and it is not a detail: a
+       * Google or Facebook sign-in returns to /auth/callback with nothing but
+       * a fresh cookie, and THIS request is what turns it into a session. A
+       * guest who signs in has the flag set from their guest visits, so
+       * skipping the request there would end every social sign-in at a blank
+       * callback screen.
+       */
+      if (knownAnonymous() && !isAuthenticationPath(entryPath.current)) {
+        settled = true
+        setUser(null)
+        setStatus('anonymous')
+        return
+      }
       clearTimeout(timer)
       pending = true
       setRetrying(true)

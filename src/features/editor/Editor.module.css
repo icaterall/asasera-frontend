@@ -12,9 +12,9 @@
  */
 .shell {
   display: grid;
-  grid-template-areas: 'top top top' 'audience audience audience' 'rail canvas props';
-  grid-template-rows: auto auto minmax(0,1fr);
-  grid-template-columns: 260px minmax(0, 1fr) 320px;
+  grid-template-areas: 'top top top' 'rail canvas props';
+  grid-template-rows: auto minmax(0,1fr);
+  grid-template-columns: 200px minmax(0, 1fr) 280px;
   height: 100dvh;
   background: var(--sunken);
   color: var(--ink);
@@ -38,7 +38,7 @@
    a column too narrow to preview anything in. §12: the canvas is the primary
    workspace and does not get permanently shrunk. */
 @media (max-width: 1024px) {
-  .shell { grid-template-areas: 'top' 'audience' 'canvas'; grid-template-columns: minmax(0, 1fr); }
+  .shell { grid-template-areas: 'top' 'canvas'; grid-template-columns: minmax(0, 1fr); }
   .rail, .props { position: fixed; inset-block: 0; z-index: 10; width: min(360px, 88vw);
                   transform: translateX(0); box-shadow: 0 0 40px rgba(0,0,0,.25); }
   .rail { inset-inline-start: 0; }
@@ -54,10 +54,10 @@
 .top {
   grid-area: top;
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  grid-template-areas: 'brand identity account' 'actions actions actions';
-  align-items: center; gap: var(--s-2) var(--s-3);
-  padding: var(--s-2) var(--s-4);
+  grid-template-columns: auto minmax(140px, 1fr) auto auto;
+  grid-template-areas: 'brand identity actions account';
+  align-items: center; gap: 12px;
+  padding: 8px 16px;
   background: var(--surface);
   border-bottom: 1px solid var(--line);
   min-height: 56px;
@@ -69,11 +69,11 @@
    height straight back down to 30px. The phone keeps the compact mark, where
    the top bar has the least room. */
 @media (min-width:768px) {
-  .brand { inline-size:auto; }
-  .brand img { block-size:45px; }
+  .brand { inline-size:100px; }
+  .brand img { block-size:30px; }
 }
 .brand:focus-visible { outline:var(--focus-ring) solid var(--focus-colour); outline-offset:var(--focus-offset); }
-.activityIdentity { grid-area:identity; display:flex; flex-wrap:wrap; align-items:center; gap:4px 12px; min-width:0; }
+.activityIdentity { grid-area:identity; display:flex; flex-direction:column; align-items:stretch; gap:2px; min-width:0; }
 /* The editor's own name for the page. The title is an editable <input>, which is
    a control, not a heading, so the page had no headings at all and a screen
    reader's heading list for the editor came back empty. Visually redundant, so
@@ -82,10 +82,10 @@
 .accountControls { grid-area:account; display:flex; align-items:center; gap:8px; justify-self:end; }
 .phoneAccountBalance{grid-column:1/-1;display:flex;justify-content:flex-end;min-width:0}
 .languageToggle { min-block-size:44px; flex-shrink:0; }
-.editorActions { grid-area:actions; display:flex; flex-wrap:wrap; justify-content:flex-end; align-items:center; gap:8px; min-width:0; }
-.editorActions > button { min-height:44px; padding-inline:12px; }
-@media (min-width:1440px) {
-  .top { grid-template-columns:auto minmax(180px,1fr) auto auto; grid-template-areas:'brand identity actions account'; }
+.editorActions { grid-area:actions; display:flex; flex-wrap:nowrap; justify-content:flex-end; align-items:center; gap:6px; min-width:0; }
+.editorActions > button { min-height:44px; padding-inline:10px; font-size:13px; white-space:nowrap; }
+@media (min-width:701px) and (max-width:1100px) {
+  .top { grid-template-columns:auto minmax(140px,1fr) auto; grid-template-areas:'brand identity account' 'actions actions actions'; }
 }
 @media (max-width:700px) {
   .top { grid-template-columns:minmax(0,1fr) auto; grid-template-areas:'brand account' 'identity identity' 'actions actions'; gap:8px; padding:8px; }
@@ -93,11 +93,11 @@
   .editorActions > button { padding-inline:10px; font-size:14px; }
 }
 .titleInput {
-  flex: 1 1 180px; min-width: 0; width:100%;
+  flex: 0 1 auto; min-width: 0; width:100%;
   border: 1px solid transparent; border-radius: var(--r-control);
   background: transparent; color: var(--ink);
   font: inherit; font-size: var(--f-heading); font-weight: var(--w-bold);
-  padding: var(--s-2);
+  padding: 6px 8px;
 }
 .titleInput:hover { border-color: var(--line); }
 .titleInput:focus-visible { outline: var(--focus-ring) solid var(--focus-colour); outline-offset: var(--focus-offset); border-color: var(--act); }
@@ -149,7 +149,7 @@
    itself, which is what lets it reach the true bottom edge of the canvas.
    --canvas-pad is published so the footer can bleed back out over the side
    padding whatever the breakpoint sets it to. */
-.canvas { grid-area: canvas; overflow-y: auto; --canvas-pad: var(--s-5); display: flex; flex-direction: column; padding: var(--canvas-pad) var(--canvas-pad) 0; }
+.canvas { grid-area: canvas; overflow-y: auto; --canvas-pad: 16px; display: flex; flex-direction: column; padding: var(--canvas-pad); }
 .canvasInner { width: 100%; max-width: 820px; flex: 1 0 auto; margin-inline: auto; display: flex; flex-direction: column; gap: var(--s-4); }
 
 /* The question's source chip (v5.1 C4) sits directly above the prompt, in the
@@ -251,7 +251,7 @@
 /* «طبّق على الكل» sits directly beside the duration, as §12 requires. */
 .applyAll { font-size: var(--f-small); }
 .propsFooter { margin-top: auto; display: flex; flex-direction: column; gap: var(--s-2); padding-top: var(--s-4); border-top: 1px solid var(--line); }
-.props { padding:0 22px 24px; gap:0; overscroll-behavior:contain; }
+.props { padding:0 16px 16px; gap:0; overscroll-behavior:contain; }
 /* The panel scrolls, so a header in the normal flow takes the fold button out
    of reach as soon as a teacher scrolls down the properties. Sticky keeps the
    handle on the panel's edge at every scroll position, which is the only place
@@ -273,8 +273,8 @@
 .props button[data-question-kind]>svg,.props .propertySelect[data-select-trigger]>svg { width:16px; height:16px; color:var(--ink); stroke-width:2.5; }
 .props .applyAll { align-self:flex-start; justify-content:flex-start; padding:2px 4px; min-height:28px; font-size:13px; font-weight:500; text-decoration:underline; text-underline-offset:3px; color:var(--muted); box-shadow:none; }
 @media(min-width:1025px) {
-  .shell { grid-template-columns:260px minmax(0,1fr) 350px; }
-  .shell[data-props-open=false] { grid-template-columns:260px minmax(0,1fr) 48px; }
+  .shell { grid-template-columns:200px minmax(0,1fr) 280px; }
+  .shell[data-props-open=false] { grid-template-columns:200px minmax(0,1fr) 48px; }
   /* The column widens when the panel folds, but the question is capped and
      centred, so on a wide screen folding only moved the question sideways and
      looked like nothing happened. Folding raises the cap, so the space the
@@ -316,6 +316,15 @@
 .advanced input:not([type=checkbox]),.advanced select,.advanced textarea {min-width:0;width:100%;min-height:44px;padding:8px 12px;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:var(--r-control);font:inherit}
 .advanced textarea {min-height:90px}.editRow {display:flex;align-items:center;gap:8px}.editRow input {flex:1}.editRow>button {flex-shrink:0}
 .matchEditor {display:grid;grid-template-columns:1fr 1fr;gap:20px}.matchEditor>div {display:flex;flex-direction:column;gap:10px}.cardEditor {display:grid;grid-template-columns:1fr auto;gap:8px}.cardEditor>input {grid-column:1/-1}
+.acceptedAlternatives {margin-block-start:16px;font-size:var(--f-small)}
+.acceptedAlternatives summary {min-height:44px;display:list-item;align-content:center;cursor:pointer;font-weight:var(--w-bold)}
+.acceptedAlternatives summary:focus-visible {outline:2px solid var(--act);outline-offset:2px}
+.acceptedAlternatives p {color:var(--muted);max-width:65ch}
+.acceptedAlternatives fieldset {min-width:0;border:0;border-block-start:1px solid var(--line);padding:8px 0;margin:12px 0 0}
+.acceptedAlternatives legend {padding-inline-end:8px;overflow-wrap:anywhere}
+.equivalenceChoice {display:flex;align-items:center;gap:8px;min-height:44px;cursor:pointer;overflow-wrap:anywhere}
+.equivalenceChoice input {accent-color:var(--act);flex-shrink:0}
+.equivalenceChoice input:focus-visible {outline:2px solid var(--act);outline-offset:2px}
 .imageUpload {display:flex;align-items:center;gap:12px;flex-wrap:wrap}.editorImage {max-width:100%;max-height:280px;object-fit:contain;width:100%;background:var(--raised);border-radius:8px}
 .uploadLabel {display:inline-flex;align-items:center;min-height:44px;padding:8px 14px;border:1px solid var(--line);border-radius:4px;cursor:pointer;font-weight:700;background:var(--surface);color:var(--ink)}.uploadLabel input {max-width:170px;margin-inline-start:12px}
 .zoneTools {display:flex;gap:8px;flex-wrap:wrap;align-items:end}.zoneTools label {display:flex;gap:8px;align-items:center}
@@ -329,9 +338,9 @@
 .uploadLabel {position:relative}.uploadLabel input{position:absolute;inline-size:1px;block-size:1px;opacity:0;overflow:hidden}.uploadLabel:focus-within{outline:3px solid var(--act);outline-offset:3px}
 
 /* Creator reference: compact white rails, pale canvas, rectangular question previews. */
-.shell{grid-template-columns:260px minmax(0,1fr) 320px}
+.shell{grid-template-columns:200px minmax(0,1fr) 280px}
 .top{box-shadow:0 2px 4px #0000001a;z-index:2}.titleInput{border-color:var(--line);font-size:16px}
-.canvas{background:var(--sunken)}.canvasInner{max-width:1080px;gap:10px}
+.canvas{background:var(--sunken)}.canvasInner{max-width:1320px;gap:10px}
 .promptInput{border-radius:4px;min-height:52px;text-align:center;font-weight:700;font-size:clamp(15px,1.15vw,19px);box-shadow:0 2px 4px #00000015}
 .optionTile{min-height:84px;box-shadow:inset 0 -4px 0 #0003}.optionText{font-size:18px}.optionGlyph{width:32px;height:32px}
 
@@ -374,7 +383,7 @@
 
 /* Two faces for the rail, chosen by a pair of icons. */
 .asideTabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding-block:10px;border-block-end:1px solid var(--line)}
-.asideTabs button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;min-height:62px;padding:8px 4px;border:1px solid transparent;border-radius:7px;background:transparent;color:var(--ink);font:inherit;font-size:12px;font-weight:700;cursor:pointer;line-height:1.25;text-align:center}
+.asideTabs button{display:flex;align-items:center;justify-content:center;gap:5px;min-height:44px;padding:6px 4px;border:1px solid transparent;border-radius:7px;background:transparent;color:var(--ink);font:inherit;font-size:12px;font-weight:700;cursor:pointer;line-height:1.25;text-align:center}
 .asideTabs button:hover{background:var(--raised)}
 .asideTabs button[aria-selected=true]{border-color:var(--act);background:var(--raised);color:var(--act-ink)}
 .asideTabs button:focus-visible{outline:3px solid var(--act);outline-offset:2px}
@@ -465,6 +474,39 @@
 .undoButton:not(:disabled) { background: var(--surface); border: 1px solid var(--line); color: var(--ink); }
 .undoButton:not(:disabled):hover { background: var(--raised); border-color: var(--muted); }
 .questionActions > button:disabled { opacity: .42; }
+.activityTools{display:flex;flex-direction:column;gap:16px}
+.activityTools h3{margin:0 0 12px;font-size:14px;font-weight:700}
+.activityTools .editorActions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.activityTools .editorActions>button{white-space:normal;text-align:start;justify-content:flex-start;min-height:48px}
+.activityTools .moreAccount{display:flex;align-items:center;flex-wrap:wrap;gap:12px;padding-top:16px;border-top:1px solid var(--line)}
+.top .saveState{font-size:11px;line-height:1.3;padding-inline:8px}
+.top .saveState svg{width:14px;height:14px}
+.top .undoButton{width:44px;min-width:44px;padding:0;font-size:0;gap:0}
+.top .propertiesToggle{display:none}
+@media(min-width:701px) and (max-width:1024px){.top .propertiesToggle{display:inline-flex}}
+@media(min-width:1025px){
+ .rail{padding:8px;gap:4px}
+ .thumbRow{grid-template-columns:28px minmax(0,1fr);padding:6px 4px;gap:4px}
+ .thumbSide{gap:2px;padding-block-start:22px}
+ .thumbSide button{width:28px;height:28px}
+ .thumbHead{font-size:12px}
+ .thumb{padding:8px;gap:6px}
+ .thumbPrompt{font-size:12px}
+ .railActions{gap:8px;padding-block:8px;margin-top:auto}
+ .railActions button{font-size:13px;min-height:44px;padding:8px}
+ .generateHint{font-size:11px}
+ .propsHeader{padding-block:8px}
+ .propsHeader h2{font-size:14px}
+ .props .propGroup{padding-block:12px}
+ .propsFooter{gap:8px}
+ .propsFooter>button{min-height:40px;font-size:13px}
+ .canvas [data-question-image]>div:has(>[data-question-video]){max-width:min(480px,calc((100dvh - 440px)*1.77778));min-width:280px}
+ .answerTile{min-height:96px}
+ .canvasInner>[data-formatted-field]:first-child{margin-block-start:8px}
+}
+@media(min-width:1025px) and (max-width:1100px){
+ .canvas [data-question-image]>div:has(>[data-question-video]){max-width:400px}
+}
 @media (prefers-reduced-motion: no-preference) { .saveNowButton { transition: background .15s ease, box-shadow .2s ease; } }
 
 /* ============================================================================

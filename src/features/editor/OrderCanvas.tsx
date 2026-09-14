@@ -263,7 +263,9 @@ export function OrderCanvas({payload, mediaKey, onMediaChange, onQuestionImageBu
 
           {mode === 'exact' && (
             <p className={styles.modeNote}>
-              {ar ? 'الترتيب المكتوب أعلاه هو الترتيب الصحيح الوحيد.' : 'The order written above is the only correct one.'}
+              {payload.equivalenceVersion===1
+                ? (ar ? 'يُحفظ الترتيب المكتوب أعلاه؛ ويُقبل تبديل النسخ المتطابقة فقط.' : 'The order above is preserved; only swaps of identical copies are also accepted.')
+                : (ar ? 'الترتيب المكتوب أعلاه هو الترتيب الصحيح الوحيد.' : 'The order written above is the only correct one.')}
             </p>
           )}
 
@@ -304,6 +306,15 @@ export function OrderCanvas({payload, mediaKey, onMediaChange, onQuestionImageBu
                 : `This question accepts ${(payload.alternates?.length ?? 0) + 1} orders. Editing them here is not available yet.`}
             </p>
           )}
+
+          <label className={styles.equivalenceChoice}>
+            <input type="checkbox" checked={payload.equivalenceVersion===1} disabled={mode==='partial'}
+              onChange={event=>onChange({...payload,equivalenceVersion:event.target.checked?1:undefined})}/>
+            <span>{ar?'اقبل تبديل العناصر المتطابقة':'Accept swaps of identical tiles'}</span>
+          </label>
+          <p className={styles.modeNote}>{mode==='partial'
+            ? (ar?'هذا الخيار متاح للترتيب المحدد أو للترتيبات المقبولة، وليس للعلاقات فقط.':'Available for exact or accepted orders, not dependency-only grading.')
+            : (ar?'يجب أن تتطابق النصوص وتنسيقها والصور. تبقى هوية كل عنصر محفوظة؛ ولا تصبح الكلمات المختلفة قابلة للتبادل.':'Text, formatting and images must match. Each tile keeps its identity; different words do not become interchangeable.')}</p>
         </div>
       </details>
     </>
@@ -372,7 +383,7 @@ function removeItem(payload: OrderPayload, key: string): OrderPayload {
 function withMode(payload: OrderPayload, mode: OrderMode): OrderPayload {
   if (!ORDER_MODES.includes(mode)) return payload
   if (mode === 'exact') return {...payload, mode: undefined, constraints: undefined, alternates: undefined}
-  if (mode === 'partial') return {...payload, mode, alternates: undefined, constraints: payload.constraints?.length ? payload.constraints : impliedOrderConstraints(payload.correct)}
+  if (mode === 'partial') return {...payload, mode, equivalenceVersion: undefined, alternates: undefined, constraints: payload.constraints?.length ? payload.constraints : impliedOrderConstraints(payload.correct)}
   return {...payload, mode, constraints: undefined}
 }
 

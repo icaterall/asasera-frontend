@@ -39,7 +39,7 @@ export function GameArena({state,serverNow,onInput,connected=true,spectator,lead
  return <section className={styles.arena} data-game-mode={state.mode} data-game-started-at={state.startedAt} data-game-sequence={state.sequence} data-game-status={finished?'finished':ready?'playing':'countdown'} dir={ar?'rtl':'ltr'} aria-label={ar?info.ar:info.en} onKeyDown={e=>{if(e.key===' '&&(e.target as HTMLElement).closest('button'))return;const action=keys[e.key];if(action){e.preventDefault();void act(action)}}}>
   <header className={styles.gameHeader}><div><h2>{ar?info.ar:info.en}</h2><p>{spectator?t(`نشاهد ${spectator}`,`Watching ${spectator}`):t('إجاباتك تمنحك القوة. مهارتك تصنع المغامرة.','Your answers power the adventure. You control what happens next.')}</p></div><div className={styles.viewControls}>
    <button onClick={()=>{if(failed){setFailed(false);setSimple(false)}else setSimple(v=>!v)}} aria-pressed={simple||failed}><Accessibility size={18}/>{simple||failed?t('عرض ثلاثي الأبعاد','3D view'):t('عرض مبسّط','Simple view')}</button>
-   <button aria-label={sound?t('كتم أصوات اللعبة','Mute game sounds'):t('تشغيل أصوات اللعبة','Enable game sounds')} onClick={()=>{if(!sound)audio.unlock();audio.setMuted(sound);setSound(!sound)}}>{sound?<Volume2 size={19}/>:<VolumeX size={19}/>}</button>
+   <button aria-label={sound?t('كتم أصوات اللعبة','Mute game sounds'):t('تشغيل أصوات اللعبة','Enable game sounds')} onClick={()=>{if(sound){audio.setMuted(true);setSound(false)}else void audio.unlock().then(ready=>{if(ready){audio.setMuted(false);setSound(true)}})}}>{sound?<Volume2 size={19}/>:<VolumeX size={19}/>}</button>
   </div></header>
   <div className={styles.gameLayout}>
    <div className={styles.playColumn}>

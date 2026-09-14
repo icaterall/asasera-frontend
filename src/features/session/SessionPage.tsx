@@ -2,7 +2,7 @@ import {normalizePin} from '@/lib/joinInput'
 import {useQuery} from '@tanstack/react-query'
 import {api} from '@/lib/api'
 import { useEffect,useRef,useState } from 'react'
-import { useNavigate,useParams,useSearchParams,Link } from 'react-router-dom'
+import { useLocation,useNavigate,useParams,useSearchParams,Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import QRCode from 'qrcode'
 import confetti from 'canvas-confetti'
@@ -23,12 +23,17 @@ import {gameInfo} from '../games/catalog'
 import {gameModeSchema} from '@/shared/arcade'
 import { useActivityMotion } from '../activity-themes/useActivityMotion'
 import {RandomWheel} from '../wheel/RandomWheel'
+import {ParticipantControls,LiveWheelRoundControls} from './ParticipantControls'
+import {retainLiveLaunch} from './liveLaunch'
+import {LivePresentationControls} from './LivePresentationControls'
 
 export default function SessionPage({role}:{role:'host'|'projector'|'player'}) {
   const {id}=useParams(),[search]=useSearchParams(),navigate=useNavigate(),{i18n}=useTranslation(),ar=i18n.language.startsWith('ar')
+  const route=useLocation()
+  const [launch]=useState(()=>{try{return {presentation:role==='host'&&id==='new'&&search.get('request')&&search.get('activityId')?retainLiveLaunch(search.get('request')!,Number(search.get('activityId')),route.state):undefined,error:undefined}}catch(error){return {presentation:undefined,error:error instanceof Error?error.message:'Return to delivery setup.'}}})
   const {accessToken}=useAuth()
   const [projectorToken]=useState(()=>{const hash=new URLSearchParams(location.hash.slice(1));const token=hash.get('token')??sessionStorage.getItem(`asasera:projector:${id}`)??'';if(token&&id){sessionStorage.setItem(`asasera:projector:${id}`,token);history.replaceState(null,'',location.pathname+location.search)}return token})
-  const session=useSession({role,gameMode:gameModeSchema.catch('quiz').parse(search.get('gameMode')??'quiz'),...(id&&id!=='new'?{runId:Number(id)}:{}),...(search.get('activityId')?{activityId:Number(search.get('activityId'))}:{}),...(search.get('request')?{requestId:search.get('request')!}:{}),projectorToken,onCreated:runId=>navigate(`/teacher/live/${runId}`,{replace:true})})
+  const session=useSession({role,presentation:launch.presentation,setupError:launch.error,gameMode:gameModeSchema.catch('quiz').parse(search.get('gameMode')??'quiz'),...(id&&id!=='new'?{runId:Number(id)}:{}),...(search.get('activityId')?{activityId:Number(search.get('activityId'))}:{}),...(search.get('request')?{requestId:search.get('request')!}:{}),projectorToken,onCreated:runId=>navigate(`/teacher/live/${runId}`,{replace:true})})
   const classes=useQuery({queryKey:['teaching-classes'],queryFn:()=>api.get<{classes:{id:number;name:string}[]}>('/api/v1/discovery/classes'),enabled:role==='host'})
   const [newClass,setNewClass]=useState('')
   const s=session.snapshot
@@ -55,9 +60,9 @@ export default function SessionPage({role}:{role:'host'|'projector'|'player'}) {
     }
   }
   const endedScreen=(runId:number,endReason:string|null,interrupted=false)=><main className={styles.center}><h1>{interrupted?t('انقطعت الحصة','Class interrupted'):t('انتهت الحصة','Class finished')}</h1><p>{endReasonText(endReason)}</p>{role==='host'&&<Link className={styles.endLink} to={`/teacher/reports/runs/${runId}`}>{t('افتح تقرير الحصة','Open class report')}</Link>}<Button variant="secondary" onClick={leave}>{t('خروج','Leave')}</Button></main>
-  const activate=()=>{setEnabled(audio.unlock());if(s?.state==='lobby')audio.lobby(s.participants.length)}
+  const activate=async()=>{const ready=await audio.unlock();setEnabled(ready);if(ready&&s?.state==='lobby')audio.lobby(s.participants.length);return ready}
   const fullscreen=()=>{if(document.fullscreenElement)void document.exitFullscreen().catch(()=>{});else void document.documentElement.requestFullscreen?.().catch(()=>{})}
-  const toggleSound=()=>{activate();const next=enabled?!muted:false;audio.setMuted(next);setMuted(next)}
+  const toggleSound=()=>{void activate().then(ready=>{if(!ready)return;const next=enabled?!muted:false;audio.setMuted(next);setMuted(next)})}
   useEffect(()=>{const update=()=>setFull(!!document.fullscreenElement);document.addEventListener('fullscreenchange',update);return()=>document.removeEventListener('fullscreenchange',update)},[])
   useEffect(()=>()=>audio.dispose(),[audio])
   useEffect(()=>{
@@ -74,8 +79,9 @@ export default function SessionPage({role}:{role:'host'|'projector'|'player'}) {
     if(s.state==='podium') {
       audio.play('podium')
       if(motion.enabled){
-        podiumRef.current?.animate([{transform:'translateY(80px)'},{transform:'translateY(-8px)',offset:.8},{transform:'translateY(0)'}],{duration:1200,easing:'cubic-bezier(.2,.8,.2,1)'})
+        const animation=podiumRef.current?.animate?.([{transform:'translateY(80px)'},{transform:'translateY(-8px)',offset:.8},{transform:'translateY(0)'}],{duration:1200,easing:'cubic-bezier(.2,.8,.2,1)'})
         void confetti({particleCount:90,spread:70,origin:{y:.65},disableForReducedMotion:true})
+        return()=>{animation?.cancel();confetti.reset()}
       }
     }
   },[s,audio,motion.enabled])
@@ -84,23 +90,32 @@ export default function SessionPage({role}:{role:'host'|'projector'|'player'}) {
   const action=async(work:()=>Promise<unknown>)=>{setBusy(true);setError(null);try{await work()}catch(e){setError(e instanceof Error?e.message:t('تعذّرت العملية','Action failed'))}finally{setBusy(false)}}
   const command=(name:'start'|'next'|'reveal'|'end')=>{if(!s)return;void action(()=>session.send(`host:${name}`,{runId:s.runId,requestId:crypto.randomUUID()}))}
   async function answer(payload:AnswerPayload){
-    if(!s?.question||s.state!=='question_open'||s.endsAt===null||session.clock.now()>=s.endsAt)return
+    if(!s?.question||s.state!=='question_open'||s.endsAt!==null&&session.clock.now()>=s.endsAt)return
     audio.play('select');setPending(true);setError(null)
     try{const reply=await session.send('player:answer',{runId:s.runId,qIndex:s.question.qIndex,questionId:s.question.id,requestId:answerRequest.current,payload});setPersisted(reply.persisted===true)}
     catch(e){setError(e instanceof Error?e.message:'Answer failed')}finally{setPending(false)}
   }
+  async function retryAnswer(payload:AnswerPayload){
+    if(!s?.question)return
+    setPending(true);setError(null)
+    try{const reply=await session.send('player:retry',{runId:s.runId,qIndex:s.question.qIndex,questionId:s.question.id,requestId:answerRequest.current,payload});setPersisted(reply.persisted===true)}catch(error){setError(error instanceof Error?error.message:'Retry failed')}finally{setPending(false)}
+  }
   const leave=()=>{if(id)sessionStorage.removeItem(`asasera:projector:${id}`);session.exit();if(document.fullscreenElement)void document.exitFullscreen();navigate(role==='player'?'/join':'/teacher/activities')}
+  const openWheel=()=>{if(s)void action(()=>session.sendWheel({runId:s.runId,expectedRevision:s.wheelRevision,command:{action:'open'}}))}
+  const presentationControls=s?.presentation&&!s.wheel?.visible&&s.state!=='ended'?<LivePresentationControls state={s.presentation} phase={s.state} host={role==='host'} ar={ar} disabled={busy||!session.connected||session.hostCommandPending} participants={s.participants} clock={session.clock} onCommand={command=>session.sendPresentation({runId:s.runId,expectedRevision:s.presentation!.revision,command})}/>:null
+  const projectorSide=role==='projector'&&!!s?.presentation&&!!s.question&&!s.wheel?.visible&&['question_open','question_locked','revealing'].includes(s.state)
   return <ActivityStage theme={s&&s.gameMode!=='quiz'?gameInfo(s.gameMode).theme:s?.theme} phase={s?.state??'lobby'} className={`asas ${styles.session}`} data-role={role} dir={ar?'rtl':'ltr'}>
-    <SessionToolbar role={role} pin={s?.pin} participants={s?.participants.length??0} connected={session.connected} ar={ar} muted={muted} enabled={enabled} full={full} busy={busy}
-      canWheel={!!s&&!s.wheel?.visible&&['lobby','revealing','game_results','podium'].includes(s.state)} canEnd={!!s&&s.state!=='ended'}
+    {!session.removed&&<SessionToolbar role={role} pin={s?.pin} participants={s?.participants.length??0} connected={session.connected} ar={ar} muted={muted} enabled={enabled} full={full} busy={busy}
+      canWheel={!!s&&!session.hostCommandPending&&!s.wheel?.visible&&['lobby','revealing','game_results','podium'].includes(s.state)} canEnd={!!s&&s.state!=='ended'}
       onSound={toggleSound} onFullscreen={fullscreen} onLanguage={()=>void i18n.changeLanguage(ar?'en':'ar')} onLeave={leave}
       onProjector={()=>{if(!s)return;const tab=window.open('about:blank','_blank');if(tab)tab.opener=null;void action(async()=>{try{const reply=await session.send('host:projector',{runId:s.runId});if(tab&&reply.projectorToken)tab.location.href=`/projector/${s.runId}#token=${reply.projectorToken}`;else throw new Error(t('اسمح بفتح تبويب العرض ثم أعد المحاولة','Allow the projector tab, then retry'))}catch(error){tab?.close();throw error}})}}
-      onWheel={()=>{if(s)void action(()=>session.send('host:wheel',{runId:s.runId,requestId:crypto.randomUUID(),command:{action:'open'}}))}} onEnd={()=>command('end')}/>
-    {(error||session.error)&&<div className={styles.notice} role="alert">{error??session.error}<button type="button" onClick={()=>location.reload()}>{t('إعادة الاتصال','Reconnect')}</button></div>}
+      onWheel={openWheel} onEnd={()=>command('end')}/>}
+    {(error||session.error)&&!session.removed&&<div className={styles.notice} role="alert">{error??session.error}{!session.hostCommandPending&&<button type="button" onClick={()=>location.reload()}>{t('إعادة الاتصال','Reconnect')}</button>}</div>}
+    {role==='host'&&session.hostCommandPending&&<div className={styles.notice} role="status">{t('لم يتأكد حفظ العملية بعد. أعد المحاولة لاستعادة نتيجتها دون تكرارها.','The action is not confirmed yet. Retry to recover its result without repeating it.')}<button type="button" disabled={busy||!session.connected} onClick={()=>void action(session.retryHostCommand)}>{t('أعد محاولة العملية المعلّقة','Retry pending action')}</button></div>}
     {s?.persistence!=='ready'&&s&&<div className={styles.notice} role="status">{t('جارٍ حفظ النتائج. تبقى إجاباتك محفوظة في هذه الجلسة.','Saving results. Accepted answers remain in this session.')} {s.persistence==='failed'&&role==='host'&&<button onClick={()=>command('reveal')}>{t('أعد الحفظ','Retry save')}</button>}</div>}
-    {!s&&session.interrupted?endedScreen(session.interrupted.runId,session.interrupted.endReason,true):!s&&role==='player'?<main className={styles.join}>
+    {session.removed?<main className={styles.center}><h1>{t('أخرجك المعلّم من الحصة','Your teacher removed you from this class')}</h1><p>{t('لا يمكنك استئناف هذا المقعد. تبقى إجاباتك المحفوظة في التقرير. تواصل مع المعلّم إن كان ذلك بالخطأ.','This seat cannot reconnect. Your saved answers remain in the report. Ask your teacher if this was a mistake.')}</p><Button variant="secondary" onClick={leave}>{t('خروج','Leave')}</Button></main>:!s&&session.interrupted?endedScreen(session.interrupted.runId,session.interrupted.endReason,true):!s&&role==='player'?<main className={styles.join}>
       <h1>{t('الحصة تبدأ بك','Your class starts here')}</h1><p>{t('أدخل رمز الحصة واسمك. لا تحتاج إلى حساب.','Enter the class PIN and your name. No account needed.')}</p>
-      <form onSubmit={e=>{e.preventDefault();setEnabled(audio.unlock());void action(async()=>{const reply=await session.send('player:join',{pin,name,requestId:joinRequest.current});if(reply.snapshot&&reply.resumeToken)sessionStorage.setItem(PARTICIPANT_STORAGE,JSON.stringify({runId:reply.snapshot.runId,resumeToken:reply.resumeToken}))})}}>
+      <form onSubmit={e=>{e.preventDefault();void activate();void action(async()=>{const reply=await session.send('player:join',{pin,name,requestId:joinRequest.current});if(reply.snapshot&&reply.resumeToken)sessionStorage.setItem(PARTICIPANT_STORAGE,JSON.stringify({runId:reply.snapshot.runId,resumeToken:reply.resumeToken}))})}}>
         <Field label={t('رمز الحصة','Class PIN')} inputMode="numeric" pattern="[0-9]{6}" maxLength={6} value={pin} onChange={e=>setPin(normalizePin(e.target.value))} required dir="ltr"/>
         <Field label={t('اسمك في الحصة','Display name')} value={name} onChange={e=>setName(e.target.value)} maxLength={40} required autoComplete="off"/>
         <Button variant="primary" type="submit" loading={busy} disabled={!session.connected}>{t('انضم','Join class')}</Button>
@@ -109,13 +124,15 @@ export default function SessionPage({role}:{role:'host'|'projector'|'player'}) {
       <div className={chrome.runBar}>
         <span className={chrome.runTitle} dir="auto">{s.title}</span>
         {role==='host'&&<div className={chrome.runActions}>
-          {!s.wheel?.visible&&['lobby','revealing','game_results','podium'].includes(s.state)&&<Button className={chrome.wheel} variant="secondary" disabled={busy||!session.connected} aria-label={t('العجلة العشوائية','Random wheel')} onClick={()=>void action(()=>session.send('host:wheel',{runId:s.runId,requestId:crypto.randomUUID(),command:{action:'open'}}))}><Disc3 size={20}/><span>{t('العجلة','Wheel')}</span></Button>}
-          {s.state==='lobby'&&<Button className={chrome.advance} loading={busy} disabled={!session.connected||!!s.wheel?.visible} onClick={()=>{activate();command('start')}}><Play size={20}/>{t('ابدأ الحصة','Start class')}</Button>}
-          {s.state==='question_open'&&<Button className={chrome.advance} disabled={busy||!session.connected} onClick={()=>command('reveal')}>{t('اكشف الإجابة','Reveal answer')}</Button>}
-          {(s.state==='revealing'||s.state==='podium'||s.state==='game_play'||s.state==='game_results')&&!s.intervention&&<Button className={chrome.advance} disabled={busy||!session.connected||!!s.wheel?.visible} onClick={()=>command('next')}>{s.state==='podium'?t('أكمل الحصة','Finish class'):s.state==='game_play'?t('إنهاء الجولة','End game round'):s.state==='revealing'&&s.gameMode!=='quiz'?t('ابدأ جولة اللعب','Play game round'):s.question?.qIndex===s.questionCount-1?t('اعرض المنصة','Show podium'):t('السؤال التالي','Next question')}<ArrowRight size={20}/></Button>}
+          {!s.wheel?.visible&&['lobby','revealing','game_results','podium'].includes(s.state)&&<Button className={chrome.wheel} variant="secondary" disabled={busy||!session.connected||session.hostCommandPending} aria-label={t('العجلة العشوائية','Random wheel')} onClick={openWheel}><Disc3 size={20}/><span>{t('العجلة','Wheel')}</span></Button>}
+          {s.state==='lobby'&&!s.presentation&&<Button className={chrome.advance} loading={busy} disabled={!session.connected||!!s.wheel?.visible} onClick={()=>{activate();command('start')}}><Play size={20}/>{t('ابدأ الحصة','Start class')}</Button>}
+          {s.state==='question_open'&&s.presentation?.selection.definitionId!=='memory'&&<Button className={chrome.advance} disabled={busy||!session.connected} onClick={()=>command('reveal')}>{t('اكشف الإجابة','Reveal answer')}</Button>}
+          {(s.state==='revealing'||s.state==='podium'||s.state==='game_play'||s.state==='game_results')&&!s.intervention&&!s.presentation&&<Button className={chrome.advance} disabled={busy||!session.connected||!!s.wheel?.visible} onClick={()=>command('next')}>{s.state==='podium'?t('أكمل الحصة','Finish class'):s.state==='game_play'?t('إنهاء الجولة','End game round'):s.state==='revealing'&&s.gameMode!=='quiz'?t('ابدأ جولة اللعب','Play game round'):s.question?.qIndex===s.questionCount-1?t('اعرض المنصة','Show podium'):t('السؤال التالي','Next question')}<ArrowRight size={20}/></Button>}
         </div>}
       </div>
-      {role==='host'&&!s.wheel?.visible&&s.state==='lobby'&&<section className={styles.classSetup}>
+      {role==='host'&&s.state!=='ended'&&<ParticipantControls participants={s.participants} ar={ar} disabled={busy||!session.connected} onCommand={(participantId,command)=>session.sendParticipant({runId:s.runId,participantId,command})}/>}
+      {!s.question&&presentationControls}
+      {role==='host'&&!s.wheel?.visible&&s.state==='lobby'&&!s.presentation?.active&&<section className={styles.classSetup}>
         <label htmlFor="session-class">{t('الصف','Class')}</label><Select id="session-class" value={s.classId??''} disabled={busy} onValueChange={e=>void action(()=>session.send('host:class',{runId:s.runId,classId:e?Number(e):null}))}><option value="">{t('حصة دون صف محفوظ','Class without a saved group')}</option>{classes.data?.classes.map(c=><option value={c.id} key={c.id}>{c.name}</option>)}</Select>
         <details><summary>{t('أضف صفًا','Add a class')}</summary><form onSubmit={e=>{e.preventDefault();void action(async()=>{const r=await api.post<{class:{id:number}}>('/api/v1/discovery/classes',{name:newClass});await classes.refetch();await session.send('host:class',{runId:s.runId,classId:r.class.id});setNewClass('')})}}><input aria-label={t('اسم الصف','Class name')} value={newClass} onChange={e=>setNewClass(e.target.value)} maxLength={100} required/><Button type="submit" disabled={busy}>{t('احفظ الصف','Save class')}</Button></form></details>
         <p>{t('اختر الصف نفسه في كل حصة للحفاظ على دقة تقارير الاستخدام.','Choose the same saved class each time to keep usage reports accurate.')}</p>
@@ -127,10 +144,10 @@ export default function SessionPage({role}:{role:'host'|'projector'|'player'}) {
             never did. */}
         <p>{t(`${s.intervention.count} من ${s.intervention.total} وقعوا في الخطأ نفسه: ${s.intervention.mistake}.`,`${s.intervention.count} of ${s.intervention.total} made the same mistake: ${s.intervention.mistake}.`)}
           {s.intervention.reason&&' '+t(`احتمال للمراجعة: ${s.intervention.reason}`,`Possible explanation: ${s.intervention.reason}`)}</p>
-        <Button variant="primary" disabled={busy} onClick={()=>void action(()=>session.send('host:decision',{runId:s.runId,requestId:crypto.randomUUID(),choice:'treat'}))}>{t('عالج الآن','Treat now')}</Button>
-        <Button disabled={busy} onClick={()=>void action(()=>session.send('host:decision',{runId:s.runId,requestId:crypto.randomUUID(),choice:'continue'}))}>{t('تابع','Continue')}</Button>
+        <Button variant="primary" disabled={busy||session.hostCommandPending} onClick={()=>void action(()=>s.presentation?session.sendPresentation({runId:s.runId,expectedRevision:s.presentation.revision,command:{action:'review-mistake'}}):session.send('host:decision',{runId:s.runId,requestId:crypto.randomUUID(),choice:'treat'}))}>{t('عالج الآن','Treat now')}</Button>
+        <Button disabled={busy||session.hostCommandPending} onClick={()=>void action(()=>s.presentation?session.sendPresentation({runId:s.runId,expectedRevision:s.presentation.revision,command:{action:'continue'}}):session.send('host:decision',{runId:s.runId,requestId:crypto.randomUUID(),choice:'continue'}))}>{t('تابع','Continue')}</Button>
       </section>}
-      {s.wheel?.visible?<RandomWheel wheel={s.wheel} clock={session.clock} connected={session.connected} {...(role==='host'?{onCommand:async command=>{await session.send('host:wheel',{runId:s.runId,requestId:crypto.randomUUID(),command})}}:{})}/>: (s.state==='game_play'||s.state==='game_results')&&s.arcade&&(s.arcade.self||s.arcade.watch)?<GameArena key={`game-${s.arcade.round}`} state={(s.arcade.self??s.arcade.watch)!} serverNow={s.serverNow} connected={session.connected} {...(role==='player'?{onInput:async input=>{await session.send('player:game',{runId:s.runId,...input})}}:{spectator:s.arcade.watchName})} leaders={s.arcade.leaders}/>:s.state==='lobby'?<main className={styles.lobby}>
+      {s.wheel?.visible?<><RandomWheel wheel={s.wheel} clock={session.clock} connected={session.connected} {...(role==='host'?{onCommand:async command=>{await session.sendWheel({runId:s.runId,expectedRevision:s.wheelRevision,command})}}:{})}/>{role==='host'&&s.wheelRound&&<LiveWheelRoundControls wheel={s.wheel} round={s.wheelRound} participants={s.participants} ar={ar} disabled={busy||!session.connected||session.hostCommandPending} clock={session.clock} onCommand={command=>session.sendWheel({runId:s.runId,expectedRevision:s.wheelRevision,command})}/>}</>: (s.state==='game_play'||s.state==='game_results')&&s.arcade&&(s.arcade.self||s.arcade.watch)?<GameArena key={`game-${s.arcade.round}`} state={(s.arcade.self??s.arcade.watch)!} serverNow={s.serverNow} connected={session.connected} {...(role==='player'?{onInput:async input=>{await session.send('player:game',{runId:s.runId,...input})}}:{spectator:s.arcade.watchName})} leaders={s.arcade.leaders}/>:s.state==='lobby'?<main className={styles.lobby}>
         {role==='player'?<><h1>{t('أهلًا','Welcome')}, {s.self?.name}</h1><p>{t('أنت في الحصة. انتظر إشارة المعلّم.','You are in. Wait for your teacher to start.')}</p></>:<>
           <h1>{t('لنبدأ معًا','Let’s play together')}</h1><p>{t('امسح الرمز أو افتح رابط الانضمام','Scan the code or open the join page')}</p>
           <div className={styles.pinRow}><strong className={styles.pin} dir="ltr">{s.pin}</strong>{qr&&<img className={styles.qr} src={qr} alt={t('رمز الانضمام','Join QR code')}/>}</div>
@@ -140,7 +157,8 @@ export default function SessionPage({role}:{role:'host'|'projector'|'player'}) {
         {s.gameMode!=='quiz'&&<GameBriefing mode={s.gameMode} ar={ar}/>}
       </main>:s.state==='podium'?<main className={styles.center}><h1>{t('أحسنتم جميعًا','Well played, everyone')}</h1><div ref={podiumRef} className={styles.podium}>{s.gameMode!=='quiz'&&s.gameScores.slice(0,3).map((player,i)=><section className={styles.podiumPlace} key={player.id}><strong>{i+1}</strong><h2>{player.name}</h2><p>{player.points} {t('نقطة لعب','game points')}</p><p>{player.correctCount} {t('إجابات صحيحة','correct answers')}</p></section>)}{s.gameMode==='quiz'&&[...new Set(s.top.map(p=>p.rank))].map(rank=>{const group=s.top.filter(p=>p.rank===rank);return <section key={rank} className={styles.podiumPlace}><strong>{rank}</strong><h2>{group.length>1?t(`${group.length} مشاركًا في تعادل`,`${group.length} participants tied`):group[0]!.name}</h2><p>{group[0]!.score} {t('نقطة','points')}</p>{group.length>1&&<ul className={styles.tiedNames}>{group.map(p=><li key={p.participantId}>{p.name}</li>)}</ul>}</section>})}</div></main>
       :s.state==='ended'?endedScreen(s.runId,s.endReason)
-      :<LiveQuestionStage key={`${s.runId}:${s.question?.qIndex}:${s.question?.id}`} snapshot={s} role={role} clock={session.clock} audio={audio} connected={session.connected} pending={pending} persisted={persisted} ar={ar} onAnswer={payload=>void answer(payload)}/>}
+      :<div className={projectorSide?styles.projectorLayout:styles.questionLayout}><LiveQuestionStage key={`${s.runId}:${s.question?.qIndex}:${s.question?.id}`} snapshot={s} role={role} clock={session.clock} audio={audio} connected={session.connected} pending={pending||busy||session.hostCommandPending} persisted={persisted} ar={ar} onAnswer={payload=>void answer(payload)} onRetry={payload=>void retryAnswer(payload)} {...(role==='host'&&s.presentation?{onPresentation:async command=>{await session.sendPresentation({runId:s.runId,expectedRevision:s.presentation!.revision,command})}}:{})}/>{projectorSide&&presentationControls}</div>}
+      {s.question&&!projectorSide&&presentationControls}
     </>}
   </ActivityStage>
 }

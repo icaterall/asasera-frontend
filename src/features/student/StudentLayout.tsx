@@ -32,7 +32,7 @@ export default function StudentLayout() {
   return <div className={`asas ${styles.workspace}`} data-stage={stage} dir={ar ? 'rtl' : 'ltr'}>
     <a className={styles.skip} href="#student-main">{t('انتقل إلى المحتوى', 'Skip to content')}</a>
     <aside className={styles.sidebar}>
-      <Link className={styles.logo} to="/student" aria-label={t('أساسيرا — الرئيسية', 'Asasera — home')}><Logo /></Link>
+      <Link className={styles.logo} to="/student" aria-label={t('أساسيرا — الرئيسية', 'Asasera — home')}><Logo onDark /></Link>
       <p className={styles.navTitle}>{t('مساحة تعلّمك', 'YOUR LEARNING SPACE')}</p>
       <nav aria-label={t('التنقل في مساحة الطالب', 'Student navigation')} className={styles.nav}>{links.map(({ to, label, Icon, end }) => <NavLink to={to} end={end} key={to} className={({ isActive }) => isActive ? styles.active : undefined}><Icon size={22} aria-hidden="true" /><span>{label}</span></NavLink>)}</nav>
       <div className={styles.railBottom}><Link to="/account"><Settings size={20} aria-hidden="true" />{t('إعدادات الحساب', 'Account settings')}</Link><Link to="/contact"><CircleHelp size={20} aria-hidden="true" />{t('المساعدة', 'Help & support')}</Link></div>

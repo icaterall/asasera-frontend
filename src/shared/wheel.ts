@@ -6,6 +6,7 @@
  * CI fails if this file and its source differ.
  */
 import {z} from 'zod'
+import {interactiveMotion} from './interactive-motion.ts'
 
 export const wheelEntrySchema=z.object({id:z.string().max(80),label:z.string().min(1).max(120)})
 export type WheelEntry=z.infer<typeof wheelEntrySchema>
@@ -32,8 +33,9 @@ const mod=(n:number)=>((n%360)+360)%360
 /** The pointer sits at twelve o'clock. Slice zero starts there and extends clockwise. */
 export function makeWheelSpin(entries:WheelEntry[],winnerIndex:number,previousRotation:number,now:number,id:string,animate=true):WheelSpin{
  if(!entries.length||winnerIndex<0||winnerIndex>=entries.length||!Number.isInteger(winnerIndex))throw Error('Choose a valid wheel entry.')
+ animate=animate&&entries.length>1
  const fromRotation=mod(previousRotation),target=mod(-(winnerIndex+.5)*360/entries.length)
- return {id,entries:structuredClone(entries),winnerIndex,startedAt:now+(animate?250:0),durationMs:animate?4800:0,fromRotation,toRotation:fromRotation+(animate?1800:0)+mod(target-fromRotation)}
+ return {id,entries:structuredClone(entries),winnerIndex,startedAt:now+(animate?interactiveMotion.wheelLeadMs:0),durationMs:animate?interactiveMotion.duration.spin:0,fromRotation,toRotation:fromRotation+(animate?360*interactiveMotion.wheelTurns:0)+mod(target-fromRotation)}
 }
 /** Unbiased choice; callers supply the platform's cryptographic random word. */
 export function randomWheelIndex(count:number,word:()=>number):number{

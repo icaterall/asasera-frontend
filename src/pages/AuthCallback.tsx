@@ -46,7 +46,7 @@ export default function AuthCallback() {
      * duplicate it.
      */
     if (error) {
-      navigate(`/login?error=${encodeURIComponent(error)}`, { replace: true })
+      navigate(error === 'signup_required' ? '/register' : `/login?error=${encodeURIComponent(error)}`, { replace: true })
       return
     }
 

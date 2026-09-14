@@ -93,3 +93,6 @@
 @media (max-width: 1150px) { .columns { grid-template-columns: minmax(0, 1fr) 240px; gap: 24px; } .tools { padding-inline-start: 24px; } .activityRow { flex-wrap: wrap; } .rowActions { margin-inline-start: auto; } }
 @media (max-width: 760px) { .page { padding: 12px 0 32px; } .welcome { align-items: flex-start; flex-direction: column; margin-block-end: 32px; gap: 20px; } .columns { grid-template-columns: 1fr; gap: 32px; } .tools { padding-inline-start: 0; border-inline-start: 0; } .activityRow { padding: 16px; gap: 12px; } .thumbnail { flex-basis: 64px; width: 64px; height: 56px; } .activityInfo { min-width: 140px; } .activityTitle { font-size: 16px; } .sectionHeading { gap: 12px; } .sectionHeading h2 { font-size: 19px; } .explore { flex-wrap: wrap; gap: 14px; } .exploreLabel { margin-inline-start: 44px; } .createForm { padding: 20px; } .formPair { grid-template-columns: 1fr; } }
 @media (prefers-reduced-motion: reduce) { .primaryAction { transition: none; } .primaryAction:hover { transform: none; } }
+
+/* Teacher workspace geometry: rectangular surfaces use one deliberate radius. */
+.primaryAction,.activityList,.thumbnail,.smallAction,.playAction,.duplicateChoice,.cancelChoice,.empty,.field input,.field select,.createForm{border-radius:5px}

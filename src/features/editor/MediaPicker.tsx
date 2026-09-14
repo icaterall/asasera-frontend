@@ -2,18 +2,19 @@ import {useEffect,useId,useRef,useState} from 'react'
 import {createPortal} from 'react-dom'
 import {useQuery} from '@tanstack/react-query'
 import {useTranslation} from 'react-i18next'
-import {AudioLines,CirclePlay,Film,ImageIcon,Info,Mic,Plus,Search,Sparkles,Trash2,Upload,X} from 'lucide-react'
+import {AudioLines,CirclePlay,Clock,Film,ImageIcon,Info,Mic,Plus,Search,Sparkles,Trash2,Upload,X} from 'lucide-react'
 import {api,ApiError} from '@/lib/api'
 import {ImageRemoveButton,ImageUpload,useImage} from './ImageUpload'
 import {ImageCreator,useImageCreation,useImageQualityChoices,type MediaCapabilityReport} from './ImageCreator'
 import {QuestionVideo} from '@/components/QuestionVideo'
 import {VideoClipEditor} from './VideoClipEditor'
-import {formatVideoTime} from './video-time'
+import {useVideoDetails} from './useVideoDetails'
+import {formatVideoDuration,formatVideoTime} from './video-time'
 import mediaIcons from '@/assets/images/media-icons.svg'
 import styles from './MediaPicker.module.css'
 
 type Panel='upload'|'create'|'youtube'|'videoUpload'|'audioUpload'|'readAloud'
-type VideoHit={videoId:string;title:string;channel:string;description:string;thumbnail:string|null}
+type VideoHit={videoId:string;title:string;channel:string;description:string;thumbnail:string|null;durationSeconds?:number|null}
 
 /*
  * Accepts what a teacher actually pastes: a watch URL, a youtu.be short link, a
@@ -57,10 +58,23 @@ export function MediaField({imageKey,onImage,onRemove,onBusyChange,label}:{
   const creation=useImageCreation()
   const [videoInfo,setVideoInfo]=useState(false),videoInfoId=useId()
   useEffect(()=>setVideoInfo(false),[creation?.videoId])
+  const videoDetails=useVideoDetails(creation?.activityId,creation?.videoId)
+  const totalSeconds=videoDetails.data?.durationSeconds
+  const duration=formatVideoDuration(totalSeconds,i18n.language)
+  const clipStart=creation?.videoStartS??0,clipEnd=creation?.videoEndS??totalSeconds
+  const clipped=clipStart>0||creation?.videoEndS!=null
+  const clipDuration=clipped&&clipEnd!=null?formatVideoDuration(Math.min(clipEnd,totalSeconds??clipEnd)-clipStart,i18n.language):null
   return <div className={styles.field} data-question-image="">
     {creation?.videoId&&<div className={styles.attachedVideo}>
       <QuestionVideo videoId={creation.videoId} start={creation.videoStartS} end={creation.videoEndS} showLink={false}/>
       <div className={styles.videoTools}>
+        <div className={styles.videoDuration} data-video-duration="" aria-live="polite">
+          <Clock aria-hidden="true"/>
+          <div><span>{t('مدة الفيديو','Video length')}</span>
+            <strong>{duration??(videoDetails.isFetching?t('جارٍ التحميل…','Loading…'):t('المدة غير متاحة','Length unavailable'))}</strong>
+            {clipDuration&&<small>{t('المقطع المحدد:','Selected clip:')} {clipDuration}</small>}
+          </div>
+        </div>
         <button type="button" aria-label={t('تعديل التوقيت','Edit timeframe')} title={t('تعديل التوقيت','Edit timeframe')} onClick={()=>{setEditVideo(true);setOpen(true)}}><Film aria-hidden="true"/></button>
         <button type="button" aria-label={t('معلومات الفيديو','Video information')} title={t('معلومات الفيديو','Video information')} aria-expanded={videoInfo} aria-controls={videoInfoId} onClick={()=>setVideoInfo(value=>!value)}><Info aria-hidden="true"/></button>
         <button type="button" aria-label={t('إزالة الفيديو','Remove video')} title={t('إزالة الفيديو','Remove video')} onClick={()=>creation.onVideo?.(null)}><Trash2 aria-hidden="true"/></button>
@@ -202,6 +216,7 @@ function MediaPickerDialog({dropped,onClose,onImage,onBusyChange,editVideo=false
       <button type="button" aria-label={t('إغلاق','Close')} onClick={onClose}><X size={20}/></button>
     </header>
     {chosenVideo&&<div className={styles.clipPanel}><VideoClipEditor key={chosenVideo.videoId} videoId={chosenVideo.videoId} title={chosenVideo.title}
+      activityId={creation?.activityId}
       editing={creation?.videoId===chosenVideo.videoId}
       start={creation?.videoId===chosenVideo.videoId?creation.videoStartS:null} end={creation?.videoId===chosenVideo.videoId?creation.videoEndS:null}
       onBack={()=>setChosenVideo(null)} onApply={(start,end)=>{creation?.onVideo?.(chosenVideo.videoId,start,end);onClose()}}/></div>}

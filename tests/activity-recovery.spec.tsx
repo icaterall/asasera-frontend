@@ -189,8 +189,9 @@ it('retains recovery if explicit saving fails and clears each question independe
 it('keeps feedback in a dialog on the current URL, retains reply drafts, and returns to the referenced question', async () => {
   const user = userEvent.setup(); await editor()
   setRichText(screen.getByLabelText('Question text'), 'Work in progress')
-  const trigger = screen.getByRole('button', {name: 'Feedback'})
+  const trigger = screen.getByRole('button', {name: 'More',exact:true})
   await user.click(trigger)
+  await user.click(screen.getByRole('button', {name: 'Feedback'}))
   const dialog = screen.getByRole('dialog', {name: 'Feedback & ideas'})
   expect(screen.getByLabelText('Current URL').textContent).toBe('/teacher/activities/42')
   await within(dialog).findByText('Please clarify this question')
@@ -201,6 +202,7 @@ it('keeps feedback in a dialog on the current URL, retains reply drafts, and ret
   expect(screen.queryByRole('dialog')).toBeNull(); expect(document.activeElement).toBe(trigger)
   expect(richText(screen.getByLabelText('Question text'))).toBe('Work in progress')
   await user.click(trigger)
+  await user.click(screen.getByRole('button', {name: 'Feedback'}))
   await screen.findByText('Please clarify this question')
   await user.click(screen.getByText('Reply and update status'))
   expect((screen.getByLabelText('Your reply to the teacher (optional)') as HTMLTextAreaElement).value).toBe('An unfinished reply')
@@ -221,6 +223,7 @@ it('feedback can open even when question saving fails, and Escape returns to the
   vi.mocked(activities.updateQuestion).mockRejectedValue(new Error('Offline'))
   await editor()
   setRichText(screen.getByLabelText('Question text'), 'Offline work')
+  fireEvent.click(screen.getByRole('button', {name: 'More',exact:true}))
   fireEvent.click(screen.getByRole('button', {name: 'Feedback'}))
   const dialog = screen.getByRole('dialog')
   fireEvent(dialog, new Event('cancel', {cancelable: true}))
@@ -310,6 +313,7 @@ it('supports Arabic feedback, an empty inbox and retrying an inbox failure witho
   await language.changeLanguage('ar')
   vi.mocked(community.inbox).mockRejectedValueOnce(new Error('Offline')).mockResolvedValueOnce({items: [], hasMore: false, summary: {total: 0, open: 0, reviewed: 0, resolved: 0}})
   show(<ActivityEditor/>); await screen.findByLabelText('نص السؤال')
+  fireEvent.click(screen.getByRole('button', {name: 'المزيد',exact:true}))
   fireEvent.click(screen.getByRole('button', {name: 'الملاحظات'}))
   const dialog = screen.getByRole('dialog', {name: 'الملاحظات وأفكار التحسين'})
   expect(dialog.getAttribute('dir')).toBe('rtl')
@@ -341,12 +345,12 @@ it('saving normally clears the recovery after acknowledgement and question selec
 })
 
 
-it('keeps the logo, language choices and working role-framed account menu in the editor header', async () => {
+it('keeps the logo and account in the compact header, with language choices under More', async () => {
   const user = userEvent.setup(); await editor()
   const header = screen.getByRole('banner', {name: /شريط المحرر|Editor bar/})
   expect(within(header).getByRole('link', {name: 'Asasera — dashboard'}).getAttribute('href')).toBe('/teacher/dashboard')
   expect(within(header).getByRole('img', {name: 'Asasera'})).toBeTruthy()
-  expect(within(header).getByRole('group', {name: 'Language'})).toBeTruthy()
+  expect(within(header).queryByRole('group', {name: 'Language'})).toBeNull()
   const avatar = within(header).getByRole('button', {name: 'Account menu — Teacher'})
   expect(avatar.getAttribute('data-account-role')).toBe('teacher')
   expect(avatar.textContent).toBe('T')
@@ -357,6 +361,8 @@ it('keeps the logo, language choices and working role-framed account menu in the
   await user.keyboard('{Escape}')
   expect(within(header).queryByRole('menu')).toBeNull()
   expect(document.activeElement).toBe(avatar)
+  await user.click(within(header).getByRole('button', {name:'More',exact:true}))
+  expect(screen.getByRole('group', {name:'Language'})).toBeTruthy()
 })
 
 it('switches the editor language without reloading, losing unsaved text or changing the selected question', async () => {
@@ -364,6 +370,7 @@ it('switches the editor language without reloading, losing unsaved text or chang
   await user.click(screen.getByRole('button', {name: /Is a quarter greater/}))
   fireEvent.change(screen.getByLabelText('Activity title'), {target: {value: 'My bilingual activity'}})
   setRichText(screen.getByLabelText('Question text'), 'Keep this question exactly')
+  await user.click(screen.getByRole('button', {name:'More',exact:true}))
   await user.click(screen.getByRole('button', {name: 'Switch to Arabic'}))
   expect((screen.getByLabelText('عنوان النشاط') as HTMLInputElement).value).toBe('My bilingual activity')
   expect(richText(screen.getByLabelText('نص السؤال'))).toBe('Keep this question exactly')

@@ -255,7 +255,7 @@
   inset-inline-start: 0;
   z-index: 81;
   inline-size: min(288px, 86vw);
-  background: var(--surface);
+  background: var(--tc-drawer-bg, var(--surface));
   border-inline-end: 1px solid var(--line);
   overflow-y: auto;
   animation: teacher-drawer-in 200ms var(--ease-out-quart) both;
@@ -411,5 +411,38 @@
 }
 
 /* Current owner direction: the Kahoot classic workspace palette. */
-.teacher-scope{--canvas:#f2f2f2;--surface:#fff;--raised:#f2f2f2;--fg:#333;--muted:#6e6e6e;--faint:#6e6e6e;--line:#ccc;--line-strong:#aaa;--panel-bg:#fff;--accent:#1368ce;--accent-alt:var(--color-brand-500);--radius-xs:4px;--radius-sm:4px;--radius-md:4px;--radius-lg:8px;--radius-xl:8px;font-family:"Montserrat",var(--font-arabic),sans-serif}
+.teacher-scope{--canvas:#f2f2f2;--surface:#fff;--raised:#f2f2f2;--fg:#333;--muted:#6e6e6e;--faint:#6e6e6e;--line:#ccc;--line-strong:#aaa;--panel-bg:#fff;--accent:#1368ce;--accent-alt:var(--color-brand-500);--radius-xs:5px;--radius-sm:5px;--radius-md:5px;--radius-lg:5px;--radius-xl:5px;font-family:"HK Grotesk",var(--font-arabic),sans-serif}
 .dark .teacher-scope{--canvas:#171717;--surface:#222;--raised:#333;--fg:#f2f2f2;--muted:#b2b2b2;--faint:#b2b2b2;--line:#414141;--line-strong:#888;--panel-bg:#222;--accent:#8ab5ff;--accent-alt:#d6b8ff}
+
+/* Joyful classroom skin — the creation/editor surface remains separately scoped. */
+.teacher-scope{--tc-brand:#075ce8;--tc-sky:#1478f5;--tc-teal:#079b77;--tc-coral:#ed3d67;--tc-amber:#f5b91d;--tc-violet:#6d4be8;--tc-ink:#14336d;--tc-card-radius:5px;--tc-rail:252px;--tc-header:76px;--tc-rail-bg:linear-gradient(180deg,#084eb9 0%,#073b9f 56%,#082b76 100%);--tc-rail-text:#eef7ff;--tc-rail-hover-bg:rgb(255 255 255 / 13%);--tc-rail-hover-text:#fff;--tc-rail-active-bg:linear-gradient(135deg,#0d6de3,#0756bf);--tc-rail-active-shadow:0 5px 12px rgb(0 22 83 / 28%);--tc-rail-brand-line:rgb(255 255 255 / 20%);--tc-rail-shadow:8px 0 28px rgb(10 60 151 / 16%);--tc-drawer-bg:#fff;--canvas:#f2f8ff;--surface:#fff;--fg:#16346c;--muted:#57709b;--faint:#7990b6;--line:#d8e6f8;--line-strong:#b9cfed;--panel-bg:#fff;--accent:var(--tc-brand);--accent-alt:var(--tc-teal);--r-control:5px;--r-card:5px;--radius-xs:5px;--radius-sm:5px;--radius-md:5px;--radius-lg:5px;--radius-xl:5px}
+.teacher-shell{background:radial-gradient(circle at 76% 4%,rgb(100 207 255 / 26%),transparent 23rem),radial-gradient(circle at 18% 92%,rgb(62 203 160 / 18%),transparent 25rem),#f2f8ff}
+.teacher-rail{border:0;background:var(--tc-rail-bg);box-shadow:var(--tc-rail-shadow)}
+.teacher-rail-brand{border-bottom:1px solid var(--tc-rail-brand-line)}
+.teacher-rail .teacher-nav-item,.teacher-rail .teacher-resource-nav summary{border-radius:5px;color:var(--tc-rail-text);font-weight:700}
+.teacher-rail .teacher-nav-item:hover,.teacher-rail .teacher-resource-nav summary:hover{background:var(--tc-rail-hover-bg);color:var(--tc-rail-hover-text)}
+.teacher-rail .teacher-nav-item:is(.active,[aria-current='page']){background:var(--tc-rail-active-bg);color:#fff;box-shadow:var(--tc-rail-active-shadow)}
+.teacher-header{min-block-size:var(--tc-header);border:0;background:rgb(255 255 255 / 94%);box-shadow:0 2px 16px rgb(28 78 154 / 10%);backdrop-filter:blur(14px)}
+.teacher-header>p{color:#1e56a2;font-weight:800}
+.teacher-create-activity{border-radius:5px!important;background:linear-gradient(180deg,#1682ff,#075ce8)!important;box-shadow:0 5px 0 #0344b3,0 10px 18px rgb(5 92 232 / 22%)}
+.teacher-create-activity:active{transform:translateY(3px);box-shadow:0 2px 0 #0344b3,0 5px 10px rgb(5 92 232 / 18%)}
+.teacher-scope #teacher-main{padding:clamp(22px,3vw,42px)}
+.teacher-scope .rounded-sm{border-radius:5px}
+.teacher-scope :where(.rounded-md,.rounded-lg,.rounded-xl,.rounded-2xl,.rounded-3xl){border-radius:5px}
+.teacher-scope .asas{--r-control:5px;--r-card:5px}
+.teacher-scope [data-select-trigger]{border-radius:5px}
+.teacher-joy-hero{position:relative;isolation:isolate;overflow:hidden;min-height:238px;background:radial-gradient(circle at 91% 8%,rgb(132 247 224 / 34%),transparent 15rem),radial-gradient(circle at 5% 100%,rgb(88 156 255 / 38%),transparent 23rem),linear-gradient(135deg,#075ce8 0%,#0877ed 50%,#098cab 100%);box-shadow:0 18px 38px rgb(8 86 206 / 24%)}
+.teacher-joy-hero:before{content:"";position:absolute;z-index:-1;inset:auto -4rem -9rem auto;width:22rem;aspect-ratio:1;border:32px solid rgb(255 255 255 / 15%);border-radius:50%}
+.teacher-joy-hero h1{font-weight:900;letter-spacing:-.035em;text-wrap:balance}
+.teacher-joy-hero p{max-width:48rem;color:rgb(255 255 255 / 86%)}
+.teacher-hero-primary,.teacher-hero-secondary{border-radius:5px!important;font-weight:800!important}
+.teacher-hero-primary{background:#fff!important;color:#075ce8!important;box-shadow:0 4px 0 rgb(6 57 140 / 22%)}
+.teacher-hero-secondary{border-color:rgb(255 255 255 / 58%)!important;background:rgb(255 255 255 / 12%)!important;color:#fff!important}
+.teacher-card{border:1px solid rgb(204 223 246 / 85%);border-radius:var(--tc-card-radius);background:#fff;box-shadow:0 10px 25px rgb(30 94 171 / 9%);transition:transform .18s ease,box-shadow .18s ease}
+.teacher-card:hover{transform:translateY(-3px);box-shadow:0 16px 30px rgb(30 94 171 / 16%)}
+.teacher-card-thumb{block-size:144px;background:linear-gradient(135deg,#edf7ff,#d7eeff)}
+.teacher-tool-icon{display:grid;place-items:center;width:42px;height:42px;border-radius:5px;background:linear-gradient(145deg,#e7f4ff,#cbe9ff);color:#075ce8;box-shadow:inset 0 1px 0 #fff}
+.teacher-card:nth-child(4n+2) .teacher-tool-icon{background:linear-gradient(145deg,#e7fff4,#c6f6df);color:#00825e}.teacher-card:nth-child(4n+3) .teacher-tool-icon{background:linear-gradient(145deg,#fff4dc,#ffe1a1);color:#b47100}.teacher-card:nth-child(4n+4) .teacher-tool-icon{background:linear-gradient(145deg,#f6ecff,#e3d0ff);color:#7040c8}
+@media (prefers-reduced-motion:reduce){.teacher-card{transition:none}.teacher-card:hover{transform:none}}
+@media (max-width:900px){.teacher-scope #teacher-main{padding:20px}.teacher-joy-hero{min-height:0}.teacher-header{min-block-size:64px}.teacher-rail{box-shadow:none}}
+.dark .teacher-scope{--canvas:#081b40;--surface:#102a58;--fg:#f4f8ff;--muted:#b9cae9;--faint:#9fb5da;--line:#285187;--line-strong:#4a75ae;--panel-bg:#102a58;--tc-rail-bg:linear-gradient(180deg,#0c2857 0%,#091f46 58%,#06152f 100%);--tc-rail-text:#dceaff;--tc-rail-hover-bg:rgb(150 190 255 / 13%);--tc-rail-hover-text:#fff;--tc-rail-active-bg:linear-gradient(135deg,#176bd6,#0a4da9);--tc-rail-active-shadow:0 6px 16px rgb(0 0 0 / 30%);--tc-rail-brand-line:rgb(171 204 255 / 20%);--tc-rail-shadow:none;--tc-drawer-bg:#0b2148}.dark .teacher-shell{background:#081b40}.dark .teacher-card{background:#102a58;border-color:#285187;box-shadow:none}.dark .teacher-card-thumb{background:#153969}.dark .teacher-header{background:rgb(9 29 66 / 92%)}

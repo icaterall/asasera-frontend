@@ -8,6 +8,8 @@
 import {
   HOTSPOT_CLICK_SOURCE,
   type AnswerPayload,
+  type ClozePayload,
+  type VocabularyPayload,
   type HotspotPayload,
   type MatchPayload,
   type McqPayload,
@@ -19,6 +21,7 @@ import {
   orderRelationKey,
   tfChoiceToBoolean,
 } from './questions.ts'
+import { wordGraphemes } from './word-boards.ts'
 
 /**
  * Marking — plan §11 (p19), §16 W04.
@@ -152,7 +155,14 @@ export function markOrder(payload: OrderPayload, answer: Extract<AnswerPayload, 
    * second implementation of "is this sequence correct" to drift.
    */
   const accepted = mode === 'flexible' ? [expected, ...(payload.alternates ?? [])] : [expected]
-  const matches = (sequence: readonly string[]) => got.every((key, index) => key === sequence[index])
+  const items = new Map(payload.items.map(item => [item.key, item]))
+  const equivalent = (a: string, b: string) => {
+    if (a === b) return true
+    if (payload.equivalenceVersion !== 1) return false
+    const left = items.get(a), right = items.get(b)
+    return !!left && !!right && (!!left.text.trim() || !!left.image) && left.text.normalize('NFC') === right.text.normalize('NFC') && (left.image ?? '') === (right.image ?? '')
+  }
+  const matches = (sequence: readonly string[]) => got.every((key, index) => equivalent(key, sequence[index]!))
   if (accepted.some(matches)) return { correct: true, wrongElements: [] }
 
   /*
@@ -164,13 +174,22 @@ export function markOrder(payload: OrderPayload, answer: Extract<AnswerPayload, 
    * description is what a teacher reads and what an intervention counts.
    */
   const reference = accepted.reduce((best, candidate) => {
-    const score = (sequence: readonly string[]) => got.filter((key, index) => key === sequence[index]).length
+    const score = (sequence: readonly string[]) => got.filter((key, index) => equivalent(key, sequence[index]!)).length
     return score(candidate) > score(best) ? candidate : best
   }, accepted[0]!)
 
   const wrongElements: MarkResult['wrongElements'] = []
   for (let i = 0; i < reference.length; i += 1) {
-    if (got[i] !== reference[i]) wrongElements.push({ elementKey: got[i]!, wrongTargetKey: String(i) })
+    if (!equivalent(got[i]!, reference[i]!)) wrongElements.push({ elementKey: got[i]!, wrongTargetKey: String(i) })
+  }
+  if (payload.equivalenceVersion === 1) {
+    const remaining = [...reference]
+    at.clear()
+    got.forEach((key, position) => {
+      const index = remaining.findIndex(candidate => equivalent(key, candidate))
+      const canonical = remaining.splice(index, 1)[0]!
+      at.set(canonical, position)
+    })
   }
   wrongElements.push(...asRelationships(violated(impliedOrderConstraints(reference))))
   return { correct: false, wrongElements }
@@ -201,7 +220,16 @@ export function markMatch(payload: MatchPayload, answer: Extract<AnswerPayload, 
 
   const wrongElements: MarkResult['wrongElements'] = []
   for (const [card, target] of submitted) {
-    if (payload.map[card] !== target) wrongElements.push({ elementKey: card, wrongTargetKey: target })
+    const expected = payload.map[card]!
+    let correct = expected === target
+    if (!correct && payload.equivalenceVersion === 1) {
+      const label = payload.cards.find(item => item.key === card)?.text.normalize('NFC')
+      const equivalentCards = payload.cards.filter(item => item.key === card || (label?.trim() && item.text.normalize('NFC') === label))
+      const permitted = equivalentCards.flatMap(item => payload.acceptedTargets?.[item.key] ?? [payload.map[item.key]!])
+      const actual = payload.targets.find(item => item.key === target)?.text.normalize('NFC')
+      correct = permitted.some(key => key === target || (actual?.trim() && payload.targets.find(item => item.key === key)?.text.normalize('NFC') === actual))
+    }
+    if (!correct) wrongElements.push({ elementKey: card, wrongTargetKey: target })
   }
   return { correct: wrongElements.length === 0, wrongElements }
 }
@@ -252,6 +280,22 @@ export function markHotspot(
 }
 
 /** Dispatches on kind, and refuses an answer whose kind is not the question's. */
+export function markCloze(payload: ClozePayload, answer: Extract<AnswerPayload, { kind: 'cloze' }>): MarkResult {
+  const ids = new Set(payload.blanks.map(blank => blank.id))
+  if (Object.keys(answer.values).length !== ids.size || Object.keys(answer.values).some(id => !ids.has(id))) return invalid('Every passage blank requires exactly one response')
+  const normalize = (text: string) => wordGraphemes(payload.trimBoundaryWhitespace ? text.trim() : text, payload.policy).join('')
+  const wrongElements = payload.blanks.filter(blank => !blank.acceptedAnswers.some(expected => normalize(expected) === normalize(answer.values[blank.id]!))).map(blank => ({ elementKey: blank.id }))
+  return { correct: wrongElements.length === 0, wrongElements }
+}
+
+export function markVocabulary(payload: VocabularyPayload, answer: Extract<AnswerPayload, { kind: 'vocabulary' }>): MarkResult {
+  const ids = new Set(payload.entries.map((_, index) => `entry_${index + 1}`))
+  if (Object.keys(answer.values).length !== ids.size || Object.keys(answer.values).some(id => !ids.has(id))) return invalid('Every vocabulary entry requires exactly one response')
+  const normalize = (text: string) => wordGraphemes(text, payload.policy).join('')
+  const wrongElements = payload.entries.flatMap((entry, index) => normalize(entry.word) === normalize(answer.values[`entry_${index + 1}`]!) ? [] : [{ elementKey: entry.id }])
+  return { correct: wrongElements.length === 0, wrongElements }
+}
+
 export function markAnswer(kind: QuestionKind, payload: unknown, answer: AnswerPayload): MarkResult {
   if (answer.kind !== kind) return invalid(`answer kind "${answer.kind}" does not match question kind "${kind}"`)
   switch (kind) {
@@ -260,6 +304,9 @@ export function markAnswer(kind: QuestionKind, payload: unknown, answer: AnswerP
     case 'order': return markOrder(payload as OrderPayload, answer as never)
     case 'match': return markMatch(payload as MatchPayload, answer as never)
     case 'hotspot': return markHotspot(payload as HotspotPayload, answer as never)
+    case 'cloze': return markCloze(payload as ClozePayload, answer as never)
+    case 'vocabulary': return markVocabulary(payload as VocabularyPayload, answer as never)
+    case 'discussion': return invalid('Discussion is unscored; record a discussion observation instead of a graded answer')
   }
 }
 

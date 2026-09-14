@@ -88,6 +88,10 @@ let accessToken: string | null = null
 const listeners = new Set<() => void>()
 
 export function setAccessToken(token: string | null): void {
+  // A token in hand is proof of a session, whichever path produced it - login,
+  // boot refresh, or the OAuth callback's first refresh. Clearing the flag
+  // here rather than at each call site is what keeps them from drifting apart.
+  if (token !== null) rememberNoSession(false)
   if (token === accessToken) return
   accessToken = token
   for (const listener of listeners) listener()
@@ -95,6 +99,47 @@ export function setAccessToken(token: string | null): void {
 
 export function getAccessToken(): string | null {
   return accessToken
+}
+
+/* ------------------------------------------------------------------ *
+ * "This browser has no session", remembered between page loads
+ * ------------------------------------------------------------------ */
+
+/**
+ * The refresh cookie is httpOnly, so script cannot ask whether one exists: the
+ * only way to find out is to POST /auth/refresh and read the answer. For a
+ * signed-in person that request is what restores their session across F5. For
+ * a guest learner - who never signs in, and reloads a card as part of the
+ * exercise itself - it is one 401 per page load, written into the console of
+ * every classroom device, for an answer that has not changed since the first
+ * load.
+ *
+ * So the answer is remembered, and ONLY the negative one. The direction is
+ * deliberate: a flag that is wrongly PRESENT would show a signed-in person the
+ * login screen, so it is written only where the server has said, to this
+ * browser, that there is nothing to refresh - and cleared by anything at all
+ * that produces a token. If it is lost (a private window, cleared storage, a
+ * browser that throws on localStorage) the app asks the server exactly as it
+ * did before. Nothing here is a credential; it is one bit of "don't bother".
+ */
+const NO_SESSION_KEY = 'asasera.no-session'
+
+export function rememberNoSession(known: boolean): void {
+  try {
+    if (known) localStorage.setItem(NO_SESSION_KEY, '1')
+    else localStorage.removeItem(NO_SESSION_KEY)
+  } catch {
+    /* Storage denied. Asking the server every load is the old behaviour. */
+  }
+}
+
+/** True only when this browser has already been told, by the server, that it has no session. */
+export function knownAnonymous(): boolean {
+  try {
+    return localStorage.getItem(NO_SESSION_KEY) === '1'
+  } catch {
+    return false
+  }
 }
 
 /** For `useSyncExternalStore`. Returns the unsubscribe. */
@@ -218,7 +263,9 @@ async function doRefresh(): Promise<SessionResponse | null> {
     })
     // Only an explicit authentication rejection means the cookie is gone.
     // Vite proxy failures and API restarts must not destroy a valid session.
-    if (response.status === 401) { setAccessToken(null); return null }
+    // The server has answered, for this browser: there is no session to
+    // recover. Remembered so a guest's next reload does not ask again.
+    if (response.status === 401) { setAccessToken(null); rememberNoSession(true); return null }
     if (!response.ok) throw new ApiError(response.status, 'session_refresh_unavailable', 'Could not reconnect to the server. Please try again.')
     const payload = (await response.json()) as SessionResponse
     if (!payload.user || typeof payload.accessToken !== 'string' || !payload.accessToken) {
@@ -1104,7 +1151,7 @@ export const teaching = {
 
 const ACTIVITIES = `${API_PREFIX}/activities`
 
-export type QuestionKindWire = 'mcq' | 'tf' | 'order' | 'match' | 'hotspot'
+export type QuestionKindWire = 'mcq' | 'tf' | 'order' | 'match' | 'hotspot' | 'cloze' | 'vocabulary' | 'discussion'
 
 export type ActivityRecord = {
   /** Absent/null on older activities until the instructor chooses a language. */
@@ -1255,7 +1302,14 @@ export const activities = {
 const REPORTS = `${API_PREFIX}/reports`
 
 export type ReportDistributionEntry = { key: string; count: number; label: string; isCorrect: boolean }
+export type ReportPracticeCounts = { kind: 'self-rated'; total: number; seen: number; rated: number; again: number; learning: number; known: number; notRated: number } | { kind: 'discussion'; total: number; seen: number; discussed: number; notDiscussed: number } | { kind: 'memory'; total: number; seen: number; totalPairs: number; pairsFound: number; moves: number; completedBoards: number } | { kind: 'word-search' | 'crossword'; total: number; seen: number; totalWords: number; wordsFound: number; checks: number; assistance: number; completedBoards: number }
+export type ReportPresentation = { definitionId: string; definitionVersion: number; adapterVersion: number; contentVersionId: number; semantics: 'scored' | 'self-rated' | 'discussion' | 'practice'; selectedQuestionIds: number[] }
 export type ReportQuestion = {
+  occurrenceIndices?: number[]
+  assistedFirstResponses?: number
+  repeatResponses?: number
+  practiceRetries?: number
+  practice?: ReportPracticeCounts | null
   index: number
   questionId: number
   kind: QuestionKindWire | null
@@ -1288,14 +1342,20 @@ export type ReportQuestion = {
   distribution: ReportDistributionEntry[]
 }
 export type ReportParticipant = {
+  firstResponses?: number
+  assistedFirstResponses?: number
+  repeatResponses?: number
+  practiceRetries?: number
+  practice?: (ReportPracticeCounts & { completed: boolean }) | null
+  presentationKind?: string | null
   id: string
   name: string
-  score: number
+  score: number | null
   gamePoints?: number
-  correctCount: number
+  correctCount: number | null
   answered: number
-  incorrect: number
-  unanswered: number
+  incorrect: number | null
+  unanswered: number | null
   connected: boolean
   /** Homework/study: not_started | in_progress | submitted | expired (closed without submitting). Live: participated | disconnected | unanswered. */
   status: string
@@ -1314,7 +1374,13 @@ export type ReportFollowUp = {
   targetQuestionIds: number[]
   createdAt: string
 }
+export type LiveOccurrenceEvidence = { id: string; index: number; canonicalIndex: number; questionId: number; pass: number; status: 'selected' | 'open' | 'completed' | 'skipped'; openedAt: string | null; endsAt: string | null; responses: number; firstResponses: number; repeatResponses: number; assistedResponses: number; assistedFirstResponses: number; gamePoints: number; practiceRetries: number }
+export type LiveReportEvidence = { semantics: 'scored' | 'practice'; occurrences: LiveOccurrenceEvidence[]; totals: { firstResponses: number; repeatResponses: number; assistedFirstResponses: number; practiceRetries: number; gamePoints: number } }
 export type HostReportRecord = {
+  liveEvidence?: LiveReportEvidence | null
+  presentation?: ReportPresentation | null
+  outcomeKind?: 'self-rated-practice' | 'discussion-practice' | 'memory-practice' | 'word-grid-practice' | 'practice-responses' | 'scored-responses'
+  sourceQuestionCount?: number
   runId: number
   title: string
   mode: string
@@ -1333,7 +1399,7 @@ export type HostReportRecord = {
   pattern: { count: number; reason: string; questionId: number } | null
   followUps: ReportFollowUp[]
   followUpOf: { runId: number; sharedParticipants: number; totalParticipants: number } | null
-  closing: { kind: 'review_pattern' | 'participation_gap' | 'completed_review'; count?: number; reason?: string }
+  closing: { kind: 'review_pattern' | 'participation_gap' | 'completed_review' | 'practice_progress'; count?: number; reason?: string }
   evidenceNote: string
 }
 /** The generation draft the editor consumes from `?generate=1&draft=<base64url JSON>`. */

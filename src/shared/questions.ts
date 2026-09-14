@@ -6,6 +6,7 @@
  * CI fails if this file and its source differ.
  */
 import { z } from 'zod'
+import { wordSpellingPolicySchema, vocabularyEntrySchema, createWordBuilder, wordGraphemes } from './word-boards.ts'
 
 /**
  * The five question kinds — plan §12 (pp20–21).
@@ -23,7 +24,7 @@ import { z } from 'zod'
  * type, it cannot be forgotten.
  */
 
-export const QUESTION_KINDS = ['mcq', 'tf', 'order', 'match', 'hotspot'] as const
+export const QUESTION_KINDS = ['mcq', 'tf', 'order', 'match', 'hotspot', 'cloze', 'vocabulary', 'discussion'] as const
 export type QuestionKind = (typeof QUESTION_KINDS)[number]
 
 /** Element keys address options, cards, targets and zones in `error_pairs`. */
@@ -164,6 +165,8 @@ export type OrderConstraint = z.infer<typeof orderConstraint>
 export const orderPayloadSchema = z
   .object({
     items: z.array(orderItem).min(2).max(8),
+    /** Opt-in for native repeated word tiles; absent retains historical identity grading. */
+    equivalenceVersion: z.literal(1).optional(),
     pointsMultiplier,
     correct: z.array(elementKey).min(2).max(8),
     mode: orderModeSchema.optional(),
@@ -189,6 +192,7 @@ export const orderPayloadSchema = z
     }
 
     const mode = value.mode ?? 'exact'
+    if (value.equivalenceVersion && mode === 'partial') ctx.addIssue({ code: 'custom', path: ['equivalenceVersion'], message: 'Repeated-label equivalence requires exact or flexible ordering' })
 
     /*
      * An alternate is a COMPLETE sequence, held to the same rules as `correct`.
@@ -328,6 +332,8 @@ const matchCard = z.object({ key: elementKey, text: z.string().max(300) })
 export const matchPayloadSchema = z
   .object({
     cards: z.array(matchCard).min(2).max(8),
+    equivalenceVersion: z.literal(1).optional(),
+    acceptedTargets: z.record(elementKey, z.array(elementKey).min(1).max(8)).optional(),
     pointsMultiplier,
     targets: z.array(matchCard).min(2).max(8),
     map: z.record(elementKey, elementKey),
@@ -337,6 +343,12 @@ export const matchPayloadSchema = z
     uniqueKeys(value.targets, ctx, 'target')
     const cardKeys = new Set(value.cards.map((c) => c.key))
     const targetKeys = new Set(value.targets.map((t) => t.key))
+    if (value.acceptedTargets && value.equivalenceVersion !== 1) ctx.addIssue({ code: 'custom', path: ['acceptedTargets'], message: 'Accepted target sets require equivalenceVersion 1' })
+    for (const [card, targets] of Object.entries(value.acceptedTargets ?? {})) {
+      if (!cardKeys.has(card) || targets.some(target => !targetKeys.has(target)) || new Set(targets).size !== targets.length || !targets.includes(value.map[card]!)) {
+        ctx.addIssue({ code: 'custom', path: ['acceptedTargets', card], message: 'Accepted targets must be unique known targets including the reference target for a known card' })
+      }
+    }
     for (const [card, target] of Object.entries(value.map)) {
       if (!cardKeys.has(card)) ctx.addIssue({ code: 'custom', path: ['map'], message: `map names unknown card "${card}"` })
       if (!targetKeys.has(target)) ctx.addIssue({ code: 'custom', path: ['map'], message: `map names unknown target "${target}"` })
@@ -472,6 +484,73 @@ export const hotspotPayloadSchema = z.discriminatedUnion('mode', [
 ])
 export type HotspotPayload = z.infer<typeof hotspotPayloadSchema>
 
+/* ---- native sentence blanks ------------------------------------------- */
+
+export const clozeSegmentSchema = z.discriminatedUnion('kind', [
+  z.object({ kind: z.literal('text'), text: z.string().min(1).max(4000) }).strict(),
+  z.object({ kind: z.literal('blank'), blankId: elementKey }).strict(),
+])
+export const clozePayloadSchema = z.object({
+  schemaVersion: z.literal(1),
+  segments: z.array(clozeSegmentSchema).min(2).max(65),
+  blanks: z.array(z.object({ id: elementKey, acceptedAnswers: z.array(z.string().min(1).max(300).refine(text => !!text.trim(), 'Answer cannot be whitespace')).min(1).max(8) }).strict()).min(1).max(16),
+  policy: wordSpellingPolicySchema,
+  trimBoundaryWhitespace: z.boolean(),
+  wordBank: z.array(z.string().trim().min(1).max(300)).max(40).optional(),
+  pointsMultiplier,
+}).strict().superRefine((value, ctx) => {
+  const ids = new Set(value.blanks.map(blank => blank.id))
+  if (ids.size !== value.blanks.length) ctx.addIssue({ code: 'custom', path: ['blanks'], message: 'Blank IDs must be unique' })
+  const references = value.segments.flatMap(segment => segment.kind === 'blank' ? [segment.blankId] : [])
+  if (new Set(references).size !== references.length || references.length !== ids.size || references.some(id => !ids.has(id))) {
+    ctx.addIssue({ code: 'custom', path: ['segments'], message: 'Each blank must appear exactly once in the passage' })
+  }
+  if (!value.segments.some(segment => segment.kind === 'text' && segment.text.trim())) ctx.addIssue({ code: 'custom', path: ['segments'], message: 'A passage needs surrounding text' })
+  if (value.segments.reduce((length, segment) => length + (segment.kind === 'text' ? segment.text.length : 0), 0) > 12_000) ctx.addIssue({ code: 'custom', path: ['segments'], message: 'Passage exceeds 12000 characters' })
+  for (const [index, blank] of value.blanks.entries()) {
+    const alternatives = blank.acceptedAnswers.map(answer => wordGraphemes(value.trimBoundaryWhitespace ? answer.trim() : answer, value.policy).join(''))
+    if (alternatives.some(answer => !answer.length) || new Set(alternatives).size !== alternatives.length) ctx.addIssue({ code: 'custom', path: ['blanks', index, 'acceptedAnswers'], message: 'Answer alternatives must be nonempty and distinct under the selected spelling policy' })
+  }
+})
+export type ClozePayload = z.infer<typeof clozePayloadSchema>
+
+export const vocabularyPayloadSchema = z.object({
+  schemaVersion: z.literal(1), policy: wordSpellingPolicySchema,
+  entries: z.array(vocabularyEntrySchema.extend({ id: elementKey })).min(1).max(40), pointsMultiplier,
+}).strict().superRefine((value, ctx) => {
+  const ids = new Set<string>()
+  const words = new Set<string>()
+  for (const [index, entry] of value.entries.entries()) {
+    try {
+      const word = createWordBuilder({ id: entry.id, word: entry.word, ...(entry.clue === undefined ? {} : { clue: entry.clue }) }, value.policy, 0).solution.join('')
+      if (ids.has(entry.id) || words.has(word)) ctx.addIssue({ code: 'custom', path: ['entries', index], message: 'Vocabulary IDs and normalized words must be unique' })
+      ids.add(entry.id)
+      words.add(word)
+    } catch {
+      ctx.addIssue({ code: 'custom', path: ['entries', index], message: 'Word does not match the declared language, grapheme or spelling policy' })
+    }
+  }
+})
+export type VocabularyPayload = z.infer<typeof vocabularyPayloadSchema>
+
+export const discussionPayloadSchema = z.object({
+  schemaVersion: z.literal(1), referenceResponse: z.string().trim().min(1).max(2000).optional(), pointsMultiplier: z.literal(0).optional(),
+}).strict()
+export type DiscussionPayload = z.infer<typeof discussionPayloadSchema>
+
+/** Learner allowlists. Native accepted answers and reference responses have no
+ * field in these shapes; they travel only through the authorized reveal flow. */
+export const clozePublicSchema = z.object({
+  schemaVersion: z.literal(1), segments: z.array(clozeSegmentSchema).min(2).max(65),
+  policy: wordSpellingPolicySchema, trimBoundaryWhitespace: z.boolean(),
+  wordBank: z.array(z.string().max(300)).max(40).optional(),
+})
+export const vocabularyPublicSchema = z.object({
+  schemaVersion: z.literal(1), policy: wordSpellingPolicySchema,
+  entries: z.array(z.object({ id: elementKey, clue: z.string().max(500) })).min(1).max(40),
+})
+export const discussionPublicSchema = z.object({ schemaVersion: z.literal(1), scored: z.literal(false) })
+
 /* ---- the discriminated whole ------------------------------------------- */
 
 export const questionPayloadSchema = z.discriminatedUnion('kind', [
@@ -480,6 +559,9 @@ export const questionPayloadSchema = z.discriminatedUnion('kind', [
   z.object({ kind: z.literal('order'), payload: orderPayloadSchema }),
   z.object({ kind: z.literal('match'), payload: matchPayloadSchema }),
   z.object({ kind: z.literal('hotspot'), payload: hotspotPayloadSchema }),
+  z.object({ kind: z.literal('cloze'), payload: clozePayloadSchema }),
+  z.object({ kind: z.literal('vocabulary'), payload: vocabularyPayloadSchema }),
+  z.object({ kind: z.literal('discussion'), payload: discussionPayloadSchema }),
 ])
 
 /** Parses a stored payload against the schema for its kind. */
@@ -490,6 +572,9 @@ export function parsePayload(kind: QuestionKind, payload: unknown) {
     case 'order': return orderPayloadSchema.safeParse(payload)
     case 'match': return matchPayloadSchema.safeParse(payload)
     case 'hotspot': return hotspotPayloadSchema.safeParse(payload)
+    case 'cloze': return clozePayloadSchema.safeParse(payload)
+    case 'vocabulary': return vocabularyPayloadSchema.safeParse(payload)
+    case 'discussion': return discussionPayloadSchema.safeParse(payload)
   }
 }
 
@@ -535,6 +620,9 @@ export const orderEvidenceSchema = z.object({
 export type OrderEvidence = z.infer<typeof orderEvidenceSchema>
 
 export const answerPayloadSchema = z.discriminatedUnion('kind', [
+  z.object({ kind: z.literal('cloze'), values: z.record(elementKey, z.string().max(300)).refine(values => Object.keys(values).length <= 16, 'Too many blank responses') }).strict(),
+  z.object({ kind: z.literal('vocabulary'), values: z.record(elementKey, z.string().max(1024)).refine(values => Object.keys(values).length <= 40, 'Too many vocabulary responses') }).strict(),
+  z.object({ kind: z.literal('discussion'), response: z.string().max(4000) }).strict(),
   z.object({ kind: z.literal('mcq'), choice: elementKey }),
   z.object({ kind: z.literal('tf'), choice: tfChoiceSchema }),
   z.object({ kind: z.literal('order'), sequence: z.array(elementKey).min(1).max(8), evidence: orderEvidenceSchema.optional() }),

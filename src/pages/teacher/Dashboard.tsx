@@ -91,10 +91,7 @@ export default function TeacherDashboard() {
     <div className="mx-auto flex max-w-[1180px] flex-col gap-6">
       {/* ---------------- A. the banner ---------------- */}
       <section
-        className="relative overflow-hidden rounded-sm px-6 py-6 sm:px-8"
-        style={{
-          background: 'var(--color-brand-500)',
-        }}
+        className="teacher-joy-hero relative overflow-hidden rounded-sm px-6 py-6 sm:px-8"
       >
         <div className="relative z-10 flex flex-col items-start gap-5 lg:flex-row lg:items-center">
           <div className="max-w-[38rem]">
@@ -109,13 +106,13 @@ export default function TeacherDashboard() {
                   The legacy lesson builder stays reachable from the cards below. */}
               <Link
                 to="/teacher/activities/new"
-                className="rounded-sm bg-white px-5 py-2.5 text-sm font-bold text-brand-600 focus-visible:outline-3 focus-visible:outline-white focus-visible:outline-offset-2"
+                className="teacher-hero-primary rounded-sm bg-white px-5 py-2.5 text-sm font-bold text-brand-600 focus-visible:outline-3 focus-visible:outline-white focus-visible:outline-offset-2"
               >
                 {t('teacher.hero.createQuiz')}
               </Link>
               <Link
                 to="/teacher/materials"
-                className="rounded-sm border border-white/45 px-5 py-2.5 text-sm font-bold text-white hover:bg-white/10 focus-visible:outline-3 focus-visible:outline-white focus-visible:outline-offset-2"
+                className="teacher-hero-secondary rounded-sm border border-white/45 px-5 py-2.5 text-sm font-bold text-white hover:bg-white/10 focus-visible:outline-3 focus-visible:outline-white focus-visible:outline-offset-2"
               >
                 {t('teacher.hero.uploadMaterial')}
               </Link>

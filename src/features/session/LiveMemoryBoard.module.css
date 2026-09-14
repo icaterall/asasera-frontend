@@ -1,0 +1,12 @@
+.board{inline-size:min(100%,960px);margin-inline:auto;display:grid;gap:16px;padding:24px;background:var(--surface);border-radius:5px;color:var(--ink);box-sizing:border-box}
+.board>p{margin:0;text-align:center;line-height:1.5}
+.cards{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.card{inline-size:100%;min-block-size:128px;border:1px solid var(--line);border-radius:5px;background:var(--surface);color:var(--ink);padding:16px;font:inherit;font-size:clamp(1rem,2vw,1.5rem);line-height:1.4;display:flex;align-items:center;justify-content:center;gap:8px;overflow-wrap:anywhere;box-sizing:border-box}
+button.card{cursor:pointer}
+button.card:not(:disabled):hover{filter:brightness(.92)}
+.card[data-state=hidden]{background:var(--act);color:white;border-color:transparent}
+.card[data-state=matched]{background:var(--raised)}
+button.card:focus-visible{outline:3px solid var(--focus-colour);outline-offset:3px}
+button.card:disabled{cursor:default}
+.board>button{justify-self:center;min-block-size:48px}
+@media(max-width:600px){.board{padding:16px}.cards{grid-template-columns:repeat(2,minmax(0,1fr))}.card{min-block-size:112px}}

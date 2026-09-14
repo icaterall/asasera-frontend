@@ -13,13 +13,38 @@ export function defaultPayload(kind:QuestionKindWire,imageKey=''){
   if(kind==='match')return {cards:[{key:'card_a',text:''},{key:'card_b',text:''}],targets:[{key:'target_a',text:''},{key:'target_b',text:''}],map:{card_a:'target_a',card_b:'target_b'}}
   return {mode:'card_to_zone',imageKey,zones:[{key:'zone_a',x:.35,y:.35,w:.25,h:.2,shape:'rect' as const}],cards:[{key:'card_a',text:''}],map:{card_a:'zone_a'}}
 }
-function MatchEditor({p,onChange}:{p:MatchPayload;onChange:(p:MatchPayload)=>void}){
+function MatchEditor({p,onChange:onPayloadChange}:{p:MatchPayload;onChange:(p:MatchPayload)=>void}){
   const {i18n}=useTranslation(),ar=i18n.language.startsWith('ar')
+  const onChange=(next:MatchPayload)=>{
+    // Keep reviewed alternatives tied to surviving identities, and always include
+    // the reference target when a teacher changes it in the existing row editor.
+    if(!next.acceptedTargets){onPayloadChange(next);return}
+    const targetKeys=new Set(next.targets.map(target=>target.key))
+    const acceptedTargets=Object.fromEntries(next.cards.filter(card=>next.acceptedTargets?.[card.key]).map(card=>[
+      card.key,[...new Set([...next.acceptedTargets![card.key]!.filter(target=>targetKeys.has(target)),next.map[card.key]!])],
+    ]))
+    onPayloadChange({...next,acceptedTargets})
+  }
   return <section className={styles.advanced}><h2>{ar?'البطاقات وأهدافها الصحيحة':'Cards and their correct targets'}</h2><p>{ar?'يمكن أن يستقبل الهدف أكثر من بطاقة.':'A target can receive more than one card.'}</p>
     <div className={styles.matchEditor}><div><h3>{ar?'الأهداف':'Targets'}</h3>{p.targets.map((t,index)=><div className={styles.editRow} key={t.key}><input aria-label={`${ar?'الهدف':'Target'} ${index+1}`} value={t.text} onChange={e=>onChange({...p,targets:p.targets.map(x=>x.key===t.key?{...x,text:e.target.value}:x)})}/><Button variant="quiet" aria-label={ar?'احذف الهدف':'Delete target'} disabled={p.targets.length<=2} onClick={()=>{const targets=p.targets.filter(x=>x.key!==t.key);onChange({...p,targets,map:Object.fromEntries(Object.entries(p.map).map(([c,id])=>[c,id===t.key?targets[0]!.key:id]))})}}><Trash2 size={18}/></Button></div>)}
     <Button disabled={p.targets.length>=8} onClick={()=>onChange({...p,targets:[...p.targets,{key:key('target'),text:''}]})}>{ar?'أضف هدفًا':'Add target'}</Button></div>
     <div><h3>{ar?'البطاقات':'Cards'}</h3>{p.cards.map((c,index)=><div className={styles.cardEditor} key={c.key}><input aria-label={`${ar?'البطاقة':'Card'} ${index+1}`} value={c.text} onChange={e=>onChange({...p,cards:p.cards.map(x=>x.key===c.key?{...x,text:e.target.value}:x)})}/><Select aria-label={`${ar?'هدف البطاقة':'Target for card'} ${index+1}`} value={p.map[c.key]} onValueChange={e=>onChange({...p,map:{...p.map,[c.key]:e}})}>{p.targets.map((t,i)=><option key={t.key} value={t.key}>{t.text||`${ar?'الهدف':'Target'} ${i+1}`}</option>)}</Select><Button variant="quiet" aria-label={ar?'احذف البطاقة':'Delete card'} disabled={p.cards.length<=2} onClick={()=>onChange({...p,cards:p.cards.filter(x=>x.key!==c.key),map:Object.fromEntries(Object.entries(p.map).filter(([id])=>id!==c.key))})}><Trash2 size={18}/></Button></div>)}
     <Button disabled={p.cards.length>=8} onClick={()=>{const id=key('card');onChange({...p,cards:[...p.cards,{key:id,text:''}],map:{...p.map,[id]:p.targets[0]!.key}})}}>{ar?'أضف بطاقة':'Add card'}</Button></div></div>
+    <details className={styles.acceptedAlternatives}>
+      <summary>{ar?'البدائل المقبولة':'Accepted alternatives'}</summary>
+      <label className={styles.equivalenceChoice}><input type="checkbox" checked={p.equivalenceVersion===1} onChange={event=>onChange({...p,equivalenceVersion:event.target.checked?1:undefined,acceptedTargets:event.target.checked?p.acceptedTargets:undefined})}/><span>{ar?'اقبل النصوص المتطابقة والأهداف الإضافية':'Accept equivalent labels and additional targets'}</span></label>
+      <p>{ar?'عند التفعيل، تُقبل البطاقات أو الأهداف ذات النص المتطابق بالتبادل. اختر أهدافًا إضافية فقط حين تكون تصنيفات صحيحة أيضًا. إلغاء التفعيل يزيل البدائل.':'When enabled, cards or targets with identical text are interchangeable. Select extra targets only when those classifications are also correct. Turning this off removes the alternatives.'}</p>
+      {p.equivalenceVersion===1&&p.cards.map((card,index)=><fieldset key={card.key}>
+        <legend>{ar?'الأهداف المقبولة للبطاقة':'Accepted targets for card'} {index+1}: <bdi>{card.text}</bdi></legend>
+        {p.targets.map((target,targetIndex)=>{
+          const reference=p.map[card.key]===target.key,accepted=p.acceptedTargets?.[card.key]??[p.map[card.key]!]
+          return <label className={styles.equivalenceChoice} key={target.key}><input type="checkbox" checked={reference||accepted.includes(target.key)} disabled={reference} onChange={event=>{
+            const targets=event.target.checked?[...accepted,target.key]:accepted.filter(id=>id!==target.key)
+            onChange({...p,acceptedTargets:{...p.acceptedTargets,[card.key]:targets}})
+          }}/><span><bdi>{target.text||`${ar?'الهدف':'Target'} ${targetIndex+1}`}</bdi>{reference?(ar?' — الهدف المرجعي':' — reference target'):''}</span></label>
+        })}
+      </fieldset>)}
+    </details>
   </section>
 }
 /* The wrong-answer reason used to live here as a collapsed section. It moved

@@ -88,6 +88,9 @@
 .advanced > div { display: flex; flex-direction: column; gap: 12px; padding: 0 14px 14px; }
 .advanced label { display: flex; flex-direction: column; gap: 6px; font-size: var(--f-small); }
 .modeNote { margin: 0; font-size: var(--f-small); color: var(--muted); }
+.advanced .equivalenceChoice {flex-direction:row;align-items:center;gap:8px;min-height:44px;cursor:pointer}
+.equivalenceChoice input {accent-color:var(--act);flex-shrink:0}
+.equivalenceChoice input:focus-visible {outline:2px solid var(--act);outline-offset:2px}
 
 .rules { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; list-style: none; }
 .rule { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }

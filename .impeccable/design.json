@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-09-08T18:08:29Z",
+  "generatedAt": "2026-09-14T04:42:11Z",
   "title": "Design System: Asasera",
   "extensions": {
     "colorMeta": {
@@ -639,6 +639,10 @@
     ],
     "breakpoints": [
       {
+        "name": "editor-two-row-header",
+        "value": "1100px"
+      },
+      {
         "name": "editor-drawers",
         "value": "1024px"
       },
@@ -941,6 +945,11 @@
       "Mirrored interface chrome with stable image geometry and numeric identifiers."
     ],
     "rules": [
+      {
+        "name": "The Editor Tools Rule",
+        "body": "Keep Save and approval directly available; group secondary activity actions under More, and open language and audience fields directly from Activity settings.",
+        "section": "components"
+      },
       {
         "name": "The Paired Identity Rule",
         "body": "Keep each answer slot's color and shape together: red triangle, blue diamond, yellow circle, green square. Use text and a mark to report correctness.",

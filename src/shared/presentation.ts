@@ -1,0 +1,62 @@
+/*
+ * GENERATED FILE — DO NOT EDIT.
+ *
+ * Mirrored from asasera-backend/packages/shared/src/presentation.ts.
+ * Edit the source there and run `npm run sync:shared` in asasera-backend.
+ * CI fails if this file and its source differ.
+ */
+import {z} from 'zod'
+
+export const PRESENTATION_IDS=['name-wheel','question-wheel','flashcards','random-cards','speaking-cards','open-box','challenge-cards','match-up','memory','group-sort','sequence','sentence-completion','word-builder','word-search','crossword','class-competition'] as const
+export const presentationIdSchema=z.enum(PRESENTATION_IDS)
+export type PresentationId=z.infer<typeof presentationIdSchema>
+export const deliveryContextSchema=z.enum(['live','practice','teacher-led','classroom-tool'])
+export type DeliveryContext=z.infer<typeof deliveryContextSchema>
+/** Compatibility contexts, not feature availability: launch still checks the server's rollout policy. */
+export const PRESENTATION_CONTEXTS:Readonly<Record<PresentationId,readonly DeliveryContext[]>>={
+ 'name-wheel':['live','classroom-tool'],
+ 'question-wheel':['live','practice'],flashcards:['teacher-led','practice'],
+ 'random-cards':['live','teacher-led','practice'],'speaking-cards':['teacher-led','practice'],
+ 'open-box':['live','teacher-led','practice'],'challenge-cards':['live','practice'],
+ 'match-up':['live','practice'],memory:['teacher-led','practice'],'group-sort':['live','practice'],
+ sequence:['live','practice'],'sentence-completion':['live','practice'],
+ 'word-builder':['practice'],'word-search':['practice'],crossword:['practice'],'class-competition':['live'],
+}
+const questionIds=z.array(z.number().int().positive()).min(1).max(100).refine(ids=>new Set(ids).size===ids.length,'Question IDs must be unique.')
+export const presentationCompatibilityRequestSchema=z.object({
+ definitionId:presentationIdSchema,context:deliveryContextSchema,
+ selectedQuestionIds:questionIds.optional(),useCompatibleSubset:z.boolean().default(false),
+}).strict()
+export type PresentationCompatibilityRequest=z.input<typeof presentationCompatibilityRequestSchema>
+export const presentationItemRefSchema=z.object({questionId:z.number().int().positive(),contentVersionId:z.number().int().positive()}).strict()
+export type PresentationItemRef=z.infer<typeof presentationItemRefSchema>
+export const compatibilityReasonSchema=z.enum(['incompatible-content','unsupported-context','native-pairs-required','ambiguous-labels','native-groups-required','native-sequence-required','native-blanks-required','native-vocabulary-required','authored-board-required','reference-response-required','participant-content-required','unknown-question','explicit-subset-required','no-compatible-content'])
+export type CompatibilityReason=z.infer<typeof compatibilityReasonSchema>
+export const presentationCompatibilitySchema=z.object({
+ definitionId:presentationIdSchema,definitionVersion:z.literal(1),adapterVersion:z.literal(1),contentVersionId:z.number().int().positive(),context:deliveryContextSchema,
+ status:z.enum(['ready','requires-subset','unavailable']),
+ compatibleItemRefs:z.array(presentationItemRefSchema).max(100),
+ excludedItemRefs:z.array(presentationItemRefSchema.extend({reason:compatibilityReasonSchema})).max(100),
+ selectedItemRefs:z.array(presentationItemRefSchema).max(100),reasons:z.array(compatibilityReasonSchema),
+}).strict()
+export type PresentationCompatibility=z.infer<typeof presentationCompatibilitySchema>
+
+export const presentationConfigSchema=z.object({
+ context:deliveryContextSchema,
+ semantics:z.enum(['scored','self-rated','discussion','practice']),
+ noRepeat:z.boolean().default(true),
+ revealPolicy:z.enum(['host','on-request','after-answer','after-submission','after-deadline']),
+}).strict().superRefine((config,ctx)=>{
+ if(config.semantics==='scored'&&config.revealPolicy==='on-request')ctx.addIssue({code:'custom',path:['revealPolicy'],message:'Scored responses cannot reveal answers on request.'})
+})
+export type PresentationConfig=z.infer<typeof presentationConfigSchema>
+/** Persist on the existing run/assignment. A launch also resolves compatibility and enforces assignment policy. */
+export const presentationSelectionSchema=z.object({
+ definitionId:presentationIdSchema,definitionVersion:z.literal(1),adapterVersion:z.literal(1),
+ contentVersionId:z.number().int().positive(),selectedQuestionIds:questionIds,
+ config:presentationConfigSchema,
+}).strict().superRefine((selection,ctx)=>{
+ if(!PRESENTATION_CONTEXTS[selection.definitionId].includes(selection.config.context))ctx.addIssue({code:'custom',path:['config','context'],message:'This presentation does not support that delivery context.'})
+ if(['flashcards','speaking-cards','memory','word-search','crossword','name-wheel'].includes(selection.definitionId)&&selection.config.semantics==='scored')ctx.addIssue({code:'custom',path:['config','semantics'],message:'This presentation does not provide verified scored responses.'})
+})
+export type PresentationSelection=z.infer<typeof presentationSelectionSchema>

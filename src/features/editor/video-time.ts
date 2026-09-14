@@ -12,3 +12,10 @@ export function formatVideoTime(seconds:number):string{
  const h=Math.floor(seconds/3600),m=Math.floor(seconds%3600/60),s=seconds%60
  return h?`${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`:`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`
 }
+
+/** Explicit, localized units avoid ambiguity between minutes and hours. */
+export function formatVideoDuration(seconds:number|null|undefined,locale:string):string|null{
+ if(typeof seconds!=='number'||!Number.isSafeInteger(seconds)||seconds<=0)return null
+ const units=[['hour',Math.floor(seconds/3600)],['minute',Math.floor(seconds%3600/60)],['second',seconds%60]] as const
+ return units.filter(([,value])=>value>0).map(([unit,value])=>new Intl.NumberFormat(locale,{style:'unit',unit,unitDisplay:'short'}).format(value)).join(' ')
+}

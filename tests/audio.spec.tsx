@@ -23,13 +23,13 @@ beforeEach(() => {
 })
 afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals() })
 
-it('waits for an explicit unlock and preserves the saved mute setting', () => {
+it('waits for an explicit unlock and preserves the saved mute setting', async () => {
   localStorage.setItem('asasera:mute', 'true')
   const audio = new SessionAudio()
   audio.play('correct')
   expect(playback.created).not.toHaveBeenCalled()
   expect(playback.play).not.toHaveBeenCalled()
-  expect(audio.unlock()).toBe(true)
+  expect(await audio.unlock()).toBe(true)
   expect(playback.created).toHaveBeenCalledWith(expect.objectContaining({ mute: true, html5: false }))
   audio.play('correct')
   expect(playback.play).not.toHaveBeenCalled()
@@ -41,9 +41,9 @@ it('waits for an explicit unlock and preserves the saved mute setting', () => {
   expect(playback.unload).toHaveBeenCalledOnce()
 })
 
-it('uses one join click without a repeating lobby soundtrack or duplicate count cue', () => {
+it('uses one join click without a repeating lobby soundtrack or duplicate count cue', async () => {
   const audio = new SessionAudio()
-  audio.unlock()
+  await audio.unlock()
   audio.lobby(0)
   audio.lobby(1)
   audio.lobby(1)
@@ -55,4 +55,12 @@ it('uses one join click without a repeating lobby soundtrack or duplicate count 
   audio.stopLoop()
   expect(playback.stop).toHaveBeenCalledWith(1)
   audio.dispose()
+})
+it('denied autoplay does not report audio as enabled or play a cue',async()=>{
+ playback.resume.mockRejectedValueOnce(new Error('Autoplay denied'))
+ const audio=new SessionAudio()
+ expect(await audio.unlock()).toBe(false)
+ audio.play('select')
+ expect(playback.play).not.toHaveBeenCalled()
+ audio.dispose()
 })

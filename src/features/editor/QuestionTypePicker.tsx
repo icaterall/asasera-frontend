@@ -10,12 +10,15 @@ const types=[
  {id:'slider',en:'Slider',ar:'شريط التمرير',group:'knowledge'},
  {id:'hotspot',en:'Pin answer',ar:'تحديد الإجابة',group:'knowledge'},
  {id:'order',en:'Order',ar:'رتّب',group:'knowledge'},
+ {id:'cloze',en:'Complete the sentence',ar:'أكمل الجملة',group:'knowledge'},
+ {id:'discussion',en:'Discussion',ar:'مناقشة',group:'opinions'},
  {id:'poll',en:'Poll',ar:'استطلاع',group:'opinions'},
  {id:'scale',en:'Scale',ar:'مقياس',group:'opinions'},
  {id:'drop-pin',en:'Drop pin',ar:'وضع دبوس',group:'opinions'},
  {id:'match',en:'Matching',ar:'مطابقة',group:'more'},
+ {id:'vocabulary',en:'Vocabulary',ar:'كلمات',group:'more'},
 ] as const
-const supported=new Set<string>(['mcq','tf','hotspot','order','match'])
+const supported=new Set<string>(['mcq','tf','hotspot','order','match','cloze','vocabulary','discussion'])
 /**
  * What this kind of question is called, in one place.
  *
@@ -29,7 +32,7 @@ export function questionTypeName(kind:string,ar:boolean):string{
   return type?(ar?type.ar:type.en):kind
 }
 function TypeIcon({kind}:{kind:string}){
- const Icon=kind==='text'?Type:kind==='slider'?SlidersHorizontal:kind==='hotspot'||kind==='drop-pin'?MapPin:kind==='order'?ListOrdered:kind==='poll'?ChartPie:kind==='scale'?ChartNoAxesColumn:Link2
+ const Icon=kind==='text'||kind==='cloze'||kind==='vocabulary'?Type:kind==='slider'?SlidersHorizontal:kind==='hotspot'||kind==='drop-pin'?MapPin:kind==='order'?ListOrdered:kind==='poll'?ChartPie:kind==='scale'?ChartNoAxesColumn:Link2
  return <span className={styles.icon} data-kind={kind} aria-hidden="true">{kind==='mcq'||kind==='tf'?<span className={styles.answerBlocks} data-kind={kind}>{Array.from({length:kind==='tf'?2:4},(_,i)=><i key={i}/>)}</span>:<Icon size={30} strokeWidth={2.3}/>}</span>
 }
 /**

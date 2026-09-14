@@ -1,0 +1,60 @@
+import {test,expect} from '@playwright/test'
+
+for(const ar of [false,true])for(const mode of ['memory','flashcards'] as const)test(`real teacher-led ${mode} ${ar?'Arabic mobile':'English desktop'}`,async({page,request,browser})=>{
+ test.setTimeout(60000)
+ expect(process.env.PW_BASE_URL).toBe('http://127.0.0.1:5411')
+ const email=`collective-${crypto.randomUUID()}@example.com`,password='Synthetic collective class 2026!'
+ expect((await request.post('/api/v1/auth/register/teacher',{data:{name:'Synthetic collective host',email,password}})).ok()).toBe(true)
+ const login=await request.post('/api/v1/auth/login',{data:{email,password}}),{accessToken}=await login.json(),headers={authorization:`Bearer ${accessToken}`}
+ await page.context().addCookies((await request.storageState()).cookies)
+ const made=await request.post('/api/v1/activities',{headers,data:{title:`Synthetic shared ${mode}`,subjectId:1,levelId:8,purposeId:2,contentLanguage:'en'}}),{activity}=await made.json()
+ const body=mode==='memory'?{kind:'match',prompt:'Find the reviewed pairs',payload:{cards:[{key:'a',text:'Alpha'},{key:'b',text:'Beta'}],targets:[{key:'x',text:'First'},{key:'y',text:'Second'}],map:{a:'x',b:'y'}}}:{kind:'mcq',prompt:'Which statements apply?',payload:{options:[{key:'a',text:'First statement'},{key:'b',text:'Second statement'},{key:'c',text:'All of the above'}],correct:'c'}}
+ expect((await request.post(`/api/v1/activities/${activity.id}/questions`,{headers,data:body})).ok()).toBe(true)
+ expect((await request.post(`/api/v1/activities/${activity.id}/publish`,{headers})).ok()).toBe(true)
+ await page.addInitScript(language=>{localStorage.setItem('asasera.language',language);localStorage.setItem('asasera:activity-motion','off')},ar?'ar':'en')
+ await page.setViewportSize(ar?{width:390,height:844}:{width:1440,height:900})
+ const errors:string[]=[];page.on('pageerror',error=>errors.push(error.message))
+ await page.goto(`/teacher/activities/${activity.id}/play?mode=live`)
+ await page.getByRole('radio',{name:mode==='memory'?(ar?/الذاكرة/:/Memory/):(ar?/بطاقات المراجعة/:/Flashcards/)}).check()
+ await page.getByRole('button',{name:ar?'ابدأ الحصة المباشرة':'Start live game',exact:true}).click()
+ await expect(page).toHaveURL(/\/teacher\/live\/\d+$/)
+ const pin=await page.locator('strong[dir=ltr]').first().innerText()
+ const learnerContext=await browser.newContext({baseURL:process.env.PW_BASE_URL,viewport:{width:390,height:844}})
+ await learnerContext.addInitScript(language=>localStorage.setItem('asasera.language',language),ar?'ar':'en')
+ const learner=await learnerContext.newPage()
+ try{
+  await learner.goto(`/join?pin=${pin}`)
+  await learner.getByLabel(ar?'اسمك في الحصة':'Display name').fill('Amal')
+  await learner.getByRole('button',{name:ar?'انضم':'Join class',exact:true}).click()
+  await expect(learner.getByText(ar?'أنت في الحصة. انتظر إشارة المعلّم.':'You are in. Wait for your teacher to start.')).toBeVisible()
+  await page.getByRole('button',{name:ar?'اسحب بطاقة':'Draw a card',exact:true}).click()
+  await page.getByRole('button',{name:ar?'ابدأ السؤال':'Begin question',exact:true}).click()
+  await expect(learner.getByRole('heading',{name:body.prompt})).toBeVisible()
+  if(mode==='memory'){
+   const board=page.getByRole('region',{name:ar?'لوحة الذاكرة المشتركة':'Shared memory board'}),learnerBoard=learner.getByRole('region',{name:ar?'لوحة الذاكرة المشتركة':'Shared memory board'})
+   await expect(board.getByRole('button',{name:ar?/اقلب البطاقة/:/Flip card/})).toHaveCount(4)
+   await expect(learnerBoard.getByRole('button')).toHaveCount(0)
+   await expect(learner.getByText('Alpha',{exact:true})).toHaveCount(0)
+   await expect(page.getByRole('button',{name:ar?'اكشف الإجابة':'Reveal answer',exact:true})).toHaveCount(0)
+   await board.getByRole('button',{name:ar?'اقلب البطاقة 1':'Flip card 1',exact:true}).click()
+   const revealedText=await board.locator('[data-state=revealed]').innerText()
+   await expect(learnerBoard.getByText(revealedText,{exact:true})).toBeVisible()
+   await page.reload()
+   await expect(board.getByText(revealedText,{exact:true})).toBeVisible()
+   await board.getByRole('button',{name:ar?'اقلب البطاقة 2':'Flip card 2',exact:true}).click()
+   await expect(board.locator('[data-state=hidden]')).toHaveCount(2)
+  }else{
+   await expect(learner.getByText('All of the above',{exact:true})).toBeVisible()
+   await expect(learner.getByRole('button',{name:/First statement|Second statement|All of the above/})).toHaveCount(0)
+   await page.getByRole('button',{name:ar?'اكشف الإجابة':'Reveal answer',exact:true}).click()
+   await expect(learner.getByRole('region',{name:ar?'الإجابة المرجعية':'Reference answer'})).toContainText('All of the above')
+   await expect(learner.getByText(ar?'لم تصل إجابة لهذا السؤال':'No answer received',{exact:true})).toHaveCount(0)
+  }
+  await page.evaluate(()=>scrollTo(0,0));await learner.evaluate(()=>scrollTo(0,0))
+  await page.screenshot({path:`.impeccable/review/live-${mode}-${ar?'mobile-ar':'desktop-en'}.png`,fullPage:true})
+  await learner.screenshot({path:`.impeccable/review/live-${mode}-learner-${ar?'mobile-ar':'mobile-en'}.png`,fullPage:true})
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true)
+  expect(await learner.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true)
+  expect(errors).toEqual([])
+ }finally{await learnerContext.close()}
+})
