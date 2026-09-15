@@ -23,12 +23,17 @@ for(const [language,width,reduced] of [['en',1440,false],['ar',390,false],['en',
    const draw=learn.waitForResponse(response=>response.url().endsWith('/presentation')&&response.request().method()==='POST')
    await learn.getByRole('button',{name:ar?'ابدأ الجولة':'Start round'}).click()
    const result=await (await draw).json(),spin=result.presentation.questionWheel
-   expect(spin.durationMs).toBe(2400)
+   expect(spin.durationMs).toBe(4800)
    const wheel=learn.locator('[data-wheel-phase]')
+   if(width===1440)await learn.getByRole('button',{name:'Fullscreen',exact:true}).click()
    if(!reduced){await expect(wheel).toHaveAttribute('data-wheel-phase','spinning');await wheel.screenshot({path:`../docs/evidence/interactive/question-wheel-${language}-${width}-motion.png`})}
    if(ar&&!reduced)await learn.getByRole('button',{name:'تخطي الحركة'}).click()
-   await expect(wheel).toHaveAttribute('data-wheel-phase','selected')
+   await expect(wheel).toHaveAttribute('data-wheel-phase','selected',{timeout:8000})
    await expect(learn.getByRole('heading',{name:result.question.prompt,exact:true})).toBeVisible()
+   if(width===1440){
+    expect(await learn.getByRole('heading',{name:result.question.prompt,exact:true}).evaluate(el=>document.fullscreenElement?.contains(el))).toBe(true)
+    await learn.getByRole('button',{name:'Exit fullscreen',exact:true}).click()
+   }
    await learn.reload()
    await expect(learn.getByRole('heading',{name:result.question.prompt,exact:true})).toBeVisible()
    await expect(wheel.getByRole('status')).toContainText(spin.entries[spin.winnerIndex].label)

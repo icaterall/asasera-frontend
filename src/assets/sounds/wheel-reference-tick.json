@@ -1,0 +1,8 @@
+{
+  "source": "User supplied WhatsApp Video 2026-09-15 at 08.07.43 (1).mp4",
+  "sourceStartSeconds": 2.46,
+  "durationSeconds": 0.08,
+  "processing": "Mono 22050 Hz PCM; gain 6; 2 ms entrance and 30 ms tail fade",
+  "purpose": "A single wheel-boundary click; scheduled from actual rotor progress, no looping track",
+  "review": "Reference frames, waveform transients and spectrogram inspected. Audio listening is unavailable to the agent in this environment; perceptual identity has not been certified."
+}

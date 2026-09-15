@@ -1,7 +1,8 @@
-import {useEffect, useRef} from 'react'
+import {useEffect, useRef, useState} from 'react'
 import {Link} from 'react-router-dom'
 import {Disc3, Globe2, LogOut, Maximize, Minimize, Monitor, QrCode, Settings2, Users, Volume2, VolumeX} from 'lucide-react'
 import {MotionControl} from '../activity-themes/ActivityStage'
+import {JoinShareDialog} from './JoinShareDialog'
 import styles from './SessionChrome.module.css'
 import {Logo} from '@/components/ui/Logo'
 
@@ -11,6 +12,7 @@ export function SessionToolbar({role,pin,participants,connected,ar,muted,enabled
   onSound:()=>void;onFullscreen:()=>void;onLanguage:()=>void;onLeave:()=>void;onProjector:()=>void;onWheel:()=>void;onEnd:()=>void;
 }) {
   const menu=useRef<HTMLDetailsElement>(null)
+  const [share,setShare]=useState(false)
   const t=(a:string,e:string)=>ar?a:e
   useEffect(()=>{
     const outside=(event:PointerEvent)=>{if(menu.current&&!menu.current.contains(event.target as Node))menu.current.open=false}
@@ -18,11 +20,12 @@ export function SessionToolbar({role,pin,participants,connected,ar,muted,enabled
     return()=>document.removeEventListener('pointerdown',outside)
   },[])
   const choose=(action:()=>void)=>{if(menu.current)menu.current.open=false;action()}
-  return <header className={styles.toolbar}>
+  return <>{share&&pin&&<JoinShareDialog pin={pin} ar={ar} onClose={()=>setShare(false)}/>}
+  <header className={styles.toolbar}>
     <div className={styles.joinAddress}>
-      {pin?<a href={`/join?pin=${pin}`} target="_blank" rel="noreferrer" aria-label={t(`انضم برمز ${pin}`,`Join with PIN ${pin}`)}>
+      {pin?<button type="button" onClick={()=>setShare(true)} aria-haspopup="dialog" aria-label={t(`رمز الحصة ${pin} — اعرض رمز الاستجابة ورابط الانضمام`,`Class PIN ${pin} — show the QR code and join link`)}>
         <QrCode size={24} aria-hidden="true"/><span><span className={styles.joinLabel}>{t('انضم عبر','Join at')} <b dir="ltr">{location.host}/join</b></span><strong dir="ltr">{pin}</strong></span>
-      </a>:<span>{t('هيا نلعب ونتعلّم','Let’s play and learn')}</span>}
+      </button>:<span>{t('هيا نلعب ونتعلّم','Let’s play and learn')}</span>}
     </div>
     <Link to={role==='player'?'/join':'/teacher/activities'} className={styles.brand}><Logo onDark /></Link>
     <div className={styles.tools}>
@@ -35,6 +38,7 @@ export function SessionToolbar({role,pin,participants,connected,ar,muted,enabled
         <div className={styles.menu}>
           <p>{t('خيارات الحصة','Session options')}</p>
           <MotionControl/>
+          {pin&&<button type="button" onClick={()=>choose(()=>setShare(true))}><QrCode size={20} aria-hidden="true"/>{t('رابط الانضمام ورمز QR','Join link and QR code')}</button>}
           <button type="button" onClick={()=>choose(onLanguage)}><Globe2 size={20} aria-hidden="true"/>{ar?'English':'العربية'}</button>
           {role==='host'&&<button type="button" disabled={busy||!connected} onClick={()=>choose(onProjector)}><Monitor size={20} aria-hidden="true"/>{t('افتح شاشة العرض','Open projector')}</button>}
           {role==='host'&&canWheel&&<button type="button" disabled={busy||!connected} onClick={()=>choose(onWheel)}><Disc3 size={20} aria-hidden="true"/>{t('العجلة العشوائية','Random wheel')}</button>}
@@ -43,5 +47,5 @@ export function SessionToolbar({role,pin,participants,connected,ar,muted,enabled
         </div>
       </details>
     </div>
-  </header>
+  </header></>
 }

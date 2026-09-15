@@ -272,6 +272,8 @@ it('restores audience selections when reopening the section and removes them onl
   await user.click(await screen.findByRole('combobox', {name: 'Education stages'}))
   await user.click(await screen.findByRole('option', {name: 'Grade 1'})); await user.click(screen.getByRole('button', {name: 'Done'}))
   view.unmount(); show(<ActivityAudience activity={activity} onSave={save}/>)
+  /* The names appear once the stage list has loaded; until then the control
+     honestly says how many are chosen. */
   expect(await screen.findByRole('button', {name: 'Remove Grade 1'})).toBeTruthy()
   await user.click(screen.getByRole('button', {name: 'Save audience'})); await screen.findByText('Offline')
   expect(sessionStorage.getItem(audienceKey)).not.toBeNull()
@@ -390,7 +392,7 @@ it('creates an activity from a title alone and carries a chosen material into th
   const create = vi.spyOn(activities, 'create').mockResolvedValue({activity})
   show(<CreateActivity/>, '/teacher/activities/new?materialId=7&revisionId=11')
   fireEvent.change(await screen.findByLabelText('Activity name'), {target: {value: 'From chapter 3'}})
-  expect(screen.getByText('You can add this later; it helps organise your library.')).toBeTruthy()
+  expect(screen.getByLabelText('Category (optional)')).toBeTruthy()
   const submit = screen.getByRole('button', {name: 'Next'})
   await waitFor(() => expect(submit.hasAttribute('disabled')).toBe(false))
   fireEvent.click(submit)

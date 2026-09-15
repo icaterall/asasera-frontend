@@ -90,3 +90,36 @@
 
 /* Upload progress sits with the source it belongs to, not on the create button. */
 .sourceBusy{display:flex;justify-content:center;padding:var(--space-4,16px) 0}
+
+/* The create page's steps: fields under a numbered heading, indented to the
+   same gutter the heading's badge creates so the column reads as one. */
+.stepFields{display:grid;gap:20px;border:0;padding:0;margin:0 0 26px;padding-inline-start:50px}
+.stepFields>*{min-width:0}
+/* Related fields sit on one line and share the full width — the name beside the
+   category, then stage, countries and language together. The old layout nested
+   the audience's own two-column grid inside a single auto-fit column, which is
+   why a label as short as "Computing" broke across two lines. */
+.fieldRow{display:grid;gap:20px 24px;align-items:start}
+/* Both rows share one template, so the six controls form three columns down the
+   page rather than two rows that nearly line up. The first column is widest
+   because it holds the name; the last is narrowest because a language or a
+   purpose is a short word. */
+.fieldRow[data-cols="3"]{grid-template-columns:minmax(0,1.5fr) minmax(0,1fr) minmax(0,.9fr)}
+/* The name field, dressed as the dropdowns beside it: same label, same height,
+   same radius — otherwise the row reads as two unrelated designs. */
+.textField{display:flex;flex-direction:column;gap:8px;min-width:0}
+.textField>label{font-size:16px;font-weight:700;line-height:1.5;color:var(--dropdown-ink)}
+.textInput{box-sizing:border-box;width:100%;min-height:48px;padding:11px 14px;border:1px solid var(--dropdown-line);border-radius:8px;background:var(--dropdown-bg);color:var(--dropdown-ink);font:inherit;font-size:16px;font-weight:500;line-height:1.5}
+.textInput::placeholder{color:var(--dropdown-muted);font-weight:400}
+.sourceNotice{margin:0 0 14px;padding:12px 14px;border-radius:6px;background:color-mix(in srgb,var(--act,#0868e8) 7%,var(--surface,#fff));border-inline-start:4px solid var(--act,#0868e8);font-size:13.5px;line-height:1.7}
+.stepError{margin:18px 0 0;padding:12px 14px;border-radius:6px;background:color-mix(in srgb,#d73a55 8%,var(--surface,#fff));color:#a41934;font-size:13.5px;line-height:1.7}
+.stepActions{display:flex;flex-wrap:nowrap;gap:10px;align-items:center;flex-shrink:0}
+.stepActions button{min-width:0}
+@media(max-width:760px){.stepActions{flex-wrap:wrap}.stepActions button{flex:1 1 140px}}
+@media(max-width:1180px){.fieldRow[data-cols="3"]{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:1180px){.fieldRow[data-cols="3"]{grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) minmax(0,.85fr)}}
+@media(max-width:900px){.stepFields{padding-inline-start:0}.fieldRow[data-cols="3"]{grid-template-columns:1fr}}
+
+/* The games step wears the launch screen's violet, the way its own
+   "Present your content" step does — one product, one colour per idea. */
+.stepGames>span{background:var(--delivery-violet,#7357e8)!important;box-shadow:0 7px 16px rgb(115 87 232/.24)}

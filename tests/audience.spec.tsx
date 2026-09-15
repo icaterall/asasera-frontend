@@ -24,7 +24,7 @@ function Stages({disabled=false}:{disabled?:boolean}){
  </MultiSelect><button type="button">Outside</button></form>
 }
 describe('multi-selection controls',()=>{
- it('supports multiple stages, visible removable chips and clearing',async()=>{
+ it('shows the chosen stages inside the control, each removable there, and clears from the list',async()=>{
   const user=userEvent.setup();show(<Stages/>);const form=screen.getByRole('form') as HTMLFormElement
   expect(form.checkValidity()).toBe(false)
   await user.click(screen.getByRole('combobox',{name:'Education stages'}))
@@ -33,10 +33,17 @@ describe('multi-selection controls',()=>{
   expect(screen.getByRole('option',{name:'Secondary school'}).getAttribute('aria-selected')).toBe('true')
   await user.click(screen.getByRole('button',{name:'Done'}))
   expect(form.checkValidity()).toBe(true)
-  await user.click(screen.getByRole('button',{name:'Remove Primary school'}));expect(screen.queryByRole('button',{name:'Remove Primary school'})).toBeNull()
+  /* The names are readable without opening the list, and each one can be taken
+     back where it sits — that is the whole point of carrying them in the
+     control rather than in a row of chips below it. */
+  const field=screen.getByRole('combobox',{name:'Education stages'}).closest('[data-select-trigger]')!
+  expect(field.textContent).toContain('Primary school');expect(field.textContent).toContain('Secondary school')
+  await user.click(screen.getByRole('button',{name:'Remove Primary school'}))
+  expect(screen.queryByRole('button',{name:'Remove Primary school'})).toBeNull()
   expect(screen.getByRole('button',{name:'Remove Secondary school'})).toBeTruthy()
   await user.click(screen.getByRole('combobox',{name:'Education stages'}));await user.click(await screen.findByRole('button',{name:'Clear selections'}))
   expect(form.checkValidity()).toBe(false)
+  expect(field.textContent).toContain('Choose stages')
  })
  it('searches Arabic names, skips disabled options, and Escape restores focus',async()=>{
   const user=userEvent.setup();show(<Stages/>)

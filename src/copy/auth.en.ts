@@ -104,8 +104,8 @@ export const authEN = {
       submit: 'Continue',
     },
     password: {
-      title: 'Create your password',
-      lead: 'One more step and your account is ready.',
+      title: 'Your name and password',
+      lead: 'One last step and your account is ready.',
       edit: 'Edit',
       hint: 'At least 8 characters. No symbols or capitals required.',
       submit: 'Create account',
@@ -251,6 +251,7 @@ export const authEN = {
     badState: 'That sign-in could not be verified. Please try again.',
     expired: 'That sign-in expired. Please try again.',
     unavailable: 'Google sign-in is unavailable right now.',
+    signupIncomplete: 'That provider did not share your name and email address, and an account needs both. Allow them and try again, or create your account with your email address.',
   },
 
   /* The one authenticated screen. A single line, and nothing else. */

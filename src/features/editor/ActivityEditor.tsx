@@ -1,9 +1,9 @@
 import {FormattedText} from '@/components/formatted-text/FormattedText'
 import {FormattedInput} from './FormattedInput'
 import {QuestionTypeDialog,QuestionTypePicker,questionTypeName} from './QuestionTypePicker'
-import {PRESENTATION_QUESTION_KINDS,type PresentationId} from '@/shared/presentation'
+import {playableKindsFor,type PresentationId} from '@/shared/presentation'
 import {ActivityGameChoice} from './ActivityGameChoice'
-import {gameName as presentationName} from '@/features/presentations/catalog'
+import {gameNames as presentationNames} from '@/features/presentations/catalog'
 import {ButtonSpinner} from '@/design/ButtonSpinner'
 import {AccountControl} from '@/components/layout/AccountControl'
 import {InstructorBalance} from '@/features/account/InstructorBalance'
@@ -177,9 +177,9 @@ function ActivityEditorWorkspace() {
   // The rail shows one of two faces; question properties is the working default.
   /* An activity committed to a game only offers the question kinds that game
      can play; with no game set, nothing is narrowed. */
-  const chosenGame=data?.activity.presentationId??null
-  const playableKinds=chosenGame?PRESENTATION_QUESTION_KINDS[chosenGame]:undefined
-  const chosenGameName=chosenGame?presentationName(chosenGame,ar):undefined
+  const chosenGames=data?.activity.presentationIds??[]
+  const playableKinds=chosenGames.length?playableKindsFor(chosenGames):undefined
+  const chosenGameName=chosenGames.length?presentationNames(chosenGames,ar):undefined
   const [justPublished,setJustPublished]=useState(false)
   const [asideTab,setAsideTab]=useState<'properties'|'themes'>('properties')
   /* Where the backdrop comes from, said once. A teacher who has never opened
@@ -1267,19 +1267,19 @@ function ActivityEditorWorkspace() {
  */
 function GameSetting({activity,onSaved}:{activity:ActivityRecord;onSaved:(activity:ActivityRecord)=>void}){
  const {i18n}=useTranslation(),ar=i18n.language.startsWith('ar')
- const [choice,setChoice]=useState<PresentationId|null>(activity.presentationId)
+ const [choice,setChoice]=useState<PresentationId[]>(activity.presentationIds)
  const [busy,setBusy]=useState(false),[error,setError]=useState('')
- const dirty=choice!==activity.presentationId
+ const dirty=JSON.stringify([...choice].sort())!==JSON.stringify([...activity.presentationIds].sort())
  return <section className={styles.gameSetting}>
   <ActivityGameChoice value={choice} onChange={value=>{setChoice(value);setError('')}} disabled={busy}/>
   {error&&<p role="alert" className={styles.gameSettingError}>{error}</p>}
   <Button variant="primary" loading={busy} disabled={!dirty||busy} onClick={()=>{
    setBusy(true);setError('')
-   void activities.update(activity.id,{presentationId:choice,expectedRevision:activity.revision})
+   void activities.update(activity.id,{presentationIds:choice,expectedRevision:activity.revision})
     .then(result=>onSaved(result.activity))
-    .catch(problem=>{setError(problem instanceof Error?problem.message:(ar?'تعذّر حفظ اللعبة.':'The game could not be saved.'));setChoice(activity.presentationId)})
+    .catch(problem=>{setError(problem instanceof Error?problem.message:(ar?'تعذّر حفظ الألعاب.':'The games could not be saved.'));setChoice(activity.presentationIds)})
     .finally(()=>setBusy(false))
-  }}>{ar?'احفظ اللعبة':'Save game'}</Button>
+  }}>{ar?'احفظ الألعاب':'Save games'}</Button>
  </section>
 }
 

@@ -36,8 +36,10 @@
 .feedbackForm { max-width: 740px; margin-block-start: 48px; border-block-start: 1px solid var(--line); padding-block-start: 32px; display: grid; gap: 18px; }
 .formFields { border: 0; padding: 0; margin: 0; min-width: 0; display: grid; gap: 20px; }
 .formFields legend { font-weight: 700; padding-block-end: 12px; }
-.rating { display: flex; gap: 10px; flex-wrap: wrap; }
-.rating label { display: flex; align-items: center; gap: 8px; min-height: 48px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 6px; cursor: pointer; }
+.rating { display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); max-width: 360px; gap: 10px; }
+.rating label { position: relative; display: flex; justify-content: center; align-items: center; gap: 8px; min-height: 48px; padding: 10px 8px; border: 1px solid var(--line); border-radius: 5px; cursor: pointer; }
+.rating input { position: absolute; width: 1px !important; height: 1px !important; opacity: 0; }
+.rating label:has(input:focus-visible) { outline: 3px solid var(--accent); outline-offset: 3px; }
 .rating label[data-selected='true'] { background: var(--raised); }
 .rating label[data-selected='true'] svg { fill: var(--a3); color: var(--ink); }
 .rating input,.check input { accent-color: var(--color-brand-500); width: 18px; height: 18px; flex-shrink: 0; }
@@ -83,3 +85,9 @@
 .empty p { max-width: 58ch; margin: 14px auto 24px; color: var(--muted); }
 @media (max-width: 980px) { .activityLayout,.inboxLayout { grid-template-columns: minmax(0,1fr); } .sharing { max-width: 620px; } .cover { max-width: 400px; } .insights { border-inline-start: 0; border-block-start: 1px solid var(--line); padding: 24px 0 0; } .suggestions { grid-template-columns: repeat(2,minmax(0,1fr)); } }
 @media (max-width: 600px) { .page { padding: 24px 8px 40px; } .heading { flex-direction: column; gap: 16px; } .preview,.inboxEntry { padding: 18px; } .sectionHeading { flex-wrap: wrap; } .suggestions { grid-template-columns: minmax(0,1fr); gap: 26px; } .rating { gap: 6px; } .rating label { padding: 8px; gap: 5px; } .rating svg { width: 20px; } .titleGroup { gap: 12px; } .entryHeader { flex-wrap: wrap; } }
+.ownership { margin-block-end: 24px !important; max-width: 75ch; color: var(--muted); }
+.questionComment { margin-block-start: 24px; border-block-start: 1px solid var(--line); padding-block-start: 16px; }
+.questionComment summary { display: flex; align-items: center; gap: 8px; cursor: pointer; min-height: 44px; font-weight: 650; color: var(--accent); }
+.questionComment form { display: grid; gap: 16px; margin-block-start: 12px; }
+.page :is(.preview,.cover,.inboxList,.empty,.primaryLink,.rating label,.field input,.field textarea,.suggestionImage) { border-radius: 5px; }
+.page .field textarea { font-size: 16px; }

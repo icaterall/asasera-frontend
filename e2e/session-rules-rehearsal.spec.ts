@@ -76,14 +76,19 @@ for(const mode of ['class-competition','question-wheel'] as const)test(`actual s
   await expect.poll(()=>projectorSnapshot()?.presentation?.active?.id).toBe(selected.id)
   expect(projectorSnapshot()?.question).toBeNull()
   if(mode==='question-wheel'){
-   expect(hostSnapshot()?.presentation?.wheel?.spin?.durationMs).toBe(2400)
+   expect(hostSnapshot()?.presentation?.wheel?.spin?.durationMs).toBe(4800)
    await expect(page.getByRole('button',{name:'ابدأ السؤال',exact:true})).toBeDisabled()
    await projector.screenshot({path:'.impeccable/review/live-question-wheel-projector-selected.png',fullPage:true})
+   await page.getByRole('button',{name:'ملء الشاشة',exact:true}).last().click()
   }
-  await expect(page.getByRole('button',{name:'ابدأ السؤال',exact:true})).toBeEnabled()
+  await expect(page.getByRole('button',{name:'ابدأ السؤال',exact:true})).toBeEnabled({timeout:8000})
   await page.getByRole('button',{name:'ابدأ السؤال',exact:true}).click()
   await expect.poll(()=>hostSnapshot()?.state).toBe('question_open')
   const opened=hostSnapshot()!,question=opened.question!,deadline=opened.endsAt!
+  if(mode==='question-wheel'){
+   expect(await page.evaluate(()=>document.fullscreenElement===document.documentElement)).toBe(true)
+   await page.getByRole('button',{name:'الخروج من ملء الشاشة',exact:true}).last().click()
+  }
   expect(deadline-opened.presentation!.active!.openedAt!).toBe(120000)
   for(const learner of learners){await expect(learner.page.getByRole('heading',{name:question.prompt,exact:true})).toBeVisible();await expect.poll(()=>learner.snapshot()?.endsAt).toBe(deadline)}
   await expect(projector.getByRole('heading',{name:question.prompt,exact:true})).toBeVisible()

@@ -1,0 +1,29 @@
+/* Share sheet for the join link — reachable from the toolbar by everyone in the
+   room, host and player alike, so a student who arrives with a friend can pass
+   the code on without the teacher projecting it again. */
+.backdrop{position:fixed;inset:0;z-index:60;display:grid;place-items:center;padding:24px;background:#04102ccc;backdrop-filter:blur(3px);animation:fade 160ms ease-out}
+.dialog{position:relative;width:min(440px,100%);max-height:calc(100svh - 48px);overflow:auto;padding:30px 28px 24px;border-radius:28px;background:linear-gradient(160deg,#173b73,#071b42 68%);color:#fff;box-shadow:0 30px 70px #02081ca8;text-align:center;animation:rise 220ms cubic-bezier(.22,1,.36,1)}
+.dialog:focus{outline:none}
+.close{position:absolute;inset-inline-end:14px;top:14px;display:grid;place-items:center;width:40px;height:40px;border:0;border-radius:50%;background:#ffffff1f;color:#fff;cursor:pointer}
+.close:hover{background:#ffffff33}
+.title{margin:0 0 6px;padding-inline:40px;font-size:22px;font-weight:800;line-height:1.35}
+.hint{margin:0 0 20px;font-size:14px;line-height:1.6;color:#cfe0ff}
+.qrCard{display:grid;place-items:center;width:fit-content;margin:0 auto 18px;padding:14px;border-radius:22px;background:#fff;box-shadow:0 14px 34px #0207198f}
+.qrCard img{display:block;width:216px;height:216px}
+.qrCard span{display:grid;place-items:center;width:216px;height:216px;color:#7b8aa6;font-size:13px;font-weight:600}
+.pinCard{display:flex;flex-direction:column;align-items:center;gap:2px;width:fit-content;margin:0 auto 16px;padding:10px 24px;border-radius:18px;background:#ffdf36;color:#12305e;box-shadow:inset 0 -4px #b7950a}
+.pinLabel{font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase}
+.pin{font-size:40px;font-weight:800;line-height:1.15;letter-spacing:.14em;font-variant-numeric:tabular-nums}
+.linkRow{display:flex;align-items:center;gap:8px;padding:7px;border:1px solid #ffffff2e;border-radius:14px;background:#ffffff14;margin-bottom:16px}
+.linkRow code{flex:1;min-width:0;padding-inline-start:8px;font:inherit;font-size:13px;color:#e6efff;text-align:start;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.copy{display:inline-flex;align-items:center;gap:6px;flex-shrink:0;min-height:40px;padding:0 14px;border:0;border-radius:10px;background:#ffdf36;color:#12305e;font:inherit;font-size:13px;font-weight:800;cursor:pointer}
+.copy:hover{background:#ffe86b}
+.copy[data-done=true]{background:#a4ffd0}
+.actions{display:flex;flex-wrap:wrap;justify-content:center;gap:10px}
+.actions a,.actions button{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:46px;padding:0 18px;border:1px solid #ffffff40;border-radius:12px;background:#ffffff14;color:#fff;font:inherit;font-size:14px;font-weight:800;text-decoration:none;cursor:pointer}
+.actions a:hover,.actions button:hover{background:#ffffff26}
+.status{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+@keyframes rise{from{opacity:0;transform:translateY(18px) scale(.96)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){.backdrop,.dialog{animation-duration:1ms;animation-name:fade}}
+@media(max-width:480px){.dialog{padding:26px 18px 20px;border-radius:24px}.qrCard img,.qrCard span{width:180px;height:180px}.pin{font-size:34px}}

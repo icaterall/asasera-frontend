@@ -1,20 +1,19 @@
 import {useState} from 'react'
 import {useTranslation} from 'react-i18next'
-import {Check,Disc3,Gift,Zap,Trophy,Layers,Shuffle,Link2,Brain,Group,ListOrdered,TextCursorInput,MessageCircle,Blocks,Search,Grid3x3,Sparkles} from 'lucide-react'
-import {GAME_CHOICES,gameNeeds} from '@/features/presentations/catalog'
+import {Blocks,Search,Grid3x3} from 'lucide-react'
+import {GAME_CHOICES,gameNeeds,acceptedKinds} from '@/features/presentations/catalog'
+import {presentationArtwork,presentationPurpose,presentationTones} from '@/features/presentations/presentation-art'
 import type {PresentationId} from '@/shared/presentation'
-import styles from './ActivityGameChoice.module.css'
+import styles from '@/features/presentations/Presentations.module.css'
+import local from './ActivityGameChoice.module.css'
 
-const ICONS:Record<string,typeof Disc3>={
- 'question-wheel':Disc3,'open-box':Gift,'challenge-cards':Zap,'class-competition':Trophy,
- flashcards:Layers,'random-cards':Shuffle,'match-up':Link2,memory:Brain,'group-sort':Group,
- sequence:ListOrdered,'sentence-completion':TextCursorInput,'speaking-cards':MessageCircle,
- 'word-builder':Blocks,'word-search':Search,crossword:Grid3x3,
-}
-const FIRST=6
+/* Three word games have no artwork yet; they get the icon cell the picker's
+   own stylesheet already defines, rather than a blank square. */
+const FALLBACK_ICONS:Record<string,typeof Blocks>={'word-builder':Blocks,'word-search':Search,crossword:Grid3x3}
+const FIRST=8
 
 /**
- * THE GAME, CHOSEN BEFORE THE QUESTIONS ARE WRITTEN.
+ * THE GAMES, CHOSEN BEFORE THE QUESTIONS ARE WRITTEN.
  *
  * A game used to be picked at launch, over questions that already existed —
  * the wrong order for every game that needs its own kind of content. A teacher
@@ -22,56 +21,54 @@ const FIRST=6
  * told, at the last moment in front of a class, that none of them could be
  * played.
  *
- * So the choice is offered here, where it costs nothing, and it is honest
- * about what it commits to: pick a game and the activity accepts only the
- * question kinds that game plays. "Any game" stays the default, and stays a
- * real answer — most teachers should take it.
+ * SEVERAL may be chosen, because that is how a lesson is actually taught: the
+ * same material runs as a wheel on Sunday and as matching pairs on Wednesday.
+ * The set accepts the UNION of what its games play — two games with no kind in
+ * common is a normal choice, not a contradiction — and every card says what it
+ * needs, so the commitment is legible before it is made rather than discovered
+ * later as a refusal. Choosing nothing is the default and a real answer.
  *
- * Six games are shown; the rest are one press away. A wall of fifteen tiles
- * on the create form would make a small optional decision look like the main
- * event.
+ * The cards are the LAUNCH PICKER'S cards: same stylesheet, same artwork, same
+ * accent tones, same status pill. A teacher meets these twelve tiles twice —
+ * here and at launch — and two drawings of one product is one too many.
  */
-export function ActivityGameChoice({value,onChange,disabled}:{value:PresentationId|null;onChange:(value:PresentationId|null)=>void;disabled?:boolean}){
+export function ActivityGameChoice({value,onChange,disabled}:{value:readonly PresentationId[];onChange:(value:PresentationId[])=>void;disabled?:boolean}){
  const {i18n}=useTranslation(),ar=i18n.language.startsWith('ar')
- const [expanded,setExpanded]=useState(false)
+ const [expanded,setExpanded]=useState(()=>GAME_CHOICES.some((game,index)=>index>=FIRST&&value.includes(game.id)))
  const shown=expanded?GAME_CHOICES:GAME_CHOICES.slice(0,FIRST)
- const chosen=GAME_CHOICES.find(game=>game.id===value)??null
- return <section className={styles.section} aria-labelledby="activity-game-heading">
-  <div className={styles.head}>
-   <h2 id="activity-game-heading">{ar?'نوع اللعبة':'Game type'} <span className={styles.optional}>{ar?'اختياري':'optional'}</span></h2>
-   <p>{ar?'اختر لعبة الآن لتُكتب الأسئلة على مقاسها، أو اتركها مفتوحة واختر عند التشغيل.':'Pick a game now and the questions are written to fit it — or leave it open and choose when you play.'}</p>
-  </div>
-  <div className={styles.grid} role="radiogroup" aria-label={ar?'نوع اللعبة':'Game type'}>
-   <button type="button" role="radio" aria-checked={value===null} disabled={disabled} className={styles.card} data-any="" onClick={()=>onChange(null)}>
-    <span className={styles.icon}><Sparkles size={22} aria-hidden="true"/></span>
-    <span className={styles.label}>
-     <strong>{ar?'أي لعبة':'Any game'}</strong>
-     <small>{ar?'اكتب ما تشاء من الأسئلة، واختر اللعبة عند التشغيل.':'Write any questions you like and choose the game at play time.'}</small>
-    </span>
-    {value===null&&<Check className={styles.tick} size={18} aria-hidden="true"/>}
-   </button>
+ const toggle=(id:PresentationId)=>onChange(value.includes(id)?value.filter(item=>item!==id):[...value,id])
+ return <div className={local.wrap}>
+  <div className={styles.choices}>
    {shown.map(game=>{
-    const Icon=ICONS[game.id]??Sparkles
-    return <button key={game.id} type="button" role="radio" aria-checked={value===game.id} disabled={disabled} className={styles.card} onClick={()=>onChange(game.id)}>
-     <span className={styles.icon}><Icon size={22} aria-hidden="true"/></span>
-     <span className={styles.label}>
-      <strong>{ar?game.ar:game.en}</strong>
-      <small>{ar?game.blurbAr:game.blurbEn}</small>
-      <em>{ar?'يحتاج: ':'Needs: '}{gameNeeds(game.id,ar)}</em>
-     </span>
-     {value===game.id&&<Check className={styles.tick} size={18} aria-hidden="true"/>}
-    </button>
+    const picked=value.includes(game.id)
+    const art=presentationArtwork[game.id]
+    const Icon=FALLBACK_ICONS[game.id]
+    const [arabicPurpose,englishPurpose]=presentationPurpose[game.id]??[game.blurbAr,game.blurbEn]
+    return <label key={game.id} className={styles.choice} data-tone={presentationTones[game.id]} data-selected={picked}>
+     <input type="checkbox" aria-label={ar?game.ar:game.en} checked={picked} disabled={disabled} onChange={()=>toggle(game.id)}/>
+     {art
+      ?<span className={styles.choiceArtwork}><img src={art} alt="" width="256" height="256" loading="lazy" draggable="false"/></span>
+      :<span className={styles.choiceIcon}>{Icon?<Icon size={22} aria-hidden="true"/>:null}</span>}
+     <span className={styles.choiceCopy}><strong>{ar?game.ar:game.en}</strong><small>{ar?arabicPurpose:englishPurpose}</small></span>
+     <small className={styles.choiceMeta}>{ar?'يحتاج: ':'Needs: '}{gameNeeds(game.id,ar)}</small>
+     <span className={styles.choiceMark} aria-hidden="true"/>
+    </label>
    })}
   </div>
-  {GAME_CHOICES.length>FIRST&&<button type="button" className={styles.more} onClick={()=>setExpanded(open=>!open)}>
-   {expanded?(ar?'عرض أقل':'Show fewer'):(ar?`عرض كل الألعاب (${GAME_CHOICES.length})`:`Show all games (${GAME_CHOICES.length})`)}
-  </button>}
-  {/* The commitment, said plainly at the moment it is made — not discovered
-      later when a question type is refused. */}
-  {chosen&&<p className={styles.commitment} role="status">
-   {ar
-    ?`ستقبل أسئلة هذا النشاط نوع: ${gameNeeds(chosen.id,true)} فقط. يمكنك تغيير اللعبة من إعدادات النشاط ما دامت الأسئلة تناسبها.`
-    :`This activity will only accept ${gameNeeds(chosen.id,false)} questions. You can change the game from activity settings while its questions still fit.`}
-  </p>}
- </section>
+  <div className={local.tools}>
+   {GAME_CHOICES.length>FIRST&&<button type="button" className={local.more} onClick={()=>setExpanded(open=>!open)}>
+    {expanded?(ar?'عرض أقل':'Show fewer'):(ar?`عرض كل الألعاب (${GAME_CHOICES.length})`:`Show all games (${GAME_CHOICES.length})`)}
+   </button>}
+   {value.length>0&&<button type="button" className={local.more} disabled={disabled} onClick={()=>onChange([])}>{ar?'امسح الاختيار':'Clear selection'}</button>}
+  </div>
+  {/* The commitment, said plainly at the moment it is made — and said as a
+      union, because that is what the server will enforce. */}
+  <p className={local.commitment} role="status" data-empty={value.length===0}>
+   {value.length===0
+    ?(ar?'لم تختر لعبة — وهذا اختيار صحيح. سيقبل النشاط كل أنواع الأسئلة، وتختار اللعبة عند التشغيل.':'No game chosen — which is a valid answer. The activity accepts every question type, and you choose the game at play time.')
+    :ar
+     ?`اخترت ${value.length} ${value.length===1?'لعبة':'ألعاب'}. سيقبل هذا النشاط أسئلة من نوع: ${acceptedKinds(value,true)} فقط. كل سؤال يظهر في الألعاب التي تقبل نوعه، ويمكنك تغيير الاختيار من إعدادات النشاط ما دامت الأسئلة تناسبه.`
+     :`${value.length} game${value.length===1?'':'s'} chosen. This activity will accept ${acceptedKinds(value,false)} questions only. Each question appears in the games that accept its type, and you can change the choice in activity settings while its questions still fit.`}
+  </p>
+ </div>
 }

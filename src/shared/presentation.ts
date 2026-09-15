@@ -6,7 +6,7 @@
  * CI fails if this file and its source differ.
  */
 import {z} from 'zod'
-import type {QuestionKind} from './questions.ts'
+import {QUESTION_KINDS,type QuestionKind} from './questions.ts'
 
 export const PRESENTATION_IDS=['name-wheel','question-wheel','flashcards','random-cards','speaking-cards','open-box','challenge-cards','match-up','memory','group-sort','sequence','sentence-completion','word-builder','word-search','crossword','class-competition'] as const
 export const presentationIdSchema=z.enum(PRESENTATION_IDS)
@@ -62,6 +62,27 @@ export const authorablePresentationIdSchema=z.enum(AUTHORABLE_PRESENTATION_IDS a
 /** True when a question of this kind can be played by the chosen game. */
 export function presentationAllowsKind(id:PresentationId,kind:QuestionKind):boolean{
  return PRESENTATION_QUESTION_KINDS[id].includes(kind)
+}
+/**
+ * WHAT A SET OF GAMES WILL ACCEPT — a union, not an intersection.
+ *
+ * A teacher who chooses a question wheel AND matching pairs is not asking for
+ * questions that work in both; there are none. They are saying "this lesson
+ * runs as either", and the activity should accept the multiple-choice the
+ * wheel needs and the pairs the matching needs. Which game plays which
+ * question is still resolved per game at launch.
+ *
+ * An empty set means no commitment at all: every kind is allowed.
+ */
+export function playableKindsFor(ids:readonly PresentationId[]):readonly QuestionKind[]{
+ if(!ids.length)return QUESTION_KINDS
+ const seen=new Set<QuestionKind>()
+ for(const id of ids)for(const kind of PRESENTATION_QUESTION_KINDS[id])seen.add(kind)
+ return QUESTION_KINDS.filter(kind=>seen.has(kind))
+}
+/** The chosen games that can play this kind — the sentence a refusal needs. */
+export function gamesPlaying(ids:readonly PresentationId[],kind:QuestionKind):readonly PresentationId[]{
+ return ids.filter(id=>PRESENTATION_QUESTION_KINDS[id].includes(kind))
 }
 const questionIds=z.array(z.number().int().positive()).min(1).max(100).refine(ids=>new Set(ids).size===ids.length,'Question IDs must be unique.')
 export const presentationCompatibilityRequestSchema=z.object({

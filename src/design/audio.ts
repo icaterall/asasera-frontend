@@ -1,5 +1,6 @@
 import {Howl,Howler} from 'howler'
 import {buildDrySoundSprite,type SoundEvent} from './dry-sounds.ts'
+import wheelTickUrl from '@/assets/sounds/wheel-reference-tick.wav'
 export type {SoundEvent} from './dry-sounds.ts'
 let cached:{url:string;sprite:Record<string,[number,number]>}|undefined
 /** Dry mechanical PCM effects; Howler owns playback and Web Audio unlock. */
@@ -12,6 +13,7 @@ function soundSprite(){
 /** One player per document; construction creates no audio context. */
 export class SessionAudio {
  private sound:Howl|null=null
+ private wheelSound:Howl|null=null
  private lobbySound:number|null=null
  private lobbyParticipants:number|null=null
  private ready=false
@@ -26,18 +28,22 @@ export class SessionAudio {
    Howler.autoUnlock=false
    const generation=this.generation
    if(!this.sound){const {url,sprite}=soundSprite();this.sound=new Howl({src:[url],format:['wav'],sprite,html5:false,preload:true,volume:.24,mute:this.muted})}
+   if(!this.wheelSound)this.wheelSound=new Howl({src:[wheelTickUrl],format:['wav'],html5:false,preload:true,volume:.24,mute:this.muted})
    await Howler.ctx?.resume()
    if(generation!==this.generation)return false
    this.ready=Howler.usingWebAudio
    return this.ready
   }catch{this.ready=false;return false}
  }
- setMuted(muted:boolean){this.muted=muted;localStorage.setItem('asasera:mute',String(muted));this.sound?.mute(muted)}
+ setMuted(muted:boolean){this.muted=muted;localStorage.setItem('asasera:mute',String(muted));this.sound?.mute(muted);this.wheelSound?.mute(muted)}
+ /** An 80 ms mechanical click sampled from the instructor's supplied reference.
+  * Never queue a stale tick while loading, hidden or muted. */
+ playWheelTick(){if(this.muted||!this.ready||document.hidden||Howler.ctx?.state==='suspended'||this.wheelSound?.state()!=='loaded')return;this.wheelSound.play()}
  play(event:SoundEvent){if(this.muted||!this.sound||!this.ready||document.hidden||Howler.ctx?.state==='suspended')return;const id=this.sound.play(event);if(event==='lobby')this.lobbySound=id}
  lobby(participants:number){
   if(this.lobbyParticipants!==null&&participants>this.lobbyParticipants&&!document.hidden)this.play('lobby')
   this.lobbyParticipants=participants
  }
  stopLoop(){if(this.lobbySound!==null)this.sound?.stop(this.lobbySound);this.lobbySound=null}
- dispose(){this.generation++;this.ready=false;this.stopLoop();this.lobbyParticipants=null;this.sound?.unload();this.sound=null}
+ dispose(){this.generation++;this.ready=false;this.stopLoop();this.lobbyParticipants=null;this.sound?.unload();this.sound=null;this.wheelSound?.unload();this.wheelSound=null}
 }

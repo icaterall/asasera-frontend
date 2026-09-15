@@ -30,9 +30,22 @@ export function MultiSelect({children,value,onValueChange,label,placeholder,requ
       <Combobox.Root<SelectOption,true> multiple items={filterSelectOptions(options,query)} filter={null} value={selected} onValueChange={change}
         open={open} onOpenChange={toggle} inputValue={query} onInputValueChange={setQuery} required={required} disabled={unavailable}
         itemToStringLabel={option=>option.label} itemToStringValue={option=>option.value} isItemEqualToValue={(a,b)=>a.value===b.value}>
-        <Combobox.Trigger id={id} ref={trigger} data-select-trigger="" className={styles.trigger} aria-label={label} aria-describedby={hint?`${id}-hint`:undefined} data-placeholder={!value.length}>
-          <span className={styles.value}>{value.length?(ar?`تم اختيار ${value.length}`:`${value.length} selected`):placeholder}</span><ChevronDown size={18} className={styles.chevron} aria-hidden="true"/>
-        </Combobox.Trigger>
+        {/* The choices live in the control that made them, rather than in a
+            list underneath it, and each carries its own ✕. A button cannot
+            contain buttons, so the bordered box is the div and the part that
+            opens the list is a button inside it — it stretches across whatever
+            the chips leave, so clicking the empty half still opens the list. */}
+        <div className={`${styles.trigger} ${styles.chipBox}`} data-select-trigger="" data-placeholder={!value.length} data-popup-open={open||undefined} data-disabled={unavailable||undefined}>
+          {selected.map(option=><span key={option.value} className={styles.chip}>
+            <span dir="auto">{option.label}</span>
+            <button type="button" className={styles.chipRemove} disabled={disabled} aria-label={`${ar?'إزالة':'Remove'} ${option.label}`} onClick={()=>onValueChange(value.filter(id=>id!==option.value))}><X size={14} aria-hidden="true"/></button>
+          </span>)}
+          {/* Chosen before the option list arrived: say how many, honestly. */}
+          {!selected.length&&value.length>0&&<span className={styles.chip}><span>{ar?`تم اختيار ${value.length}`:`${value.length} selected`}</span></span>}
+          <Combobox.Trigger id={id} ref={trigger} className={styles.chipOpen} aria-label={label} aria-describedby={hint?`${id}-hint`:undefined}>
+            {!value.length&&<span className={styles.value}>{placeholder}</span>}<ChevronDown size={18} className={styles.chevron} aria-hidden="true"/>
+          </Combobox.Trigger>
+        </div>
         <Combobox.Portal container={container??undefined}>
           <Combobox.Positioner sideOffset={8} align="start" collisionPadding={12} className={styles.positioner} dir={direction}>
             <Combobox.Popup className={styles.popup} initialFocus={search} onKeyDown={event=>{if(event.key==='Escape')event.stopPropagation()}}>
@@ -52,7 +65,6 @@ export function MultiSelect({children,value,onValueChange,label,placeholder,requ
         </Combobox.Portal>
       </Combobox.Root>
     </DirectionProvider>
-    {selected.length>0&&<ul className={styles.chips} aria-label={ar?'الاختيارات الحالية':'Current selections'}>{selected.map(option=><li key={option.value}><span dir="auto">{option.label}</span><button type="button" disabled={disabled} aria-label={`${ar?'إزالة':'Remove'} ${option.label}`} onClick={()=>onValueChange(value.filter(id=>id!==option.value))}><X size={16} aria-hidden="true"/></button></li>)}</ul>}
     {hint&&<p id={`${id}-hint`} className={styles.fieldHint}>{hint}</p>}
   </div>
 }

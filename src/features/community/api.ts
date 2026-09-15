@@ -12,10 +12,10 @@ export interface SharedActivity {
   id: number; title: string; theme: string; authorName: string; versionId: number; version: number; publishedAt: string
   subjectId: number; levelId: number; shareUrl: string; questionCount: number; questions: PublicQuestion[]
   audience: { category: Label | null; educationStages: Label[]; countries: Label[] }
-  summary: { reviewCount: number; averageRating: number | null; recommendationCount: number }
+  summary: { reviewCount: number; averageRating: number | null; recommendationCount: number; studentReviewCount: number; studentAverageRating: number | null }
 }
 export interface InboxItem extends Omit<Feedback, 'rating' | 'recommend' | 'versionId'> {
-  kind: 'feedback' | 'flag'; activityId: number; activityTitle: string; reviewerName: string
+  kind: 'feedback' | 'flag'; activityId: number; activityTitle: string; reviewerName: string; reviewerRole?: 'teacher' | 'student'
   questionId: number | null; reason: string | null; rating: number | null; recommend: boolean | null; versionId: number | null
 }
 export interface Recommendation {
@@ -26,6 +26,8 @@ export const community = {
   context: (id: number) => api.get<{ isAuthor: boolean; feedback: Feedback | null; flags: {id:number;questionId:number;reason:string;note:string;status:FeedbackStatus;response:string}[] }>(`/api/v1/community/activities/${id}/context`),
   save: (id: number, input: FeedbackInput) => api.put<{ feedback: Feedback }>(`/api/v1/community/activities/${id}/feedback`, input),
   withdraw: (id: number) => api.del(`/api/v1/community/activities/${id}/feedback`),
+  comment: (id: number, questionId: number, versionId: number, note: string) => api.put(`/api/v1/community/activities/${id}/questions/${questionId}/comment`, {versionId, note}),
+  withdrawComment: (id: number, questionId: number) => api.del(`/api/v1/community/activities/${id}/questions/${questionId}/comment`),
   inbox: (activityId: string, status: string, page: number) => api.get<{ items: InboxItem[]; hasMore: boolean; summary: Record<'total' | FeedbackStatus, number> }>(`/api/v1/community/inbox?${new URLSearchParams({ ...(activityId ? { activityId } : {}), ...(status ? { status } : {}), page: String(page) })}`),
   respond: (item: InboxItem, status: FeedbackStatus, response: string) => api.patch(`/api/v1/community/inbox/${item.kind}/${item.id}`, { status, response, expectedRevision: item.revision }),
   recommendations: (activityId?: number) => api.get<{ activities: Recommendation[]; personalized: boolean }>(`/api/v1/community/recommendations${activityId ? `?activityId=${activityId}` : ''}`),

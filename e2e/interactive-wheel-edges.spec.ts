@@ -43,7 +43,7 @@ for(const language of ['ar','en'] as const)test(`empty, singleton, duplicate and
  await expect(page.locator('[role=status] strong')).toHaveText(name)
  await expect(spin()).toBeDisabled()
  await capture('singleton')
- await page.getByRole('button',{name:ar?'إعادة جميع الأسماء':'Reset picks'}).click()
+ await page.getByRole('button',{name:ar?'جولة جديدة':'Reset picks'}).click()
  await configure([name,name])
  const picked=new Set<string>()
  for(let turn=0;turn<2;turn++){
@@ -64,18 +64,20 @@ for(const language of ['ar','en'] as const)test(`empty, singleton, duplicate and
   await expect(page.locator('bdi').filter({hasText:`${name} (${ar?'الخيار':'Entry'} 1)`}).first()).toBeVisible()
  await expect(page.locator('bdi').filter({hasText:`${name} (${ar?'الخيار':'Entry'} 2)`})).toBeVisible()
  await capture('duplicates')
- await page.getByRole('button',{name:ar?'إعادة جميع الأسماء':'Reset picks'}).click()
+ await page.getByRole('button',{name:ar?'جولة جديدة':'Reset picks'}).click()
  const duplicateLabels=[`${name} (${ar?'الخيار':'Entry'} 1)`,`${name} (${ar?'الخيار':'Entry'} 2)`]
  for(const size of [7,16,100]){
  await configure(Array.from({length:size},(_,i)=>ar?`الاسم ${i+1} طالب من المجموعة الدراسية`:`Entry ${i+1} from the classroom group`))
+ if(!await page.locator('bdi').filter({hasText:duplicateLabels[0]}).first().isVisible())await page.getByText(new RegExp(ar?'سجل السحب':'Draw history')).click()
  for(const original of duplicateLabels)await expect(page.locator('bdi').filter({hasText:original}).first()).toBeVisible()
  const response=page.waitForResponse(r=>r.url().endsWith('/wheel/commands')&&r.request().postDataJSON()?.action==='spin')
  await spin().click();const selected=await (await response).json()
- await expect(wheel).toHaveAttribute('data-wheel-state','selected')
+ await expect(wheel).toHaveAttribute('data-wheel-state','selected',{timeout:8000})
  const winner=selected.wheel.spin.entries[selected.wheel.spin.winnerIndex]
  await expect(page.locator('[role=status] strong')).toHaveText(winner.label)
+ await page.getByRole('button',{name:ar?'عرض العجلة':'Show wheel'}).click()
  // Read the final rendered rotor, not a restatement of the server angle.
- const rotation=await wheel.locator('svg[viewBox="0 0 400 400"] > g').evaluate(el=>{
+ const rotation=await wheel.locator('[data-wheel-rotor]').evaluate(el=>{
   const matrix=new DOMMatrix(getComputedStyle(el).transform)
   return Math.atan2(matrix.b,matrix.a)*180/Math.PI
  })
@@ -87,7 +89,7 @@ for(const language of ['ar','en'] as const)test(`empty, singleton, duplicate and
  }))
  expect(labelRadii.every(radius=>radius<178),`All sector labels stay inside the 178px rim: ${labelRadii.join(',')}`).toBe(true)
  await capture(`pointer-${size}`)
- await page.getByRole('button',{name:ar?'إعادة جميع الأسماء':'Reset picks'}).click()
+ await page.getByRole('button',{name:ar?'جولة جديدة':'Reset picks'}).click()
  }
  await expect(page.getByText(ar?/العجلة للزينة/:/wheel is decorative/)).toBeVisible()
  expect(await wheel.locator('aside ol li').count()).toBe(100)

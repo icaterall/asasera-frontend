@@ -1,4 +1,4 @@
-import {PRESENTATION_QUESTION_KINDS,type PresentationId} from '@/shared/presentation'
+import {PRESENTATION_QUESTION_KINDS,playableKindsFor,type PresentationId} from '@/shared/presentation'
 
 /**
  * THE GAMES, NAMED ONCE.
@@ -29,14 +29,24 @@ export const GAME_CHOICES:readonly GameChoice[]=[
  {id:'word-search',ar:'البحث عن الكلمات',en:'Word search',blurbAr:'ابحث عن كلمات الدرس داخل الشبكة.',blurbEn:'Find the lesson’s words hidden in a grid.'},
  {id:'crossword',ar:'الكلمات المتقاطعة',en:'Crossword',blurbAr:'كلمات متقاطعة من مفردات الدرس.',blurbEn:'A crossword built from the lesson’s vocabulary.'},
 ]
-const KIND_NAMES:Record<string,[string,string]>={
+export const KIND_NAMES:Record<string,[string,string]>={
  mcq:['اختيار من متعدد','multiple choice'],tf:['صح أو خطأ','true/false'],order:['ترتيب','ordering'],
  match:['مطابقة','matching'],hotspot:['تحديد على صورة','pin-on-image'],cloze:['إكمال الفراغ','fill-the-blank'],
  vocabulary:['كلمات','vocabulary'],discussion:['مناقشة','discussion'],
 }
+/** One question kind, in a teacher's words. */
+export function kindName(kind:string,ar:boolean):string{return KIND_NAMES[kind]?.[ar?0:1]??kind}
 /** The question kinds this game plays, written the way the editor names them. */
 export function gameNeeds(id:PresentationId,ar:boolean):string{
- return PRESENTATION_QUESTION_KINDS[id].map(kind=>KIND_NAMES[kind]?.[ar?0:1]??kind).join(ar?' · ':' · ')
+ return PRESENTATION_QUESTION_KINDS[id].map(kind=>kindName(kind,ar)).join(' · ')
+}
+/** What a SET of games accepts between them — the union, for the summary line. */
+export function acceptedKinds(ids:readonly PresentationId[],ar:boolean):string{
+ return playableKindsFor(ids).map(kind=>kindName(kind,ar)).join(' · ')
+}
+/** The chosen games' names, for a sentence that has to name them. */
+export function gameNames(ids:readonly PresentationId[],ar:boolean):string{
+ return ids.map(id=>gameName(id,ar)).join(ar?' و':', ')
 }
 export function gameName(id:PresentationId|null,ar:boolean):string{
  const found=GAME_CHOICES.find(game=>game.id===id)

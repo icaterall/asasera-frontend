@@ -1,15 +1,16 @@
 import {useEffect,useState} from 'react'
-import {Check,Clock3,LockKeyhole,SkipForward,Star} from 'lucide-react'
+import {Check,Clock3,LockKeyhole,SkipForward,Star,Maximize,Minimize} from 'lucide-react'
 import {Button,Field,Select} from '@/design'
 import type {LivePresentationView,LivePresentationCommand} from '@/shared/live-presentation'
 import type {SessionSnapshot,SessionState} from '@/shared/session'
 import {wheelIsSpinning} from '@/shared/wheel'
-import {WheelDisc} from '../wheel/RandomWheel'
+import {WheelPlayback} from '../wheel/WheelPlayback'
+import type {SessionAudio} from '@/design/audio'
 import {useActivityMotion} from '../activity-themes/useActivityMotion'
 import styles from './LivePresentationControls.module.css'
 
-type Props={state:LivePresentationView;phase:SessionState;host:boolean;ar:boolean;disabled:boolean;participants:SessionSnapshot['participants'];clock:{now:()=>number};onCommand:(command:LivePresentationCommand)=>Promise<unknown>}
-export function LivePresentationControls({state,phase,host,ar,disabled,participants,clock,onCommand}:Props){
+type Props={audio?:SessionAudio;onFullscreen?:()=>void;full?:boolean;state:LivePresentationView;phase:SessionState;host:boolean;ar:boolean;disabled:boolean;participants:SessionSnapshot['participants'];clock:{now:()=>number};onCommand:(command:LivePresentationCommand)=>Promise<unknown>}
+export function LivePresentationControls({state,phase,host,ar,disabled,participants,clock,onCommand,audio,onFullscreen,full=false}:Props){
  const t=(a:string,e:string)=>ar?a:e,motion=useActivityMotion()
  const [page,setPage]=useState(0),[busy,setBusy]=useState(false),[error,setError]=useState(''),[now,setNow]=useState(clock.now())
  const active=state.active,selected=active?.status==='selected',open=active?.status==='open',available=!selected&&!open&&['lobby','revealing','podium'].includes(phase)
@@ -25,13 +26,15 @@ export function LivePresentationControls({state,phase,host,ar,disabled,participa
   <header className={styles.heading}><h2>{title}</h2><p>{t(`الجولة ${state.pass} · ${state.items.filter(item=>item.status==='closed').length} متبقٍ`,`Pass ${state.pass} · ${state.items.filter(item=>item.status==='closed').length} remaining`)}</p></header>
   {state.selection.config.semantics!=='scored'&&<p className={styles.note}>{state.selection.config.semantics==='practice'?t('هذا تدريب، وليس درجة تقييم','This is practice, not a grade'):t('نقاش ومراجعة، وليس تقييمًا فرديًا','Discussion and review, not individual assessment')}</p>}
   {available&&state.selection.definitionId==='open-box'&&<><ol className={styles.boxes}>{state.items.slice(page*12,page*12+12).map(item=><li key={item.elementId}>{host?<button type="button" className={styles.box} data-status={item.status} aria-label={t(`افتح الصندوق ${item.number}`,`Open box ${item.number}`)} disabled={locked||item.status!=='closed'} onClick={()=>void command({action:'select-box',elementId:item.elementId})}><strong>{item.number}</strong><span>{item.status==='completed'?<Check size={18}/>:item.status==='skipped'?<SkipForward size={18}/>:<LockKeyhole size={18}/>} {status(item.status)}</span></button>:<div className={styles.box} data-status={item.status}><strong>{item.number}</strong><span>{status(item.status)}</span></div>}</li>)}</ol>{pages>1&&<nav className={styles.actions} aria-label={t('صفحات الصناديق','Box pages')}><Button variant="secondary" disabled={page===0} onClick={()=>setPage(page-1)}>{t('السابق','Previous')}</Button><span>{page+1} / {pages}</span><Button variant="secondary" disabled={page+1>=pages} onClick={()=>setPage(page+1)}>{t('التالي','Next')}</Button></nav>}</>}
+  {available&&!completed&&state.selection.definitionId==='question-wheel'&&<WheelPlayback entries={state.items.filter(item=>item.status==='closed').map(item=>({id:item.elementId,label:String(item.number)}))} spin={null} clock={clock} animate={false}/>}
   {selected&&<div className={styles.selection}>
-   {state.wheel?.spin&&<div className={styles.wheel} aria-hidden="true"><WheelDisc entries={state.wheel.spin.entries} spin={state.wheel.spin} clock={clock} animate={motion.enabled}/><svg className={styles.pointer} viewBox="0 0 36 44"><path d="M3 3H33L18 39Z" fill="currentColor"/></svg></div>}
-   <h3>{t(`السؤال ${number}`,`Question ${number}`)}</h3><p>{spinning?t('تستقر العجلة…','The wheel is settling…'):host?t('السؤال جاهز. يبدأ وقت الإجابة عندما تضغط ابدأ.','The question is ready. The answer window starts when you press Begin.'):t('انتظر بدء السؤال من المعلّم.','Wait for your teacher to begin the question.')}</p>
+   {state.wheel?.spin&&spinning&&<WheelPlayback entries={state.wheel.spin.entries} spin={state.wheel.spin} clock={clock} animate={motion.enabled} audio={audio}/>}
+   <h3>{spinning?t('تدور العجلة…','Spinning…'):t(`السؤال ${number}`,`Question ${number}`)}</h3><p>{spinning?t('تستقر العجلة…','The wheel is settling…'):host?t('السؤال جاهز. يبدأ وقت الإجابة عندما تضغط ابدأ.','The question is ready. The answer window starts when you press Begin.'):t('انتظر بدء السؤال من المعلّم.','Wait for your teacher to begin the question.')}</p>
   </div>}
   {selected&&active?.challenge&&<p className={styles.note}><Star size={20} aria-hidden="true"/>{t('سؤال تحدٍّ','Challenge question')}</p>}
   {selected&&!!active?.bonusPoints&&<p className={styles.note}>{t(`الإجابة الصحيحة: ${state.rules.baseGamePoints} + ${active.bonusPoints} نقطة لعب. لا تغير درجة التعلّم.`,`Correct response: ${state.rules.baseGamePoints} + ${active.bonusPoints} game points. Learning marks are unchanged.`)}</p>}
   {active?.thinkingAdded&&<p className={styles.note}><Clock3 size={18}/>{t('أضيفت 15 ثانية للجميع','15 seconds added for everyone')}</p>}
+  {state.selection.definitionId==='question-wheel'&&onFullscreen&&<div className={styles.actions}><Button variant="secondary" onClick={onFullscreen}>{full?<Minimize size={18}/>:<Maximize size={18}/>} {full?t('الخروج من ملء الشاشة','Exit fullscreen'):t('ملء الشاشة','Fullscreen')}</Button></div>}
   {host&&<div className={styles.actions}>
    {selected&&<><Button disabled={locked} onClick={()=>void command({action:'begin'})}>{t('ابدأ السؤال','Begin question')}</Button><Button variant="secondary" disabled={locked} onClick={()=>void command({action:'skip'})}>{t('تجاوز الآن','Pass for now')}</Button></>}
    {available&&!completed&&state.selection.definitionId!=='open-box'&&<Button disabled={locked} onClick={()=>void command({action:'draw',animate:motion.enabled})}>{state.selection.definitionId==='question-wheel'?t('اختر سؤالًا','Pick a question'):t('اسحب بطاقة','Draw a card')}</Button>}

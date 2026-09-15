@@ -28,7 +28,7 @@ const supported=new Set<string>(['mcq','tf','hotspot','order','match','cloze','v
  */
 function closedReason(kind:string,playable:readonly string[]|undefined,ar:boolean,game:string|undefined):string|null{
  if(!supported.has(kind))return ar?'غير متاح بعد':'Not available yet'
- if(playable&&!playable.includes(kind))return ar?`لا يعمل مع «${game??'اللعبة المختارة'}»`:`Not playable in ${game??'the chosen game'}`
+ if(playable&&!playable.includes(kind))return ar?`لا يعمل مع: ${game??'الألعاب المختارة'}`:`Not playable in: ${game??'the chosen games'}`
  return null
 }
 /**

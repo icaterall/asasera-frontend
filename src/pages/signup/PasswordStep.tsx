@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 
 import { AuthCard, FormError } from '@/components/form/AuthCard'
 import { EmailTakenMessage } from '@/components/form/EmailTakenMessage'
+import { Field } from '@/components/form/Field'
 import { PasswordField, PASSWORD_MIN } from '@/components/form/PasswordField'
 import { SubmitButton } from '@/components/form/SubmitButton'
 import { useAuthCopy } from '@/copy/useAuthCopy'
@@ -47,6 +48,17 @@ export default function PasswordStep() {
   useDocumentTitle(c.signup.password.title)
 
   const [password, setPassword] = useState('')
+  /*
+   * THE NAME IS COLLECTED HERE, NOT "LATER".
+   *
+   * This screen used to send an email and a password and nothing else, while
+   * the server treated the name as optional to be filled in by a profile step
+   * — a step most people never reach. The accounts that came out of it
+   * appeared in class lists, rosters and shared activities as a blank. It is
+   * one field, on the screen that already exists, asked once.
+   */
+  const [fullName, setFullName] = useState('')
+  const [nameError, setNameError] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [banner, setBanner] = useState<string | null>(null)
   /* Set only when the server refuses the address as already registered. Kept
@@ -69,6 +81,7 @@ export default function PasswordStep() {
   async function submit(event: React.FormEvent) {
     event.preventDefault()
     if (submitting) return
+    if (!fullName.trim()) return setNameError(c.errors.nameRequired)
     if (password.length < PASSWORD_MIN) return setError(c.errors.passwordShort)
 
     setError(null)
@@ -76,7 +89,7 @@ export default function PasswordStep() {
     setTaken(false)
     setSubmitting(true)
     try {
-      const payload = { email: draft!.email, password }
+      const payload = { name: fullName.trim(), email: draft!.email, password }
       if (signupRole === 'teacher') {
         /*
          * The workplace goes with the account, not after it.
@@ -173,6 +186,18 @@ export default function PasswordStep() {
       ) : null}
 
       <form onSubmit={submit} noValidate>
+        <Field
+          label={c.common.nameLabel}
+          placeholder={c.common.namePlaceholder}
+          type="text"
+          autoComplete="name"
+          maxLength={120}
+          value={fullName}
+          error={nameError ?? undefined}
+          disabled={submitting}
+          onChange={(event) => {setFullName(event.target.value);setNameError(null)}}
+          onBlur={() => setNameError(fullName.trim() ? null : c.errors.nameRequired)}
+        />
         <PasswordField
           label={c.common.passwordLabel}
           autoComplete="new-password"

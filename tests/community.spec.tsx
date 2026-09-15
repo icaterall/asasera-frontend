@@ -7,6 +7,7 @@ import type {ReactNode} from 'react'
 import {QueryClient,QueryClientProvider} from '@tanstack/react-query'
 import {MemoryRouter,Route,Routes,useLocation} from 'react-router-dom'
 import {FeedbackForm} from '../src/features/community/FeedbackForm'
+import {QuestionComment} from '../src/features/community/QuestionComment'
 import {InboxEntry} from '../src/features/community/FeedbackInbox'
 import SharedActivity from '../src/features/community/SharedActivity'
 import {community,type Feedback,type InboxItem,type SharedActivity as Activity} from '../src/features/community/api'
@@ -27,7 +28,7 @@ function show(ui:ReactNode,path='/activities/42'){
 }
 const review:Feedback={id:4,versionId:7,rating:4,recommend:true,strengths:'Clear examples',suggestion:'Add a worked example',status:'reviewed',response:'Thank you. Example added.',revision:2,createdAt:'2026-09-09T00:00:00Z',updatedAt:'2026-09-09T00:00:00Z'}
 const item:InboxItem={...review,kind:'feedback',activityId:42,activityTitle:'Fractions',reviewerName:'Another teacher',questionId:null,reason:null}
-const activity:Activity={id:42,title:'Fractions together',theme:'jungle',authorName:'Creator',versionId:7,version:1,publishedAt:review.createdAt,subjectId:1,levelId:8,shareUrl:'https://asasera.com/activities/42',questionCount:1,questions:[{id:5,qIndex:0,prompt:'Is one half equal to two quarters?',media:null,timeLimitS:30,payload:{kind:'tf',options:[{key:'true',text:'True'},{key:'false',text:'False'}]}}],audience:{category:{name_en:'Mathematics',name_ar:'الرياضيات'},educationStages:[],countries:[]},summary:{reviewCount:0,averageRating:null,recommendationCount:0}}
+const activity:Activity={id:42,title:'Fractions together',theme:'jungle',authorName:'Creator',versionId:7,version:1,publishedAt:review.createdAt,subjectId:1,levelId:8,shareUrl:'https://asasera.com/activities/42',questionCount:1,questions:[{id:5,qIndex:0,prompt:'Is one half equal to two quarters?',media:null,timeLimitS:30,payload:{kind:'tf',options:[{key:'true',text:'True'},{key:'false',text:'False'}]}}],audience:{category:{name_en:'Mathematics',name_ar:'الرياضيات'},educationStages:[],countries:[]},summary:{reviewCount:0,averageRating:null,recommendationCount:0,studentReviewCount:0,studentAverageRating:null}}
 function sharedMocks(isAuthor=false){
  vi.spyOn(community,'activity').mockResolvedValue(activity)
  vi.spyOn(community,'context').mockResolvedValue({isAuthor,feedback:null,flags:[]})
@@ -36,6 +37,27 @@ function sharedMocks(isAuthor=false){
 }
 function Location(){const l=useLocation();return <output aria-label="Destination">{l.pathname} {l.state?.from}</output>}
 function shared(){return show(<Routes><Route path="/activities/:id" element={<SharedActivity/>}/><Route path="*" element={<Location/>}/></Routes>)}
+
+it('students can rate without instructor recommendations or edit controls',async()=>{
+ session.user={id:3,role:'student'};session.status='authenticated';sharedMocks();shared()
+ expect(await screen.findByRole('button',{name:'Send feedback'})).toBeTruthy()
+ expect(screen.queryByRole('checkbox')).toBeNull()
+ expect(screen.queryByRole('button',{name:'Make an editable copy'})).toBeNull()
+ expect(screen.queryByText('Comment on this question')).toBeNull()
+ expect(screen.getByText(/not a learning grade/)).toBeTruthy()
+})
+it('sends a private version-bound question comment and retains failed text',async()=>{
+ const user=userEvent.setup(),saved=vi.fn(),send=vi.spyOn(community,'comment').mockRejectedValueOnce(new Error('Offline')).mockResolvedValueOnce({ok:true})
+ show(<QuestionComment activityId={42} questionId={5} versionId={7} onSaved={saved}/>)
+ await user.click(screen.getByText('Comment on this question'))
+ await user.type(screen.getByLabelText('Your comment'),'Please clarify this question.')
+ await user.click(screen.getByRole('button',{name:'Send comment'}))
+ expect(await screen.findByRole('alert')).toBeTruthy()
+ expect((screen.getByLabelText('Your comment') as HTMLTextAreaElement).value).toBe('Please clarify this question.')
+ await user.click(screen.getByRole('button',{name:'Send comment'}))
+ await waitFor(()=>expect(saved).toHaveBeenCalledOnce())
+ expect(send).toHaveBeenLastCalledWith(42,5,7,'Please clarify this question.')
+})
 
 it('requires a rating and submits version-bound teacher feedback without losing optional text',async()=>{
  const user=userEvent.setup(),saved=vi.fn(),send=vi.spyOn(community,'save').mockResolvedValue({feedback:review})
@@ -74,7 +96,7 @@ it('sends a creator reply and status against the displayed feedback revision',as
  const user=userEvent.setup(),saved=vi.fn(),patch=vi.spyOn(api,'patch').mockResolvedValue({ok:true})
  show(<InboxEntry item={item} onSaved={saved}/> )
  await user.click(screen.getByText('Reply and update status'))
- const reply=screen.getByLabelText('Your reply to the teacher (optional)');await user.clear(reply);await user.type(reply,'Updated the worked example.')
+ const reply=screen.getByLabelText('Your reply to the reviewer (optional)');await user.clear(reply);await user.type(reply,'Updated the worked example.')
  await user.click(screen.getByRole('combobox',{name:'Feedback status'}));await user.click(await screen.findByRole('option',{name:'Resolved'}))
  await user.click(screen.getByRole('button',{name:'Save response'}));await waitFor(()=>expect(saved).toHaveBeenCalledOnce())
  expect(patch).toHaveBeenCalledWith('/api/v1/community/inbox/feedback/4',{status:'resolved',response:'Updated the worked example.',expectedRevision:2})
@@ -85,7 +107,7 @@ it('keeps a failed creator reply editable and offers a refresh on conflict',asyn
  await user.click(screen.getByText('Reply and update status'));await user.click(screen.getByRole('button',{name:'Save response'}))
  expect((await screen.findByRole('alert')).textContent).toContain('This feedback changed.')
  expect(screen.getByRole('button',{name:'Refresh feedback'})).toBeTruthy()
- expect((screen.getByLabelText('Your reply to the teacher (optional)') as HTMLTextAreaElement).value).toBe(review.response)
+ expect((screen.getByLabelText('Your reply to the reviewer (optional)') as HTMLTextAreaElement).value).toBe(review.response)
 })
 it('lets a guest preview the activity and carries its URL through sign in',async()=>{
  sharedMocks();const user=userEvent.setup();shared()

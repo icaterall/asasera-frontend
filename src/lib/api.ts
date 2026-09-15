@@ -535,7 +535,9 @@ export const auth = {
    * the type so no caller can start sending one again by accident.
    */
   registerTeacher: (input: {
-    name?: string
+    /* Required. An account is not created without a name — see the note on
+       registerTeacherSchema — so the type refuses to build the request. */
+    name: string
     email: string
     password: string
     category_id?: number
@@ -564,7 +566,7 @@ export const auth = {
       { anonymous: true },
     ),
 
-  registerStudent: (input: { name?: string; email: string; password: string; education_stage_id?:number; learning_profile?:LearningProfile }) =>
+  registerStudent: (input: { name: string; email: string; password: string; education_stage_id?:number; learning_profile?:LearningProfile }) =>
     api.post<RegisterResponse>(`${API_PREFIX}/auth/register/student`, input, {
       anonymous: true,
     }),
@@ -1166,8 +1168,8 @@ export type ActivityRecord = {
   purposeId: number | null
   visibility: 'private' | 'published'
   theme: string
-  /** The game this activity is authored for, or null for "any game". */
-  presentationId: PresentationId | null
+  /** The games this activity is authored for; empty means any game. */
+  presentationIds: PresentationId[]
   revision: number
   currentVersionId: number | null
   createdAt: string
@@ -1245,7 +1247,7 @@ export const activities = {
     curriculumNodeId?: number | null
     purposeId?: number | null
     theme?: string
-    presentationId?: PresentationId | null
+    presentationIds?: PresentationId[]
   }) => api.post<{ activity: ActivityRecord }>(ACTIVITIES, input),
 
   /* One request for the whole editing surface: three round trips would show

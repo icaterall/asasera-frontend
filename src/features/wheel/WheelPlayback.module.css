@@ -1,0 +1,6 @@
+.viewport{position:relative;overflow:hidden;width:100%;min-width:0;display:grid;place-items:center;aspect-ratio:16/10;background:var(--surface,#fff);border-radius:5px}
+.camera{position:relative;width:min(83%,560px);transform-origin:23% 50%}
+.camera svg{filter:none;animation:none}
+.pointer{position:absolute;left:-4%;top:calc(50% - 18px);width:42px;height:36px;z-index:2}
+@media(max-width:600px){.viewport{aspect-ratio:1}.camera{width:90%;transform-origin:-5% 50%}.pointer{left:-4%;width:34px;height:30px;top:calc(50% - 15px)}}
+@media(prefers-reduced-motion:reduce){.camera{transform:none!important}}

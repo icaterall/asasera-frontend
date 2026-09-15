@@ -7,7 +7,7 @@ import { ApiError } from '@/lib/api'
 import { community, type Feedback } from './api'
 import styles from './Community.module.css'
 
-export function FeedbackForm({ activityId, versionId, initial, onSaved }: { activityId: number; versionId: number; initial: Feedback | null; onSaved: () => void }) {
+export function FeedbackForm({ activityId, versionId, initial, onSaved, student = false }: { activityId: number; versionId: number; initial: Feedback | null; onSaved: () => void; student?: boolean }) {
   const { i18n } = useTranslation(), ar = i18n.language.startsWith('ar'), t = (a: string, e: string) => ar ? a : e
   const fieldId = useId()
   const [rating, setRating] = useState(initial?.rating ?? 0), [recommend, setRecommend] = useState(initial?.recommend ?? false)
@@ -25,7 +25,8 @@ export function FeedbackForm({ activityId, versionId, initial, onSaved }: { acti
         <input type="radio" name={`${fieldId}-rating`} value={value} checked={value === rating} onChange={() => setRating(value)} required aria-label={t(`${value} من 5`, `${value} out of 5`)} />
         <Star size={24} aria-hidden="true" /><span>{value}</span>
       </label>)}</div>
-      <label className={styles.check}><input type="checkbox" checked={recommend} onChange={e => setRecommend(e.target.checked)} /><ThumbsUp size={20} aria-hidden="true" />{t('أوصي بهذا النشاط للمعلّمين', 'I recommend this activity to other teachers')}</label>
+      {!student && <label className={styles.check}><input type="checkbox" checked={recommend} onChange={e => setRecommend(e.target.checked)} /><ThumbsUp size={20} aria-hidden="true" />{t('أوصي بهذا النشاط للمعلّمين', 'I recommend this activity to other teachers')}</label>}
+      {student && <p className={styles.muted}>{t('هذا رأيك في النشاط، وليس درجة دراسية. لا يُعرض اسمك مع ملاحظاتك.', 'This is your opinion of the activity, not a learning grade. Your name is not shown with your feedback.')}</p>}
       <label className={styles.field}>{t('ما الذي أعجبك؟ (اختياري)', 'What worked well? (optional)')}<textarea dir="auto" rows={3} maxLength={2000} value={strengths} onChange={e => setStrengths(e.target.value)} /></label>
       <label className={styles.field}>{t('ما الذي يمكن تحسينه؟ (اختياري)', 'What could be improved? (optional)')}<textarea dir="auto" rows={3} maxLength={2000} value={suggestion} onChange={e => setSuggestion(e.target.value)} placeholder={t('مثلًا: أضف مثالًا محلولًا قبل السؤال الثالث.', 'For example: Add a worked example before the third question.')} /></label>
     </fieldset>

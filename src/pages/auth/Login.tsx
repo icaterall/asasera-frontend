@@ -59,6 +59,7 @@ export default function Login() {
     account_exists: c.callback.accountExists,
     bad_state: c.callback.badState,
     expired: c.callback.expired,
+    signup_incomplete: c.callback.signupIncomplete,
     unavailable: c.callback.unavailable,
     failed: c.callback.failed,
   }

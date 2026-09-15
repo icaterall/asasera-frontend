@@ -18,7 +18,7 @@
 .boxes button[data-opening=true]{background:var(--surface-tint,#eef4ff);border-color:var(--act,#004ccc);opacity:1;box-shadow:inset 0 0 0 1px var(--act,#004ccc)}
 .liveRules{border:1px solid var(--line,#ccc);border-radius:5px;margin-block:24px;padding:20px;min-width:0}.liveRules legend{font-size:20px;font-weight:700}.liveRules p{font-size:16px;line-height:1.7}.liveRules label{display:flex;gap:12px;align-items:center;min-height:48px;line-height:1.6;margin-block:8px}.liveRules input{flex:none;width:20px;height:20px;accent-color:var(--act,#004ccc)}
 .questionWheel{background:var(--surface,#fff);color:var(--ink,#333);padding:20px;border-radius:5px;text-align:center;margin-block:16px}
-.questionWheel>div:first-child{max-width:300px}.questionWheel .actions{justify-content:center;margin-bottom:0}
+.questionWheel>[data-wheel-playback]{max-width:950px;margin-inline:auto}.questionWheel .actions{justify-content:center;margin-bottom:0}
 @media(max-width:600px){.memoryGrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.memoryGrid button{min-height:104px;font-size:18px}}
 .sourceContext{font-size:14px;line-height:1.7;color:var(--muted);margin-block:16px;overflow-wrap:anywhere}
 

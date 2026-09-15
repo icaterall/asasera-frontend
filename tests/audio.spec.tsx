@@ -10,6 +10,7 @@ vi.mock('howler', () => ({
     stop = playback.stop
     mute = playback.mute
     unload = playback.unload
+    state() { return 'loaded' }
   },
   Howler: { ctx: { resume: playback.resume }, usingWebAudio: true },
 }))
@@ -38,7 +39,7 @@ it('waits for an explicit unlock and preserves the saved mute setting', async ()
   expect(playback.play).toHaveBeenCalledExactlyOnceWith('select')
   expect(localStorage.getItem('asasera:mute')).toBe('false')
   audio.dispose()
-  expect(playback.unload).toHaveBeenCalledOnce()
+  expect(playback.unload).toHaveBeenCalledTimes(2)
 })
 
 it('uses one join click without a repeating lobby soundtrack or duplicate count cue', async () => {
@@ -63,4 +64,11 @@ it('denied autoplay does not report audio as enabled or play a cue',async()=>{
  audio.play('select')
  expect(playback.play).not.toHaveBeenCalled()
  audio.dispose()
+})
+it('the reference wheel click follows gesture, mute and disposal controls',async()=>{
+ const audio=new SessionAudio()
+ audio.playWheelTick();expect(playback.play).not.toHaveBeenCalled()
+ await audio.unlock();audio.playWheelTick();expect(playback.play).toHaveBeenCalledOnce()
+ audio.setMuted(true);audio.playWheelTick();expect(playback.play).toHaveBeenCalledOnce()
+ audio.dispose();audio.setMuted(false);audio.playWheelTick();expect(playback.play).toHaveBeenCalledOnce()
 })
