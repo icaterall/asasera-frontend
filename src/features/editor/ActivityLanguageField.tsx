@@ -14,10 +14,12 @@ import styles from './ActivityLanguageField.module.css'
 export function ActivityLanguageField({value,onChange,disabled=false}:{value:string;onChange:(value:string)=>void;disabled?:boolean}){
  const {i18n}=useTranslation(),ar=i18n.language.startsWith('ar'),id=useId(),customId=`${id}-custom`
  const known=(CONTENT_LANGUAGES as readonly string[]).includes(value)
+ const customValue=!known&&value.trim()?value:'__other__'
  return <div className={styles.field}>
   <label htmlFor={id}>{ar?'لغة النشاط':'Activity language'}</label>
-  <Select id={id} value={known?value:'__other__'} disabled={disabled} aria-describedby={`${id}-hint`} onValueChange={next=>onChange(next==='__other__'?'':next)}>
+  <Select id={id} value={known?value:customValue} disabled={disabled} aria-describedby={`${id}-hint`} onValueChange={next=>onChange(next==='__other__'?'':next)}>
    {CONTENT_LANGUAGES.map(code=><option key={code} value={code}>{contentLanguageName(code,i18n.language)}</option>)}
+   {!known&&customValue!=='__other__'&&<option value={customValue}>{value}</option>}
    <option value="__other__">{ar?'لغة أخرى…':'Other language…'}</option>
   </Select>
   {!known&&<label className={styles.custom} htmlFor={customId}>

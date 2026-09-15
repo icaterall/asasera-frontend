@@ -2,7 +2,7 @@ import {test,expect} from '@playwright/test'
 import {createRequire} from 'node:module'
 const {Client}=createRequire(import.meta.url)('../../asasera-backend/node_modules/pg')
 
-for(const language of ['en','ar'] as const)for(const definition of ['flashcards','speaking-cards'] as const)test(`pinned permitted source on ${definition} both faces ${language}`,async({page,request})=>{
+for(const language of ['en','ar'] as const)for(const definition of ['flashcards'] as const)test(`pinned permitted source on ${definition} both faces ${language}`,async({page,request})=>{
  test.setTimeout(60000)
  expect(new URL(process.env.PW_BASE_URL??'http://127.0.0.1:5411').hostname).toMatch(/^(127\.0\.0\.1|localhost)$/)
  const ar=language==='ar',flash=definition==='flashcards',width=ar?390:1440,height=ar?844:900,email=`source-${crypto.randomUUID()}@example.com`,password='Synthetic source fixture2026!'

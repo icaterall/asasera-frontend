@@ -28,7 +28,7 @@ for(const width of [390,1440])for(const lang of ['en','ar']){
   await page.screenshot({path:testInfo.outputPath('empty-draft.png'),fullPage:true})
   await page.getByRole('button',{name:ar?'أضف منطقة إجابة':'Add answer area',exact:true}).click()
   await expect(page.getByRole('textbox',{name:ar?'إجابة المنطقة 1':'Answer for area 1',exact:true})).toHaveValue('')
-  await page.getByRole('button',{name:ar?'احذف المنطقة 1':'Delete area 1',exact:true}).click()
+  await page.getByRole('button',{name:ar?'احذف المنطقة 1':'Delete Area 1',exact:true}).click()
   await expect(page.getByText('0/12',{exact:true})).toBeVisible()
   await page.getByRole('button',{name:ar?'اقترح الإجابات بالذكاء الاصطناعي':'Suggest answers with AI',exact:true}).click()
   await expect(page.getByRole('button',{name:ar?'اقترح بالذكاء الاصطناعي':'Suggest with AI',exact:true})).toBeEnabled()

@@ -75,7 +75,9 @@ for(const width of [1440,390])test(`question formatting ${width}`,async({page})=
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true)
  await page.screenshot({path:`../screenshots/question-formatting-${width}.png`})
  if(width===390){
+  await page.getByRole('navigation',{name:'Editor tools'}).getByRole('button',{name:'More',exact:true}).click()
   await page.locator('button[lang="ar"]').click()
+  await page.getByRole('dialog').getByRole('button',{name:'إغلاق',exact:true}).click()
   await page.locator('[data-answer-cell]').first().locator('.asasera-equation').click()
   await expect(modal).toHaveAttribute('dir','rtl')
   await expect(modal.getByRole('button',{name:'إدراج المعادلة',exact:true})).toBeEnabled()

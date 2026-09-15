@@ -1,0 +1,72 @@
+[
+  {
+    "language": "en",
+    "address": "qa-v51-acd4e2f6-4e62-407e-bf1d-a83532fc1239@example.com",
+    "userId": 7,
+    "capturedMailFile": "/tmp/asasera-auth-capture-20260915/mail/1789422260448-868e15b0-5463-4a72-8280-de6f2cc12140.json",
+    "verificationLinkOrigin": "http://127.0.0.1:5305",
+    "tokenRecorded": false,
+    "delivered": false,
+    "walletBeforeVerification": 0,
+    "walletAfterVerification": 130000,
+    "walletAfterReload": 130000,
+    "walletAfterRelogin": 130000,
+    "trialAllowanceMillicents": 100000,
+    "monthlyAllowanceMillicents": 30000,
+    "totalAllowanceMillicents": 130000,
+    "grantEntries": 2,
+    "uiCostLine": "Review the cost before continuing: Estimated 423 AI Credits · Maximum 949 AI Credits · Available 130,000 AI Credits\n\nQuestion creation is temporarily unavailable. Please try again later.",
+    "duplicateNoticeSubject": "Someone tried to create an Asasera account with your address",
+    "screenshots": {
+      "signup": [
+        ".impeccable/review/auth-journey/signup-en-1280.png",
+        ".impeccable/review/auth-journey/signup-en-390.png"
+      ],
+      "verify": [
+        ".impeccable/review/auth-journey/verify-en-1280.png",
+        ".impeccable/review/auth-journey/verify-en-390.png"
+      ],
+      "wallet": [
+        ".impeccable/review/auth-journey/wallet-en-1280.png",
+        ".impeccable/review/auth-journey/wallet-en-390.png"
+      ]
+    },
+    "viewports": "1280 desktop; 390 EMULATED narrow viewport, not a physical phone",
+    "pageErrors": []
+  },
+  {
+    "language": "ar",
+    "address": "qa-v51-648aa929-373c-424f-9b93-b1872759a403@example.com",
+    "userId": 8,
+    "capturedMailFile": "/tmp/asasera-auth-capture-20260915/mail/1789422267259-c5813601-1d2e-4774-ba24-8fe1c404f53e.json",
+    "verificationLinkOrigin": "http://127.0.0.1:5305",
+    "tokenRecorded": false,
+    "delivered": false,
+    "walletBeforeVerification": 0,
+    "walletAfterVerification": 130000,
+    "walletAfterReload": 130000,
+    "walletAfterRelogin": 130000,
+    "trialAllowanceMillicents": 100000,
+    "monthlyAllowanceMillicents": 30000,
+    "totalAllowanceMillicents": 130000,
+    "grantEntries": 2,
+    "uiCostLine": "راجع التكلفة قبل المتابعة: التقدير 423 رصيد ذكاء اصطناعي · الحد الأقصى 949 رصيد ذكاء اصطناعي · المتاح 130,000 رصيد ذكاء اصطناعي\n\nإنشاء الأسئلة غير متاح مؤقتًا. حاول لاحقًا.",
+    "duplicateNoticeSubject": "حاول أحدهم إنشاء حساب في أساسيرا ببريدك",
+    "screenshots": {
+      "signup": [
+        ".impeccable/review/auth-journey/signup-ar-1280.png",
+        ".impeccable/review/auth-journey/signup-ar-390.png"
+      ],
+      "verify": [
+        ".impeccable/review/auth-journey/verify-ar-1280.png",
+        ".impeccable/review/auth-journey/verify-ar-390.png"
+      ],
+      "wallet": [
+        ".impeccable/review/auth-journey/wallet-ar-1280.png",
+        ".impeccable/review/auth-journey/wallet-ar-390.png"
+      ]
+    },
+    "viewports": "1280 desktop; 390 EMULATED narrow viewport, not a physical phone",
+    "pageErrors": []
+  }
+]

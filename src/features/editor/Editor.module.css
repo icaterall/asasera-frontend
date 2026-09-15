@@ -445,6 +445,16 @@
 /* Reserve room for the floating question tools below the mobile audience row. */
 @media(max-width:700px){.canvasInner > [data-formatted-field]:first-child{margin-block-start:52px}}
 
+/* The question prompt sits directly below the sticky editor bar. Open its tools
+   downward so the bar never covers formatting controls on desktop or mobile. */
+.canvasInner > [data-formatted-field]:first-child > [data-formatting-tools] {
+  inset-block-start:100%;
+  inset-block-end:auto;
+  margin-block-start:6px;
+  margin-block-end:0;
+  flex-direction:column;
+}
+
 
 /* The zone editor's picture, with its replace control on it. A click on the
    picture itself starts drawing a zone, so this cannot be that click. */
@@ -611,3 +621,27 @@
      375px screen is chrome arguing with itself. */
   .questionActions { display:none; }
 }
+
+/* One-time pointer to the themes rail: where the backdrop comes from. */
+.themesHint{margin:10px 0 0;padding:11px 12px;border:1px solid var(--act);border-radius:8px;background:color-mix(in srgb,var(--act) 10%,var(--surface))}
+.themesHint p{margin:0 0 9px;font-size:12.5px;font-weight:650;line-height:1.5}
+.themesHint div{display:flex;flex-wrap:wrap;gap:8px}
+.themesHint button{padding:6px 11px;border:1px solid var(--line);border-radius:999px;background:var(--surface);color:var(--ink);font:inherit;font-size:12px;font-weight:700;cursor:pointer}
+.themesHint button:first-child{border-color:var(--act);background:var(--act);color:#fff}
+
+/* What to do with an activity the moment it becomes approvable-for-real. */
+.nextSteps{display:flex;flex-direction:column;gap:10px;max-width:520px}
+.nextStepsLead{margin:0 0 4px;font-size:14px;line-height:1.6;color:var(--muted)}
+.nextSteps>button[type=button]{display:flex;align-items:flex-start;gap:12px;width:100%;padding:14px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);font:inherit;text-align:start;cursor:pointer}
+.nextSteps>button[type=button]:hover:not(:disabled){border-color:var(--act);background:color-mix(in srgb,var(--act) 7%,var(--surface))}
+.nextSteps>button[type=button]:focus-visible{outline:3px solid var(--act);outline-offset:2px}
+.nextSteps>button[type=button]:disabled{opacity:.55;cursor:not-allowed}
+.nextSteps>button[type=button] svg{flex:0 0 auto;margin-block-start:2px;color:var(--act)}
+.nextSteps>button[type=button] span{display:flex;flex-direction:column;gap:3px}
+.nextSteps>button[type=button] strong{font-size:14.5px;font-weight:800}
+.nextSteps>button[type=button] small{font-size:12.5px;line-height:1.55;color:var(--muted)}
+
+/* Changing the activity's game, inside activity settings. */
+.gameSetting{display:flex;flex-direction:column;gap:14px;margin-block-start:22px;padding-block-start:20px;border-block-start:1px solid var(--line)}
+.gameSetting>button{align-self:flex-start}
+.gameSettingError{margin:0;padding:10px 12px;border-radius:8px;background:color-mix(in srgb,var(--danger,#c0392b) 10%,var(--surface));color:var(--danger,#c0392b);font-size:13px;line-height:1.6}

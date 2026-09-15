@@ -75,7 +75,7 @@ export function FormattedInput({value,onChange,label,placeholder,className,maxLe
  function openEquation(){if(!editor)return;const {from,to,$from}=editor.state.selection,node=$from.nodeAfter;setPanel(null);setEquation(node?.type.name==='equation'?{from,to:from+node.nodeSize,latex:node.attrs.latex}:{from,to,latex:''})}
  const controls=[{Icon:Bold,en:'Bold',ar:'عريض',mark:'bold'},{Icon:Italic,en:'Italic',ar:'مائل',mark:'italic'},{Icon:Subscript,en:'Subscript',ar:'نص سفلي',mark:'subscript'},{Icon:Superscript,en:'Superscript',ar:'نص علوي',mark:'superscript'}]
  return <div className={styles.field} data-formatted-field="" data-empty={empty||undefined} data-plain={!className} data-tools-open={panel!==null||equation!==null} data-size={maxLength===2000?'question':'answer'}>
-  <div className={styles.tools}>
+  <div className={styles.tools} data-formatting-tools="">
    <div className={styles.toolbar} role="toolbar" aria-label={ar?'تنسيق النص':'Text formatting'} onMouseDown={event=>event.preventDefault()}>
    {controls.map(({Icon,en,ar:arabic,mark})=><button key={en} type="button" disabled={disabled} title={ar?arabic:en} aria-label={ar?arabic:en} aria-pressed={editor?.isActive(mark)??false} onClick={()=>format(mark)}><Icon size={18}/></button>)}
    <button type="button" disabled={disabled} title={ar?'رموز':'Symbols'} aria-label={ar?'رموز':'Symbols'} aria-expanded={panel==='symbols'} onClick={()=>setPanel(panel==='symbols'?null:'symbols')}><Omega size={18}/></button>

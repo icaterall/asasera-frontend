@@ -3,7 +3,7 @@ import {useMutation,useQuery,useQueryClient} from '@tanstack/react-query'
 import {useTranslation} from 'react-i18next'
 import {CheckCircle2} from 'lucide-react'
 import {api} from '@/lib/api'
-import {Button} from '@/design'
+import {Button,LoadingIndicator} from '@/design'
 import styles from './FileMetadataStatus.module.css'
 
 type Analysis={
@@ -38,9 +38,9 @@ export function FileMetadataStatus({revisionId}:{revisionId:number}){
   </div>
  </details>
  const waiting=['queued','running','not_analyzed'].includes(data?.state??'')
- return <p className={styles.notice} role="status">{waiting
-  ?ar?'تحليل الملف قيد الانتظار أو المعالجة، دون خصم من رصيدك. يمكنك متابعة اختيار الصفحات.':'File analysis is queued or processing, without using your balance. You can keep selecting pages.'
-  :data?.errorCode==='analysis_size_limit'
+ /* The spinner lives with the thing that is actually working. */
+ if(waiting)return <div className={styles.notice} role="status"><LoadingIndicator label={ar?'جارٍ تحليل الملف، دون خصم من رصيدك. يمكنك متابعة اختيار الصفحات.':'Analysing your file, without using your balance. You can keep selecting pages.'}/></div>
+ return <p className={styles.notice} role="status">{data?.errorCode==='analysis_size_limit'
    ?ar?'يتجاوز الملف حد التحليل التلقائي. ما زال بإمكانك إنشاء أسئلة من الصفحات المحددة.':'This file exceeds the automatic analysis limit. You can still create questions from selected pages.'
    :ar?'التحليل التلقائي غير متاح لهذا الملف. يبقى الملف محفوظًا ويمكنك المتابعة.':'Automatic analysis is unavailable for this file. Your file is saved and you can continue.'}</p>
 }

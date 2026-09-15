@@ -95,8 +95,8 @@ test('throttling feedback preserves input and gives a direct support alternative
 
 for (const role of ['teacher', 'student'] as const) test(`${role} account menu, profile persistence, password entry and logout work`, async ({ page }) => {
   const email = await account(page, role)
-  const trigger = page.getByRole('button', { name: 'Account menu', exact: true })
-  await trigger.focus(); await page.keyboard.press('ArrowDown')
+  const trigger = page.getByRole('button', { name: /^Account menu/ })
+  await trigger.press('ArrowDown')
   const menu = page.getByRole('menu', { name: 'Account menu' })
   await expect(menu.getByRole('menuitem').first()).toBeFocused()
   await page.keyboard.press('End'); await expect(menu.getByRole('menuitem', { name: 'Sign out', exact: true })).toBeFocused()
@@ -148,8 +148,24 @@ test('Arabic mobile and English desktop account/support captures fit the viewpor
   await page.evaluate(() => { localStorage.setItem('asasera.language', 'ar'); localStorage.setItem('asasera.theme', 'dark') })
   // The page's explicit control ensures the theme follows the product's storage key.
   await page.reload()
-  await page.getByRole('button', { name: 'قائمة الحساب', exact: true }).click()
-  await page.screenshot({ path: `${shots}/student-menu-mobile-ar.png`, fullPage: true })
+  await page.getByRole('button', { name: /^قائمة الحساب/ }).click()
+  const studentMenu = page.getByRole('menu', { name: 'قائمة الحساب' })
+  await expect(studentMenu).toBeVisible()
+  await expect(studentMenu).toHaveCSS('opacity', '1')
+  const menuSurface = await studentMenu.evaluate(element => {
+    const style = getComputedStyle(element)
+    const box = element.getBoundingClientRect()
+    const foreground = document.elementFromPoint(box.left + box.width / 2, box.top + Math.min(box.height / 2, 120))
+    return {
+      background: style.backgroundColor,
+      foregroundIsMenu: !!foreground?.closest('[role="menu"]'),
+    }
+  })
+  expect(menuSurface.background).toBe('rgb(34, 42, 56)')
+  expect(menuSurface.foregroundIsMenu).toBe(true)
+  // This is a viewport overlay. A full-page capture makes Chromium composite
+  // sticky layers at unrelated document offsets and creates a false overlap.
+  await page.screenshot({ path: `${shots}/student-menu-mobile-ar.png`, animations: 'disabled' })
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
 })
 
@@ -171,8 +187,8 @@ test('dark support and account settings, and a small teacher menu, retain focus 
   await expect(page.getByLabel('Display name', { exact: true })).toBeVisible()
   await page.screenshot({ path: `${shots}/account-desktop-en-dark.png`, fullPage: true })
   await page.setViewportSize({ width: 390, height: 667 }); await page.goto('/teacher/dashboard')
-  const trigger = page.getByRole('button', { name: 'Account menu', exact: true })
-  await trigger.focus(); await page.keyboard.press('ArrowUp')
+  const trigger = page.getByRole('button', { name: /^Account menu/ })
+  await trigger.press('ArrowUp')
   await expect(page.getByRole('menuitem', { name: 'Sign out', exact: true })).toBeFocused()
   await page.keyboard.press('Home')
   const menu = page.getByRole('menu', { name: 'Account menu' })

@@ -2,3 +2,44 @@
 @media(max-width:850px){.layout{grid-template-columns:1fr}.side{border-inline-start:0;border-top:1px solid var(--line,#ccc);padding-inline-start:0;padding-top:24px}.entries{max-height:220px}.wheelFrame{width:min(100%,420px)}.header{flex-wrap:wrap}.header h1,.header h2{font-size:30px}.header p{font-size:14px}.panel{margin-block:18px}.controls .spin{flex:1}.page{padding:12px}.result strong{font-size:26px}}
 @media(prefers-reduced-motion:reduce){.panel button:active:not(:disabled){transform:none}.panel *{scroll-behavior:auto}}
 .rosterEntry{display:flex;align-items:center;gap:12px;min-height:48px;overflow-wrap:anywhere}.rosterEntry input{width:20px;height:20px;flex:none}
+
+
+/* ---- two modes, one wheel ------------------------------------------------ */
+.modes{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px;margin-bottom:22px}
+.mode{display:flex!important;align-items:flex-start;gap:11px;padding:13px 15px!important;min-height:0!important;border:1.5px solid var(--line,#ccc);border-radius:12px!important;background:var(--surface,#fff);color:var(--ink,#333);text-align:start;justify-content:flex-start!important}
+.mode>svg{flex:0 0 auto;margin-block-start:2px;color:var(--act,#004ccc)}
+.mode>span{display:flex;flex-direction:column;gap:3px;min-width:0}
+.mode strong{font-size:14.5px;font-weight:800;line-height:1.4}
+.mode small{font-size:12.5px;font-weight:500;line-height:1.55;color:var(--muted,#6e6e6e);white-space:normal}
+.mode[aria-checked=true]{border-color:var(--act,#004ccc);background:color-mix(in srgb,var(--act,#004ccc) 8%,var(--surface,#fff))}
+.mode[aria-checked=true] strong{color:var(--act,#004ccc)}
+
+/* ---- the result, read from the back of the room -------------------------- */
+.result{min-height:150px}
+.result[data-phase=settled] strong{animation:wheelWinner 460ms cubic-bezier(.16,1,.3,1) both}
+/* A question is a sentence, not a name: readable beats enormous. */
+.result[data-kind=question][data-phase=settled] strong{font-size:clamp(18px,2.4vw,27px);max-width:660px;padding:16px 20px;border-radius:14px;border:1px solid color-mix(in srgb,var(--act,#004ccc) 30%,transparent);background:color-mix(in srgb,var(--act,#004ccc) 7%,var(--surface,#fff))}
+.paired{margin-block-start:14px;max-width:560px;padding:14px 16px;border-radius:12px;border:1px solid color-mix(in srgb,var(--act,#004ccc) 30%,transparent);background:color-mix(in srgb,var(--act,#004ccc) 7%,var(--surface,#fff));animation:wheelPaired 420ms 140ms cubic-bezier(.16,1,.3,1) both}
+.paired>span{display:block;font-size:12.5px;font-weight:700;color:var(--act,#004ccc);margin-block-end:6px}
+.paired>p{margin:0;font-size:clamp(16px,2vw,21px);font-weight:700;line-height:1.65;overflow-wrap:anywhere}
+
+/* ---- motion: it should settle, not stop dead ----------------------------- */
+.wheelFrame{transition:transform 240ms cubic-bezier(.16,1,.3,1)}
+[data-wheel-state=spinning] .wheelFrame,[data-wheel-phase=spinning] .wheelFrame{transform:scale(1.015)}
+[data-wheel-state=spinning] .pointer,[data-wheel-phase=spinning] .pointer{animation:wheelTick 220ms ease-in-out infinite alternate;transform-origin:18px 6px}
+[data-wheel-state=selected] .pointer,[data-wheel-phase=selected] .pointer{animation:wheelSettle 420ms cubic-bezier(.16,1,.3,1) both;transform-origin:18px 6px}
+[data-wheel-state=selected] .disc,[data-wheel-phase=selected] .disc{filter:drop-shadow(0 10px 16px #12304e26) drop-shadow(0 0 0 color-mix(in srgb,var(--act,#004ccc) 60%,transparent));animation:wheelGlow 900ms ease-out both}
+@keyframes wheelTick{from{transform:rotate(-7deg)}to{transform:rotate(7deg)}}
+@keyframes wheelSettle{0%{transform:rotate(9deg)}55%{transform:rotate(-5deg)}100%{transform:rotate(0)}}
+@keyframes wheelWinner{0%{opacity:0;transform:translateY(10px) scale(.92)}60%{transform:translateY(0) scale(1.03)}100%{opacity:1;transform:none}}
+@keyframes wheelPaired{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@keyframes wheelGlow{0%{filter:drop-shadow(0 10px 16px #12304e26) drop-shadow(0 0 22px color-mix(in srgb,var(--act,#004ccc) 55%,transparent))}100%{filter:drop-shadow(0 10px 16px #12304e26) drop-shadow(0 0 0 transparent)}}
+
+/* The app's own motion switch and the device preference both stop all of it:
+   an animation nobody asked for is worse than none, and this one loops. */
+[data-motion=off] .wheelFrame,[data-motion=off] .pointer,[data-motion=off] .disc,[data-motion=off] .result strong,[data-motion=off] .paired{animation:none!important;transform:none!important;filter:drop-shadow(0 10px 16px #12304e26)}
+@media(prefers-reduced-motion:reduce){
+ .wheelFrame,.pointer,.disc,.result strong,.paired{animation:none!important;transition:none!important}
+ [data-wheel-state=spinning] .wheelFrame,[data-wheel-phase=spinning] .wheelFrame{transform:none}
+}
+@media(max-width:850px){.modes{grid-template-columns:1fr}.result{min-height:130px}}

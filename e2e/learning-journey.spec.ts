@@ -1,6 +1,7 @@
 import {test,expect} from '@playwright/test'
 import {readFileSync,appendFileSync} from 'node:fs'
 import {randomUUID} from 'node:crypto'
+import {selectOption} from './select-option'
 const state=process.env.PW_JOURNEY_STATE?JSON.parse(readFileSync(process.env.PW_JOURNEY_STATE,'utf8')):null
 test.skip(!state,'Requires the isolated local SMTP account journey and its published activity')
 test.use({baseURL:state?.web??'http://127.0.0.1:5201',actionTimeout:10_000})
@@ -13,7 +14,8 @@ test('a newly published activity reaches a signed-in student through live play, 
  expect(signed.ok()).toBe(true)
  const {accessToken}=await signed.json(),headers={authorization:`Bearer ${accessToken}`}
  await page.goto(`/teacher/activities/${teacher.activityId}`)
- await page.getByRole('button',{name:'Play',exact:true}).click()
+ await page.getByRole('button',{name:'More',exact:true}).click()
+ await page.getByRole('dialog',{name:'Activity tools',exact:true}).getByRole('button',{name:'Start live',exact:true}).click()
  await page.getByRole('button',{name:'Start live game',exact:true}).click()
  await expect(page.getByRole('heading',{name:'Let’s play together',exact:true})).toBeVisible()
  const pin=(await page.locator('strong[class*="pin"]').innerText()).trim()
@@ -24,7 +26,10 @@ test('a newly published activity reaches a signed-in student through live play, 
   await learner.addInitScript(()=>localStorage.setItem('asasera.language','en'))
   const email=`learner-${randomUUID()}@example.test`,password='Complete student journey 2026'
   await learner.goto('/signup/student')
-  await learner.locator('.tile-grid button').first().click()
+  const stages=await(await learner.request.get('/api/v1/education-stages')).json()
+  const stageId=(stages.items??stages.stages??stages)[0]?.id
+  await selectOption(learner.getByLabel('Education stage',{exact:true}),String(stageId))
+  await learner.getByRole('button',{name:'Continue',exact:true}).click()
   await learner.getByLabel('Email address',{exact:true}).fill(email)
   await learner.getByRole('button',{name:'Continue',exact:true}).click()
   await learner.getByLabel('Password',{exact:true}).fill(password)
@@ -34,16 +39,16 @@ test('a newly published activity reaches a signed-in student through live play, 
   appendFileSync(`${state.directory}/owned-users.jsonl`,JSON.stringify({id:session.user.id,role:'student',database:state.database})+'\n',{mode:0o600})
   await expect(learner.getByLabel('Game PIN',{exact:true})).toBeVisible()
   await learner.getByLabel('Game PIN',{exact:true}).fill(pin.replace(/\d/g,d=>'٠١٢٣٤٥٦٧٨٩'[Number(d)]!))
-  await learner.getByRole('button',{name:'Join',exact:true}).click()
+  await learner.getByRole('button',{name:'Join now',exact:true}).click()
   await learner.getByLabel('Display name',{exact:true}).fill('Synthetic student')
   await learner.getByRole('button',{name:'Join class',exact:true}).click()
   await expect(learner.getByText('You are in. Wait for your teacher to start.',{exact:true})).toBeVisible()
   await page.getByRole('button',{name:'Start class',exact:true}).click()
-  await expect(learner.getByRole('heading',{name:'Choose your answer',exact:true})).toBeVisible()
-  await learner.getByRole('button',{name:'triangle: Four',exact:true}).click()
-  await expect(learner.getByRole('heading',{name:'Answer accepted',exact:true})).toBeVisible()
-  await page.getByRole('button',{name:'Lock and reveal',exact:true}).click()
-  await expect(learner.getByRole('heading',{name:/Correct answer/})).toBeVisible()
+  await expect(learner.getByRole('heading',{name:'What is two plus two?',exact:true})).toBeVisible()
+  await learner.getByRole('button',{name:'Four',exact:true}).click()
+  await expect(learner.getByRole('heading',{name:'You’re in! Answer saved',exact:true})).toBeVisible()
+  await page.getByRole('button',{name:'Reveal answer',exact:true}).click()
+  await expect(learner.getByRole('heading',{name:'You got it!',exact:true})).toBeVisible()
   await page.getByRole('button',{name:'Show podium',exact:true}).click()
   await expect(learner.getByRole('heading',{name:'Well played, everyone',exact:true})).toBeVisible()
   await page.getByRole('button',{name:'Finish class',exact:true}).click()
@@ -65,9 +70,9 @@ test('a newly published activity reaches a signed-in student through live play, 
    await page.getByRole('button',{name:'Create assignment link',exact:true}).click()
    const link=await page.getByLabel('Assignment link',{exact:true}).inputValue()
    const assignmentId=new URL(link).pathname.split('/').at(-1)!
-   await learner.goto('/student')
-   await learner.getByLabel('Activity link',{exact:true}).fill(link)
-   await learner.getByRole('button',{name:'Open activity',exact:true}).click()
+   await learner.goto('/student/activities')
+   await learner.getByLabel('Add an activity link',{exact:true}).fill(link)
+   await learner.getByRole('button',{name:'Save & open',exact:true}).click()
    await learner.getByLabel('Your name',{exact:true}).fill('Synthetic student')
    await learner.getByRole('button',{name:'Start',exact:true}).click()
    await expect(learner.getByRole('heading',{name:'What is two plus two?',exact:true})).toBeVisible()

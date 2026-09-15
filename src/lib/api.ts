@@ -1,4 +1,5 @@
 import type { GenerationQuote } from '@/shared/generation'
+import type { PresentationId } from '@/shared/presentation'
 import type { LearningProfile } from '@/shared/student'
 /**
  * The one place the front end talks to the API.
@@ -1165,6 +1166,8 @@ export type ActivityRecord = {
   purposeId: number | null
   visibility: 'private' | 'published'
   theme: string
+  /** The game this activity is authored for, or null for "any game". */
+  presentationId: PresentationId | null
   revision: number
   currentVersionId: number | null
   createdAt: string
@@ -1242,6 +1245,7 @@ export const activities = {
     curriculumNodeId?: number | null
     purposeId?: number | null
     theme?: string
+    presentationId?: PresentationId | null
   }) => api.post<{ activity: ActivityRecord }>(ACTIVITIES, input),
 
   /* One request for the whole editing surface: three round trips would show

@@ -33,8 +33,10 @@ export default defineConfig(({ mode }) => {
      */
     watch: {
       ignored: [
-        '**/e2e/.artifacts/**',
+        '**/e2e/.artifacts*/**',
+        '**/.impeccable/review/**',
         '**/playwright-report/**',
+        '**/screenshots/**',
         '**/test-results/**',
         '**/.playwright-artifacts-*/**',
       ],

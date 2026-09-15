@@ -18,6 +18,10 @@ for(const [name,width,lang,theme] of [['desktop',1440,'en','light'],['mobile',39
  const calls=await intercept(page),arabic=lang==='ar'
  await page.setViewportSize({width,height:1000});await page.emulateMedia({reducedMotion:'reduce'})
  await page.goto(`/e2e/fixtures/instructor-balance.html?lang=${lang}&theme=${theme}`)
+ if(width<1024){
+  await page.getByRole('button',{name:arabic?'فتح القائمة':'Open navigation',exact:true}).click()
+  await expect(page.getByRole('dialog',{name:arabic?'تنقّل المعلّم':'Teacher navigation'})).toBeVisible()
+ }
  const trigger=page.getByRole('button',{name:arabic?/الرصيد المتاح/:/Available balance: 11,300/})
  await expect(trigger).toBeVisible()
  await expect(trigger).toContainText(arabic?'رصيد':'Balance')
@@ -25,7 +29,7 @@ for(const [name,width,lang,theme] of [['desktop',1440,'en','light'],['mobile',39
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true)
  await mkdir(shots,{recursive:true});await page.screenshot({path:resolve(shots,`${name}-header.png`),fullPage:true})
  await trigger.click()
- const dialog=page.getByRole('dialog'),close=dialog.getByRole('button',{name:arabic?'إغلاق الحساب والاستخدام':'Close account and usage'})
+ const dialog=page.getByRole('dialog',{name:arabic?'حسابك واستخدامك':'Account & usage'}),close=dialog.getByRole('button',{name:arabic?'إغلاق الحساب والاستخدام':'Close account and usage'})
  await expect(dialog).toBeVisible();await expect(dialog.getByText(arabic?'مشاركات المتعلّمين':'Learner participations',{exact:true})).toBeVisible()
  await expect(close).toBeFocused()
  expect(await dialog.evaluate(el=>el.scrollWidth<=el.clientWidth)).toBe(true)

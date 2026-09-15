@@ -16,6 +16,20 @@ export const activityThemes: ActivityTheme[] = [
   { id:'castle', en:'Castle Quest', ar:'مغامرة القلعة', color:'#314b37', ambience:'motes', accent:'#ffe8ad', description:{en:'Follow a winding path into your next storybook challenge.',ar:'اتبع الدرب المتعرّج نحو تحدّيك التالي في عالم الحكايات.'} },
   { id:'garden', en:'Secret Garden', ar:'الحديقة السرية', color:'#2a482d', ambience:'motes', accent:'#fff2b2', description:{en:'Find big discoveries among flowers, ferns and morning light.',ar:'اكتشف أشياء كبيرة بين الأزهار والسراخس وضوء الصباح.'} },
 ]
+/**
+ * THE THEME A NEW ACTIVITY IS BORN WITH.
+ *
+ * The column defaults to 'classic', which is the one theme with no artwork at
+ * all — in the editor it draws as a bare surface — so every teacher's first
+ * activity looked unfinished before they had touched anything, and nothing on
+ * the screen suggested a backdrop was theirs to choose. A new activity now
+ * arrives in one of the drawn worlds, picked for them; the plain blue stage
+ * stays in the picker for anyone who wants it.
+ */
+export function defaultActivityTheme(): ActivityThemeId {
+  const worlds = activityThemes.filter(theme => theme.id !== 'classic')
+  return worlds[Math.floor(Math.random() * worlds.length)]!.id
+}
 const aliases: Record<string, ActivityThemeId> = { forest:'jungle', cosmic:'space', coral:'ocean' }
 export function getActivityTheme(value?: string | null): ActivityTheme {
   return activityThemes.find(theme => theme.id === (aliases[value ?? ''] ?? value)) ?? activityThemes[0]!

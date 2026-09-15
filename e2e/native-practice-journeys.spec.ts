@@ -4,9 +4,9 @@ const touch=process.env.PW_NATIVE_TOUCH==='1',reduced=process.env.PW_REDUCED_MOT
 const dropAcknowledgement=process.env.PW_DROP_NATIVE_ACK==='1'
 declare global{interface Window{placementDurations:number[]}}
 
-type NativeFormat='match-up'|'group-sort'|'sequence'|'sentence-completion'|'word-builder'|'speaking-cards'
-const formats:NativeFormat[]=['match-up','group-sort','sequence','sentence-completion','word-builder','speaking-cards']
-const names:Record<NativeFormat,[string,string]>={'match-up':['Match up','المطابقة'],'group-sort':['Group sort','تصنيف المجموعات'],sequence:['Sequence','الترتيب'],'sentence-completion':['Complete the sentence','إكمال الجملة'],'word-builder':['Word builder','بناء الكلمات'],'speaking-cards':['Speaking cards','بطاقات التحدث']}
+type NativeFormat='match-up'|'group-sort'|'sequence'|'sentence-completion'|'word-builder'
+const formats:NativeFormat[]=['match-up','group-sort','sequence','sentence-completion','word-builder']
+const names:Record<NativeFormat,[string,string]>={'match-up':['Match up','المطابقة'],'group-sort':['Group sort','تصنيف المجموعات'],sequence:['Sequence','الترتيب'],'sentence-completion':['Complete the sentence','إكمال الجملة'],'word-builder':['Word builder','بناء الكلمات']}
 async function activate(locator:Locator){if(touch)await locator.tap();else{await locator.focus();await locator.press('Enter')}}
 async function capture(page:Page,path:string){
  await page.evaluate(async()=>{await document.fonts.ready;await Promise.all(document.getAnimations().filter(a=>a.effect?.getTiming().iterations!==Infinity).map(a=>a.finished.catch(()=>{})));window.scrollTo({top:0,behavior:'instant'})})
@@ -89,7 +89,7 @@ for(const [language,width,height] of [['en',1440,900],['ar',390,844]] as const)f
    }
    await capture(learn,`../docs/evidence/interactive/native-practice-${format}-${language}-populated.png`)
    let firstBody:unknown,firstSaved:{score:number;submittedAnswer:unknown}|undefined,replayed=0
-   if(dropAcknowledgement&&format!=='speaking-cards')await learn.route('**/delivery/attempts/*/answer',async route=>{
+   if(dropAcknowledgement)await learn.route('**/delivery/attempts/*/answer',async route=>{
     const body=route.request().postDataJSON()
     if(firstBody===undefined){
      firstBody=body
@@ -102,18 +102,18 @@ for(const [language,width,height] of [['en',1440,900],['ar',390,844]] as const)f
      expect(stable(body)).toEqual(stable(firstBody));replayed++;await route.continue()
     }
    })
-   const saved=learn.waitForResponse(response=>response.request().method()==='POST'&&response.url().endsWith(format==='speaking-cards'?'/presentation':'/answer'))
-   const submit=learn.getByRole('button',{name:format==='speaking-cards'?(ar?'سجّل كمناقَش':'Mark discussed'):format==='sequence'?(ar?'تحقق':'Check'):ar?(format==='match-up'||format==='group-sort'?'أرسل الإجابة':'إرسال الإجابة'):'Submit answer',exact:true})
+ const saved=learn.waitForResponse(response=>response.request().method()==='POST'&&response.url().endsWith('/answer'))
+ const submit=learn.getByRole('button',{name:format==='sequence'?(ar?'تحقق':'Check'):ar?(format==='match-up'||format==='group-sort'?'أرسل الإجابة':'إرسال الإجابة'):'Submit answer',exact:true})
    await activate(submit)
-   if(dropAcknowledgement&&format!=='speaking-cards'){
+   if(dropAcknowledgement){
     await expect(learn.getByRole('alert')).toBeVisible()
     await expect(submit).toBeEnabled()
     await activate(submit)
    }
    const response=await saved;expect(response.ok(),await response.text()).toBe(true)
    const savedView=await response.json();expect(savedView.answered).toBe(true)
-   if(dropAcknowledgement&&format!=='speaking-cards'){expect(replayed).toBe(1);expect(savedView.score).toBe(firstSaved?.score);expect(savedView.submittedAnswer).toEqual(firstSaved?.submittedAnswer)}
-   if(format==='speaking-cards'){expect(savedView.correctCount).toBeNull();expect(savedView.presentation.discussed).toHaveLength(1)}else expect(savedView.reveal.wasCorrect).toBe(true)
+   if(dropAcknowledgement){expect(replayed).toBe(1);expect(savedView.score).toBe(firstSaved?.score);expect(savedView.submittedAnswer).toEqual(firstSaved?.submittedAnswer)}
+   expect(savedView.reveal.wasCorrect).toBe(true)
    if(format==='sentence-completion'){
     await expect(learn.getByRole('textbox',{name:ar?'الفراغ 1':'Blank 1',exact:true})).toHaveValue(fixture.answer!)
     await activate(learn.getByText(ar?'إجابة مرجعية':'Reference answer',{exact:true}))
@@ -121,8 +121,7 @@ for(const [language,width,height] of [['en',1440,900],['ar',390,844]] as const)f
    }
    await learn.reload()
    await expect(learn.getByRole('heading',{name:fixture.prompt,exact:true})).toBeVisible()
-   if(format==='speaking-cards')await expect(learn.getByRole('button',{name:ar?'تمت المناقشة':'Discussed',exact:true})).toBeDisabled()
-   else await expect(learn.getByRole('status').filter({hasText:ar?'إجابة صحيحة':'Correct'})).toBeVisible()
+   await expect(learn.getByRole('status').filter({hasText:ar?'إجابة صحيحة':'Correct'})).toBeVisible()
    if(format==='match-up'||format==='group-sort')for(const [i,card] of fixture.cards!.entries()){
     await expect(learn.getByRole('button',{name:fixture.targets![i===fixture.cards!.length-1?1:0]!,exact:true})).toContainText(card)
     await expect(learn.getByRole('button',{name:card,exact:true})).toHaveCount(0)

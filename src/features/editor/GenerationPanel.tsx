@@ -22,7 +22,6 @@ type Quote={quoteId:string;quoteExpiresAt:string;estimateMillicents:number;maxAu
 type Recovery={mode?:'generate'|'extract';tone?:'clear'|'conversational'|'formal';sourceChosen?:boolean;origin:'file'|'text'|'topic';objective:string;text:string;count:number;language:string;difficulty:'easy'|'medium'|'hard';kinds:string[];revisionId:number|null;segments:number[];jobId:number|null;requestKey:string;submitted?:{input:string;quote:Quote};sourceRunId?:number|null;target?:QuestionRecord|null;edits?:Record<number,Candidate>;selected?:number[]}
 const recoverySchema=z.object({mode:z.enum(['generate','extract']).optional(),tone:z.enum(['clear','conversational','formal']).optional(),sourceChosen:z.boolean().optional(),origin:z.enum(['file','text','topic']),objective:z.string(),text:z.string(),count:z.number().int().min(1).max(20),language:contentLanguageSchema,difficulty:z.enum(['easy','medium','hard']),kinds:z.array(z.enum(['mcq','tf'])).min(1).max(2),revisionId:z.number().int().positive().nullable(),segments:z.array(z.number().int().positive()),jobId:z.number().int().positive().nullable(),requestKey:z.string().min(10),submitted:z.object({input:z.string(),quote:z.object({quoteId:z.string(),quoteExpiresAt:z.string(),estimateMillicents:z.number(),maxAuthorizedMillicents:z.number(),estimateAiCredits:z.number(),maxAuthorizedAiCredits:z.number(),usableAiCredits:z.number(),creditPolicyVersion:z.number(),creditUnit:z.literal('AI Credits'),usableMillicents:z.number(),affordable:z.boolean(),generationAvailable:z.boolean(),pricingAvailable:z.boolean(),grant:z.object({eligible:z.boolean(),reason:z.string().nullable(),trialAiCredits:z.number()}).optional()})}).optional(),target:z.object({id:z.number().int().positive(),revision:z.number().int().positive(),prompt:z.string(),kind:z.enum(['mcq','tf','order','match','hotspot']),ordinal:z.number().optional(),mediaKey:z.string().nullable().optional(),timeLimitS:z.number().optional(),payload:z.unknown().optional()}).nullable().optional(),sourceRunId:z.number().int().positive().nullable().optional(),selected:z.array(z.number().int().nonnegative()).optional(),edits:z.record(z.string(),z.object({mediaKey:z.string().max(500).nullable().optional(),prompt:z.string(),kind:z.string(),payloadJson:z.string(),explanation:z.string().optional(),sourceSegments:z.array(z.number()).optional(),concept:z.string().optional(),reasons:z.array(z.unknown()).optional()})).optional()})
 const intentSchema=generationInputSchema.omit({maxAuthorizedMillicents:true,idempotencyKey:true,quoteId:true})
-const TOPIC_QUOTE_DEBOUNCE_MS=150
 function restore(key:string):Partial<Recovery>|null{try{const r=recoverySchema.safeParse(JSON.parse(sessionStorage.getItem(key)??'null'));if(!r.success)return null;if(r.data.submitted)intentSchema.parse(JSON.parse(r.data.submitted.input));return r.data as Partial<Recovery>}catch{return null}}
 
 /**
@@ -40,12 +39,27 @@ function restore(key:string):Partial<Recovery>|null{try{const r=recoverySchema.s
  * source, a section-segmented DOCX, or a page the renderer could not manage.
  * That fallback is the old behaviour, not an error state.
  */
-function PageShot({src,alt,text}:{src:string|null;alt:string;text:string}){
-  const [state,setState]=useState<'loading'|'drawn'|'none'>(src?'loading':'none')
+function PageShot({src,alt,text,retryLabel,failedLabel}:{src:string|null;alt:string;text:string;retryLabel:string;failedLabel:string}){
+  const [state,setState]=useState<'loading'|'drawn'|'failed'|'none'>(src?'loading':'none')
+  const [attempt,setAttempt]=useState(0)
+  /*
+   * A PAGE THAT SHOULD HAVE A PICTURE NEVER FALLS BACK TO ITS TEXT.
+   *
+   * The text fallback belongs to sources that have no pages to draw — pasted
+   * text, a section-segmented DOCX. Using it for a PDF page that failed to
+   * draw hid a real fault behind something that looks deliberate, and for an
+   * Arabic PDF the extracted text is unreadable anyway (the letters arrive
+   * without their spaces), so the teacher was being shown the one view the
+   * pictures exist to replace. A failure now says so and offers to try again.
+   */
   return <span className={styles.pageShot} data-state={state}>
-    {src&&state!=='none'&&<img src={mediaUrl(src)} alt={alt} loading="lazy" decoding="async"
-      onLoad={()=>setState('drawn')} onError={()=>setState('none')}/>}
+    {src&&state!=='none'&&state!=='failed'&&<img key={attempt} src={mediaUrl(src)} alt={alt} loading="lazy" decoding="async"
+      onLoad={()=>setState('drawn')} onError={()=>setState('failed')}/>}
     {state==='none'&&<span className={styles.pageText} dir="auto">{text}</span>}
+    {state==='failed'&&<span className={styles.pageFailed}>
+      <small>{failedLabel}</small>
+      <button type="button" onClick={event=>{event.preventDefault();event.stopPropagation();setAttempt(n=>n+1);setState('loading')}}>{retryLabel}</button>
+    </span>}
   </span>
 }
 
@@ -76,17 +90,20 @@ export function GenerationPanel({startWithChoices=false,activity,question,onClos
  const [uploadingImages,setUploadingImages]=useState<number[]>([])
  const [edits,setEdits]=useState<Record<number,Candidate>>(saved?.edits??{})
  const [selected,setSelected]=useState<number[]>(saved?.selected??[]),[pending,setPending]=useState(''),[error,setError]=useState(''),[notice,setNotice]=useState('')
- const [quoted,setQuoted]=useState<{input:string;quote:Quote}|null>(saved?.submitted??null),[quoting,setQuoting]=useState(false),[quoteAttempt,setQuoteAttempt]=useState(0)
+ const [quoted,setQuoted]=useState<{input:string;quote:Quote}|null>(saved?.submitted??null)
  const [uploaded,setUploaded]=useState<Material|null>(null),[source,setSource]=useState<{text:string;index:number}|null>(null)
  const recoveryCleared=useRef(false)
  const dialog=useRef<HTMLDialogElement>(null),close=useRef<HTMLButtonElement>(null),inFlight=useRef(false),titleId=useId(),inputId=useId(),queryClient=useQueryClient()
- useEffect(()=>{const d=dialog.current,prior=document.activeElement,overflow=document.body.style.overflow;d?.showModal();document.body.style.overflow='hidden';close.current?.focus();return()=>{d?.close();document.body.style.overflow=overflow;if(prior instanceof HTMLElement&&prior.isConnected)prior.focus()}},[])
+ /* ActivityEditor restores the drawer first and then focuses the launcher. The
+    dialog must not race that hand-off by refocusing a launcher node that may
+    have been temporarily removed while a phone drawer was closed. */
+ useEffect(()=>{const d=dialog.current,overflow=document.body.style.overflow;d?.showModal();document.body.style.overflow='hidden';close.current?.focus();return()=>{d?.close();document.body.style.overflow=overflow}},[])
  const recoverySnapshot=(patch:Partial<Recovery>={}):Recovery=>({mode,tone,sourceChosen:!choosing,origin,objective,text,count,language,difficulty,kinds,revisionId,segments,jobId,requestKey,submitted,target,edits,selected,sourceRunId,...patch})
  const persistRecovery=(value:Recovery)=>{try{sessionStorage.setItem(key,JSON.stringify(value))}catch{/* Retain in memory when browser storage is blocked. */}}
  useEffect(()=>{if(!recoveryCleared.current)persistRecovery(recoverySnapshot())},[key,mode,tone,choosing,origin,objective,text,count,language,difficulty,kinds,revisionId,segments,jobId,requestKey,submitted,target,edits,selected,sourceRunId])
  const limits=useQuery({queryKey:['material-limits'],queryFn:()=>teaching.limits(),staleTime:300000})
  const revision=useQuery({queryKey:['generation-revision',revisionId],queryFn:()=>teaching.revision(revisionId!),enabled:!!revisionId&&origin!=='topic',refetchInterval:q=>['pending','running'].includes(q.state.data?.revision.state??'')?1500:false})
- const pages=useQuery({queryKey:['generation-segments',revisionId],queryFn:()=>teaching.segments(revisionId!),enabled:!!revisionId&&origin!=='topic'&&revision.data?.revision.state==='ready'})
+ const pages=useQuery({queryKey:['generation-segments',revisionId],queryFn:()=>teaching.segments(revisionId!),enabled:!!revisionId&&origin!=='topic',refetchInterval:()=>['pending','running'].includes(revision.data?.revision.state??'')?1500:false})
  const jobs=useQuery({queryKey:['activity-generation',activity.id],queryFn:()=>api.get<{jobs:Job[]}>(`/api/v1/activity-generation/activities/${activity.id}`)})
  const active=useQuery({queryKey:['activity-generation-job',jobId],queryFn:()=>api.get<{job:Job}>(`/api/v1/activity-generation/jobs/${jobId}`),enabled:!!jobId,refetchInterval:q=>['queued','running'].includes(q.state.data?.job.state??'queued')?1500:false})
  const job=active.data?.job,result=job?.result,preparing=!!job&&['queued','running'].includes(job.state)
@@ -102,45 +119,40 @@ export function GenerationPanel({startWithChoices=false,activity,question,onClos
  const proposedRequest={mode:fileOrigin?mode:'generate',tone,activityId:activity.id,task:'questions',origin:fileOrigin?'file':'topic',objective:objective.trim(),language,count:replacement?1:count,kinds,difficulty,questionId:target?.id??null,expectedRevision:target?.revision??activity.revision,materialRevisionId:fileOrigin?revisionId:null,segments:fileOrigin?segments:[],sourceRunId}
  const request=submitted?intentSchema.parse(JSON.parse(submitted.input)):proposedRequest
  const requestText=submitted?.input??JSON.stringify(request)
- const quoteObjective=useRef(request.objective)
  const lastRequest=useRef(requestText)
  useEffect(()=>{if(!submitted&&lastRequest.current!==requestText){lastRequest.current=requestText;setSubmitted(undefined);setRequestKey(crypto.randomUUID())}},[requestText])
  const describe=(e:unknown)=>{const code=e instanceof ApiError?e.code:'';if(code==='question_invalid'||code==='validation_error')return t('questionInvalid');if(['insufficient_credit','exposure_cap_reached'].includes(code))return t('credit');if(['quote_changed','quote_expired','quote_policy_changed','stale_quote'].includes(code))return t('changed');if(['revision_conflict','stale_revision','question_changed'].includes(code))return t('stale');return t('failed')}
  /*
-  * The quote is re-fetched on every change to the request — including each page
-  * the teacher ticks. Clearing it first made the footer fall back to "Estimating
-  * cost…" on every click, so the one number they are watching flickered away and
-  * back while they worked, and the live region announced it each time.
+  * ONE ESTIMATE, ASKED FOR ONCE — NOT A PRICE THAT FOLLOWS THE MOUSE.
   *
-  * The previous estimate now stays on screen, marked as updating, until the new
-  * one lands. This is display only: `currentQuote` still requires the quote to
-  * match the CURRENT request, so a stale figure can be read but never generated
-  * against — the button stays disabled and `generate()` refuses it.
+  * The cost used to be re-quoted on every change to the request, including
+  * each page ticked: choosing twelve pages meant twelve round trips, the one
+  * number the teacher was watching flickered away and back on every click,
+  * and the modal was held inert while it did. Selecting pages is now free of
+  * the network entirely. The estimate is fetched when they press the create
+  * button, shown for approval, and the run starts only once they confirm it —
+  * so nothing is ever spent on a request they have not read.
   */
  useEffect(()=>{
-  // Only typing needs a debounce. Pages, mode and question options quote on
-  // the next task, which also lets effect cleanup coalesce initial defaults.
-  const delay=quoteObjective.current!==request.objective?TOPIC_QUOTE_DEBOUNCE_MS:0
-  quoteObjective.current=request.objective
-  if(submitted?.input===requestText){setQuoted(submitted);setQuoting(false);return}
+  if(submitted?.input===requestText){setQuoted(submitted);return}
+  setQuoted(null)
   setError('')
-  if(!ready){setQuoted(null);setQuoting(false);return}
+ },[requestText,submitted])
+ const quoteController=useRef<AbortController|null>(null)
+ useEffect(()=>()=>quoteController.current?.abort(),[])
+ const requestQuote=async()=>{
+  quoteController.current?.abort()
   const controller=new AbortController()
-  const timer=setTimeout(()=>{
-   setQuoting(true)
-   void api.post<Quote>('/api/v1/activity-generation/quote',request,{signal:controller.signal}).then(quote=>{
-    if(controller.signal.aborted)return
-    const checked=recoverySchema.shape.submitted.unwrap().shape.quote.safeParse(quote)
-    if(!checked.success){setError(t('unavailable'));return}
-    setQuoted({input:requestText,quote:checked.data})
-   }).catch(e=>{if(!controller.signal.aborted)setError(describe(e))})
-    .finally(()=>{if(!controller.signal.aborted)setQuoting(false)})
-  },delay)
-  return()=>{controller.abort();clearTimeout(timer)}
- },[requestText,ready,quoteAttempt]) // eslint-disable-line react-hooks/exhaustive-deps
- const run=async(action:string,work:()=>Promise<void>)=>{if(inFlight.current)return;inFlight.current=true;setPending(action);setError('');try{await work()}catch(e){if(e instanceof ApiError&&(e.code.startsWith('quote_')||(action==='generate'&&e.status>=400&&e.status<500))){setSubmitted(undefined);setQuoted(null);setRequestKey(crypto.randomUUID());setQuoteAttempt(n=>n+1)}setError(describe(e));if(e instanceof ApiError&&e.code==='revision_conflict')await onApplied()}finally{inFlight.current=false;setPending('')}}
+  quoteController.current=controller
+  const quote=await api.post<Quote>('/api/v1/activity-generation/quote',request,{signal:controller.signal})
+  if(controller.signal.aborted)return
+  const checked=recoverySchema.shape.submitted.unwrap().shape.quote.safeParse(quote)
+  if(!checked.success){setError(t('unavailable'));return}
+  setQuoted({input:requestText,quote:checked.data})
+ }
+ const run=async(action:string,work:()=>Promise<void>)=>{if(inFlight.current)return;inFlight.current=true;setPending(action);setError('');try{await work()}catch(e){if(e instanceof ApiError&&(e.code.startsWith('quote_')||(action==='generate'&&e.status>=400&&e.status<500))){setSubmitted(undefined);setQuoted(null);setRequestKey(crypto.randomUUID())}setError(describe(e));if(e instanceof ApiError&&e.code==='revision_conflict')await onApplied()}finally{inFlight.current=false;setPending('')}}
  const setMaterial=(m:Material)=>{setUploaded(m);setRevisionId(m.revisionId);setSegments([]);autoScope.current=null}
- const generate=async()=>{const q=quoted?.quote;if(!q||quoted?.input!==requestText)return;if(!submitted&&new Date(q.quoteExpiresAt).getTime()<=Date.now()){setQuoted(null);setQuoteAttempt(n=>n+1);setError(t('changed'));return}const approved={input:requestText,quote:q};setSubmitted(approved);persistRecovery(recoverySnapshot({jobId:null,submitted:approved}));const r=await api.post<{job:Job}>('/api/v1/activity-generation/jobs',{...request,quoteId:q.quoteId,maxAuthorizedMillicents:q.maxAuthorizedMillicents,idempotencyKey:requestKey});queryClient.setQueryData(['activity-generation-job',r.job.id],r);setJobId(r.job.id);setSelected([]);setEdits({});await jobs.refetch()}
+ const generate=async()=>{const q=quoted?.quote;if(!q||quoted?.input!==requestText)return;if(!submitted&&new Date(q.quoteExpiresAt).getTime()<=Date.now()){setQuoted(null);setError(t('changed'));await requestQuote();return}const approved={input:requestText,quote:q};setSubmitted(approved);persistRecovery(recoverySnapshot({jobId:null,submitted:approved}));const r=await api.post<{job:Job}>('/api/v1/activity-generation/jobs',{...request,quoteId:q.quoteId,maxAuthorizedMillicents:q.maxAuthorizedMillicents,idempotencyKey:requestKey});queryClient.setQueryData(['activity-generation-job',r.job.id],r);setJobId(r.job.id);setSelected([]);setEdits({});await jobs.refetch()}
  const remaining=result?.candidates.map((_,i)=>i).filter(i=>!result.appliedIndexes.includes(i))??[]
  const apply=async(indexes=selected)=>{if(!job||!result||!indexes.length||uploadingImages.length)return;const applying=replacement?[indexes[0]]:indexes;await api.post(`/api/v1/activity-generation/jobs/${job.id}/apply`,{selected:applying,expectedRevision:result.nextRevision,edits:Object.entries(edits).filter(([i])=>applying.includes(Number(i))).map(([i,{mediaKey,...c}])=>({index:Number(i),...(mediaKey!==undefined?{mediaKey}:{}),question:{...c,explanation:c.explanation??'',concept:c.concept??'',reasons:c.reasons??[],sourceSegments:c.sourceSegments??[]}}))});setEdits(old=>Object.fromEntries(Object.entries(old).filter(([i])=>!applying.includes(Number(i)))));setSelected(old=>old.filter(i=>!applying.includes(i)));setNotice(t('stored'));await active.refetch();await onApplied();if(applying.length>=remaining.length){recoveryCleared.current=true;try{sessionStorage.removeItem(key)}catch{/* Already saved by the server. */}}}
  const refreshTarget=()=>{if(!question)return;recoveryCleared.current=false;setTarget(question);setObjective(question.prompt);setOrigin(provenance?.origin==='file'?'file':'topic');setRevisionId(provenance?.materialRevisionId??null);setSegments(provenance?.segmentIndexes??[]);setJobId(null);setSubmitted(undefined);setQuoted(null);setSelected([]);setEdits({});setRequestKey(crypto.randomUUID());setError('');setNotice('')}
@@ -151,15 +163,15 @@ export function GenerationPanel({startWithChoices=false,activity,question,onClos
  const locator=job?.sourceKind?(job.sourceKind==='pptx'?'slide':job.sourceKind==='pdf'?'page':'section'):revision.data?.revision.locatorKind??'section'
  const selectedNames=readable.filter(s=>segments.includes(s.segmentIndex)).map(s=>s.printedLabel??number(s.pageIndex??s.segmentIndex)).join(', ')
  const currentQuote=quoted?.input===requestText?quoted.quote:null
- /* What the footer draws: the live quote, or the last one while it refreshes.
-    Only an empty first load falls back to the estimating message. */
- const shownQuote=currentQuote??quoted?.quote??null
- const quoteStale=!!shownQuote&&!currentQuote
- return <dialog ref={dialog} aria-labelledby={titleId} dir={ar?'rtl':'ltr'} className={`asas ${styles.dialog} ${!replacement?(choosing?styles.chooser:styles.workspace):''} ${!choosing&&!replacement&&!jobId?styles.creationWorkspace:''} ${origin==='file'?styles.fileWorkspace:styles.topicWorkspace}`} onCancel={onClose} onKeyDown={event=>{if(event.key==='Escape'){event.stopPropagation();return}if(event.key!=='Tab')return;const items=Array.from(dialog.current?.querySelectorAll<HTMLElement>('button:not(:disabled),a[href],input:not(:disabled),textarea:not(:disabled),select:not(:disabled),summary,[tabindex="0"]')??[]).filter(el=>el.tabIndex>=0&&el.getClientRects().length>0&&!el.closest('[hidden],[inert]'));const first=items[0],last=items.at(-1);if(!first)return;if(event.shiftKey&&(document.activeElement===first||!dialog.current?.contains(document.activeElement))){event.preventDefault();last?.focus()}else if(!event.shiftKey&&(document.activeElement===last||!dialog.current?.contains(document.activeElement))){event.preventDefault();first.focus()}}}>
-  <header className={styles.header} inert={quoting}><div className={styles.heading}>{!replacement&&!choosing&&!jobId&&!submitted&&<button type="button" aria-label={t('backChoices')} onClick={()=>setChoosing(true)}><ArrowLeft className={styles.backIcon}/></button>}<h2 id={titleId}>{choosing?t('chooseTitle'):replacement?t('suggest'):jobId?t('review'):origin==='file'&&revisionId?(ar?'اختر الصفحات وإعدادات الأسئلة':'Select pages and question options'):t(origin)}</h2></div><button ref={close} type="button" aria-label={t('close')} onClick={onClose}><X/></button></header>
-  {quoting&&<div className={styles.busy}><LoadingIndicator label={t('estimating')} size="large"/></div>}
+ /* A quote in hand for the CURRENT request, not yet approved: the footer
+    becomes a confirmation the teacher reads and accepts or cancels. Change
+    anything — a page, the count — and it is no longer about that request, so
+    it disappears and the create button comes back. */
+ const awaitingConfirm=!!currentQuote&&(!submitted||pending==='generate')
+ return <dialog ref={dialog} aria-labelledby={titleId} dir={ar?'rtl':'ltr'} className={`asas ${styles.dialog} ${!replacement?(choosing?styles.chooser:styles.workspace):''} ${!choosing&&!replacement&&!jobId?styles.creationWorkspace:''} ${origin==='file'?styles.fileWorkspace:styles.topicWorkspace}`} onCancel={event=>{event.preventDefault();event.stopPropagation();onClose()}} onKeyDown={event=>{if(event.key==='Escape'){event.stopPropagation();return}if(event.key!=='Tab')return;const items=Array.from(dialog.current?.querySelectorAll<HTMLElement>('button:not(:disabled),a[href],input:not(:disabled),textarea:not(:disabled),select:not(:disabled),summary,[tabindex="0"]')??[]).filter(el=>el.tabIndex>=0&&el.getClientRects().length>0&&!el.closest('[hidden],[inert]'));const first=items[0],last=items.at(-1);if(!first)return;if(event.shiftKey&&(document.activeElement===first||!dialog.current?.contains(document.activeElement))){event.preventDefault();last?.focus()}else if(!event.shiftKey&&(document.activeElement===last||!dialog.current?.contains(document.activeElement))){event.preventDefault();first.focus()}}}>
+  <header className={styles.header}><div className={styles.heading}>{!replacement&&!choosing&&!jobId&&!submitted&&<button type="button" aria-label={t('backChoices')} onClick={()=>setChoosing(true)}><ArrowLeft className={styles.backIcon}/></button>}<h2 id={titleId}>{choosing?t('chooseTitle'):replacement?t('suggest'):jobId?t('review'):origin==='file'&&revisionId?(ar?'اختر الصفحات وإعدادات الأسئلة':'Select pages and question options'):t(origin)}</h2></div><button ref={close} type="button" aria-label={t('close')} onClick={onClose}><X/></button></header>
   {choosing?<div className={styles.choices}><p className={styles.choiceLead}>{t('chooseLead')}</p><CreationChoices onChoose={method=>method==='manual'?onClose():chooseSource(method)}/></div>:<>
-  <div className={styles.body} inert={quoting}>
+  <div className={styles.body}>
    {replacement&&target&&<section className={styles.original}><strong>{t('original')}</strong><p dir="auto">{target.prompt}</p>{fileOrigin&&<small>{title} · {selectedNames||t('scope',{number:number(segments.length)})}</small>}</section>}
    {!jobId&&<fieldset className={`${styles.form} ${!replacement?styles.creationForm:''}`} disabled={!!pending||!!submitted}>
     {!replacement&&origin!=='file'&&<div className={styles.inputModes}><Button variant="quiet" disabled={!!pending||!!submitted} onClick={()=>chooseSource('topic')}>{t('topic')}</Button><Button variant="quiet" disabled={!!pending||!!submitted} onClick={()=>chooseSource('text')}>{t('text')}</Button></div>}
@@ -168,6 +180,11 @@ export function GenerationPanel({startWithChoices=false,activity,question,onClos
     {!replacement&&origin==='text'&&<><label htmlFor={inputId}>{t('textLabel')}<textarea id={inputId} rows={7} value={text} maxLength={caps?.maxPastedChars??120000} dir={authoringDirection(text,ar)} onChange={e=>{setText(e.target.value);setRevisionId(null);setSegments([]);setSubmitted(undefined)}}/></label>{!revisionId&&<Button loading={pending==='text'} disabled={!!pending||!text.trim()} onClick={()=>void run('text',async()=>{const r=await teaching.createTextMaterial({title:activity.title||t('textLabel'),text});setMaterial(r.material)})}>{t('saveText')}</Button>}</>}
     {!replacement&&origin==='file'&&<>
      {!revisionId&&<label className={styles.upload} onDragOver={e=>{e.preventDefault()}} onDrop={e=>{e.preventDefault();const file=e.dataTransfer.files[0];if(file)uploadFile(file)}}><Upload size={40} aria-hidden="true"/><strong>{t('dropFile')}</strong><span>{t('fileChoose')}</span><input type="file" accept={caps?.acceptedKinds.map(k=>`.${k}`).join(',')??'.pdf,.docx,.pptx'} disabled={!!pending||!caps} onChange={e=>{const f=e.target.files?.[0];if(f)uploadFile(f)}}/>{caps&&<small>{t('uploadHint',{types:caps.acceptedKinds.map(k=>k.toUpperCase()).join(', '),size:Math.round(caps.maxBytes/1048576)})}</small>}</label>}
+     {/* The wait belongs where the work is. While the file uploads and its
+         pages are prepared, the progress is shown HERE, over the source —
+         it used to spin on the create button instead, which said the
+         questions were being written when nothing had been chosen yet. */}
+     {pending==='upload'&&<div className={styles.sourceBusy} role="status"><LoadingIndicator label={t('uploadBusy')}/></div>}
     </>}
     {/* Two real choices, each carrying its own consequence. The description
         used to sit below and swap as you chose, which meant the option you had
@@ -206,7 +223,7 @@ export function GenerationPanel({startWithChoices=false,activity,question,onClos
        const shown=s.pageIndex??s.segmentIndex
        return <label key={s.segmentIndex} className={styles.pagePreview}>
         <input type="checkbox" aria-label={t(locator,{number:number(shown)})} checked={segments.includes(s.segmentIndex)} onChange={()=>{setSegments(old=>old.includes(s.segmentIndex)?old.filter(n=>n!==s.segmentIndex):[...old,s.segmentIndex]);setSubmitted(undefined)}}/>
-        <PageShot key={`${revisionId}:${s.segmentIndex}:${previewToken}`} src={previewToken&&revisionId&&s.pageIndex?teaching.pageImage(revisionId,s.pageIndex,previewToken):null} alt={t(locator,{number:number(shown)})} text={s.text}/>
+        <PageShot key={`${revisionId}:${s.segmentIndex}:${previewToken}`} src={previewToken&&revisionId&&s.pageIndex?teaching.pageImage(revisionId,s.pageIndex,previewToken):null} alt={t(locator,{number:number(shown)})} text={s.text} failedLabel={ar?'تعذّر رسم هذه الصفحة':'This page could not be drawn'} retryLabel={ar?'أعد المحاولة':'Try again'}/>
         <span className={styles.pageNumber} aria-hidden="true"><strong>{number(shown)}</strong></span>
        </label>
       })}</div></>}
@@ -215,7 +232,7 @@ export function GenerationPanel({startWithChoices=false,activity,question,onClos
     {!replacement&&(origin!=='file'||revisionId)&&<div className={styles.count}><label>{t('count')}<Select disabled={!!pending||!!submitted} style={{width:100,flex:'0 0 100px'}} value={count} onValueChange={v=>{setCount(Number(v));setSubmitted(undefined)}}>{[...new Set([1,5,10,15,20,count])].filter(n=>n<=(caps?.maxQuestionsPerGeneration??20)).sort((a,b)=>a-b).map(n=><option key={n} value={n}>{number(n)}</option>)}</Select></label></div>}
    </fieldset>}
    {submitted&&!jobId&&!pending&&<p role="status">{t('pendingRecovery')}</p>}
-   {error&&<p role="alert" className={styles.error}>{error} <Button variant="quiet" onClick={()=>setQuoteAttempt(n=>n+1)}>{t('retry')}</Button></p>}{notice&&<p role="status">{notice}</p>}
+   {error&&<p role="alert" className={styles.error}>{error} <Button variant="quiet" disabled={!!pending||!ready} onClick={()=>void run('quote',requestQuote)}>{t('retry')}</Button></p>}{notice&&<p role="status">{notice}</p>}
    {jobId&&active.isPending&&<LoadingIndicator label={t('loadPages')}/>}
    {active.isError&&<p role="alert">{t('failed')} <Button onClick={()=>void active.refetch()}>{t('retry')}</Button></p>}
    {preparing&&<div className={styles.progress}><LoadingIndicator size="large" label={t('preparing')}/><p>{t('recoverNote')}</p><Button disabled={!!pending} loading={pending==='cancel'} onClick={()=>void run('cancel',async()=>{await api.post(`/api/v1/activity-generation/jobs/${jobId}/cancel`);await active.refetch()})}>{t('cancel')}</Button></div>}
@@ -227,19 +244,26 @@ export function GenerationPanel({startWithChoices=false,activity,question,onClos
    </section>}
    {source&&<section className={styles.source}><p dir="auto">{source.text}</p><Button onClick={()=>setSource(null)}>{t('sourceClose')}</Button></section>}
   </div>
-  <footer className={styles.footer} inert={quoting}>
-   {!jobId?<><div className={styles.cost} aria-live="polite" aria-busy={quoting} data-stale={quoteStale||undefined}>{quoting&&!shownQuote?t('estimating'):shownQuote?<>{t('estimated')} <bdi>{number(shownQuote.estimateAiCredits)} {t('aiCredits')}</bdi> · {t('maximum')} <bdi>{number(shownQuote.maxAuthorizedAiCredits)} {t('aiCredits')}</bdi> · {t('available')} <bdi>{number(shownQuote.usableAiCredits)} {t('aiCredits')}</bdi>{quoting&&<span className={styles.costUpdating}> · {t('estimating')}</span>}{/* A new teacher who signed up by email is unverified by design, so the
-          trial allowance was never issued and the balance is 0. Telling them
-          their credit "does not cover this request" and offering to sell more
-          is wrong twice over: the advice (choose fewer questions) cannot work
-          at zero, and the upsell is exactly what the teardown's REJECT list
-          forbids inside the authoring canvas. The server already sends the
-          real reason on the quote; say that instead. */}
-       {!quoteStale&&shownQuote.generationAvailable&&shownQuote.pricingAvailable&&!shownQuote.affordable&&(
-         shownQuote.grant&&!shownQuote.grant.eligible&&shownQuote.grant.reason==='email_not_verified'
-           ? <p>{translate('teaching.generation.verifyFirst')}</p>
-           : <p>{t('credit')} <Link to="/teacher/billing" className={styles.costUpgrade}>{ar?'أضف رصيدًا أو ارفع خطتك':'Add credit or upgrade'}</Link></p>
-       )}{!quoteStale&&(!shownQuote.generationAvailable||!shownQuote.pricingAvailable)&&<p>{t('unavailable')}</p>}</>:t('readyHint')}</div><Button variant="primary" icon={<Sparkles size={18}/>} loading={pending==='generate'||pending==='upload'||pending==='text'} disabled={!!pending||!ready||!currentQuote?.affordable||!currentQuote.generationAvailable||!currentQuote.pricingAvailable} onClick={()=>void run('generate',generate)}>{submitted&&!pending?t('resume'):replacement?t('suggest'):mode==='extract'?(ar?'استخراج الأسئلة بالذكاء الاصطناعي':'Extract questions with AI'):(ar?`توليد ${number(count)} أسئلة بالذكاء الاصطناعي`:`Generate ${number(count)} questions with AI`)}</Button></>:result&&remaining.length?<><span>{t('selected',{number:number(selected.length)})}</span>{!replacement&&<Button disabled={!!pending||uploadingImages.length>0} onClick={()=>void run('apply',()=>apply(remaining))}>{ar?`إضافة جميع الأسئلة المتبقية (${number(remaining.length)})`:`Add all remaining (${number(remaining.length)})`}</Button>}{replacement&&<Button onClick={onClose}>{t('keep')}</Button>}<Button variant="primary" loading={pending==='apply'} disabled={!!pending||uploadingImages.length>0||!selected.length||staleTarget} onClick={()=>void run('apply',()=>apply())}>{replacement?t('replace'):t('add',{count:selected.length,number:number(selected.length)})}</Button></>:replacement&&job&&['failed','cancelled'].includes(job.state)?<><Button onClick={onClose}>{t('keep')}</Button><Button variant="primary" onClick={refreshTarget}>{t('retry')}</Button></>:!preparing&&<Button onClick={()=>{if(replacement){onClose();return}recoveryCleared.current=false;setChoosing(true);setJobId(null);setSubmitted(undefined);setRequestKey(crypto.randomUUID());setNotice('')}}>{replacement?t('keep'):t('new')}</Button>}
+  <footer className={styles.footer}>
+   {!jobId?(awaitingConfirm?<>
+   <div className={styles.cost} role="status"><strong>{t('confirmLead')}</strong> {t('estimated')} <bdi>{number(currentQuote.estimateAiCredits)} {t('aiCredits')}</bdi> · {t('maximum')} <bdi>{number(currentQuote.maxAuthorizedAiCredits)} {t('aiCredits')}</bdi> · {t('available')} <bdi>{number(currentQuote.usableAiCredits)} {t('aiCredits')}</bdi>{/* A new teacher who signed up by email is unverified by design, so the
+       trial allowance was never issued and the balance is 0. Telling them
+       their credit "does not cover this request" and offering to sell more
+       is wrong twice over: the advice (choose fewer questions) cannot work
+       at zero, and the upsell is exactly what the teardown's REJECT list
+       forbids inside the authoring canvas. The server already sends the
+       real reason on the quote; say that instead. */}
+    {currentQuote.generationAvailable&&currentQuote.pricingAvailable&&!currentQuote.affordable&&(
+      currentQuote.grant&&!currentQuote.grant.eligible&&currentQuote.grant.reason==='email_not_verified'
+        ? <p>{translate('teaching.generation.verifyFirst')}</p>
+        : <p>{t('credit')} <Link to="/teacher/billing" className={styles.costUpgrade}>{ar?'أضف رصيدًا أو ارفع خطتك':'Add credit or upgrade'}</Link></p>
+    )}{(!currentQuote.generationAvailable||!currentQuote.pricingAvailable)&&<p>{t('unavailable')}</p>}</div>
+   <Button variant="quiet" disabled={!!pending} onClick={()=>{setQuoted(null);setError('')}}>{t('confirmCancel')}</Button>
+   <Button variant="primary" icon={<Sparkles size={18}/>} loading={pending==='generate'} disabled={!!pending||!currentQuote.affordable||!currentQuote.generationAvailable||!currentQuote.pricingAvailable} onClick={()=>void run('generate',generate)}>{t('confirmCreate')}</Button>
+  </>:<>
+   <div className={styles.cost}>{ready?t('costOnConfirm'):t('readyHint')}</div>
+   <Button variant="primary" icon={<Sparkles size={18}/>} loading={pending==='quote'||pending==='generate'} disabled={!!pending||!ready} onClick={()=>void run(submitted?'generate':'quote',submitted?generate:requestQuote)}>{submitted&&!pending?t('resume'):replacement?t('suggest'):mode==='extract'?(ar?'استخراج الأسئلة بالذكاء الاصطناعي':'Extract questions with AI'):(ar?`توليد ${number(count)} أسئلة بالذكاء الاصطناعي`:`Generate ${number(count)} questions with AI`)}</Button>
+  </>):result&&remaining.length?<><span>{t('selected',{number:number(selected.length)})}</span>{!replacement&&<Button disabled={!!pending||uploadingImages.length>0} onClick={()=>void run('apply',()=>apply(remaining))}>{ar?`إضافة جميع الأسئلة المتبقية (${number(remaining.length)})`:`Add all remaining (${number(remaining.length)})`}</Button>}{replacement&&<Button onClick={onClose}>{t('keep')}</Button>}<Button variant="primary" loading={pending==='apply'} disabled={!!pending||uploadingImages.length>0||!selected.length||staleTarget} onClick={()=>void run('apply',()=>apply())}>{replacement?t('replace'):t('add',{count:selected.length,number:number(selected.length)})}</Button></>:replacement&&job&&['failed','cancelled'].includes(job.state)?<><Button onClick={onClose}>{t('keep')}</Button><Button variant="primary" onClick={refreshTarget}>{t('retry')}</Button></>:!preparing&&<Button onClick={()=>{if(replacement){onClose();return}recoveryCleared.current=false;setChoosing(true);setJobId(null);setSubmitted(undefined);setRequestKey(crypto.randomUUID());setNotice('')}}>{replacement?t('keep'):t('new')}</Button>}
   {jobId&&!preparing&&<Button disabled={!!pending} onClick={onClose}>{ar?'تم':'Done'}</Button>}</footer></>}
  </dialog>
 }

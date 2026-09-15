@@ -9,7 +9,8 @@ for(const [width,ar] of [[1440,false],[390,true]] as const)test(`question proper
  for(let i=0;i<2;i++)await page.request.post(`/api/v1/activities/${activity.id}/questions`,{headers,data:{kind:'mcq',prompt:`Question ${i+1}`,payload:{options:[{key:'a',text:'One'},{key:'b',text:'Two'},{key:'c',text:'Three'},{key:'d',text:'Four'}],correct:'a'},timeLimitS:20}})
  await page.goto(`/teacher/activities/${activity.id}`)
  const toggle=page.locator('[data-properties-toggle]'),panel=page.locator('aside[data-editor-drawer]')
- if(width<1025)await toggle.click()
+ const openProperties=()=>width<1025?page.getByRole('navigation',{name:ar?'أدوات المحرر':'Editor tools'}).getByRole('button',{name:ar?'الخصائص':'Settings',exact:true}).click():Promise.resolve()
+ await openProperties()
  await expect(panel.getByRole('heading',{name:ar?'خصائص السؤال':'Question properties'})).toBeVisible()
  await panel.locator('#question-duration').click();await page.getByRole('option',{name:ar?'30 ثانية':'30 seconds',exact:true}).click()
  await panel.getByRole('button',{name:ar?'تطبيق على جميع الأسئلة':'Apply to all questions',exact:true}).click()
@@ -21,11 +22,11 @@ for(const [width,ar] of [[1440,false],[390,true]] as const)test(`question proper
  await page.screenshot({path:`../screenshots/question-properties-menu-${width}.png`})
  await page.getByRole('option',{name:ar?/نقاط مضاعفة/:/Double points/}).click()
  await expect.poll(async()=>{const r=await page.request.get(`/api/v1/activities/${activity.id}`,{headers});return (await r.json()).questions[0].payload.pointsMultiplier}).toBe(2)
- await page.reload();if(width<1025)await toggle.click()
+ await page.reload();await openProperties()
  await expect(panel.locator('#question-points')).toHaveText(ar?'نقاط مضاعفة':'Double points')
  await expect(panel.locator('#question-duration')).toHaveText(ar?'30 ثانية':'30 seconds')
  await panel.getByRole('button',{name:ar?'طيّ الخصائص':'Fold properties',exact:true}).click()
- if(width<1025){await expect(panel).toBeHidden();await toggle.click();await expect(panel).toBeVisible()}
+ if(width<1025){await expect(panel).toBeHidden();await openProperties();await expect(panel).toBeVisible()}
  else{await expect(panel).toHaveAttribute('data-editor-drawer','closed');await panel.getByRole('button',{name:ar?'فتح الخصائص':'Unfold properties',exact:true}).click();await expect(panel).toHaveAttribute('data-editor-drawer','open')}
  await panel.locator('#question-points').click();await page.getByRole('option',{name:ar?/بدون نقاط/:/No points/}).click()
  await expect.poll(async()=>{const r=await page.request.get(`/api/v1/activities/${activity.id}`,{headers});return (await r.json()).questions[0].payload.pointsMultiplier}).toBe(0)

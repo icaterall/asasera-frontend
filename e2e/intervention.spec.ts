@@ -3,6 +3,7 @@ import {localTeacher} from './local-fixture'
 import {test,expect} from '@playwright/test'
 test('a private teacher decision inserts an approved verification question and records provenance',async({browser,page})=>{
   test.setTimeout(90_000)
+  await page.addInitScript(()=>localStorage.setItem('asasera.language','ar'))
   const {email,password}=localTeacher()
   const {accessToken}=await(await page.request.post('/api/v1/auth/login',{data:{email,password}})).json(),headers={authorization:`Bearer ${accessToken}`}
   const make=async(title:string,kind:'mcq'|'tf')=>{
@@ -22,6 +23,7 @@ test('a private teacher decision inserts an approved verification question and r
   const pin=await page.locator('strong[dir=ltr]').first().innerText()
   const contexts=await Promise.all(Array.from({length:3},()=>browser.newContext({baseURL:new URL(page.url()).origin,viewport:{width:390,height:844}})))
   try{
+    await Promise.all(contexts.map(context=>context.addInitScript(()=>localStorage.setItem('asasera.language','ar'))))
     let leaked=false
     const players=await Promise.all(contexts.map(c=>c.newPage()))
     for(const [index,p]of players.entries()){
@@ -52,5 +54,5 @@ test('a private teacher decision inserts an approved verification question and r
     expect(report.questions).toHaveLength(2);expect(report.questions[1].remedial).toBe(true);expect(report.questions[1].prompt).toBe(target.question.prompt)
     expect(report.participants.every((p:{originalCorrect:number;remedialCorrect:number})=>p.originalCorrect===0&&p.remedialCorrect===1)).toBe(true)
     expect(leaked).toBe(false)
-  }finally{await Promise.all(contexts.map(c=>c.close()))}
+  }finally{await Promise.allSettled(contexts.map(c=>c.close()))}
 })

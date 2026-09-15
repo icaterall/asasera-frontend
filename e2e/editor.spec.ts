@@ -118,6 +118,9 @@ test.describe('the four-region editor', () => {
     await page.getByRole('button', { name: 'اعتماد النسخة' }).click()
 
     await expect(page.getByRole('button', { name: 'اعتماد التغييرات' })).toBeVisible({ timeout: 15_000 })
+    const approvedDialog = page.getByRole('dialog', { name: 'تم اعتماد نشاطك' })
+    await expect(approvedDialog).toBeVisible()
+    await approvedDialog.getByRole('button', { name: 'أكمل التحرير' }).click()
     await page.getByRole('button',{name:'المزيد',exact:true}).click()
     await expect(page.getByRole('dialog',{name:'أدوات النشاط'}).getByRole('button', { name: 'ابدأ حصة مباشرة' })).toBeVisible()
     await expect(page.getByRole('dialog',{name:'أدوات النشاط'}).getByRole('button', { name: 'كلّف كواجب' })).toBeVisible()

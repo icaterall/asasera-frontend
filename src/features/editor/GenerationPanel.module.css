@@ -80,3 +80,13 @@
 /* Told they cannot afford it, and given the way to fix it in the same breath. */
 .costUpgrade{color:var(--act);font-weight:700;text-decoration:underline;text-underline-offset:2px;white-space:nowrap}
 .costUpgrade:hover{color:var(--act-press)}
+
+/* A page that should have a picture and does not: say so, and offer the retry.
+   Never the extracted text — that is the view the pictures replace. */
+.pageFailed{position:absolute;inset:0;display:grid;align-content:center;justify-items:center;gap:8px;padding:10px;text-align:center}
+.pageFailed small{color:var(--muted,#666);font-size:11px;line-height:1.4}
+.pageFailed button{appearance:none;border:1px solid var(--line,#ccc);border-radius:5px;background:var(--surface,#fff);color:var(--act,#004ccc);font:inherit;font-size:11px;font-weight:700;padding:5px 9px;min-height:28px;cursor:pointer}
+.pageFailed button:hover{border-color:var(--act,#004ccc)}
+
+/* Upload progress sits with the source it belongs to, not on the create button. */
+.sourceBusy{display:flex;justify-content:center;padding:var(--space-4,16px) 0}

@@ -394,23 +394,32 @@ it('creates an activity from a title alone and carries a chosen material into th
   const submit = screen.getByRole('button', {name: 'Next'})
   await waitFor(() => expect(submit.hasAttribute('disabled')).toBe(false))
   fireEvent.click(submit)
-  await waitFor(() => expect(create).toHaveBeenCalledWith({title: 'From chapter 3', purposeId: null, contentLanguage: 'en'}))
+  await waitFor(() => expect(create).toHaveBeenCalledWith({title: 'From chapter 3', purposeId: null, contentLanguage: 'en', theme: expect.any(String)}))
+  /* A new activity is born in one of the drawn worlds. 'classic' draws no
+     backdrop at all, which is what made a teacher's first activity look
+     unfinished before they had touched anything. */
+  expect(create.mock.calls[0]![0].theme).not.toBe('classic')
   await waitFor(() => expect(screen.getByLabelText('Current URL').textContent).toMatch(/^\/teacher\/activities\/42\?generate=1&choose=1&draft=/))
   const draft = new URLSearchParams(screen.getByLabelText('Current URL').textContent!.split('?')[1]).get('draft')
   expect(decodeGenerationDraft(draft)).toMatchObject({origin: 'file', materialRevisionId: 11, task: 'questions'})
   expect(decodeGenerationDraft('not-base64-json')).toBeNull()
 })
 
-it('opens the AI panel pre-filled from ?generate=1&draft= and quotes without a click, then cleans the URL', async () => {
+it('opens the AI panel pre-filled from ?generate=1&draft=, prices nothing until asked, then cleans the URL', async () => {
   vi.spyOn(api, 'get').mockImplementation(async path => path.endsWith('/labels') ? {labels: [], pairs: [], decisions: [], schedule: null} : path.includes('/teaching/materials') ? {materials: [], total: 0} : {jobs: []})
   const post = vi.spyOn(api, 'post').mockResolvedValue({estimateMillicents: 1, maxAuthorizedMillicents: 2, estimateAiCredits:1,maxAuthorizedAiCredits:2,usableAiCredits:3,creditPolicyVersion:1,creditUnit:'AI Credits',spendableMillicents: 3, usableMillicents: 3, allowanceMillicents: 100000, exposureMillicents: 0, affordable: true, pricingAvailable: true, generationAvailable:true, quoteId:'opaque-quote', quoteExpiresAt: '2999-01-01T00:00:00.000Z', grant: {trialMillicents: 100000, trialAiCredits:100000, claimed: true, eligible: true, reason: null}, delivery: 'd'})
   show(<ActivityEditor/>, `/teacher/activities/42?generate=1&draft=${encodeGenerationDraft({origin: 'topic', objective: 'Compare fractions', provider: 'gemini', difficulty: 'hard'})}`)
   await screen.findByRole('dialog', {name: 'Enter a topic'})
+  await waitFor(() => expect(screen.getByLabelText('Current URL').textContent).toBe('/teacher/activities/42'))
+  const create = await screen.findByRole('button', {name: 'Generate 5 questions with AI'})
+  /* The draft fills the panel in; it does not spend a request. The price is
+     asked for when the teacher presses create, and not before. */
+  expect(post).not.toHaveBeenCalled()
+  await waitFor(() => expect((create as HTMLButtonElement).disabled).toBe(false))
+  fireEvent.click(create)
   await waitFor(() => expect(post).toHaveBeenCalledOnce())
   expect(post.mock.calls[0]![1]).toMatchObject({activityId:42,origin:'topic',objective:'Compare fractions',difficulty:'hard'})
   expect(post.mock.calls[0]![1]).not.toHaveProperty('provider')
-  await waitFor(() => expect(screen.getByLabelText('Current URL').textContent).toBe('/teacher/activities/42'))
-  await screen.findByRole('button', {name: 'Generate 5 questions with AI'})
   expect(screen.queryByText(/your choice/)).toBeNull()
 })
 

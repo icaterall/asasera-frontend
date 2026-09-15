@@ -27,8 +27,16 @@ for(const [name,width,lang,theme] of [['desktop',1440,'en','light'],['mobile',39
   await expect(page.getByRole('heading',{name:arabic?'الرصيد والاستخدام':'Balance & usage'})).toBeVisible()
   await expect(page.getByRole('heading',{name:arabic?'سجل المشتريات':'Purchase history'})).toBeVisible()
   const formatted=await page.evaluate(({lang,value})=>new Intl.NumberFormat(lang).format(value),{lang,value:pending?49000:129000})
-  const balance=page.getByRole('button',{name:arabic?/الرصيد المتاح:/:/Available balance:/})
-  await expect(balance).toHaveAttribute('title',new RegExp(formatted.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')))
+  const escaped=new RegExp(formatted.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'))
+  if(width>=1024){
+   const balance=page.getByRole('button',{name:arabic?/الرصيد المتاح:/:/Available balance:/})
+   await expect(balance).toHaveAttribute('title',escaped)
+  }else{
+   // The narrow teacher header deliberately keeps the balance inside its menu;
+   // this page's primary balance remains visible in the content without opening it.
+   const available=page.getByText(arabic?'متاح الآن':'Available now',{exact:true}).locator('..').getByRole('definition')
+   await expect(available).toHaveText(escaped)
+  }
   await expect(page.getByRole('button',{name:arabic?'تحديث':'Refresh',exact:true})).toBeEnabled()
   if(pending){
    await page.clock.runFor(31_000)

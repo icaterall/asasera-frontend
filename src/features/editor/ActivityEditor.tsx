@@ -1,6 +1,9 @@
 import {FormattedText} from '@/components/formatted-text/FormattedText'
 import {FormattedInput} from './FormattedInput'
 import {QuestionTypeDialog,QuestionTypePicker,questionTypeName} from './QuestionTypePicker'
+import {PRESENTATION_QUESTION_KINDS,type PresentationId} from '@/shared/presentation'
+import {ActivityGameChoice} from './ActivityGameChoice'
+import {gameName as presentationName} from '@/features/presentations/catalog'
 import {ButtonSpinner} from '@/design/ButtonSpinner'
 import {AccountControl} from '@/components/layout/AccountControl'
 import {InstructorBalance} from '@/features/account/InstructorBalance'
@@ -172,7 +175,19 @@ function ActivityEditorWorkspace() {
   const generateOnMount=useRef(searchParams.get('generate')==='1'?(decodeGenerationDraft(searchParams.get('draft'))??{}):null)
   const [themesOpen,setThemesOpen]=useState(false)
   // The rail shows one of two faces; question properties is the working default.
+  /* An activity committed to a game only offers the question kinds that game
+     can play; with no game set, nothing is narrowed. */
+  const chosenGame=data?.activity.presentationId??null
+  const playableKinds=chosenGame?PRESENTATION_QUESTION_KINDS[chosenGame]:undefined
+  const chosenGameName=chosenGame?presentationName(chosenGame,ar):undefined
+  const [justPublished,setJustPublished]=useState(false)
   const [asideTab,setAsideTab]=useState<'properties'|'themes'>('properties')
+  /* Where the backdrop comes from, said once. A teacher who has never opened
+     this rail has no way of knowing the world behind their activity is theirs
+     to change — the picker is two clicks inside a tab named for something
+     else. Shown until they act on it, then never again. */
+  const [themesHint,setThemesHint]=useState(()=>{try{return localStorage.getItem('asasera:themes-hint:v1')!=='seen'}catch{return false}})
+  const dismissThemesHint=()=>{setThemesHint(false);try{localStorage.setItem('asasera:themes-hint:v1','seen')}catch{/* Private window: the hint simply returns next time. */}}
   const [publishing, setPublishing] = useState(false)
   const [sharing, setSharing] = useState(false)
   const [shareNotice, setShareNotice] = useState<string | null>(null)
@@ -599,6 +614,12 @@ function ActivityEditorWorkspace() {
       const result = await activities.publish(activityId)
       changeData((current) => current && { ...current, activity: result.activity })
       setExplanationCheck([])
+      /* Approval used to end in silence: the button changed label and nothing
+         else happened, while the two things a teacher approves FOR — running
+         the lesson and setting it as homework — sat behind a "More" sheet they
+         had no reason to open. The next step is offered at the moment it
+         becomes possible. */
+      setJustPublished(true)
     } catch (error) {
       /* The project's one error envelope: ApiError carries `details`. */
       const detail = (error as { details?: { problems?: PublicationProblem[] } })?.details
@@ -740,7 +761,7 @@ function ActivityEditorWorkspace() {
         baseTitle.current=result.activity.title
         changeData(current=>current&&({...current,activity:result.activity}))
       }}/>}
-      {generationOpen&&<GenerationPanel startWithChoices={chooseOnMount.current} activity={data.activity} question={active} replacement={generationReplacement} provenance={readProvenance(active)??(!generationReplacement?data.questions.map(readProvenance).find(p=>p?.origin==='file'):null)??null} initialDraft={generationDraft} onClose={()=>{chooseOnMount.current=false;setGenerationOpen(false);setGenerationDraft(null);requestAnimationFrame(()=>{setRailOpen(generationDrawers.current.rail);setPropsOpen(generationDrawers.current.props);requestAnimationFrame(()=>{const trigger=document.querySelector<HTMLElement>(`[data-generation-trigger="${generationReplacement?'replacement':'batch'}"]`);(trigger??generationOpener.current)?.focus()})})}} onApplied={reload}/>}
+      {generationOpen&&<GenerationPanel startWithChoices={chooseOnMount.current} activity={data.activity} question={active} replacement={generationReplacement} provenance={readProvenance(active)??(!generationReplacement?data.questions.map(readProvenance).find(p=>p?.origin==='file'):null)??null} initialDraft={generationDraft} onClose={()=>{chooseOnMount.current=false;setGenerationOpen(false);setGenerationDraft(null);requestAnimationFrame(()=>{setRailOpen(generationDrawers.current.rail);setPropsOpen(generationDrawers.current.props);requestAnimationFrame(()=>{window.setTimeout(()=>{const trigger=document.querySelector<HTMLElement>(`[data-generation-trigger="${generationReplacement?'replacement':'batch'}"]`);(trigger??generationOpener.current)?.focus()},0)})})}} onApplied={reload}/>} 
       {/* ---- 1. top bar ---- */}
       {/* Named like every other landmark in this file (rail, props, more sheet):
           landmark navigation should say which bar this is, not just "banner". */}
@@ -791,7 +812,32 @@ function ActivityEditorWorkspace() {
         </div>
       </header>
 
-      {activitySettingsOpen&&<EditorOverlay title={ar?'إعدادات النشاط':'Activity settings'} onClose={()=>setActivitySettingsOpen(false)}>{audienceEditor}</EditorOverlay>}
+      {activitySettingsOpen&&<EditorOverlay title={ar?'إعدادات النشاط':'Activity settings'} onClose={()=>setActivitySettingsOpen(false)}>
+        {audienceEditor}
+        <GameSetting activity={data.activity} onSaved={activity=>changeData(current=>current&&({...current,activity}))}/>
+      </EditorOverlay>}
+
+      {justPublished&&<EditorOverlay title={ar?'تم اعتماد نشاطك':'Your activity is approved'} onClose={()=>setJustPublished(false)}>
+        <div className={styles.nextSteps}>
+          <p className={styles.nextStepsLead}>{ar?'النسخة محفوظة وجاهزة للطلاب. ماذا تريد أن تفعل الآن؟':'This version is saved and ready for students. What would you like to do now?'}</p>
+          <button type="button" disabled={actionBusy} onClick={()=>{setJustPublished(false);void runWith('playLive',t("تعذّر حفظ التعديلات"),async()=>navigate(`/teacher/activities/${activityId}/play?mode=live`))}}>
+            <Radio size={20} aria-hidden="true"/>
+            <span><strong>{ar?'ابدأ حصة مباشرة':'Start a live lesson'}</strong><small>{ar?'يظهر رمز انضمام على الشاشة، ويلعب الطلاب معًا في الوقت نفسه.':'A join code appears on screen and your students play together, live.'}</small></span>
+          </button>
+          <button type="button" disabled={actionBusy} onClick={()=>{setJustPublished(false);void runWith('playHomework',t("تعذّر حفظ التعديلات"),async()=>navigate(`/teacher/activities/${activityId}/play?mode=homework`))}}>
+            <Clock size={20} aria-hidden="true"/>
+            <span><strong>{ar?'كلّف كواجب':'Assign as homework'}</strong><small>{ar?'حدّد موعدًا نهائيًا وشارك الرابط؛ يحلّه كل طالب في وقته.':'Set a deadline and share the link; each student works through it in their own time.'}</small></span>
+          </button>
+          <button type="button" disabled={actionBusy||sharing} onClick={()=>{
+            if(!shareable&&data.activity.visibility!=='published'){setJustPublished(false);setShareNotice(t("للمشاركة في المكتبة، أضف غرضًا تعليميًا أو وحدة منهجية من إعدادات النشاط."));setPropsOpen(true);return}
+            setJustPublished(false);void toggleShare()
+          }}>
+            <Library size={20} aria-hidden="true"/>
+            <span><strong>{data.activity.visibility==='published'?(ar?'سحب من المكتبة':'Remove from the library'):(ar?'شارك في المكتبة':'Share to the library')}</strong><small>{ar?'ليستفيد منه معلّمون آخرون، ويبقى تعديلك عليه لك وحدك.':'Other teachers can reuse it; your own copy stays yours to edit.'}</small></span>
+          </button>
+          <Button variant="quiet" onClick={()=>setJustPublished(false)}>{ar?'أكمل التحرير':'Keep editing'}</Button>
+        </div>
+      </EditorOverlay>}
 
       {deleting&&active&&createPortal(<ConfirmDialog
         open
@@ -807,6 +853,7 @@ function ActivityEditorWorkspace() {
 
 
       {addingType&&<QuestionTypeDialog
+        playable={playableKinds} gameName={chosenGameName}
         side="start"
         heading={ar?'ما نوع السؤال الجديد؟':'What kind of question?'}
         onChange={kind=>addQuestion(kind)}
@@ -1055,14 +1102,21 @@ function ActivityEditorWorkspace() {
         </header>
         <div className={styles.asideTabs} role="tablist" aria-label={ar?'لوحة الجانب':'Sidebar panel'}>
           {([['properties',t("خصائص السؤال"),<SlidersHorizontal size={20} aria-hidden="true"/>],['themes',ar?'المظاهر':'Themes',<Palette size={20} aria-hidden="true"/>]] as const).map(([id,label,icon])=>
-            <button key={id} type="button" role="tab" aria-selected={asideTab===id} onClick={()=>setAsideTab(id)}>{icon}<span>{label}</span></button>)}
+            <button key={id} type="button" role="tab" aria-selected={asideTab===id} onClick={()=>{setAsideTab(id);if(id==='themes')dismissThemesHint()}}>{icon}<span>{label}</span></button>)}
         </div>
+        {themesHint&&asideTab!=='themes'&&<div className={styles.themesHint}>
+          <p>{ar?'اخترنا مظهرًا لنشاطك تلقائيًا. غيّره — أو أضف مظهرك — من هنا.':'We picked a theme for your activity. Change it — or add your own — from here.'}</p>
+          <div>
+            <button type="button" onClick={()=>{setAsideTab('themes');dismissThemesHint()}}>{ar?'افتح المظاهر':'Open themes'}</button>
+            <button type="button" onClick={dismissThemesHint}>{ar?'فهمت':'Got it'}</button>
+          </div>
+        </div>}
         {asideTab==='themes'
           ? <ThemesPanel activity={data.activity} disabled={recovered} onOpenPicker={()=>setThemesOpen(true)}/>
           : <>
         <div className={styles.propGroup}>
           <label htmlFor="question-kind" className={styles.propLabel}><MessageCircleQuestion size={22}/>{t("نوع السؤال")}</label>
-          <QuestionTypePicker value={active?.kind??'mcq'} disabled={!active} onChange={kind=>{
+          <QuestionTypePicker value={active?.kind??'mcq'} disabled={!active} playable={playableKinds} gameName={chosenGameName} onChange={kind=>{
             if(kind===active?.kind)return
             if(kind==='hotspot'&&!active?.mediaKey){setChooseHotspot(true);return}
             setChooseHotspot(false)
@@ -1112,6 +1166,17 @@ function ActivityEditorWorkspace() {
 
         <div className={styles.propsFooter}>
           {(!!active&&data.questions.length>1)&&<div className={styles.thumbActions}>{active.ordinal>1&&<Button loading={pending==='moveUp'} icon={<ArrowUp size={17}/>} onClick={()=>moveActive(-1)}>{t("للأعلى")}</Button>}{active.ordinal<data.questions.length&&<Button loading={pending==='moveDown'} icon={<ArrowDown size={17}/>} onClick={()=>moveActive(1)}>{t("للأسفل")}</Button>}</div>}
+          <Button
+            variant="secondary"
+            full
+            data-generation-trigger="replacement"
+            disabled={!active||actionBusy||publishing}
+            loading={generationOpening&&generationReplacement}
+            icon={<Sparkles size={18} aria-hidden="true"/>}
+            onClick={()=>void openGeneration(true)}
+          >
+            {ar?'اقترح سؤالًا آخر':'Suggest another question'}
+          </Button>
           <Button
             variant="secondary"
             full
@@ -1192,6 +1257,32 @@ function ActivityEditorWorkspace() {
   )
 }
 
+/**
+ * Changing — or clearing — the game after the fact.
+ *
+ * The server refuses a game that cannot play questions the activity already
+ * has, and that refusal is the useful half of this control: it names how many
+ * questions would be stranded instead of dropping them silently at launch.
+ * Clearing the game is always allowed, and reopens every question kind.
+ */
+function GameSetting({activity,onSaved}:{activity:ActivityRecord;onSaved:(activity:ActivityRecord)=>void}){
+ const {i18n}=useTranslation(),ar=i18n.language.startsWith('ar')
+ const [choice,setChoice]=useState<PresentationId|null>(activity.presentationId)
+ const [busy,setBusy]=useState(false),[error,setError]=useState('')
+ const dirty=choice!==activity.presentationId
+ return <section className={styles.gameSetting}>
+  <ActivityGameChoice value={choice} onChange={value=>{setChoice(value);setError('')}} disabled={busy}/>
+  {error&&<p role="alert" className={styles.gameSettingError}>{error}</p>}
+  <Button variant="primary" loading={busy} disabled={!dirty||busy} onClick={()=>{
+   setBusy(true);setError('')
+   void activities.update(activity.id,{presentationId:choice,expectedRevision:activity.revision})
+    .then(result=>onSaved(result.activity))
+    .catch(problem=>{setError(problem instanceof Error?problem.message:(ar?'تعذّر حفظ اللعبة.':'The game could not be saved.'));setChoice(activity.presentationId)})
+    .finally(()=>setBusy(false))
+  }}>{ar?'احفظ اللعبة':'Save game'}</Button>
+ </section>
+}
+
 /* The themes face of the properties rail: the teacher's own themes first, then the catalogue. */
 function ThemesPanel({activity,disabled,onOpenPicker}:{activity:ActivityRecord;disabled:boolean;onOpenPicker:()=>void}){
   const {i18n}=useTranslation(),ar=i18n.language.startsWith('ar'),t=(a:string,e:string)=>ar?a:e
@@ -1206,6 +1297,10 @@ function ThemesPanel({activity,disabled,onOpenPicker}:{activity:ActivityRecord;d
     </section>
     <section>
       <h3>{t('مظاهر أساسيرا','Asasera themes')}</h3>
+      {/* Classic is the one theme that draws nothing. Say so where the teacher
+          is looking at it, rather than leaving them with a blank stage and no
+          idea that it is a choice. */}
+      {current.id==='classic'&&<p className={styles.themesNote}>{t('هذا المظهر بلا خلفية. اختر عالمًا لتظهر خلفية نشاطك للطلاب.','This theme draws no backdrop. Pick a world to give your activity a background.')}</p>}
       <button type="button" className={styles.themeCurrent} disabled={disabled} onClick={onOpenPicker}>
         <ThemeThumbnail key={activity.theme} theme={activity.theme}/>
         <span>{ar?current.ar:current.en}<Palette size={17} aria-hidden="true"/></span>

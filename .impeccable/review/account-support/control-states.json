@@ -5,10 +5,10 @@
     "color": "rgb(255, 255, 255)"
   },
   "mobileTeacherMenuBounds": {
-    "x": 86,
-    "y": 204.5,
-    "width": 288,
-    "height": 450.5
+    "x": 78,
+    "y": 203.7589111328125,
+    "width": 296,
+    "height": 450
   },
   "viewport": {
     "width": 390,

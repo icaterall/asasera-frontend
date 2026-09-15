@@ -8,8 +8,9 @@ import path from 'node:path'
  *
  * Register through the signup pages → read the verification link out of the
  * CAPTURED mail file (EMAIL_DELIVERY=capture writes JSON and delivers nothing)
- * → open the link → the account is verified → the USD 1.00 trial allowance is
- * granted exactly once, in the wallet API and on the one screen that shows it
+ * → open the link → the account is verified → the USD 1.00 welcome credit and
+ * USD 0.30 monthly free allowance are granted exactly once, in the wallet API
+ * and on the one screen that shows their combined available balance
  * → a reload and a fresh sign-in grant nothing more → a second registration
  * with the same address is refused in the interface and by the API.
  *
@@ -27,7 +28,9 @@ const SHOTS=process.env.PW_SHOT_DIR??'./e2e/.artifacts/auth-journey'
 test.skip(!MAIL,'Requires the captured-mail stack: PW_MAIL_DIR + EMAIL_DELIVERY=capture on the API')
 test.describe.configure({mode:'serial'})
 
-const ALLOWANCE=100_000            // millicents: USD 1.00
+const TRIAL_ALLOWANCE=100_000      // millicents: USD 1.00
+const MONTHLY_ALLOWANCE=30_000     // millicents: USD 0.30
+const TOTAL_ALLOWANCE=TRIAL_ALLOWANCE+MONTHLY_ALLOWANCE
 const PASSWORD='a release closure passphrase 2026'
 /** 1280 is the desktop pass; 390 is an EMULATED narrow viewport, not a physical phone. */
 const WIDTHS=[{name:'1280',width:1280,height:900},{name:'390',width:390,height:844}] as const
@@ -62,7 +65,7 @@ for(const language of ['en','ar'] as const){
   const ar=language==='ar'
   const say=(english:string,arabic:string)=>ar?arabic:english
 
-  test(`a teacher registers, verifies from the captured mail and is granted USD 1.00 once (${language})`,async({page})=>{
+  test(`a teacher registers, verifies from the captured mail and receives each welcome allowance once (${language})`,async({page})=>{
     test.setTimeout(180_000)
     mkdirSync(SHOTS,{recursive:true})
     const errors:string[]=[];page.on('pageerror',error=>errors.push(error.message))
@@ -94,7 +97,7 @@ for(const language of ['en','ar'] as const){
     const unverified=await(await page.request.get('/api/v1/teaching/wallet',{headers:bearer})).json() as Wallet
     expect(unverified.balanceMillicents).toBe(0)
     expect(unverified.welcomeGrantClaimed).toBe(false)
-    expect(unverified.trialGrantMillicents).toBe(ALLOWANCE) // advertised, not granted
+    expect(unverified.trialGrantMillicents).toBe(TRIAL_ALLOWANCE) // advertised, not granted
 
     /* 3 — the captured message. Written to disk, delivered to nobody. */
     await expect.poll(()=>capturedVerification(address)!==null,{timeout:20_000,message:'a verification message is captured for this address'}).toBe(true)
@@ -114,38 +117,48 @@ for(const language of ['en','ar'] as const){
 
     /* 5 — the allowance, in the API and then on the screen that shows it. */
     const granted=await(await page.request.get('/api/v1/teaching/wallet',{headers:bearer})).json() as Wallet
-    expect(granted.balanceMillicents).toBe(ALLOWANCE)
-    expect(granted.usableMillicents).toBe(ALLOWANCE)
-    expect(granted.spendableMillicents).toBe(ALLOWANCE)
-    expect(granted.allowanceMillicents).toBe(ALLOWANCE)
+    expect(granted.balanceMillicents).toBe(TOTAL_ALLOWANCE)
+    expect(granted.usableMillicents).toBe(TOTAL_ALLOWANCE)
+    expect(granted.spendableMillicents).toBe(TOTAL_ALLOWANCE)
+    expect(granted.allowanceMillicents).toBe(TOTAL_ALLOWANCE)
+    expect(granted.trialGrantMillicents).toBe(TRIAL_ALLOWANCE)
     expect(granted.exposureMillicents).toBe(0)
     expect(granted.welcomeGrantClaimed).toBe(true)
 
     const created=await(await page.request.post('/api/v1/activities',{headers:bearer,data:{title:say('Trial allowance — synthetic activity','رصيد التجربة — نشاط تجريبي'),subjectId:1,levelId:8,purposeId:2}})).json()
     await page.goto(`/teacher/activities/${created.activity.id}?generate=1`)
     await page.getByPlaceholder(say('The water cycle — Grade 5','دورة الماء — الصف الخامس')).fill(say('The water cycle','دورة الماء'))
-    const cost=page.locator('[aria-live="polite"]').filter({hasText:say('Available','المتاح')}).first()
+    const generationDialog=page.getByRole('dialog')
+    await generationDialog.getByRole('button',{name:ar?/توليد [٥5] أسئلة بالذكاء الاصطناعي/:'Generate 5 questions with AI',exact:true}).click()
+    const cost=generationDialog.getByRole('status').filter({hasText:say('Available','المتاح')})
     await expect(cost).toBeVisible({timeout:20_000})
-    // One US$1.00 on the line, and it is the "available" figure: the trial allowance, unspent.
+    // The combined 130,000 AI Credits are available: welcome credit plus this month's free allowance.
     const costText=(await cost.innerText()).replace(/‏|‎/g,'')
-    expect(costText).toMatch(new RegExp(`${say('Available','المتاح')}\\s*(\\$\\s*1\\.00|1\\.00\\s*US\\$)`))
+    expect(costText).toContain(say('Available','المتاح'))
+    expect(costText.replace(/[^0-9٠-٩]/g,'')).toContain('130000')
+    expect(costText).toContain(say('AI Credits','رصيد ذكاء اصطناعي'))
     const walletShots=await shoot(page,'wallet',language)
 
     /* 6 — granted once: a reload, a re-read and a fresh sign-in add nothing. */
     await page.reload()
     await expect(page).toHaveURL(new RegExp(`/teacher/activities/${created.activity.id}`))
     const reread=await(await page.request.get('/api/v1/teaching/wallet',{headers:bearer})).json() as Wallet
-    expect(reread.balanceMillicents).toBe(ALLOWANCE)
+    expect(reread.balanceMillicents).toBe(TOTAL_ALLOWANCE)
     const relogin=await(await page.request.post('/api/v1/auth/login',{data:{email:address,password:PASSWORD}})).json() as {accessToken:string}
     const afterRelogin=await(await page.request.get('/api/v1/teaching/wallet',{headers:{authorization:`Bearer ${relogin.accessToken}`}})).json() as Wallet
-    expect(afterRelogin.balanceMillicents).toBe(ALLOWANCE)
+    expect(afterRelogin.balanceMillicents).toBe(TOTAL_ALLOWANCE)
     expect(afterRelogin.welcomeGrantClaimed).toBe(true)
-    const ledger=await(await page.request.get('/api/v1/teaching/wallet/entries',{headers:{authorization:`Bearer ${relogin.accessToken}`}})).json() as {entries:{kind:string;amountMillicents:number;reason:string|null}[]}
-    expect(ledger.entries.filter(e=>e.kind==='grant')).toEqual([{kind:'grant',amountMillicents:ALLOWANCE,jobId:null,reason:'trial_allowance',createdAt:expect.any(String)}])
+    const ledger=await(await page.request.get('/api/v1/teaching/wallet/entries',{headers:{authorization:`Bearer ${relogin.accessToken}`}})).json() as {entries:{kind:string;amountMillicents:number;jobId:number|null;reason:string|null;createdAt:string}[]}
+    const grants=ledger.entries.filter(e=>e.kind==='grant')
+    expect(grants).toHaveLength(2)
+    expect(grants).toEqual(expect.arrayContaining([
+      {kind:'grant',amountMillicents:TRIAL_ALLOWANCE,jobId:null,reason:'trial_allowance',createdAt:expect.any(String)},
+      {kind:'grant',amountMillicents:MONTHLY_ALLOWANCE,jobId:null,reason:'free_monthly',createdAt:expect.any(String)},
+    ]))
     const claimAgain=await page.request.post('/api/v1/teaching/wallet/welcome-grant',{headers:{authorization:`Bearer ${relogin.accessToken}`}})
     expect(claimAgain.status()).toBe(409)
     expect((await claimAgain.json()).error.code).toBe('grant_already_claimed')
-    expect((await(await page.request.get('/api/v1/teaching/wallet',{headers:{authorization:`Bearer ${relogin.accessToken}`}})).json() as Wallet).balanceMillicents).toBe(ALLOWANCE)
+    expect((await(await page.request.get('/api/v1/teaching/wallet',{headers:{authorization:`Bearer ${relogin.accessToken}`}})).json() as Wallet).balanceMillicents).toBe(TOTAL_ALLOWANCE)
 
     /* 7 — the same address again: the interface says so before the password step, and the API refuses. */
     const captures=readdirSync(MAIL).length
@@ -172,7 +185,9 @@ for(const language of ['en','ar'] as const){
     evidence.push({language,address,userId:session.user.id,
       capturedMailFile:mail.file,verificationLinkOrigin:new URL(mail.link).origin,tokenRecorded:false,delivered:mail.delivered,
       walletBeforeVerification:unverified.balanceMillicents,walletAfterVerification:granted.balanceMillicents,
-      walletAfterReload:reread.balanceMillicents,walletAfterRelogin:afterRelogin.balanceMillicents,grantEntries:ledger.entries.length,
+      walletAfterReload:reread.balanceMillicents,walletAfterRelogin:afterRelogin.balanceMillicents,
+      trialAllowanceMillicents:TRIAL_ALLOWANCE,monthlyAllowanceMillicents:MONTHLY_ALLOWANCE,totalAllowanceMillicents:TOTAL_ALLOWANCE,
+      grantEntries:grants.length,
       uiCostLine:costText,duplicateNoticeSubject:notice.subject,screenshots:{signup:signupShots,verify:verifyShots,wallet:walletShots},
       viewports:'1280 desktop; 390 EMULATED narrow viewport, not a physical phone',pageErrors:errors})
     writeFileSync(`${SHOTS}/auth-journey-evidence.json`,JSON.stringify(evidence,null,2))

@@ -12,6 +12,9 @@ import { TeacherGuideProvider } from './TeacherGuidePanel'
 import { TeacherHeader } from './TeacherHeader'
 import { TeacherSidebar, TeacherSidebarNav } from './TeacherSidebar'
 import { CloseIcon } from './TeacherIcons'
+import { InstructorBalance } from '@/features/account/InstructorBalance'
+import { LanguageToggle } from '@/components/ui/LanguageToggle'
+import { ThemeToggle } from '@/components/ui/ThemeToggle'
 
 /**
  * The signed-in teacher shell: verification banner, rail, header, content.
@@ -138,6 +141,16 @@ export function TeacherLayout() {
                 </button>
               </div>
               <TeacherSidebarNav onNavigate={() => setNavOpen(false)} />
+              {/* What the header no longer carries on a phone. Here they are
+                  read once and dismissed, instead of costing a row of the
+                  screen on every page. */}
+              <div className="mt-2 flex flex-col gap-3 border-t border-line px-4 py-4">
+                <InstructorBalance />
+                <div className="flex items-center justify-between gap-3">
+                  <LanguageToggle />
+                  <ThemeToggle />
+                </div>
+              </div>
             </div>
           </>
         ) : null}

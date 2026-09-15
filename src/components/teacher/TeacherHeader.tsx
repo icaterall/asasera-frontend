@@ -13,8 +13,18 @@ export function TeacherHeader({ onOpenNav }: { onOpenNav: () => void }) {
   // Creating is the primary classroom action in the supplied product direction.
   // Keep it visible everywhere a teacher can safely start a new activity.
   const showCreate = pathname !== '/teacher/activities/new'
+  /*
+   * ONE ROW, AT EVERY WIDTH.
+   *
+   * The header used to wrap: on a phone the balance, the language switch and
+   * the theme toggle fell onto a second line and took a third of the screen
+   * before any of the teacher's own work appeared. They are not header
+   * material on a phone — the balance, the language and the theme now live in
+   * the menu, which is where someone goes looking for them anyway, and the
+   * header keeps only what must always be one tap away.
+   */
   return (
-    <header className="teacher-header flex flex-wrap items-center gap-3 border-b border-line bg-surface px-4 py-2 sm:px-6">
+    <header className="teacher-header flex flex-nowrap items-center gap-3 border-b border-line bg-surface px-4 py-2 sm:px-6">
       <button
         type="button"
         onClick={onOpenNav}
@@ -30,7 +40,7 @@ export function TeacherHeader({ onOpenNav }: { onOpenNav: () => void }) {
         <Logo className="h-7 w-auto" />
       </Link>
 
-      <p className="hidden text-sm font-semibold text-muted lg:block">
+      <p className="hidden truncate text-sm font-semibold text-muted lg:block">
         {t('teacher.header.workspace')}
       </p>
 
@@ -42,9 +52,11 @@ export function TeacherHeader({ onOpenNav }: { onOpenNav: () => void }) {
           {i18n.language.startsWith('ar') ? 'إنشاء نشاط' : 'Create activity'}
         </Link>}
 
-        <InstructorBalance />
-        <LanguageToggle />
-        <ThemeToggle />
+        <div className="hidden items-center gap-2 lg:flex">
+          <InstructorBalance />
+          <LanguageToggle />
+          <ThemeToggle />
+        </div>
 
         <AccountControl />
       </div>

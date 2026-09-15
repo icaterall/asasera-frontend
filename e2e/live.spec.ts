@@ -8,6 +8,7 @@ const SHOTS=process.env.PW_SHOT_DIR??'../screenshots/v4'
 test.use({video:{mode:'on',size:{width:1440,height:900}}})
 test('30 browser participants complete ten questions through the real classroom UI',async({browser,page})=>{
   test.setTimeout(180_000)
+  await page.addInitScript(()=>localStorage.setItem('asasera.language','ar'))
   mkdirSync(SHOTS,{recursive:true})
   const errors:string[]=[];page.on('pageerror',error=>errors.push(error.message))
   await page.addInitScript(()=>{const Original=window.AudioContext;Object.assign(window,{__audioContexts:0});window.AudioContext=class extends Original{constructor(options?:AudioContextOptions){super(options);(window as unknown as {__audioContexts:number}).__audioContexts++}}})
@@ -28,6 +29,7 @@ test('30 browser participants complete ten questions through the real classroom 
   const pin=await page.locator('strong[dir=ltr]').first().innerText()
   const contexts=await Promise.all(Array.from({length:30},()=>browser.newContext({viewport:{width:390,height:844},baseURL:process.env.PW_BASE_URL??'http://127.0.0.1:5199'})))
   try {
+    await Promise.all(contexts.map(context=>context.addInitScript(()=>localStorage.setItem('asasera.language','ar'))))
     const players=await Promise.all(contexts.map(c=>c.newPage()))
     let leaked=false
     await Promise.all(players.map(async(p,i)=>{
@@ -88,5 +90,5 @@ test('30 browser participants complete ten questions through the real classroom 
     writeFileSync(`${SHOTS}/live-browser-evidence.json`,JSON.stringify({runId,label:'30 SIMULATED browser participants — separate Chromium contexts at 390×844 in this process, not physical phones',participants:30,questions:10,acceptedAnswers:300,explanationBeforeReveal:'absent from every host and player screen and from every player websocket frame',explanationAtReveal:'shown to host and players, matching the question just closed',reloadResume:true,deviceClockChanged:true,tabFrozenMs:1300,audioUnlockedOnStart:true,noAudioElements:true,pageErrors:errors,viewport:await page.evaluate(()=>({width:innerWidth,height:innerHeight,scrollWidth:document.documentElement.scrollWidth}))},null,2))
     const video=page.video();await page.close();if(video)await video.saveAs(`${SHOTS}/live-lobby-to-podium.webm`)
 
-  } finally {await Promise.all(contexts.map(c=>c.close()))}
+  } finally {await Promise.allSettled(contexts.map(c=>c.close()))}
 })

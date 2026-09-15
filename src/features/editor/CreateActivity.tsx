@@ -8,6 +8,9 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { activities, taxonomy } from '@/lib/api'
+import { defaultActivityTheme } from '@/features/activity-themes/catalog'
+import { ActivityGameChoice } from './ActivityGameChoice'
+import type { PresentationId } from '@/shared/presentation'
 import { Button, FailureState, LoadingState, Select } from '@/design'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 import { useAuth } from '@/hooks/useAuth'
@@ -37,6 +40,8 @@ export default function CreateActivity() {
   const languageValid=contentLanguageSchema.safeParse(contentLanguage).success
   const setTitle=(title:string)=>draft.update(current=>({...current,title}))
   const setPurpose=(purpose:string)=>draft.update(current=>({...current,purpose}))
+  const presentationId=(draft.value.presentationId??null) as PresentationId|null
+  const setPresentationId=(presentationId:PresentationId|null)=>draft.update(current=>({...current,presentationId}))
   const audience=useAudienceForm(draft.value.audience??undefined,value=>draft.update(current=>({...current,audience:value})))
   const [error, setError] = useState(''), [busy, setBusy] = useState(false), submitting = useRef(false)
   const refs = useQuery({ queryKey: ['activity-creation-reference'], queryFn: async () => {
@@ -52,7 +57,7 @@ export default function CreateActivity() {
       /* Send the audience only when it is complete; an absent audience lets the
          server infer one from the profile or file the activity as general. */
       const chosen = audience.ready ? {...audience.value, categoryId: audience.value.categoryId!} : {}
-      const { activity } = await activities.create({ title: title.trim() || (ar?'نشاط جديد':'Untitled quiz'), contentLanguage:contentLanguageSchema.parse(contentLanguage), ...chosen, purposeId: purpose ? Number(purpose) : null })
+      const { activity } = await activities.create({ title: title.trim() || (ar?'نشاط جديد':'Untitled quiz'), contentLanguage:contentLanguageSchema.parse(contentLanguage), ...chosen, purposeId: purpose ? Number(purpose) : null, theme: defaultActivityTheme(), ...(presentationId?{presentationId}:{}) })
       draft.clear(draft.value)
       void client.invalidateQueries({ queryKey: ['owned-activities'] })
       const generate = `?generate=1&choose=1${materialRevisionId?`&draft=${encodeGenerationDraft({origin:'file',task:'questions',materialRevisionId})}`:''}`
@@ -72,6 +77,7 @@ export default function CreateActivity() {
         <ActivityLanguageField value={contentLanguage} onChange={contentLanguage=>draft.update(current=>({...current,contentLanguage,contentLanguageChosen:true}))} disabled={busy}/>
       </div>
       <AudienceFields form={audience} disabled={busy} optional/>
+      <ActivityGameChoice value={presentationId} onChange={setPresentationId} disabled={busy}/>
       <details><summary>{ar ? 'المزيد من الإعدادات' : 'More settings'}</summary><label className={styles.field}>{ar ? 'الغرض التعليمي (اختياري)' : 'Teaching purpose (optional)'}<Select value={purpose} onValueChange={e => setPurpose(e)} disabled={busy}><option value="">{ar ? 'بلا غرض محدد' : 'No purpose chosen'}</option>{refs.data.purposes.map(p => <option key={p.id} value={p.id}>{ar ? p.nameAr : p.nameEn}</option>)}</Select><span className={styles.field} style={{fontWeight:400,color:'var(--muted)'}}>{ar ? 'يلزم غرض أو وحدة منهجية فقط عند مشاركة النشاط في المكتبة.' : 'A purpose or curriculum unit is only needed when you share the activity to the library.'}</span></label></details>
       {error&&<p role="alert">{error}</p>}
       <div className={styles.formActions}><Button type="submit" variant="primary" loading={busy} disabled={!title.trim() || !audience.optionalReady||!languageValid}>{ar ? 'التالي' : 'Next'}</Button><Button variant="quiet" disabled={busy} onClick={() => {draft.clear(); navigate('/teacher/activities')}}>{ar ? 'حذف المسودة' : 'Discard draft'}</Button></div>

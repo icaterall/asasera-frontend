@@ -6,6 +6,7 @@
  * CI fails if this file and its source differ.
  */
 import {z} from 'zod'
+import type {QuestionKind} from './questions.ts'
 
 export const PRESENTATION_IDS=['name-wheel','question-wheel','flashcards','random-cards','speaking-cards','open-box','challenge-cards','match-up','memory','group-sort','sequence','sentence-completion','word-builder','word-search','crossword','class-competition'] as const
 export const presentationIdSchema=z.enum(PRESENTATION_IDS)
@@ -21,6 +22,46 @@ export const PRESENTATION_CONTEXTS:Readonly<Record<PresentationId,readonly Deliv
  'match-up':['live','practice'],memory:['teacher-led','practice'],'group-sort':['live','practice'],
  sequence:['live','practice'],'sentence-completion':['live','practice'],
  'word-builder':['practice'],'word-search':['practice'],crossword:['practice'],'class-competition':['live'],
+}
+/**
+ * WHICH AUTHORED QUESTION KINDS EACH GAME CAN ACTUALLY PLAY.
+ *
+ * This mirrors `contentReason()` in the compatibility resolver, which is the
+ * authority at launch — it inspects each stored question and excludes what the
+ * game cannot render. Repeating the rule at the *kind* level is what lets the
+ * authoring side use it: a teacher who chose "Sequence" when they created the
+ * activity should be offered the ordering question and stopped from writing a
+ * true/false one, rather than discovering at launch that none of their work
+ * can be played. The two must stay in step; a kind listed here that the
+ * resolver refuses would promise a teacher something the game drops.
+ *
+ * 'name-wheel' plays participant names, never authored questions, so it has no
+ * kinds and is not offered as an activity's game.
+ */
+export const PRESENTATION_QUESTION_KINDS:Readonly<Record<PresentationId,readonly QuestionKind[]>>={
+ 'name-wheel':[],
+ 'question-wheel':['mcq','tf'],
+ flashcards:['mcq','tf','match'],
+ 'random-cards':['mcq','tf'],
+ 'speaking-cards':['discussion'],
+ 'open-box':['mcq','tf'],
+ 'challenge-cards':['mcq','tf','order','match','hotspot','cloze','vocabulary'],
+ 'match-up':['match'],
+ memory:['match'],
+ 'group-sort':['match'],
+ sequence:['order'],
+ 'sentence-completion':['cloze'],
+ 'word-builder':['vocabulary'],
+ 'word-search':['vocabulary'],
+ crossword:['vocabulary'],
+ 'class-competition':['mcq','tf','order','match','hotspot','cloze','vocabulary'],
+}
+/** The games a teacher can commit an activity to: those that play authored questions. */
+export const AUTHORABLE_PRESENTATION_IDS=PRESENTATION_IDS.filter(id=>PRESENTATION_QUESTION_KINDS[id].length>0)
+export const authorablePresentationIdSchema=z.enum(AUTHORABLE_PRESENTATION_IDS as unknown as [PresentationId,...PresentationId[]])
+/** True when a question of this kind can be played by the chosen game. */
+export function presentationAllowsKind(id:PresentationId,kind:QuestionKind):boolean{
+ return PRESENTATION_QUESTION_KINDS[id].includes(kind)
 }
 const questionIds=z.array(z.number().int().positive()).min(1).max(100).refine(ids=>new Set(ids).size===ids.length,'Question IDs must be unique.')
 export const presentationCompatibilityRequestSchema=z.object({

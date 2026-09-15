@@ -1,3 +1,4 @@
+import {useState} from 'react'
 import {createRoot} from 'react-dom/client'
 import {createInstance} from 'i18next'
 import {I18nextProvider} from 'react-i18next'
@@ -22,7 +23,19 @@ document.documentElement.dir=arabic?'rtl':'ltr'
 document.documentElement.lang=arabic?'ar':'en'
 localStorage.setItem('asasera.theme',params.get('theme')||'light')
 const user={id:73,name:arabic?'أحمد الراشدي':'Ahmed Al Rashdi',email:'instructor@example.test',role:params.get('role')||'teacher',emailVerified:true,locale:arabic?'ar':'en'} as PublicUser
+function Fixture(){
+ const [navOpen,setNavOpen]=useState(false)
+ return <>
+  {params.has('compact')?<div className="asas" style={{padding:16,display:'flex',justifyContent:'flex-end'}}><InstructorBalance compact/></div>:<>
+   <TeacherHeader onOpenNav={()=>setNavOpen(true)}/>
+   {navOpen&&<div className="teacher-drawer lg:hidden" role="dialog" aria-modal="true" aria-label={arabic?'تنقّل المعلّم':'Teacher navigation'}>
+    <button type="button" onClick={()=>setNavOpen(false)} aria-label={arabic?'إغلاق القائمة':'Close navigation'}>{arabic?'إغلاق':'Close'}</button>
+    <div style={{padding:16}}><InstructorBalance/></div>
+   </div>}
+  </>}
+  <main className="asas" style={{padding:24}}><h1>{arabic?'مساحة المعلّم':'Instructor workspace'}</h1><p>{arabic?'أنشئ أنشطتك التعليمية وأدر حصصك.':'Create learning activities and manage your sessions.'}</p></main>
+ </>
+}
 createRoot(document.getElementById('root')!).render(<I18nextProvider i18n={i18n}><ThemeProvider><QueryClientProvider client={new QueryClient()}><AuthContext.Provider value={{status:'authenticated',user,accessToken:null,needsProfile:false,signIn:async()=>user,signOut:async()=>{},forgetSession:()=>{},applyUser:()=>{}}}><MemoryRouter initialEntries={['/teacher/dashboard']}>
- {params.has('compact')?<div className="asas" style={{padding:16,display:'flex',justifyContent:'flex-end'}}><InstructorBalance compact/></div>:<TeacherHeader onOpenNav={()=>{}}/>}
- <main className="asas" style={{padding:24}}><h1>{arabic?'مساحة المعلّم':'Instructor workspace'}</h1><p>{arabic?'أنشئ أنشطتك التعليمية وأدر حصصك.':'Create learning activities and manage your sessions.'}</p></main>
+ <Fixture/>
 </MemoryRouter></AuthContext.Provider></QueryClientProvider></ThemeProvider></I18nextProvider>)
